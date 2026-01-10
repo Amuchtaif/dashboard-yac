@@ -1,0 +1,37 @@
+<?php
+require_once '../../../config/app.php';
+require_once '../../../config/database.php';
+
+check_login();
+
+if (isset($_GET['id'])) {
+    $id = (int) $_GET['id'];
+    $db = new Database();
+    $conn = $db->getConnection();
+
+    try {
+        // Optional Safety: Check if used
+        // Check employees table if they use this schedule_id (assuming the column exists or will exist)
+        // For now, we will just delete as per request, but let's check if 'schedule_id' column exists in employees first or just try-catch constraint violation.
+        // Assuming strict foreign keys might not be there yet for this new table.
+
+        $sql = "DELETE FROM work_schedules WHERE id = :id";
+        $stmt = $conn->prepare($sql);
+
+        if ($stmt->execute([':id' => $id])) {
+            header("Location: " . BASE_URL . "views/settings/schedules/index.php?success=" . urlencode("Schedule deleted successfully"));
+        } else {
+            header("Location: " . BASE_URL . "views/settings/schedules/index.php?error=" . urlencode("Failed to delete schedule"));
+        }
+    } catch (PDOException $e) {
+        $msg = "Error deleting schedule. It might be in use.";
+        if (strpos($e->getMessage(), 'Integrity constraint violation') !== false) {
+            $msg = "Cannot delete: This schedule is correctly assigned to employees/departments.";
+        }
+        header("Location: " . BASE_URL . "views/settings/schedules/index.php?error=" . urlencode($msg));
+    }
+} else {
+    header("Location: " . BASE_URL . "views/settings/schedules/index.php");
+}
+exit;
+?>
