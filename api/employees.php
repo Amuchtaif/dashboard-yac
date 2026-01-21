@@ -13,10 +13,10 @@ try {
             e.id, 
             e.full_name, 
             e.email, 
-            d.name as department, 
+            d.name as division_name, 
             u.name as unit 
         FROM employees e 
-        LEFT JOIN departments d ON e.department_id = d.id 
+        LEFT JOIN divisions d ON e.division_id = d.id 
         LEFT JOIN units u ON e.unit_id = u.id
     ";
 

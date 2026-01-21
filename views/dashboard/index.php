@@ -4,31 +4,34 @@ require_once '../../config/database.php';
 
 check_login();
 
-$page_title = "Dashboard";
+$page_title = "Beranda";
 
 // Fetch Stats
 $db = new Database();
 $conn = $db->getConnection();
 
 $emp_count = $conn->query("SELECT COUNT(*) FROM employees")->fetchColumn();
-$dept_count = $conn->query("SELECT COUNT(*) FROM departments")->fetchColumn();
+$dept_count = $conn->query("SELECT COUNT(*) FROM divisions")->fetchColumn();
 $unit_count = $conn->query("SELECT COUNT(*) FROM units")->fetchColumn();
 $student_count = $conn->query("SELECT COUNT(*) FROM students")->fetchColumn();
 
 // --- Attendance Stats (Today) ---
 $today = date('Y-m-d');
+$active_count = $conn->query("SELECT COUNT(*) FROM employees WHERE status = 'active'")->fetchColumn();
+$inactive_count = $conn->query("SELECT COUNT(*) FROM employees WHERE status = 'inactive'")->fetchColumn();
+
 // Fix: 'Telat' was missing. Added case-insensitive checks effectively.
 $present_count = $conn->query("SELECT COUNT(DISTINCT user_id) FROM attendance WHERE date = '$today' AND status IN ('Present', 'Late', 'Hadir', 'hadir', 'Telat')")->fetchColumn();
 $late_count = $conn->query("SELECT COUNT(DISTINCT user_id) FROM attendance WHERE date = '$today' AND status IN ('Late', 'Telat')")->fetchColumn();
-$absent_count = $emp_count - $present_count;
+$absent_count = $active_count - $present_count; // Only count active employees for absence
 
 // Attendance Rates
-$present_rate = $emp_count > 0 ? round(($present_count / $emp_count) * 100) : 0;
-$absent_rate = $emp_count > 0 ? round(($absent_count / $emp_count) * 100) : 0;
+$present_rate = $active_count > 0 ? round(($present_count / $active_count) * 100) : 0;
+$absent_rate = $active_count > 0 ? round(($absent_count / $active_count) * 100) : 0;
 
 // --- Chart Data (Last 7 Days) ---
 $chart_data = [];
-$days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+$days = ['Mgg', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
 for ($i = 6; $i >= 0; $i--) {
     $d = date('Y-m-d', strtotime("-$i days"));
     $day_label = date('D', strtotime($d));
@@ -47,13 +50,18 @@ for ($i = 6; $i >= 0; $i--) {
 }
 
 // --- Recent Activity ---
-// Using time_in based on api/attendance.php (instead of clock_in)
+// Union query to get both Check In and Check Out events ordered by time
 $activity_query = "
-    SELECT a.*, e.full_name 
+    SELECT a.user_id, e.full_name, a.time_in as time, 'Check In' as event_type, a.status as status_label, a.status as status_code
     FROM attendance a 
     JOIN employees e ON a.user_id = e.id 
-    WHERE a.date = '$today' 
-    ORDER BY a.time_in DESC 
+    WHERE a.date = '$today'
+    UNION
+    SELECT a.user_id, e.full_name, a.time_out as time, 'Check Out' as event_type, a.status_out as status_label, a.status_out as status_code
+    FROM attendance a 
+    JOIN employees e ON a.user_id = e.id 
+    WHERE a.date = '$today' AND a.time_out IS NOT NULL
+    ORDER BY time DESC 
     LIMIT 5
 ";
 $recent_activities = $conn->query($activity_query)->fetchAll(PDO::FETCH_ASSOC);
@@ -63,7 +71,7 @@ include '../layouts/header.php';
 
 <div class="space-y-6">
     <!-- Stats Grid -->
-    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
 
         <!-- Total Employees Card -->
         <div
@@ -72,17 +80,15 @@ include '../layouts/header.php';
                 <div class="flex items-center justify-center h-10 w-10 rounded-lg bg-blue-50 text-blue-600">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
                         <path fill-rule="evenodd"
-                            d="M7.5 5.25a3 3 0 013-3h3a3 3 0 013 3v.25a3 3 0 013 3v1.5a3 3 0 01-3 3v.25h-9v-.25a3 3 0 01-3-3v-1.5a3 3 0 013-3V5.25zM3.75 21a.75.75 0 01.75-.75h15a.75.75 0 010 1.5H4.5a.75.75 0 01-.75-.75zm4.266-4.5H15.98a3 3 0 001.996.75 2.25 2.25 0 002.247-2.072l.027-.333a3.751 3.751 0 00-3.753-4.045H7.501A3.751 3.751 0 003.75 14.8l.026.333A2.25 2.25 0 006.023 17.25a3 3 0 001.993-.75z"
+                            d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z"
                             clip-rule="evenodd" />
                     </svg>
                 </div>
                 <span
-                    class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-500">
-                    Total
-                </span>
+                    class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-500">Total</span>
             </div>
             <div class="mt-4">
-                <dt class="text-sm font-medium text-slate-500 truncate">Total Employees</dt>
+                <dt class="text-sm font-medium text-slate-500 truncate">Total Pegawai</dt>
                 <dd class="mt-1 flex items-baseline">
                     <div class="text-2xl font-bold text-slate-900"><?php echo number_format($emp_count); ?></div>
                     <span class="ml-2 text-sm font-medium text-green-600">
@@ -95,6 +101,46 @@ include '../layouts/header.php';
                         <span class="inline-block align-middle">2.5%</span>
                     </span>
                 </dd>
+            </div>
+        </div>
+
+        <!-- Active Employees Card -->
+        <div
+            class="bg-white overflow-hidden shadow-sm rounded-xl border border-slate-100 hover:shadow-md transition-shadow p-5 relative">
+            <div class="flex justify-between items-start">
+                <div class="flex items-center justify-center h-10 w-10 rounded-lg bg-blue-50 text-blue-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+                        <path fill-rule="evenodd"
+                            d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z"
+                            clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <span
+                    class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">Aktif</span>
+            </div>
+            <div class="mt-4">
+                <dt class="text-sm font-medium text-slate-500 truncate">Pegawai Aktif</dt>
+                <dd class="mt-1 text-2xl font-bold text-slate-900"><?php echo number_format($active_count); ?></dd>
+            </div>
+        </div>
+
+        <!-- Inactive Employees Card -->
+        <div
+            class="bg-white overflow-hidden shadow-sm rounded-xl border border-slate-100 hover:shadow-md transition-shadow p-5 relative">
+            <div class="flex justify-between items-start">
+                <div class="flex items-center justify-center h-10 w-10 rounded-lg bg-red-50 text-red-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+                        <path fill-rule="evenodd"
+                            d="M12 2.25a.75.75 0 01.75.75v9a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM6.166 5.106a.75.75 0 010 1.06 8.25 8.25 0 1011.668 0 .75.75 0 111.06-1.06c3.808 3.807 3.808 9.98 0 13.788-3.809 3.808-9.98 3.808-13.788 0-3.808-3.809-3.808-9.98 0-13.788a.75.75 0 011.06 0z"
+                            clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <span
+                    class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-600">Nonaktif</span>
+            </div>
+            <div class="mt-4">
+                <dt class="text-sm font-medium text-slate-500 truncate">Pegawai Nonaktif</dt>
+                <dd class="mt-1 text-2xl font-bold text-slate-900"><?php echo number_format($inactive_count); ?></dd>
             </div>
         </div>
 
@@ -111,11 +157,11 @@ include '../layouts/header.php';
                 </div>
                 <span
                     class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700">
-                    Today
+                    Hari Ini
                 </span>
             </div>
             <div class="mt-4">
-                <dt class="text-sm font-medium text-slate-500 truncate">Present Today</dt>
+                <dt class="text-sm font-medium text-slate-500 truncate">Hadir Hari Ini</dt>
                 <dd class="mt-1 flex items-baseline">
                     <div class="text-2xl font-bold text-slate-900"><?php echo number_format($present_count); ?></div>
                     <span class="ml-2 text-sm font-medium text-slate-400"><?php echo $present_rate; ?>% Rate</span>
@@ -136,11 +182,11 @@ include '../layouts/header.php';
                 </div>
                 <span
                     class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-50 text-yellow-700">
-                    Late
+                    Terlambat
                 </span>
             </div>
             <div class="mt-4">
-                <dt class="text-sm font-medium text-slate-500 truncate">Late Arrivals</dt>
+                <dt class="text-sm font-medium text-slate-500 truncate">Datang Terlambat</dt>
                 <dd class="mt-1 flex items-baseline">
                     <div class="text-2xl font-bold text-slate-900"><?php echo number_format($late_count); ?></div>
                 </dd>
@@ -162,11 +208,11 @@ include '../layouts/header.php';
                 </div>
                 <span
                     class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700">
-                    Absent
+                    Absen
                 </span>
             </div>
             <div class="mt-4">
-                <dt class="text-sm font-medium text-slate-500 truncate">Absent Today</dt>
+                <dt class="text-sm font-medium text-slate-500 truncate">Tidak Hadir</dt>
                 <dd class="mt-1 flex items-baseline">
                     <div class="text-2xl font-bold text-slate-900"><?php echo number_format($absent_count); ?></div>
                     <span class="ml-2 text-sm font-medium text-slate-400">Est.</span>
@@ -182,14 +228,14 @@ include '../layouts/header.php';
         <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6 lg:col-span-2">
             <div class="flex items-center justify-between mb-4">
                 <div>
-                    <h3 class="text-base font-bold text-slate-800">Attendance Trends</h3>
-                    <p class="text-sm text-slate-500">Weekly overview compared to last week</p>
+                    <h3 class="text-base font-bold text-slate-800">Tren Kehadiran</h3>
+                    <p class="text-sm text-slate-500">Ringkasan kehadiran mingguan</p>
                 </div>
                 <div class="flex gap-2">
                     <select
                         class="bg-slate-50 border-none text-xs rounded-lg px-3 py-1.5 font-medium text-slate-600 focus:ring-0 cursor-pointer">
-                        <option>This Week</option>
-                        <option>Last Week</option>
+                        <option>Minggu Ini</option>
+                        <option>Minggu Lalu</option>
                     </select>
                     <button class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-50 hover:text-slate-600">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
@@ -208,7 +254,7 @@ include '../layouts/header.php';
                         <!-- Tooltip -->
                         <div class="absolute bottom-full mb-2 hidden group-hover:block z-10">
                             <div class="bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap shadow-lg">
-                                <?php echo $data['count']; ?> Present<br>
+                                <?php echo $data['count']; ?> Hadir<br>
                                 <span class="text-[10px] text-gray-400"><?php echo $data['date']; ?></span>
                             </div>
                         </div>
@@ -229,8 +275,8 @@ include '../layouts/header.php';
         <!-- Real-time Activity -->
         <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
             <div class="flex items-center justify-between mb-6">
-                <h3 class="text-base font-bold text-slate-800">Real-time Activity</h3>
-                <a href="#" class="text-xs font-semibold text-cyan-600 hover:text-cyan-700">View All</a>
+                <h3 class="text-base font-bold text-slate-800">Aktivitas Terkini</h3>
+                <a href="#" class="text-xs font-semibold text-cyan-600 hover:text-cyan-700">Lihat Semua</a>
             </div>
 
             <div class="space-y-6">
@@ -244,28 +290,42 @@ include '../layouts/header.php';
                                 <p class="text-sm font-semibold text-slate-800 truncate">
                                     <?php echo htmlspecialchars($activity['full_name']); ?>
                                 </p>
-                                <p class="text-xs text-slate-500"><?php echo htmlspecialchars($activity['status']); ?></p>
+                                <p class="text-xs text-slate-500">
+                                    <?php echo $activity['event_type']; ?>
+                                    <span class="ml-1 text-[10px] text-slate-400">•
+                                        <?php echo htmlspecialchars($activity['status_label']); ?></span>
+                                </p>
                             </div>
                             <div class="text-right">
                                 <p class="text-xs font-bold text-slate-800">
-                                    <?php echo date('H:i A', strtotime($activity['time_in'])); ?>
+                                    <?php echo date('H:i A', strtotime($activity['time'])); ?>
                                 </p>
                                 <?php
-                                $statusColor = 'bg-green-50 text-green-600';
-                                if ($activity['status'] == 'Late')
-                                    $statusColor = 'bg-yellow-50 text-yellow-600';
-                                if ($activity['status'] == 'Absent')
-                                    $statusColor = 'bg-red-50 text-red-600';
+                                $statusColor = 'bg-slate-100 text-slate-600';
+
+                                if ($activity['event_type'] == 'Check In') {
+                                    if (in_array(strtolower($activity['status_code']), ['hadir', 'present'])) {
+                                        $statusColor = 'bg-green-100 text-green-700'; // On Time
+                                    } elseif (in_array(strtolower($activity['status_code']), ['late', 'telat'])) {
+                                        $statusColor = 'bg-red-100 text-red-700'; // Late
+                                    }
+                                } elseif ($activity['event_type'] == 'Check Out') {
+                                    if (strtolower($activity['status_code']) == 'pulang') {
+                                        $statusColor = 'bg-green-100 text-green-700'; // Normal
+                                    } elseif (strtolower($activity['status_code']) == 'pulang cepat') {
+                                        $statusColor = 'bg-red-100 text-red-700'; // Early Leave
+                                    }
+                                }
                                 ?>
                                 <span
                                     class="inline-flex px-1.5 py-0.5 rounded text-[10px] font-bold <?php echo $statusColor; ?>">
-                                    <?php echo strtoupper($activity['status']); ?>
+                                    <?php echo strtoupper($activity['status_label']); ?>
                                 </span>
                             </div>
                         </div>
                     <?php endforeach; ?>
                 <?php else: ?>
-                    <p class="text-sm text-slate-500 text-center py-4">No activity yet today.</p>
+                    <p class="text-sm text-slate-500 text-center py-4">Belum ada aktivitas hari ini.</p>
                 <?php endif; ?>
             </div>
         </div>
@@ -276,8 +336,8 @@ include '../layouts/header.php';
     <div
         class="bg-slate-50 rounded-xl border border-slate-100 p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
-            <h3 class="text-base font-bold text-slate-800">Quick Actions</h3>
-            <p class="text-sm text-slate-500">Manage daily tasks efficiently</p>
+            <h3 class="text-base font-bold text-slate-800">Akses Cepat</h3>
+            <p class="text-sm text-slate-500">Kelola tugas harian dengan efisien</p>
         </div>
         <div class="flex gap-3">
             <button
@@ -286,7 +346,7 @@ include '../layouts/header.php';
                     <path
                         d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
                 </svg>
-                Add Employee
+                Tambah Pegawai
             </button>
             <button
                 class="inline-flex items-center px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-sm font-medium rounded-lg transition-colors shadow-sm">
@@ -296,7 +356,7 @@ include '../layouts/header.php';
                         d="M4.5 2A1.5 1.5 0 003 3.5v13A1.5 1.5 0 004.5 18h11a1.5 1.5 0 001.5-1.5V7.621a1.5 1.5 0 00-.44-1.06l-4.12-4.122A1.5 1.5 0 0011.378 2H4.5zm2.25 8.5a.75.75 0 000 1.5h6.5a.75.75 0 000-1.5h-6.5zm0 3a.75.75 0 000 1.5h6.5a.75.75 0 000-1.5h-6.5z"
                         clip-rule="evenodd" />
                 </svg>
-                Generate Report
+                Buat Laporan
             </button>
             <button
                 class="inline-flex items-center px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-sm font-medium rounded-lg transition-colors shadow-sm">
@@ -306,7 +366,7 @@ include '../layouts/header.php';
                         d="M3.5 17a3.5 3.5 0 013.5-3.5h9c1.933 0 3.5 1.567 3.5 3.5 0 .58-.42 1-1 1H4a1 1 0 01-.5-1zM5 4.75A3.75 3.75 0 1112.5 4.75 3.75 3.75 0 015 4.75z"
                         clip-rule="evenodd" />
                 </svg>
-                System Config
+                Konfigurasi Sistem
             </button>
         </div>
     </div>

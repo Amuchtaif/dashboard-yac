@@ -9,8 +9,11 @@ $page_title = "Add Unit";
 $db = new Database();
 $conn = $db->getConnection();
 
-// Fetch Departments using PDO
-$departments = $conn->query("SELECT id, name FROM departments ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
+// Fetch Divisions using PDO
+$divisions = $conn->query("SELECT id, name FROM divisions ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
+
+// Fetch Work Schedules
+$schedules = $conn->query("SELECT id, name FROM work_schedules ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 include '../layouts/header.php';
 ?>
@@ -69,18 +72,117 @@ include '../layouts/header.php';
                     </div>
 
                     <div class="sm:col-span-4">
-                        <label for="department_id"
-                            class="block text-sm font-medium leading-6 text-gray-900">Department</label>
-                        <div class="mt-2">
-                            <select id="department_id" name="department_id" required
-                                class="block w-full px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 focus:outline-none transition-all appearance-none bg-white placeholder:text-slate-400 shadow-sm">
-                                <option value="">Select Department</option>
-                                <?php foreach ($departments as $dept): ?>
-                                    <option value="<?php echo $dept['id']; ?>">
-                                        <?php echo htmlspecialchars($dept['name']); ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
+                        <label for="division_id"
+                            class="block text-sm font-medium leading-6 text-gray-900">Division</label>
+                        <div class="mt-2 relative" id="dropdown-container-division">
+                            <input type="hidden" name="division_id" id="input-division" value="">
+                            <button type="button" onclick="toggleFormDropdown('division')" id="button-division"
+                                class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200 transition-all">
+                                <span id="text-division" class="block truncate">Select Division</span>
+                                <svg class="h-4 w-4 text-slate-500 transition-transform duration-200"
+                                    id="arrow-division" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                                    fill="currentColor">
+                                    <path fill-rule="evenodd"
+                                        d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                            <div id="menu-division"
+                                class="absolute z-50 mt-1 hidden max-h-60 w-full overflow-auto rounded-lg bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                                <ul class="py-1">
+                                    <li onclick="selectFormOption('division', '', 'Select Division')"
+                                        class="cursor-pointer px-4 py-2 text-sm text-slate-500 hover:bg-slate-50 hover:text-cyan-700 transition-colors">
+                                        Select Division
+                                    </li>
+                                    <?php foreach ($divisions as $div): ?>
+                                        <li onclick="selectFormOption('division', '<?php echo $div['id']; ?>', '<?php echo htmlspecialchars($div['name'], ENT_QUOTES); ?>')"
+                                            class="cursor-pointer px-4 py-2 text-sm text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
+                                            <?php echo htmlspecialchars($div['name']); ?>
+                                        </li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <script>
+                            let activeFormDropdownId = null;
+
+                            function toggleFormDropdown(id) {
+                                const menu = document.getElementById('menu-' + id);
+                                const arrow = document.getElementById('arrow-' + id);
+
+                                if (activeFormDropdownId && activeFormDropdownId !== id) {
+                                    closeFormDropdown(activeFormDropdownId);
+                                }
+
+                                if (menu.classList.contains('hidden')) {
+                                    menu.classList.remove('hidden');
+                                    if (arrow) arrow.classList.add('rotate-180');
+                                    activeFormDropdownId = id;
+                                } else {
+                                    closeFormDropdown(id);
+                                }
+                            }
+
+                            function closeFormDropdown(id) {
+                                const menu = document.getElementById('menu-' + id);
+                                const arrow = document.getElementById('arrow-' + id);
+                                if (menu) menu.classList.add('hidden');
+                                if (arrow) arrow.classList.remove('rotate-180');
+                                activeFormDropdownId = null;
+                            }
+
+                            function selectFormOption(id, value, label) {
+                                document.getElementById('input-' + id).value = value;
+                                document.getElementById('text-' + id).textContent = label;
+                                closeFormDropdown(id);
+                            }
+
+                            document.addEventListener('click', (e) => {
+                                if (activeFormDropdownId) {
+                                    const container = document.getElementById('dropdown-container-' + activeFormDropdownId);
+                                    if (container && !container.contains(e.target)) {
+                                        closeFormDropdown(activeFormDropdownId);
+                                    }
+                                }
+                            });
+                        </script>
+                    </div>
+
+                    <div class="sm:col-span-4">
+                        <label for="schedule_id" class="block text-sm font-medium leading-6 text-gray-900">Work
+                            Schedule</label>
+                        <div class="mt-2 relative" id="dropdown-container-schedule">
+                            <input type="hidden" name="schedule_id" id="input-schedule" value="">
+                            <button type="button" onclick="toggleFormDropdown('schedule')" id="button-schedule"
+                                class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200 transition-all">
+                                <span id="text-schedule" class="block truncate">-- Follow Division Schedule (Default)
+                                    --</span>
+                                <svg class="h-4 w-4 text-slate-500 transition-transform duration-200"
+                                    id="arrow-schedule" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                                    fill="currentColor">
+                                    <path fill-rule="evenodd"
+                                        d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                            <div id="menu-schedule"
+                                class="absolute z-50 mt-1 hidden max-h-60 w-full overflow-auto rounded-lg bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                                <ul class="py-1">
+                                    <li onclick="selectFormOption('schedule', '', '-- Follow Division Schedule (Default) --')"
+                                        class="cursor-pointer px-4 py-2 text-sm text-slate-500 hover:bg-slate-50 hover:text-cyan-700 transition-colors">
+                                        -- Follow Division Schedule (Default) --
+                                    </li>
+                                    <?php foreach ($schedules as $schedule): ?>
+                                        <li onclick="selectFormOption('schedule', '<?php echo $schedule['id']; ?>', '<?php echo htmlspecialchars($schedule['name'], ENT_QUOTES); ?>')"
+                                            class="cursor-pointer px-4 py-2 text-sm text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
+                                            <?php echo htmlspecialchars($schedule['name']); ?>
+                                        </li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            </div>
+                            <p class="mt-1 text-xs text-slate-500">Leave empty to use the schedule assigned to the
+                                Division.</p>
                         </div>
                     </div>
                 </div>

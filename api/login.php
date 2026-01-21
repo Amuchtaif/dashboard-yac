@@ -38,12 +38,16 @@ try {
                 e.id, 
                 e.full_name, 
                 e.email, 
+                e.phone_number,
                 e.password, 
                 u.name AS unit_name, 
-                d.name AS department_name
+                d.name AS division_name,
+                p.level AS position_level,
+                p.name AS position_name
               FROM employees e 
+              LEFT JOIN positions p ON e.position_id = p.id
               LEFT JOIN units u ON e.unit_id = u.id 
-              LEFT JOIN departments d ON e.department_id = d.id 
+              LEFT JOIN divisions d ON e.division_id = d.id 
               WHERE e.email = :email";
 
     $stmt = $conn->prepare($query);

@@ -10,8 +10,8 @@ $db = new Database();
 $conn = $db->getConnection();
 
 // --- Stats Calculations ---
-// Total Departments
-$total_depts = $conn->query("SELECT COUNT(*) FROM departments")->fetchColumn();
+// Total Divisions
+$total_depts = $conn->query("SELECT COUNT(*) FROM divisions")->fetchColumn();
 
 // Active Teams (Units)
 $total_units = $conn->query("SELECT COUNT(*) FROM units")->fetchColumn();
@@ -21,7 +21,10 @@ $total_employees = $conn->query("SELECT COUNT(*) FROM employees")->fetchColumn()
 
 // --- Fetch Departments with Meta Data ---
 // --- Pagination Logic ---
-$limit = 10;
+$limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 10;
+if (!in_array($limit, [10, 20, 50, 100]))
+    $limit = 10;
+
 $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int) $_GET['page'] : 1;
 if ($page < 1)
     $page = 1;
@@ -31,16 +34,19 @@ $offset = ($page - 1) * $limit;
 // Total Departments (Already fetched above as $total_depts, use it)
 $total_pages = ceil($total_depts / $limit);
 
-// Fetch Departments with Meta Data
-// Getting Dept Name, ID, Member Count, and Unit Count
+// Fetch Divisions with Meta Data
+// Getting Division Name, ID, Member Count, and Unit Count
 $query = "
     SELECT 
         d.id, 
         d.name, 
-        (SELECT COUNT(*) FROM employees e WHERE e.department_id = d.id) as member_count,
-        (SELECT COUNT(*) FROM units u WHERE u.department_id = d.id) as unit_count
-    FROM departments d
-    ORDER BY d.name ASC
+        d.manager_id,
+        m.full_name as manager_name,
+        (SELECT COUNT(*) FROM employees e WHERE e.division_id = d.id) as member_count,
+        (SELECT COUNT(*) FROM units u WHERE u.division_id = d.id) as unit_count
+    FROM divisions d
+    LEFT JOIN employees m ON d.manager_id = m.id
+    ORDER BY d.id ASC
     LIMIT :limit OFFSET :offset
 ";
 $stmt = $conn->prepare($query);
@@ -85,19 +91,18 @@ include '../layouts/header.php';
     <div class="md:flex md:items-center md:justify-between mb-8">
         <div class="min-w-0 flex-1">
             <h2 class="text-2xl font-bold leading-7 text-slate-900 sm:truncate sm:text-3xl sm:tracking-tight">
-                Departments Management</h2>
+                Divisions Management</h2>
             <p class="mt-1 text-sm text-slate-500">Organize company structure and manage team allocations.</p>
         </div>
         <div class="mt-4 flex md:ml-4 md:mt-0">
             <!-- Add Department Trigger -->
-            <!-- Add Department Trigger -->
             <a href="<?php url('views/departments/form.php'); ?>"
-                class="inline-flex items-center rounded-lg bg-cyan-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 transition-all">
+                class="inline-flex items-center rounded-lg bg-cyan-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 transition-all ml-auto">
                 <svg class="-ml-1 mr-2 h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                     <path
                         d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
                 </svg>
-                Add Department
+                Add Division
             </a>
         </div>
     </div>
@@ -108,18 +113,8 @@ include '../layouts/header.php';
         <div
             class="bg-white overflow-hidden rounded-xl border border-slate-200 shadow-sm p-6 flex justify-between items-start">
             <div>
-                <p class="text-sm font-medium text-slate-500 truncate">Total Departments</p>
+                <p class="text-sm font-medium text-slate-500 truncate">Total Divisions</p>
                 <p class="mt-2 text-3xl font-bold text-slate-900"><?php echo $total_depts; ?></p>
-                <div class="mt-2 flex items-baseline text-sm">
-                    <span class="text-green-600 font-semibold flex items-center">
-                        <svg class="h-3 w-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
-                        </svg>
-                        +2%
-                    </span>
-                    <span class="ml-2 text-slate-400">from last month</span>
-                </div>
             </div>
             <div class="p-3 bg-blue-50 rounded-lg text-blue-600">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -136,7 +131,6 @@ include '../layouts/header.php';
             <div>
                 <p class="text-sm font-medium text-slate-500 truncate">Total Units / Teams</p>
                 <p class="mt-2 text-3xl font-bold text-slate-900"><?php echo $total_units; ?></p>
-                <p class="mt-2 text-sm text-slate-400">100% Operational</p>
             </div>
             <div class="p-3 bg-purple-50 rounded-lg text-purple-600">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -153,16 +147,6 @@ include '../layouts/header.php';
             <div>
                 <p class="text-sm font-medium text-slate-500 truncate">Total Headcount</p>
                 <p class="mt-2 text-3xl font-bold text-slate-900"><?php echo $total_employees; ?></p>
-                <div class="mt-2 flex items-baseline text-sm">
-                    <span class="text-green-600 font-semibold flex items-center">
-                        <svg class="h-3 w-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
-                        </svg>
-                        +5%
-                    </span>
-                    <span class="ml-2 text-slate-400">new hires</span>
-                </div>
             </div>
             <div class="p-3 bg-green-50 rounded-lg text-green-600">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -221,7 +205,7 @@ include '../layouts/header.php';
                 <tr>
                     <th scope="col"
                         class="py-3.5 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 sm:pl-6">
-                        Department</th>
+                        Division</th>
                     <th scope="col"
                         class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
                         Manager</th>
@@ -255,21 +239,26 @@ include '../layouts/header.php';
                                 <div class="ml-4">
                                     <div class="font-medium text-gray-900"><?php echo htmlspecialchars($dept['name']); ?>
                                     </div>
-                                    <div class="text-xs text-gray-400 mt-0.5">ID: DEP-00<?php echo $dept['id']; ?></div>
                                 </div>
                             </div>
                         </td>
                         <td class="whitespace-nowrap px-3 py-4">
                             <div class="flex items-center">
-                                <img class="h-8 w-8 rounded-full border border-gray-100"
-                                    src="https://ui-avatars.com/api/?name=<?php echo urlencode($dept['name']); ?>&background=random"
-                                    alt="">
-                                <div class="ml-3">
-                                    <div class="text-sm font-medium text-gray-900">Lead
-                                        <?php echo htmlspecialchars($dept['name']); ?>
+                                <?php if (!empty($dept['manager_name'])): ?>
+                                    <img class="h-8 w-8 rounded-full border border-gray-100"
+                                        src="https://ui-avatars.com/api/?name=<?php echo urlencode($dept['manager_name']); ?>&background=random"
+                                        alt="">
+                                    <div class="ml-3">
+                                        <div class="text-sm font-medium text-gray-900">
+                                            <?php echo htmlspecialchars($dept['manager_name']); ?>
+                                        </div>
                                     </div>
-                                    <div class="text-xs text-gray-400">Head of Dept</div>
-                                </div>
+                                <?php else: ?>
+                                    <span
+                                        class="inline-flex items-center px-2 py-1 rounded-md bg-gray-50 text-xs font-medium text-gray-400 ring-1 ring-inset ring-gray-500/10">
+                                        Not Assigned
+                                    </span>
+                                <?php endif; ?>
                             </div>
                         </td>
                         <td class="whitespace-nowrap px-3 py-4">
@@ -331,10 +320,18 @@ include '../layouts/header.php';
         <!-- Dynamic Pagination -->
         <div class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
             <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-                <div>
+                <div class="flex items-center gap-4">
+                    <select onchange="window.location.href='?page=1&limit='+this.value"
+                        class="block rounded-md border-0 py-1.5 pl-3 pr-8 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-cyan-600 sm:text-xs sm:leading-6">
+                        <?php foreach ([10, 20, 50, 100] as $val): ?>
+                            <option value="<?php echo $val; ?>" <?php echo $limit == $val ? 'selected' : ''; ?>>
+                                Show <?php echo $val; ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
                     <p class="text-sm text-gray-700">
                         Showing
-                        <span class="font-medium"><?php echo $offset + 1; ?></span>
+                        <span class="font-medium"><?php echo ($total_depts > 0) ? $offset + 1 : 0; ?></span>
                         to
                         <span class="font-medium"><?php echo min($offset + $limit, $total_depts); ?></span>
                         of
@@ -346,7 +343,7 @@ include '../layouts/header.php';
                     <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
                         <!-- Prev -->
                         <?php if ($page > 1): ?>
-                            <a href="?page=<?php echo $page - 1; ?>"
+                            <a href="?page=<?php echo $page - 1; ?>&limit=<?php echo $limit; ?>"
                                 class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
                                 <span class="sr-only">Previous</span>
                                 <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -357,17 +354,31 @@ include '../layouts/header.php';
                             </a>
                         <?php endif; ?>
 
-                        <?php for ($i = 1; $i <= $total_pages; $i++): ?>
-                            <!-- Simple Pagination Loop -->
-                            <a href="?page=<?php echo $i; ?>"
-                                class="relative inline-flex items-center px-4 py-2 text-sm font-semibold <?php echo ($i == $page) ? 'bg-cyan-600 text-white focus-visible:outline-cyan-600' : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50'; ?> focus:z-20 focus:outline-offset-0">
-                                <?php echo $i; ?>
-                            </a>
-                        <?php endfor; ?>
+                        <?php
+                        $range = 2; // Number of pages around current page
+                        $initial_num = $page - $range;
+                        $condition_limit_num = ($page + $range) + 1;
+
+                        for ($i = 1; $i <= $total_pages; $i++) {
+                            if ($i == 1 || $i == $total_pages || ($i >= $initial_num && $i < $condition_limit_num)) {
+                                ?>
+                                <a href="?page=<?php echo $i; ?>&limit=<?php echo $limit; ?>"
+                                    class="relative inline-flex items-center px-4 py-2 text-sm font-semibold <?php echo ($i == $page) ? 'bg-cyan-600 text-white focus-visible:outline-cyan-600' : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50'; ?> focus:z-20 focus:outline-offset-0">
+                                    <?php echo $i; ?>
+                                </a>
+                                <?php
+                            } elseif ($i == $initial_num - 1 || $i == $condition_limit_num) {
+                                ?>
+                                <span
+                                    class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 focus:outline-offset-0">...</span>
+                                <?php
+                            }
+                        }
+                        ?>
 
                         <!-- Next -->
                         <?php if ($page < $total_pages): ?>
-                            <a href="?page=<?php echo $page + 1; ?>"
+                            <a href="?page=<?php echo $page + 1; ?>&limit=<?php echo $limit; ?>"
                                 class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
                                 <span class="sr-only">Next</span>
                                 <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">

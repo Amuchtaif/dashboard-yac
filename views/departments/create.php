@@ -27,7 +27,7 @@ include '../layouts/header.php';
                             d="m1 9 4-4-4-4" />
                     </svg>
                     <a href="<?php url('views/departments/index.php'); ?>"
-                        class="ml-1 text-slate-500 hover:text-slate-700">Departments</a>
+                        class="ml-1 text-slate-500 hover:text-slate-700">Divisions</a>
                 </div>
             </li>
             <li aria-current="page">
@@ -44,8 +44,8 @@ include '../layouts/header.php';
     </nav>
 
     <div class="mb-8">
-        <h1 class="text-2xl font-bold text-slate-900">Add New Department</h1>
-        <p class="mt-2 text-sm text-slate-600">Create a new department to organize your workforce.</p>
+        <h1 class="text-2xl font-bold text-slate-900">Add New Division</h1>
+        <p class="mt-2 text-sm text-slate-600">Create a new division to organize your workforce.</p>
     </div>
 
     <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl md:col-span-2">
@@ -53,12 +53,12 @@ include '../layouts/header.php';
             <div class="px-4 py-6 sm:p-8">
                 <div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
                     <div class="sm:col-span-4">
-                        <label for="name" class="block text-sm font-medium leading-6 text-gray-900">Department
+                        <label for="name" class="block text-sm font-medium leading-6 text-gray-900">Division
                             Name</label>
                         <div class="mt-2">
                             <div
                                 class="flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-cyan-600 sm:max-w-md">
-                                <span class="flex select-none items-center pl-3 text-gray-500 sm:text-sm">Dept.</span>
+                                <span class="flex select-none items-center pl-3 text-gray-500 sm:text-sm">Div.</span>
                                 <input type="text" name="name" id="name" required
                                     class="block flex-1 border-0 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                                     placeholder="e.g. Finance">

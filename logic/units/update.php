@@ -7,16 +7,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $id = $_POST['id'] ?? '';
     $name = $_POST['name'] ?? '';
-    $department_id = $_POST['department_id'] ?? '';
+    $division_id = $_POST['division_id'] ?? '';
+    $schedule_id = $_POST['schedule_id'] ?? '';
 
-    if (empty($id) || empty($name) || empty($department_id)) {
+    if (empty($id) || empty($name) || empty($division_id)) {
         header("Location: ../../views/units/edit.php?id=$id&error=Please fill in all fields");
         exit;
     }
 
-    $stmt = $conn->prepare("UPDATE units SET name = :name, department_id = :department_id WHERE id = :id");
+    $stmt = $conn->prepare("UPDATE units SET name = :name, division_id = :division_id, schedule_id = :schedule_id WHERE id = :id");
     $stmt->bindParam(':name', $name);
-    $stmt->bindParam(':department_id', $department_id);
+    $stmt->bindParam(':division_id', $division_id);
+    $stmt->bindValue(':schedule_id', !empty($schedule_id) ? $schedule_id : null, PDO::PARAM_INT);
     $stmt->bindParam(':id', $id);
 
     if ($stmt->execute()) {

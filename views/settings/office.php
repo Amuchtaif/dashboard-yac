@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if ($result) {
                 // Redirect to self with success for clean refresh
-                header("Location: " . BASE_URL . "views/settings/office.php?success=" . urlencode("Settings updated successfully"));
+                header("Location: " . BASE_URL . "/views/settings/office.php?success=" . urlencode("Settings updated successfully"));
                 exit;
             } else {
                 $message = "Failed to update settings.";

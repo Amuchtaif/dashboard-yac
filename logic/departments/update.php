@@ -8,13 +8,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = $_POST['id'];
     $name = $_POST['name'];
     $schedule_id = !empty($_POST['schedule_id']) ? $_POST['schedule_id'] : null;
+    $manager_id = !empty($_POST['manager_id']) ? $_POST['manager_id'] : null;
 
     if (!empty($name) && !empty($id)) {
         try {
-            $stmt = $conn->prepare("UPDATE departments SET name = :name, schedule_id = :schedule_id WHERE id = :id");
+            $stmt = $conn->prepare("UPDATE divisions SET name = :name, schedule_id = :schedule_id, manager_id = :manager_id WHERE id = :id");
             $stmt->execute([
                 ':name' => $name,
                 ':schedule_id' => $schedule_id,
+                ':manager_id' => $manager_id,
                 ':id' => $id
             ]);
 

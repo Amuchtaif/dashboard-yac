@@ -16,8 +16,9 @@ $employee = [
     'email' => '',
     'phone_number' => '',
     'address' => '',
-    'department_id' => '',
+    'division_id' => '',
     'unit_id' => '',
+    'position_id' => '',
     'schedule_id' => '',
     'id' => ''
 ];
@@ -40,8 +41,9 @@ if ($is_edit) {
 }
 
 // Fetch all necessary data
-$departments = $conn->query("SELECT * FROM departments ORDER BY name ASC")->fetchAll();
+$divisions = $conn->query("SELECT * FROM divisions ORDER BY id ASC")->fetchAll();
 $units = $conn->query("SELECT * FROM units ORDER BY name ASC")->fetchAll();
+$positions = $conn->query("SELECT * FROM positions ORDER BY level ASC")->fetchAll();
 $schedules = $conn->query("SELECT * FROM work_schedules ORDER BY name ASC")->fetchAll();
 
 include '../layouts/header.php';
@@ -104,8 +106,8 @@ include '../layouts/header.php';
         <?php endif; ?>
 
         <!-- Main Card -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="h-1 bg-cyan-500 w-full"></div>
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200">
+            <div class="h-1 bg-cyan-500 w-full rounded-t-xl"></div>
 
             <!-- Personal Information Section -->
             <div class="p-8 border-b border-slate-100">
@@ -218,7 +220,7 @@ include '../layouts/header.php';
                                 clip-rule="evenodd" />
                         </svg>
                     </div>
-                    <h3 class="text-base font-bold text-slate-800">Employment Details</h3>
+                    <h3 class="text-base font-bold text-slate-800">Employment Details (Organization)</h3>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -243,90 +245,169 @@ include '../layouts/header.php';
                         </div>
                     <?php endif; ?>
 
-                    <!-- Department -->
-                    <div>
-                        <label for="department_id" class="block text-sm font-semibold text-slate-700 mb-1">Department
-                            <span class="text-red-500">*</span></label>
-                        <div class="relative">
-                            <select name="department_id" id="department_id" required onchange="filterUnits()"
-                                class="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 focus:outline-none transition-all appearance-none bg-white placeholder:text-slate-400 shadow-sm">
-                                <option value="">Select Department</option>
-                                <?php foreach ($departments as $dept): ?>
-                                    <option value="<?php echo $dept['id']; ?>" <?php echo ($dept['id'] == $employee['department_id']) ? 'selected' : ''; ?>>
-                                        <?php echo htmlspecialchars($dept['name']); ?>
-                                    </option>
+                    <!-- Division (Custom Dropdown) -->
+                    <div class="relative group" id="container-division_id">
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Division (Bidang) <span
+                                class="text-red-500">*</span></label>
+                        <input type="hidden" name="division_id" id="input-division_id"
+                            value="<?php echo $employee['division_id']; ?>">
+                        <button type="button" onclick="toggleFormDropdown('division_id')"
+                            class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all">
+                            <span id="text-division_id" class="block truncate">
+                                <?php
+                                $divName = "Select Division";
+                                foreach ($divisions as $d) {
+                                    if ($d['id'] == $employee['division_id']) {
+                                        $divName = $d['name'];
+                                        break;
+                                    }
+                                }
+                                echo htmlspecialchars($divName);
+                                ?>
+                            </span>
+                            <svg class="h-4 w-4 text-slate-400 transition-transform duration-200" id="arrow-division_id"
+                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        <div id="menu-division_id"
+                            class="hidden absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                            <ul class="py-1">
+                                <li onclick="selectFormOption('division_id', '', 'Select Division')"
+                                    class="cursor-pointer select-none py-2 pl-3 pr-9 text-slate-500 hover:bg-slate-50">
+                                    Select Division</li>
+                                <?php foreach ($divisions as $div): ?>
+                                    <li onclick="selectFormOption('division_id', '<?php echo $div['id']; ?>', '<?php echo htmlspecialchars($div['name'], ENT_QUOTES); ?>')"
+                                        class="cursor-pointer select-none py-2 pl-3 pr-9 text-slate-900 hover:bg-cyan-50 hover:text-cyan-700">
+                                        <?php echo htmlspecialchars($div['name']); ?>
+                                    </li>
                                 <?php endforeach; ?>
-                            </select>
-                            <div
-                                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
-                                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
-                                    fill="currentColor">
-                                    <path fill-rule="evenodd"
-                                        d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                            </div>
+                            </ul>
                         </div>
                     </div>
 
-                    <!-- Unit -->
-                    <div>
-                        <label for="unit_id" class="block text-sm font-semibold text-slate-700 mb-1">Unit <span
-                                class="text-xs font-normal text-slate-400 ml-1">(Select Department first)</span></label>
-                        <div class="relative">
-                            <select name="unit_id" id="unit_id" required
-                                class="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 focus:outline-none transition-all appearance-none bg-white placeholder:text-slate-400 shadow-sm">
-                                <option value="">Select Unit...</option>
-                            </select>
-                            <div
-                                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
-                                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
-                                    fill="currentColor">
-                                    <path fill-rule="evenodd"
-                                        d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                            </div>
+                    <!-- Unit (Custom Dropdown) -->
+                    <div class="relative group" id="container-unit_id">
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Unit <span
+                                class="text-xs font-normal text-slate-400 ml-1">(Optional)</span></label>
+                        <input type="hidden" name="unit_id" id="input-unit_id"
+                            value="<?php echo $employee['unit_id']; ?>">
+                        <button type="button" onclick="toggleFormDropdown('unit_id')"
+                            class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all">
+                            <span id="text-unit_id" class="block truncate">
+                                <?php
+                                $unitName = "Directly under Division (No Unit)";
+                                foreach ($units as $u) {
+                                    if ($u['id'] == $employee['unit_id']) {
+                                        $unitName = $u['name'];
+                                        break;
+                                    }
+                                }
+                                echo htmlspecialchars($unitName);
+                                ?>
+                            </span>
+                            <svg class="h-4 w-4 text-slate-400 transition-transform duration-200" id="arrow-unit_id"
+                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        <div id="menu-unit_id"
+                            class="hidden absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                            <ul class="py-1" id="list-unit_id">
+                                <!-- Populated via JS -->
+                                <li onclick="selectFormOption('unit_id', '', 'Directly under Division (No Unit)')"
+                                    class="cursor-pointer select-none py-2 pl-3 pr-9 text-slate-900 hover:bg-cyan-50 hover:text-cyan-700">
+                                    Directly under Division (No Unit)</li>
+                            </ul>
                         </div>
                     </div>
 
-                    <!-- Work Schedule -->
-                    <div class="md:col-span-2">
-                        <label for="schedule_id" class="block text-sm font-semibold text-slate-700 mb-1">Work
-                            Schedule</label>
-                        <p class="text-xs text-slate-500 mb-2">Override the department's default schedule if needed.
-                            Leave default to follow department.</p>
-                        <div class="relative">
-                            <select name="schedule_id" id="schedule_id"
-                                class="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all appearance-none bg-white text-slate-700">
-                                <option value="">Follow Department Default</option>
+                    <!-- Position (Custom Dropdown) -->
+                    <div class="relative group" id="container-position_id">
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Position / Job Title <span
+                                class="text-red-500">*</span></label>
+                        <input type="hidden" name="position_id" id="input-position_id"
+                            value="<?php echo $employee['position_id']; ?>">
+                        <button type="button" onclick="toggleFormDropdown('position_id')"
+                            class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all">
+                            <span id="text-position_id" class="block truncate">
+                                <?php
+                                $posName = "Select Position";
+                                foreach ($positions as $p) {
+                                    if ($p['id'] == $employee['position_id']) {
+                                        $posName = $p['name'];
+                                        break;
+                                    }
+                                }
+                                echo htmlspecialchars($posName);
+                                ?>
+                            </span>
+                            <svg class="h-4 w-4 text-slate-400 transition-transform duration-200" id="arrow-position_id"
+                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        <div id="menu-position_id"
+                            class="hidden absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                            <ul class="py-1">
+                                <li onclick="selectFormOption('position_id', '', 'Select Position')"
+                                    class="cursor-pointer select-none py-2 pl-3 pr-9 text-slate-500 hover:bg-slate-50">
+                                    Select Position</li>
+                                <?php foreach ($positions as $pos): ?>
+                                    <li onclick="selectFormOption('position_id', '<?php echo $pos['id']; ?>', '<?php echo htmlspecialchars($pos['name'], ENT_QUOTES); ?>')"
+                                        class="cursor-pointer select-none py-2 pl-3 pr-9 text-slate-900 hover:bg-cyan-50 hover:text-cyan-700">
+                                        <?php echo htmlspecialchars($pos['name']); ?>
+                                    </li>
+                                <?php endforeach; ?>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Work Schedule (Custom Dropdown) -->
+                    <div class="relative group" id="container-schedule_id">
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Work Schedule</label>
+                        <p class="text-xs text-slate-500 mb-2">Override the unit/division default schedule if needed.
+                        </p>
+                        <input type="hidden" name="schedule_id" id="input-schedule_id"
+                            value="<?php echo $employee['schedule_id']; ?>">
+                        <button type="button" onclick="toggleFormDropdown('schedule_id')"
+                            class="flex w-full items-center justify-between rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all">
+                            <span id="text-schedule_id" class="block truncate">
+                                <?php
+                                $schedName = "Follow Default Rules";
+                                foreach ($schedules as $s) {
+                                    if ($s['id'] == $employee['schedule_id']) {
+                                        $schedName = $s['name'];
+                                        break;
+                                    }
+                                }
+                                echo htmlspecialchars($schedName);
+                                ?>
+                            </span>
+                            <svg class="h-4 w-4 text-slate-400 transition-transform duration-200" id="arrow-schedule_id"
+                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        <div id="menu-schedule_id"
+                            class="hidden absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                            <ul class="py-1">
+                                <li onclick="selectFormOption('schedule_id', '', 'Follow Default Rules')"
+                                    class="cursor-pointer select-none py-2 pl-3 pr-9 text-slate-900 hover:bg-cyan-50 hover:text-cyan-700">
+                                    Follow Default Rules</li>
                                 <?php foreach ($schedules as $sched): ?>
-                                    <option value="<?php echo $sched['id']; ?>" <?php echo ($employee['schedule_id'] == $sched['id']) ? 'selected' : ''; ?>>
+                                    <li onclick="selectFormOption('schedule_id', '<?php echo $sched['id']; ?>', '<?php echo htmlspecialchars($sched['name'], ENT_QUOTES); ?>')"
+                                        class="cursor-pointer select-none py-2 pl-3 pr-9 text-slate-900 hover:bg-cyan-50 hover:text-cyan-700">
                                         <?php echo htmlspecialchars($sched['name']); ?>
-                                        (<?php echo date('H:i', strtotime($sched['start_time'])) . ' - ' . date('H:i', strtotime($sched['end_time'])); ?>)
-                                    </option>
+                                    </li>
                                 <?php endforeach; ?>
-                            </select>
-                            <div
-                                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
-                                <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd"
-                                        d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                            </div>
+                            </ul>
                         </div>
                     </div>
-
-                    <?php if (!$is_edit): ?>
-                        <!-- Job Title Mock -->
-                        <div class="md:col-span-2">
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">Job Title / Designation</label>
-                            <input type="text"
-                                class="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all placeholder:text-slate-400"
-                                placeholder="e.g. Senior Backend Engineer">
-                        </div>
-                    <?php endif; ?>
 
                 </div>
             </div>
@@ -349,47 +430,118 @@ include '../layouts/header.php';
 <script>
     const allUnits = <?php echo json_encode($units); ?>;
     const currentUnitId = "<?php echo $employee['unit_id']; ?>";
+    const currentDivisionId = "<?php echo $employee['division_id']; ?>";
 
-    function filterUnits() {
-        const deptId = document.getElementById('department_id').value;
-        const unitSelect = document.getElementById('unit_id');
+    let activeDropdownId = null;
 
-        // Reset
-        unitSelect.innerHTML = '<option value="">Select Unit</option>';
-        unitSelect.disabled = true;
-        // Restore styles if previously disabled
-        unitSelect.classList.remove('bg-white', 'text-slate-700');
-        unitSelect.classList.add('bg-slate-50', 'text-slate-400');
+    // --- Dropdown Interactions ---
+    function toggleFormDropdown(id) {
+        const menu = document.getElementById('menu-' + id);
+        const arrow = document.getElementById('arrow-' + id);
 
-        if (deptId) {
-            // Filter
-            const filteredUnits = allUnits.filter(unit => unit.department_id == deptId);
+        // Close others
+        if (activeDropdownId && activeDropdownId !== id) {
+            closeFormDropdown(activeDropdownId);
+        }
 
-            if (filteredUnits.length > 0) {
-                filteredUnits.forEach(unit => {
-                    const option = document.createElement('option');
-                    option.value = unit.id;
-                    option.textContent = unit.name;
-                    if (unit.id == currentUnitId) {
-                        option.selected = true;
-                    }
-                    unitSelect.appendChild(option);
-                });
-
-                // Enable
-                unitSelect.disabled = false;
-                unitSelect.classList.remove('bg-slate-50', 'text-slate-400');
-                unitSelect.classList.add('bg-white', 'text-slate-700');
-            } else {
-                unitSelect.innerHTML = '<option value="">No Units in this Department</option>';
-            }
+        if (menu.classList.contains('hidden')) {
+            // Open
+            menu.classList.remove('hidden');
+            requestAnimationFrame(() => {
+                menu.classList.add('opacity-100', 'scale-100');
+            });
+            if (arrow) arrow.classList.add('rotate-180');
+            activeDropdownId = id;
         } else {
-            unitSelect.innerHTML = '<option value="">Select Department First</option>';
+            // Close
+            closeFormDropdown(id);
         }
     }
 
-    // Run on load
-    document.addEventListener('DOMContentLoaded', filterUnits);
+    function closeFormDropdown(id) {
+        const menu = document.getElementById('menu-' + id);
+        const arrow = document.getElementById('arrow-' + id);
+        if (menu) menu.classList.add('hidden');
+        if (arrow) arrow.classList.remove('rotate-180');
+        activeDropdownId = null;
+    }
+
+    function selectFormOption(id, value, label) {
+        document.getElementById('input-' + id).value = value;
+        document.getElementById('text-' + id).textContent = label;
+        closeFormDropdown(id);
+
+        if (id === 'division_id') {
+            filterFormUnits(value);
+        }
+    }
+
+    // Close when clicking outside
+    document.addEventListener('click', (e) => {
+        if (activeDropdownId) {
+            const container = document.getElementById('container-' + activeDropdownId);
+            if (container && !container.contains(e.target)) {
+                closeFormDropdown(activeDropdownId);
+            }
+        }
+    });
+
+    // --- Unit Filtering Logic ---
+    function filterFormUnits(divisionId) {
+        const unitList = document.getElementById('list-unit_id');
+        const unitInput = document.getElementById('input-unit_id');
+        const unitText = document.getElementById('text-unit_id');
+
+        // Reset Unit
+        unitInput.value = '';
+        unitText.textContent = 'Directly under Division (No Unit)';
+        unitList.innerHTML = '';
+
+        // Default option
+        const defaultLi = document.createElement('li');
+        defaultLi.onclick = () => selectFormOption('unit_id', '', 'Directly under Division (No Unit)');
+        defaultLi.className = "cursor-pointer select-none py-2 pl-3 pr-9 text-slate-900 hover:bg-cyan-50 hover:text-cyan-700";
+        defaultLi.textContent = "Directly under Division (No Unit)";
+        unitList.appendChild(defaultLi);
+
+        if (divisionId) {
+            const filteredUnits = allUnits.filter(unit => unit.division_id == divisionId);
+            filteredUnits.forEach(unit => {
+                const li = document.createElement('li');
+                li.onclick = () => selectFormOption('unit_id', unit.id, unit.name);
+                li.className = "cursor-pointer select-none py-2 pl-3 pr-9 text-slate-900 hover:bg-cyan-50 hover:text-cyan-700";
+                li.textContent = unit.name;
+                unitList.appendChild(li);
+            });
+        }
+    }
+
+    // Initialize units on load if division is set
+    document.addEventListener('DOMContentLoaded', () => {
+        const initialDivId = document.getElementById('input-division_id').value;
+        if (initialDivId) {
+            // We need to re-populate the list, but NOT reset the selected value if it matches.
+            // Simplified: Run filter logic, then restore value if exists.
+
+            const unitList = document.getElementById('list-unit_id');
+            unitList.innerHTML = ''; // Clear
+
+            const defaultLi = document.createElement('li');
+            defaultLi.onclick = () => selectFormOption('unit_id', '', 'Directly under Division (No Unit)');
+            defaultLi.className = "cursor-pointer select-none py-2 pl-3 pr-9 text-slate-900 hover:bg-cyan-50 hover:text-cyan-700";
+            defaultLi.textContent = "Directly under Division (No Unit)";
+            unitList.appendChild(defaultLi);
+
+            const filteredUnits = allUnits.filter(unit => unit.division_id == initialDivId);
+            filteredUnits.forEach(unit => {
+                const li = document.createElement('li');
+                li.onclick = () => selectFormOption('unit_id', unit.id, unit.name);
+                li.className = "cursor-pointer select-none py-2 pl-3 pr-9 text-slate-900 hover:bg-cyan-50 hover:text-cyan-700";
+                li.textContent = unit.name;
+                unitList.appendChild(li);
+            });
+        }
+    });
 </script>
 
 <?php include '../layouts/footer.php'; ?>

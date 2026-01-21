@@ -11,8 +11,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $phone = trim($_POST['phone_number']);
     $address = trim($_POST['address']);
     $password = trim($_POST['password']);
-    $department_id = $_POST['department_id'] ?: null;
+    $division_id = $_POST['division_id'] ?: null;
     $unit_id = $_POST['unit_id'] ?: null;
+    $position_id = $_POST['position_id'] ?: null;
     $schedule_id = !empty($_POST['schedule_id']) ? $_POST['schedule_id'] : null;
 
     if (!empty($full_name) && !empty($email) && !empty($id)) {
@@ -31,11 +32,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // Build Query dynamically based on password presence
             if (!empty($password)) {
                 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-                $sql = "UPDATE employees SET full_name = :name, email = :email, phone_number = :phone, address = :address, password = :pass, department_id = :dept, unit_id = :unit, schedule_id = :sched WHERE id = :id";
+                $sql = "UPDATE employees SET full_name = :name, email = :email, phone_number = :phone, address = :address, password = :pass, division_id = :div, unit_id = :unit, position_id = :pos, schedule_id = :sched WHERE id = :id";
                 $stmt = $conn->prepare($sql);
                 $stmt->bindParam(':pass', $hashed_password);
             } else {
-                $sql = "UPDATE employees SET full_name = :name, email = :email, phone_number = :phone, address = :address, department_id = :dept, unit_id = :unit, schedule_id = :sched WHERE id = :id";
+                $sql = "UPDATE employees SET full_name = :name, email = :email, phone_number = :phone, address = :address, division_id = :div, unit_id = :unit, position_id = :pos, schedule_id = :sched WHERE id = :id";
                 $stmt = $conn->prepare($sql);
             }
 
@@ -43,8 +44,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt->bindParam(':email', $email);
             $stmt->bindParam(':phone', $phone);
             $stmt->bindParam(':address', $address);
-            $stmt->bindParam(':dept', $department_id);
+            $stmt->bindParam(':div', $division_id);
             $stmt->bindParam(':unit', $unit_id);
+            $stmt->bindParam(':pos', $position_id);
             $stmt->bindParam(':sched', $schedule_id);
             $stmt->bindParam(':id', $id);
 

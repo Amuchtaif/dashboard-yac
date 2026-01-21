@@ -14,13 +14,17 @@ $page_title = $is_edit ? "Edit Department" : "Add Department";
 // Fetch Schedules
 $schedules = $conn->query("SELECT * FROM work_schedules ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
 
+// Fetch all employees for manager dropdown
+$employees = $conn->query("SELECT id, full_name FROM employees ORDER BY full_name ASC")->fetchAll(PDO::FETCH_ASSOC);
+
 $department = [
     'name' => '',
-    'schedule_id' => ''
+    'schedule_id' => '',
+    'manager_id' => ''
 ];
 
 if ($is_edit) {
-    $stmt = $conn->prepare("SELECT * FROM departments WHERE id = :id");
+    $stmt = $conn->prepare("SELECT * FROM divisions WHERE id = :id");
     $stmt->execute([':id' => $id]);
     $department = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -51,7 +55,7 @@ include '../layouts/header.php';
                             d="m1 9 4-4-4-4" />
                     </svg>
                     <a href="<?php url('views/departments/index.php'); ?>"
-                        class="ml-1 text-slate-500 hover:text-slate-700">Departments</a>
+                        class="ml-1 text-slate-500 hover:text-slate-700">Divisions</a>
                 </div>
             </li>
             <li aria-current="page">
@@ -71,10 +75,10 @@ include '../layouts/header.php';
 
     <div class="mb-8">
         <h1 class="text-2xl font-bold text-slate-900">
-            <?php echo $is_edit ? "Edit Department" : "Add New Department"; ?>
+            <?php echo $is_edit ? "Edit Division" : "Add New Division"; ?>
         </h1>
         <p class="mt-2 text-sm text-slate-600">
-            <?php echo $is_edit ? "Update department details and default schedule." : "Create a new department to organize your workforce."; ?>
+            <?php echo $is_edit ? "Update division details and default schedule." : "Create a new division to organize your workforce."; ?>
         </p>
     </div>
 
@@ -103,7 +107,7 @@ include '../layouts/header.php';
 
                     <!-- Department Name -->
                     <div class="sm:col-span-4">
-                        <label for="name" class="block text-sm font-medium leading-6 text-gray-900">Department
+                        <label for="name" class="block text-sm font-medium leading-6 text-gray-900">Division
                             Name</label>
                         <div class="mt-2">
                             <input type="text" name="name" id="name" required
@@ -113,23 +117,218 @@ include '../layouts/header.php';
                         </div>
                     </div>
 
+                    <!-- Manager -->
+                    <div class="sm:col-span-4">
+                        <label for="manager_id" class="block text-sm font-medium leading-6 text-gray-900">Division
+                            Manager</label>
+                        <p class="text-xs text-slate-500 mb-2">Select the person in charge of this division.</p>
+                        <div class="mt-2 relative">
+                            <!-- Custom Searchable Dropdown for Manager -->
+                            <div class="relative" id="manager-dropdown-container">
+                                <input type="hidden" name="manager_id" id="manager_id_hidden"
+                                    value="<?php echo htmlspecialchars($department['manager_id'] ?? ''); ?>">
+
+                                <button type="button" id="manager-dropdown-btn"
+                                    class="relative w-full cursor-default rounded-lg bg-white py-2.5 pl-4 pr-10 text-left text-slate-700 shadow-sm ring-1 ring-inset ring-slate-300 focus:outline-none focus:ring-2 focus:ring-cyan-500 sm:text-sm sm:leading-6">
+                                    <span class="block truncate" id="manager-selected-text">
+                                        <?php
+                                        // Pre-fill selected name if editing
+                                        $selected_name = 'Select Manager';
+                                        if (!empty($department['manager_id'])) {
+                                            foreach ($employees as $emp) {
+                                                if ($emp['id'] == $department['manager_id']) {
+                                                    $selected_name = $emp['full_name'];
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                        echo htmlspecialchars($selected_name);
+                                        ?>
+                                    </span>
+                                    <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                                        <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"
+                                            aria-hidden="true">
+                                            <path fill-rule="evenodd"
+                                                d="M10 3a1 1 0 01.707.293l3 3a1 1 0 01-1.414 1.414L10 5.414 7.707 7.707a1 1 0 01-1.414-1.414l3-3A1 1 0 0110 3zm-3.707 9.293a1 1 0 011.414 0L10 14.586l2.293-2.293a1 1 0 011.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+                                                clip-rule="evenodd" />
+                                        </svg>
+                                    </span>
+                                </button>
+
+                                <!-- Dropdown Menu -->
+                                <div id="manager-dropdown-menu"
+                                    class="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm hidden">
+
+                                    <!-- Search Input -->
+                                    <div class="sticky top-0 z-10 bg-white px-2 py-2 border-b border-slate-100">
+                                        <input type="text" id="manager-search-input"
+                                            class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-cyan-600 sm:text-sm sm:leading-6 px-3"
+                                            placeholder="Search...">
+                                    </div>
+
+                                    <!-- Options List -->
+                                    <ul class="py-1" id="manager-options-list" role="listbox">
+                                        <li class="relative cursor-default select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-cyan-50 cursor-pointer"
+                                            data-value="" data-text="Select Manager"
+                                            onclick="selectManager('', 'Select Manager')">
+                                            <span class="block truncate font-medium text-slate-500">- None -</span>
+                                        </li>
+                                        <?php foreach ($employees as $emp): ?>
+                                            <li class="relative cursor-default select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-cyan-50 cursor-pointer manager-option"
+                                                data-value="<?php echo $emp['id']; ?>"
+                                                data-text="<?php echo htmlspecialchars($emp['full_name']); ?>"
+                                                onclick="selectManager('<?php echo $emp['id']; ?>', '<?php echo htmlspecialchars($emp['full_name'], ENT_QUOTES); ?>')">
+                                                <div class="flex items-center">
+                                                    <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($emp['full_name']); ?>&background=random&size=20"
+                                                        alt="" class="h-6 w-6 flex-shrink-0 rounded-full mr-2">
+                                                    <span class="block truncate font-normal">
+                                                        <?php echo htmlspecialchars($emp['full_name']); ?>
+                                                    </span>
+                                                </div>
+                                            </li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <script>
+                                const dropdownBtn = document.getElementById('manager-dropdown-btn');
+                                const dropdownMenu = document.getElementById('manager-dropdown-menu');
+                                const searchInput = document.getElementById('manager-search-input');
+                                const optionsList = document.getElementById('manager-options-list');
+                                const hiddenInput = document.getElementById('manager_id_hidden');
+                                const selectedText = document.getElementById('manager-selected-text');
+                                const options = document.querySelectorAll('.manager-option');
+
+                                // Toggle Dropdown
+                                dropdownBtn.addEventListener('click', () => {
+                                    dropdownMenu.classList.toggle('hidden');
+                                    if (!dropdownMenu.classList.contains('hidden')) {
+                                        searchInput.focus();
+                                    }
+                                });
+
+                                // Filter Options
+                                searchInput.addEventListener('input', (e) => {
+                                    const filter = e.target.value.toLowerCase();
+                                    options.forEach(option => {
+                                        const text = option.getAttribute('data-text').toLowerCase();
+                                        if (text.includes(filter)) {
+                                            option.style.display = '';
+                                        } else {
+                                            option.style.display = 'none';
+                                        }
+                                    });
+                                });
+
+                                // Select Manager Function
+                                window.selectManager = function (value, text) {
+                                    hiddenInput.value = value;
+                                    selectedText.textContent = text;
+                                    dropdownMenu.classList.add('hidden');
+                                }
+
+                                // Close dropdown when clicking outside
+                                document.addEventListener('click', (e) => {
+                                    if (!document.getElementById('manager-dropdown-container').contains(e.target)) {
+                                        dropdownMenu.classList.add('hidden');
+                                    }
+                                });
+                            </script>
+                        </div>
+                    </div>
+
                     <!-- Default Work Schedule -->
                     <div class="sm:col-span-4">
                         <label for="schedule_id" class="block text-sm font-medium leading-6 text-gray-900">Default Work
                             Schedule</label>
                         <p class="text-xs text-slate-500 mb-2">Select the default shift for employees in this
-                            department.</p>
-                        <div class="mt-2">
-                            <select name="schedule_id" id="schedule_id" required
-                                class="block w-full px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 focus:outline-none transition-all appearance-none bg-white placeholder:text-slate-400 shadow-sm">
-                                <option value="">Select a Schedule...</option>
-                                <?php foreach ($schedules as $schedule): ?>
-                                    <option value="<?php echo $schedule['id']; ?>" <?php echo ($department['schedule_id'] == $schedule['id']) ? 'selected' : ''; ?>>
-                                        <?php echo htmlspecialchars($schedule['name']) . " (" . date('H:i', strtotime($schedule['start_time'])) . " - " . date('H:i', strtotime($schedule['end_time'])) . ")"; ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
+                            division.</p>
+                        <div class="mt-2 relative" id="dropdown-container-schedule">
+                            <input type="hidden" name="schedule_id" id="input-schedule"
+                                value="<?php echo $department['schedule_id']; ?>">
+                            <button type="button" onclick="toggleFormDropdown('schedule')" id="button-schedule"
+                                class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200 transition-all">
+                                <span id="text-schedule" class="block truncate">
+                                    <?php
+                                    $currentScheduleName = 'Select a Schedule...';
+                                    foreach ($schedules as $schedule) {
+                                        if ($department['schedule_id'] == $schedule['id']) {
+                                            $currentScheduleName = $schedule['name'];
+                                            break;
+                                        }
+                                    }
+                                    echo htmlspecialchars($currentScheduleName);
+                                    ?>
+                                </span>
+                                <svg class="h-4 w-4 text-slate-500 transition-transform duration-200"
+                                    id="arrow-schedule" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                                    fill="currentColor">
+                                    <path fill-rule="evenodd"
+                                        d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                            <div id="menu-schedule"
+                                class="absolute z-50 mt-1 hidden max-h-60 w-full overflow-auto rounded-lg bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                                <ul class="py-1">
+                                    <li onclick="selectFormOption('schedule', '', 'Select a Schedule...')"
+                                        class="cursor-pointer px-4 py-2 text-sm text-slate-500 hover:bg-slate-50 hover:text-cyan-700 transition-colors">
+                                        Select a Schedule...
+                                    </li>
+                                    <?php foreach ($schedules as $schedule): ?>
+                                        <li onclick="selectFormOption('schedule', '<?php echo $schedule['id']; ?>', '<?php echo htmlspecialchars($schedule['name'], ENT_QUOTES); ?>')"
+                                            class="cursor-pointer px-4 py-2 text-sm text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
+                                            <?php echo htmlspecialchars($schedule['name']); ?>
+                                        </li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            </div>
                         </div>
+
+                        <script>
+                            let activeFormDropdownId = null;
+
+                            function toggleFormDropdown(id) {
+                                const menu = document.getElementById('menu-' + id);
+                                const arrow = document.getElementById('arrow-' + id);
+
+                                if (activeFormDropdownId && activeFormDropdownId !== id) {
+                                    closeFormDropdown(activeFormDropdownId);
+                                }
+
+                                if (menu.classList.contains('hidden')) {
+                                    menu.classList.remove('hidden');
+                                    if (arrow) arrow.classList.add('rotate-180');
+                                    activeFormDropdownId = id;
+                                } else {
+                                    closeFormDropdown(id);
+                                }
+                            }
+
+                            function closeFormDropdown(id) {
+                                const menu = document.getElementById('menu-' + id);
+                                const arrow = document.getElementById('arrow-' + id);
+                                if (menu) menu.classList.add('hidden');
+                                if (arrow) arrow.classList.remove('rotate-180');
+                                activeFormDropdownId = null;
+                            }
+
+                            function selectFormOption(id, value, label) {
+                                document.getElementById('input-' + id).value = value;
+                                document.getElementById('text-' + id).textContent = label;
+                                closeFormDropdown(id);
+                            }
+
+                            document.addEventListener('click', (e) => {
+                                if (activeFormDropdownId) {
+                                    const container = document.getElementById('dropdown-container-' + activeFormDropdownId);
+                                    if (container && !container.contains(e.target)) {
+                                        closeFormDropdown(activeFormDropdownId);
+                                    }
+                                }
+                            });
+                        </script>
                     </div>
 
                 </div>
@@ -139,7 +338,7 @@ include '../layouts/header.php';
                     class="text-sm font-semibold leading-6 text-gray-900">Cancel</a>
                 <button type="submit"
                     class="rounded-md bg-cyan-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-600 transition-colors">
-                    <?php echo $is_edit ? "Update Department" : "Save Department"; ?>
+                    <?php echo $is_edit ? "Update Division" : "Save Division"; ?>
                 </button>
             </div>
         </form>

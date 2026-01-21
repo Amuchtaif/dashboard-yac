@@ -10,8 +10,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $phone = trim($_POST['phone_number']); // Capture Phone
     $address = trim($_POST['address']); // Capture Address
     $password = trim($_POST['password']);
-    $department_id = $_POST['department_id'] ?: null;
+    $division_id = $_POST['division_id'] ?: null;
     $unit_id = $_POST['unit_id'] ?: null;
+    $position_id = $_POST['position_id'] ?: null;
     $schedule_id = !empty($_POST['schedule_id']) ? $_POST['schedule_id'] : null;
 
     if (!empty($full_name) && !empty($email) && !empty($password) && !empty($phone) && !empty($address)) {
@@ -29,15 +30,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
         try {
-            $stmt = $conn->prepare("INSERT INTO employees (full_name, email, phone_number, address, password, department_id, unit_id, schedule_id) VALUES (:name, :email, :phone, :address, :pass, :dept, :unit, :sched)");
+            $stmt = $conn->prepare("INSERT INTO employees (full_name, email, phone_number, address, password, division_id, unit_id, schedule_id, position_id) VALUES (:name, :email, :phone, :address, :pass, :div, :unit, :sched, :pos)");
             $stmt->bindParam(':name', $full_name);
             $stmt->bindParam(':email', $email);
             $stmt->bindParam(':phone', $phone);
             $stmt->bindParam(':address', $address);
             $stmt->bindParam(':pass', $hashed_password);
-            $stmt->bindParam(':dept', $department_id);
+            $stmt->bindParam(':div', $division_id);
             $stmt->bindParam(':unit', $unit_id);
             $stmt->bindParam(':sched', $schedule_id);
+            $stmt->bindParam(':pos', $position_id);
             $stmt->execute();
 
             header("Location: ../../views/employees/index.php?success=Employee Added");

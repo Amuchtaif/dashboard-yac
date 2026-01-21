@@ -11,7 +11,7 @@ if (isset($_GET['id'])) {
     $conn = $db->getConnection();
 
     try {
-        $stmt = $conn->prepare("DELETE FROM departments WHERE id = :id");
+        $stmt = $conn->prepare("DELETE FROM divisions WHERE id = :id");
         $stmt->bindParam(':id', $id);
         $stmt->execute();
         header("Location: ../../views/departments/index.php?success=Department Deleted");

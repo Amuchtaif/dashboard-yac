@@ -10,6 +10,7 @@
     </title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="<?php echo BASE_URL; ?>/assets/images/favicon.png">
     <script>
         tailwind.config = {
             theme: {
@@ -28,6 +29,47 @@
         }
 
         /* Slate-100/Background */
+
+        /* Custom Checkbox Style */
+        .custom-checkbox {
+            appearance: none;
+            -webkit-appearance: none;
+            background-color: #fff;
+            margin: 0;
+            font: inherit;
+            color: currentColor;
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 1px solid #cbd5e1;
+            /* slate-300 */
+            border-radius: 0.375rem;
+            /* rounded-md */
+            display: grid;
+            place-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+        }
+
+        .custom-checkbox:hover {
+            border-color: #94a3b8;
+            /* slate-400 */
+        }
+
+        .custom-checkbox:checked {
+            background-color: #3b82f6;
+            /* blue-500 matches the vibrant image blue better */
+            border-color: #3b82f6;
+            background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
+        }
+
+        .custom-checkbox:focus {
+            outline: 2px solid #bfdbfe;
+            /* blue-200 */
+            outline-offset: 2px;
+        }
     </style>
 </head>
 
@@ -57,10 +99,10 @@
                     </span>
                     <input type="text"
                         class="bg-slate-50 border border-slate-200 text-slate-600 sm:text-sm rounded-full pl-10 pr-4 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all placeholder:text-slate-400"
-                        placeholder="Search employees, records...">
+                        placeholder="Cari pegawai, data...">
                 </div>
 
-                <!-- Icons -->
+                <!-- Notification Icon -->
                 <div class="flex items-center gap-4 text-slate-500">
                     <button class="relative hover:text-cyan-600 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
@@ -71,7 +113,45 @@
                         <span
                             class="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"></span>
                     </button>
+
+                    <!-- Profile Dropdown -->
+                    <div class="relative ml-2" id="profile-dropdown-container">
+                        <button type="button" onclick="toggleProfileDropdown()"
+                            class="flex items-center gap-2 focus:outline-none">
+                            <img class="h-8 w-8 rounded-full border border-slate-200 object-cover"
+                                src="https://ui-avatars.com/api/?name=Admin&background=random" alt="User Profile">
+                            <span class="hidden md:block text-sm font-medium text-slate-700">Admin</span>
+                            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+
+                        <!-- Dropdown Menu -->
+                        <div id="profile-menu"
+                            class="hidden absolute right-0 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                            <a href="#" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Pengaturan</a>
+                            <a href="<?php url('logic/auth/logout.php'); ?>"
+                                class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Keluar</a>
+                        </div>
+                    </div>
                 </div>
+
+                <script>
+                    function toggleProfileDropdown() {
+                        const menu = document.getElementById('profile-menu');
+                        menu.classList.toggle('hidden');
+                    }
+
+                    // Close when clicking outside
+                    document.addEventListener('click', function (e) {
+                        const container = document.getElementById('profile-dropdown-container');
+                        const menu = document.getElementById('profile-menu');
+                        if (container && !container.contains(e.target)) {
+                            menu.classList.add('hidden');
+                        }
+                    });
+                </script>
             </div>
         </header>
 

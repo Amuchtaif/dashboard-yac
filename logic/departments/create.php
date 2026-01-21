@@ -11,12 +11,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $db = new Database();
         $conn = $db->getConnection();
         $schedule_id = !empty($_POST['schedule_id']) ? $_POST['schedule_id'] : null;
+        $manager_id = !empty($_POST['manager_id']) ? $_POST['manager_id'] : null;
 
         try {
-            $stmt = $conn->prepare("INSERT INTO departments (name, schedule_id) VALUES (:name, :schedule_id)");
+            $stmt = $conn->prepare("INSERT INTO divisions (name, schedule_id, manager_id) VALUES (:name, :schedule_id, :manager_id)");
             $stmt->execute([
                 ':name' => $name,
-                ':schedule_id' => $schedule_id
+                ':schedule_id' => $schedule_id,
+                ':manager_id' => $manager_id
             ]);
             header("Location: ../../views/departments/index.php?success=Department Created");
         } catch (PDOException $e) {
