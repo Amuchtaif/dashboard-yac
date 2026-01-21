@@ -13,9 +13,10 @@ $conn = $db->getConnection();
 
 $id = $_POST['id'] ?? '';
 $name = trim($_POST['name'] ?? '');
+$semester = $_POST['semester'] ?? 'Ganjil';
 $start_date = $_POST['start_date'] ?? null;
 $end_date = $_POST['end_date'] ?? null;
-$status = $_POST['status'] ?? 'Inactive';
+$is_active = ($_POST['status'] ?? 'Inactive') === 'Active' ? 1 : 0;
 
 if (empty($id) || empty($name)) {
     redirect('views/academic_years/index.php?error=' . urlencode('ID dan Nama tahun ajaran wajib diisi.'));
@@ -23,18 +24,18 @@ if (empty($id) || empty($name)) {
 
 try {
     // If setting as Active, deactivate others first
-    if ($status === 'Active') {
-        // Prepare to deactivate all others except this one
-        $conn->query("UPDATE academic_years SET status = 'Inactive'");
+    if ($is_active === 1) {
+        $conn->query("UPDATE academic_years SET is_active = 0");
     }
 
-    $sql = "UPDATE academic_years SET name = :name, start_date = :start_date, end_date = :end_date, status = :status WHERE id = :id";
+    $sql = "UPDATE academic_years SET name = :name, semester = :semester, start_date = :start_date, end_date = :end_date, is_active = :is_active WHERE id = :id";
     $stmt = $conn->prepare($sql);
     $stmt->execute([
         ':name' => $name,
+        ':semester' => $semester,
         ':start_date' => $start_date,
         ':end_date' => $end_date,
-        ':status' => $status,
+        ':is_active' => $is_active,
         ':id' => $id
     ]);
 

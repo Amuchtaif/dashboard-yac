@@ -9,7 +9,7 @@ $conn = $db->getConnection();
 
 $id = isset($_GET['id']) ? $_GET['id'] : null;
 $is_edit = !empty($id);
-$page_title = $is_edit ? "Edit Employee" : "Add New Employee";
+$page_title = $is_edit ? "Edit Pegawai" : "Tambah Pegawai Baru";
 
 $employee = [
     'full_name' => '',
@@ -54,7 +54,7 @@ include '../layouts/header.php';
         <nav class="flex mb-4" aria-label="Breadcrumb">
             <ol class="inline-flex items-center space-x-1 md:space-x-3 text-xs text-slate-500">
                 <li class="inline-flex items-center">
-                    <a href="<?php url('views/dashboard/index.php'); ?>" class="hover:text-slate-800">Home</a>
+                    <a href="<?php url('views/dashboard/index.php'); ?>" class="hover:text-slate-800">Beranda</a>
                 </li>
                 <li>
                     <div class="flex items-center">
@@ -63,7 +63,7 @@ include '../layouts/header.php';
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="m1 9 4-4-4-4" />
                         </svg>
-                        <a href="<?php url('views/employees/index.php'); ?>" class="hover:text-slate-800">Employees</a>
+                        <a href="<?php url('views/employees/index.php'); ?>" class="hover:text-slate-800">Pegawai</a>
                     </div>
                 </li>
                 <li aria-current="page">
@@ -75,16 +75,16 @@ include '../layouts/header.php';
                         </svg>
                         <span
                             class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-cyan-50 text-cyan-700">
-                            <?php echo $is_edit ? "Edit" : "Add New"; ?>
+                            <?php echo $is_edit ? "Edit" : "Tambah Baru"; ?>
                         </span>
                     </div>
                 </li>
             </ol>
         </nav>
-        <h2 class="text-2xl font-bold text-slate-800"><?php echo $is_edit ? "Edit Employee" : "Add New Employee"; ?>
+        <h2 class="text-2xl font-bold text-slate-800"><?php echo $is_edit ? "Edit Pegawai" : "Tambah Pegawai Baru"; ?>
         </h2>
         <p class="text-slate-500 text-sm mt-1">
-            <?php echo $is_edit ? "Update the details for " . htmlspecialchars($employee['full_name']) : "Enter the details below to register a new employee into the system."; ?>
+            <?php echo $is_edit ? "Perbarui rincian untuk " . htmlspecialchars($employee['full_name']) : "Masukkan rincian di bawah ini untuk mendaftarkan pegawai baru ke dalam sistem."; ?>
         </p>
     </div>
 
@@ -119,13 +119,13 @@ include '../layouts/header.php';
                                 clip-rule="evenodd" />
                         </svg>
                     </div>
-                    <h3 class="text-base font-bold text-slate-800">Personal Information</h3>
+                    <h3 class="text-base font-bold text-slate-800">Informasi Pribadi</h3>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
                     <!-- Profile Photo Placeholder -->
                     <div class="md:col-span-1">
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">Profile Photo</label>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Foto Profil</label>
                         <div
                             class="flex flex-col items-center justify-center w-32 h-32 rounded-full border-2 border-dashed border-slate-300 bg-slate-50 relative group cursor-pointer hover:border-cyan-500 hover:bg-cyan-50 transition-all">
                             <?php if ($is_edit): ?>
@@ -152,22 +152,22 @@ include '../layouts/header.php';
                                 </svg>
                             </span>
                         </div>
-                        <p class="text-[10px] text-slate-400 mt-2 text-center w-32">Upload a professional photo. Max
-                            size 2MB.</p>
+                        <p class="text-[10px] text-slate-400 mt-2 text-center w-32">Unggah foto profesional. Ukuran maks
+                            2MB.</p>
                     </div>
 
                     <!-- Personal Fields -->
                     <div class="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label for="full_name" class="block text-sm font-semibold text-slate-700 mb-1">Full Name
+                            <label for="full_name" class="block text-sm font-semibold text-slate-700 mb-1">Nama Lengkap
                                 <span class="text-red-500">*</span></label>
                             <input type="text" name="full_name" id="full_name" required
                                 value="<?php echo htmlspecialchars($employee['full_name']); ?>"
                                 class="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 focus:outline-none transition-all placeholder:text-slate-400 shadow-sm"
-                                placeholder="e.g. Sarah Johnson">
+                                placeholder="misal: Sarah Johnson">
                         </div>
                         <div>
-                            <label for="email" class="block text-sm font-semibold text-slate-700 mb-1">Email Address
+                            <label for="email" class="block text-sm font-semibold text-slate-700 mb-1">Alamat Email
                                 <span class="text-red-500">*</span></label>
                             <input type="email" name="email" id="email" required
                                 value="<?php echo htmlspecialchars($employee['email']); ?>"
@@ -177,8 +177,8 @@ include '../layouts/header.php';
 
                         <!-- Phone Number -->
                         <div>
-                            <label for="phone_number" class="block text-sm font-semibold text-slate-700 mb-1">Phone
-                                Number <span class="text-red-500">*</span></label>
+                            <label for="phone_number" class="block text-sm font-semibold text-slate-700 mb-1">Nomor
+                                Telepon <span class="text-red-500">*</span></label>
                             <input type="text" name="phone_number" id="phone_number" required
                                 value="<?php echo htmlspecialchars($employee['phone_number']); ?>"
                                 class="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 focus:outline-none transition-all placeholder:text-slate-400 shadow-sm"
@@ -187,10 +187,10 @@ include '../layouts/header.php';
 
                         <div>
                             <label for="password" class="block text-sm font-semibold text-slate-700 mb-1">
-                                <?php echo $is_edit ? "New Password" : "Default Password"; ?>
+                                <?php echo $is_edit ? "Kata Sandi Baru" : "Kata Sandi Default"; ?>
                                 <span
                                     class="<?php echo $is_edit ? "text-slate-400 text-xs font-normal" : "text-red-500"; ?>">
-                                    <?php echo $is_edit ? "(Leave blank to keep)" : "*"; ?>
+                                    <?php echo $is_edit ? "(Kosongkan jika tidak ingin diubah)" : "*"; ?>
                                 </span>
                             </label>
                             <input type="password" name="password" id="password" <?php echo $is_edit ? '' : 'required'; ?>
@@ -200,11 +200,11 @@ include '../layouts/header.php';
 
                         <!-- Address (Full Width) -->
                         <div class="md:col-span-2">
-                            <label for="address" class="block text-sm font-semibold text-slate-700 mb-1">Address <span
+                            <label for="address" class="block text-sm font-semibold text-slate-700 mb-1">Alamat <span
                                     class="text-red-500">*</span></label>
                             <textarea name="address" id="address" rows="3" required
                                 class="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 focus:outline-none transition-all placeholder:text-slate-400 shadow-sm"
-                                placeholder="Full residential address..."><?php echo htmlspecialchars($employee['address']); ?></textarea>
+                                placeholder="Alamat lengkap tempat tinggal..."><?php echo htmlspecialchars($employee['address']); ?></textarea>
                         </div>
                     </div>
                 </div>
@@ -220,25 +220,25 @@ include '../layouts/header.php';
                                 clip-rule="evenodd" />
                         </svg>
                     </div>
-                    <h3 class="text-base font-bold text-slate-800">Employment Details (Organization)</h3>
+                    <h3 class="text-base font-bold text-slate-800">Rincian Pekerjaan (Organisasi)</h3>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- Employee ID (Read only mock) -->
                     <?php if (!$is_edit): ?>
                         <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">Employee ID</label>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">ID Pegawai</label>
                             <div class="flex">
                                 <span
                                     class="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-slate-200 bg-slate-50 text-slate-500 text-sm">EMP-</span>
                                 <input type="text" readonly value="<?php echo date('Y') . rand(100, 999); ?>"
                                     class="rounded-r-lg bg-slate-50 border border-slate-200 text-slate-500 focus:ring-0 focus:border-slate-200 block w-full min-w-0 flex-1 text-sm px-3 py-2.5">
                             </div>
-                            <p class="text-[10px] text-slate-400 mt-1">Auto-generated by system.</p>
+                            <p class="text-[10px] text-slate-400 mt-1">Dibuat otomatis oleh sistem.</p>
                         </div>
                         <!-- Date of Joining Mock -->
                         <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">Date of Joining <span
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Tanggal Bergabung <span
                                     class="text-red-500">*</span></label>
                             <input type="date"
                                 class="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all text-slate-600">
@@ -247,7 +247,7 @@ include '../layouts/header.php';
 
                     <!-- Division (Custom Dropdown) -->
                     <div class="relative group" id="container-division_id">
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Division (Bidang) <span
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Divisi (Bidang) <span
                                 class="text-red-500">*</span></label>
                         <input type="hidden" name="division_id" id="input-division_id"
                             value="<?php echo $employee['division_id']; ?>">
@@ -255,7 +255,7 @@ include '../layouts/header.php';
                             class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all">
                             <span id="text-division_id" class="block truncate">
                                 <?php
-                                $divName = "Select Division";
+                                $divName = "Pilih Divisi";
                                 foreach ($divisions as $d) {
                                     if ($d['id'] == $employee['division_id']) {
                                         $divName = $d['name'];
@@ -274,9 +274,9 @@ include '../layouts/header.php';
                         <div id="menu-division_id"
                             class="hidden absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
                             <ul class="py-1">
-                                <li onclick="selectFormOption('division_id', '', 'Select Division')"
+                                <li onclick="selectFormOption('division_id', '', 'Pilih Divisi')"
                                     class="cursor-pointer select-none py-2 pl-3 pr-9 text-slate-500 hover:bg-slate-50">
-                                    Select Division</li>
+                                    Pilih Divisi</li>
                                 <?php foreach ($divisions as $div): ?>
                                     <li onclick="selectFormOption('division_id', '<?php echo $div['id']; ?>', '<?php echo htmlspecialchars($div['name'], ENT_QUOTES); ?>')"
                                         class="cursor-pointer select-none py-2 pl-3 pr-9 text-slate-900 hover:bg-cyan-50 hover:text-cyan-700">
@@ -289,15 +289,14 @@ include '../layouts/header.php';
 
                     <!-- Unit (Custom Dropdown) -->
                     <div class="relative group" id="container-unit_id">
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Unit <span
-                                class="text-xs font-normal text-slate-400 ml-1">(Optional)</span></label>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Unit Organisasi</label>
                         <input type="hidden" name="unit_id" id="input-unit_id"
                             value="<?php echo $employee['unit_id']; ?>">
                         <button type="button" onclick="toggleFormDropdown('unit_id')"
                             class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all">
                             <span id="text-unit_id" class="block truncate">
                                 <?php
-                                $unitName = "Directly under Division (No Unit)";
+                                $unitName = "Langsung di bawah Divisi (Tanpa Unit)";
                                 foreach ($units as $u) {
                                     if ($u['id'] == $employee['unit_id']) {
                                         $unitName = $u['name'];
@@ -317,114 +316,113 @@ include '../layouts/header.php';
                             class="hidden absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
                             <ul class="py-1" id="list-unit_id">
                                 <!-- Populated via JS -->
-                                <li onclick="selectFormOption('unit_id', '', 'Directly under Division (No Unit)')"
+                                <li onclick="selectFormOption('unit_id', '', 'Langsung di bawah Divisi (Tanpa Unit)')"
                                     class="cursor-pointer select-none py-2 pl-3 pr-9 text-slate-900 hover:bg-cyan-50 hover:text-cyan-700">
-                                    Directly under Division (No Unit)</li>
+                                    Langsung di bawah Divisi (Tanpa Unit)</li>
                             </ul>
                         </div>
                     </div>
-
-                    <!-- Position (Custom Dropdown) -->
-                    <div class="relative group" id="container-position_id">
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Position / Job Title <span
-                                class="text-red-500">*</span></label>
-                        <input type="hidden" name="position_id" id="input-position_id"
-                            value="<?php echo $employee['position_id']; ?>">
-                        <button type="button" onclick="toggleFormDropdown('position_id')"
-                            class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all">
-                            <span id="text-position_id" class="block truncate">
-                                <?php
-                                $posName = "Select Position";
-                                foreach ($positions as $p) {
-                                    if ($p['id'] == $employee['position_id']) {
-                                        $posName = $p['name'];
-                                        break;
-                                    }
-                                }
-                                echo htmlspecialchars($posName);
-                                ?>
-                            </span>
-                            <svg class="h-4 w-4 text-slate-400 transition-transform duration-200" id="arrow-position_id"
-                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </button>
-                        <div id="menu-position_id"
-                            class="hidden absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                            <ul class="py-1">
-                                <li onclick="selectFormOption('position_id', '', 'Select Position')"
-                                    class="cursor-pointer select-none py-2 pl-3 pr-9 text-slate-500 hover:bg-slate-50">
-                                    Select Position</li>
-                                <?php foreach ($positions as $pos): ?>
-                                    <li onclick="selectFormOption('position_id', '<?php echo $pos['id']; ?>', '<?php echo htmlspecialchars($pos['name'], ENT_QUOTES); ?>')"
-                                        class="cursor-pointer select-none py-2 pl-3 pr-9 text-slate-900 hover:bg-cyan-50 hover:text-cyan-700">
-                                        <?php echo htmlspecialchars($pos['name']); ?>
-                                    </li>
-                                <?php endforeach; ?>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <!-- Work Schedule (Custom Dropdown) -->
-                    <div class="relative group" id="container-schedule_id">
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Work Schedule</label>
-                        <p class="text-xs text-slate-500 mb-2">Override the unit/division default schedule if needed.
-                        </p>
-                        <input type="hidden" name="schedule_id" id="input-schedule_id"
-                            value="<?php echo $employee['schedule_id']; ?>">
-                        <button type="button" onclick="toggleFormDropdown('schedule_id')"
-                            class="flex w-full items-center justify-between rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all">
-                            <span id="text-schedule_id" class="block truncate">
-                                <?php
-                                $schedName = "Follow Default Rules";
-                                foreach ($schedules as $s) {
-                                    if ($s['id'] == $employee['schedule_id']) {
-                                        $schedName = $s['name'];
-                                        break;
-                                    }
-                                }
-                                echo htmlspecialchars($schedName);
-                                ?>
-                            </span>
-                            <svg class="h-4 w-4 text-slate-400 transition-transform duration-200" id="arrow-schedule_id"
-                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </button>
-                        <div id="menu-schedule_id"
-                            class="hidden absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                            <ul class="py-1">
-                                <li onclick="selectFormOption('schedule_id', '', 'Follow Default Rules')"
-                                    class="cursor-pointer select-none py-2 pl-3 pr-9 text-slate-900 hover:bg-cyan-50 hover:text-cyan-700">
-                                    Follow Default Rules</li>
-                                <?php foreach ($schedules as $sched): ?>
-                                    <li onclick="selectFormOption('schedule_id', '<?php echo $sched['id']; ?>', '<?php echo htmlspecialchars($sched['name'], ENT_QUOTES); ?>')"
-                                        class="cursor-pointer select-none py-2 pl-3 pr-9 text-slate-900 hover:bg-cyan-50 hover:text-cyan-700">
-                                        <?php echo htmlspecialchars($sched['name']); ?>
-                                    </li>
-                                <?php endforeach; ?>
-                            </ul>
-                        </div>
-                    </div>
-
                 </div>
+
+                <!-- Position (Custom Dropdown) -->
+                <div class="relative group" id="container-position_id">
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Jabatan / Judul Pekerjaan <span
+                            class="text-red-500">*</span></label>
+                    <input type="hidden" name="position_id" id="input-position_id"
+                        value="<?php echo $employee['position_id']; ?>">
+                    <button type="button" onclick="toggleFormDropdown('position_id')"
+                        class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all">
+                        <span id="text-position_id" class="block truncate">
+                            <?php
+                            $posName = "Pilih Jabatan";
+                            foreach ($positions as $p) {
+                                if ($p['id'] == $employee['position_id']) {
+                                    $posName = $p['name'];
+                                    break;
+                                }
+                            }
+                            echo htmlspecialchars($posName);
+                            ?>
+                        </span>
+                        <svg class="h-4 w-4 text-slate-400 transition-transform duration-200" id="arrow-position_id"
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <div id="menu-position_id"
+                        class="hidden absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                        <ul class="py-1">
+                            <li onclick="selectFormOption('position_id', '', 'Pilih Jabatan')"
+                                class="cursor-pointer select-none py-2 pl-3 pr-9 text-slate-500 hover:bg-slate-50">
+                                Pilih Jabatan</li>
+                            <?php foreach ($positions as $pos): ?>
+                                <li onclick="selectFormOption('position_id', '<?php echo $pos['id']; ?>', '<?php echo htmlspecialchars($pos['name'], ENT_QUOTES); ?>')"
+                                    class="cursor-pointer select-none py-2 pl-3 pr-9 text-slate-900 hover:bg-cyan-50 hover:text-cyan-700">
+                                    <?php echo htmlspecialchars($pos['name']); ?>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Work Schedule (Custom Dropdown) -->
+                <div class="relative group" id="container-schedule_id">
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Jadwal Kerja</label>
+                    <p class="text-xs text-slate-500 mb-2">Ganti jadwal default unit/divisi jika diperlukan.
+                    </p>
+                    <input type="hidden" name="schedule_id" id="input-schedule_id"
+                        value="<?php echo $employee['schedule_id']; ?>">
+                    <button type="button" onclick="toggleFormDropdown('schedule_id')"
+                        class="flex w-full items-center justify-between rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all">
+                        <span id="text-schedule_id" class="block truncate">
+                            <?php
+                            $schedName = "Ikuti Aturan Default";
+                            foreach ($schedules as $s) {
+                                if ($s['id'] == $employee['schedule_id']) {
+                                    $schedName = $s['name'];
+                                    break;
+                                }
+                            }
+                            echo htmlspecialchars($schedName);
+                            ?>
+                        </span>
+                        <svg class="h-4 w-4 text-slate-400 transition-transform duration-200" id="arrow-schedule_id"
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <div id="menu-schedule_id"
+                        class="hidden absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                        <ul class="py-1">
+                            <li onclick="selectFormOption('schedule_id', '', 'Ikuti Aturan Default')"
+                                class="cursor-pointer select-none py-2 pl-3 pr-9 text-slate-900 hover:bg-cyan-50 hover:text-cyan-700">
+                                Ikuti Aturan Default</li>
+                            <?php foreach ($schedules as $sched): ?>
+                                <li onclick="selectFormOption('schedule_id', '<?php echo $sched['id']; ?>', '<?php echo htmlspecialchars($sched['name'], ENT_QUOTES); ?>')"
+                                    class="cursor-pointer select-none py-2 pl-3 pr-9 text-slate-900 hover:bg-cyan-50 hover:text-cyan-700">
+                                    <?php echo htmlspecialchars($sched['name']); ?>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
+                </div>
+
             </div>
         </div>
+</div>
 
-        <!-- Action Buttons -->
-        <div class="flex justify-end gap-4 pt-2">
-            <a href="<?php url('views/employees/index.php'); ?>"
-                class="px-6 py-2.5 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors shadow-sm">
-                Cancel
-            </a>
-            <button type="submit"
-                class="px-6 py-2.5 bg-cyan-600 hover:bg-cyan-700 text-white text-sm font-medium rounded-lg shadow-sm hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500">
-                <?php echo $is_edit ? "Update Employee" : "Create Employee"; ?>
-            </button>
-        </div>
-    </form>
+<!-- Action Buttons -->
+<div class="flex justify-end gap-4 pt-2">
+    <a href="<?php url('views/employees/index.php'); ?>"
+        class="px-6 py-2.5 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors shadow-sm">
+        Batal
+    </a>
+    <button type="submit"
+        class="px-6 py-2.5 bg-cyan-600 hover:bg-cyan-700 text-white text-sm font-medium rounded-lg shadow-sm hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500">
+        <?php echo $is_edit ? "Simpan Perubahan" : "Simpan Pegawai"; ?>
+    </button>
+</div>
+</form>
 </div>
 
 <script>
@@ -494,14 +492,14 @@ include '../layouts/header.php';
 
         // Reset Unit
         unitInput.value = '';
-        unitText.textContent = 'Directly under Division (No Unit)';
+        unitText.textContent = 'Langsung di bawah Divisi (Tanpa Unit)';
         unitList.innerHTML = '';
 
         // Default option
         const defaultLi = document.createElement('li');
-        defaultLi.onclick = () => selectFormOption('unit_id', '', 'Directly under Division (No Unit)');
+        defaultLi.onclick = () => selectFormOption('unit_id', '', 'Langsung di bawah Divisi (Tanpa Unit)');
         defaultLi.className = "cursor-pointer select-none py-2 pl-3 pr-9 text-slate-900 hover:bg-cyan-50 hover:text-cyan-700";
-        defaultLi.textContent = "Directly under Division (No Unit)";
+        defaultLi.textContent = "Langsung di bawah Divisi (Tanpa Unit)";
         unitList.appendChild(defaultLi);
 
         if (divisionId) {
@@ -524,22 +522,24 @@ include '../layouts/header.php';
             // Simplified: Run filter logic, then restore value if exists.
 
             const unitList = document.getElementById('list-unit_id');
-            unitList.innerHTML = ''; // Clear
+            if (unitList) {
+                unitList.innerHTML = ''; // Clear
 
-            const defaultLi = document.createElement('li');
-            defaultLi.onclick = () => selectFormOption('unit_id', '', 'Directly under Division (No Unit)');
-            defaultLi.className = "cursor-pointer select-none py-2 pl-3 pr-9 text-slate-900 hover:bg-cyan-50 hover:text-cyan-700";
-            defaultLi.textContent = "Directly under Division (No Unit)";
-            unitList.appendChild(defaultLi);
+                const defaultLi = document.createElement('li');
+                defaultLi.onclick = () => selectFormOption('unit_id', '', 'Langsung di bawah Divisi (Tanpa Unit)');
+                defaultLi.className = "cursor-pointer select-none py-2 pl-3 pr-9 text-slate-900 hover:bg-cyan-50 hover:text-cyan-700";
+                defaultLi.textContent = "Langsung di bawah Divisi (Tanpa Unit)";
+                unitList.appendChild(defaultLi);
 
-            const filteredUnits = allUnits.filter(unit => unit.division_id == initialDivId);
-            filteredUnits.forEach(unit => {
-                const li = document.createElement('li');
-                li.onclick = () => selectFormOption('unit_id', unit.id, unit.name);
-                li.className = "cursor-pointer select-none py-2 pl-3 pr-9 text-slate-900 hover:bg-cyan-50 hover:text-cyan-700";
-                li.textContent = unit.name;
-                unitList.appendChild(li);
-            });
+                const filteredUnits = allUnits.filter(unit => unit.division_id == initialDivId);
+                filteredUnits.forEach(unit => {
+                    const li = document.createElement('li');
+                    li.onclick = () => selectFormOption('unit_id', unit.id, unit.name);
+                    li.className = "cursor-pointer select-none py-2 pl-3 pr-9 text-slate-900 hover:bg-cyan-50 hover:text-cyan-700";
+                    li.textContent = unit.name;
+                    unitList.appendChild(li);
+                });
+            }
         }
     });
 </script>

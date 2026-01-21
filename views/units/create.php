@@ -4,7 +4,7 @@ require_once '../../config/database.php';
 
 check_login();
 
-$page_title = "Add Unit";
+$page_title = "Tambah Unit";
 
 $db = new Database();
 $conn = $db->getConnection();
@@ -18,14 +18,14 @@ $schedules = $conn->query("SELECT id, name FROM work_schedules ORDER BY name ASC
 include '../layouts/header.php';
 ?>
 
-<div class="px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto">
+<div class="max-w-3xl mx-auto pb-10">
     <!-- Breadcrumb -->
     <nav class="flex mb-4" aria-label="Breadcrumb">
         <ol class="inline-flex items-center space-x-1 md:space-x-3 text-sm">
             <li class="inline-flex items-center">
                 <a href="<?php url('views/dashboard/index.php'); ?>"
                     class="inline-flex items-center text-slate-500 hover:text-slate-700">
-                    Home
+                    Beranda
                 </a>
             </li>
             <li>
@@ -36,7 +36,7 @@ include '../layouts/header.php';
                             d="m1 9 4-4-4-4" />
                     </svg>
                     <a href="<?php url('views/units/index.php'); ?>"
-                        class="ml-1 text-slate-500 hover:text-slate-700">Units</a>
+                        class="ml-1 text-slate-500 hover:text-slate-700">Unit</a>
                 </div>
             </li>
             <li aria-current="page">
@@ -46,15 +46,15 @@ include '../layouts/header.php';
                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="m1 9 4-4-4-4" />
                     </svg>
-                    <span class="ml-1 font-medium text-slate-800">Add New</span>
+                    <span class="ml-1 font-medium text-slate-800">Tambah Baru</span>
                 </div>
             </li>
         </ol>
     </nav>
 
     <div class="mb-8">
-        <h1 class="text-2xl font-bold text-slate-900">Add New Unit</h1>
-        <p class="mt-2 text-sm text-slate-600">Create a new operational unit or team.</p>
+        <h1 class="text-2xl font-bold text-slate-900">Tambah Unit Baru</h1>
+        <p class="mt-2 text-sm text-slate-600">Buat unit operasional atau tim baru.</p>
     </div>
 
     <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl md:col-span-2">
@@ -63,22 +63,22 @@ include '../layouts/header.php';
                 <div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
 
                     <div class="sm:col-span-4">
-                        <label for="name" class="block text-sm font-medium leading-6 text-gray-900">Unit Name</label>
+                        <label for="name" class="block text-sm font-medium leading-6 text-gray-900">Nama Unit</label>
                         <div class="mt-2">
                             <input type="text" name="name" id="name" required
                                 class="block w-full px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 focus:outline-none transition-all placeholder:text-slate-400 shadow-sm"
-                                placeholder="e.g. Payroll Team">
+                                placeholder="misal: Tim Payroll">
                         </div>
                     </div>
 
                     <div class="sm:col-span-4">
                         <label for="division_id"
-                            class="block text-sm font-medium leading-6 text-gray-900">Division</label>
+                            class="block text-sm font-medium leading-6 text-gray-900">Divisi</label>
                         <div class="mt-2 relative" id="dropdown-container-division">
                             <input type="hidden" name="division_id" id="input-division" value="">
                             <button type="button" onclick="toggleFormDropdown('division')" id="button-division"
                                 class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200 transition-all">
-                                <span id="text-division" class="block truncate">Select Division</span>
+                                <span id="text-division" class="block truncate">Pilih Divisi</span>
                                 <svg class="h-4 w-4 text-slate-500 transition-transform duration-200"
                                     id="arrow-division" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
                                     fill="currentColor">
@@ -90,9 +90,9 @@ include '../layouts/header.php';
                             <div id="menu-division"
                                 class="absolute z-50 mt-1 hidden max-h-60 w-full overflow-auto rounded-lg bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                                 <ul class="py-1">
-                                    <li onclick="selectFormOption('division', '', 'Select Division')"
+                                    <li onclick="selectFormOption('division', '', 'Pilih Divisi')"
                                         class="cursor-pointer px-4 py-2 text-sm text-slate-500 hover:bg-slate-50 hover:text-cyan-700 transition-colors">
-                                        Select Division
+                                        Pilih Divisi
                                     </li>
                                     <?php foreach ($divisions as $div): ?>
                                         <li onclick="selectFormOption('division', '<?php echo $div['id']; ?>', '<?php echo htmlspecialchars($div['name'], ENT_QUOTES); ?>')"
@@ -150,13 +150,13 @@ include '../layouts/header.php';
                     </div>
 
                     <div class="sm:col-span-4">
-                        <label for="schedule_id" class="block text-sm font-medium leading-6 text-gray-900">Work
-                            Schedule</label>
+                        <label for="schedule_id" class="block text-sm font-medium leading-6 text-gray-900">Jadwal
+                            Kerja</label>
                         <div class="mt-2 relative" id="dropdown-container-schedule">
                             <input type="hidden" name="schedule_id" id="input-schedule" value="">
                             <button type="button" onclick="toggleFormDropdown('schedule')" id="button-schedule"
                                 class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200 transition-all">
-                                <span id="text-schedule" class="block truncate">-- Follow Division Schedule (Default)
+                                <span id="text-schedule" class="block truncate">-- Ikuti Jadwal Divisi (Default)
                                     --</span>
                                 <svg class="h-4 w-4 text-slate-500 transition-transform duration-200"
                                     id="arrow-schedule" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
@@ -169,9 +169,9 @@ include '../layouts/header.php';
                             <div id="menu-schedule"
                                 class="absolute z-50 mt-1 hidden max-h-60 w-full overflow-auto rounded-lg bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                                 <ul class="py-1">
-                                    <li onclick="selectFormOption('schedule', '', '-- Follow Division Schedule (Default) --')"
+                                    <li onclick="selectFormOption('schedule', '', '-- Ikuti Jadwal Divisi (Default) --')"
                                         class="cursor-pointer px-4 py-2 text-sm text-slate-500 hover:bg-slate-50 hover:text-cyan-700 transition-colors">
-                                        -- Follow Division Schedule (Default) --
+                                        -- Ikuti Jadwal Divisi (Default) --
                                     </li>
                                     <?php foreach ($schedules as $schedule): ?>
                                         <li onclick="selectFormOption('schedule', '<?php echo $schedule['id']; ?>', '<?php echo htmlspecialchars($schedule['name'], ENT_QUOTES); ?>')"
@@ -181,18 +181,18 @@ include '../layouts/header.php';
                                     <?php endforeach; ?>
                                 </ul>
                             </div>
-                            <p class="mt-1 text-xs text-slate-500">Leave empty to use the schedule assigned to the
-                                Division.</p>
+                            <p class="mt-1 text-xs text-slate-500">Kosongkan untuk menggunakan jadwal yang ditetapkan
+                                pada Divisi.</p>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="flex items-center justify-end gap-x-6 border-t border-gray-900/10 px-4 py-4 sm:px-8">
                 <a href="<?php url('views/units/index.php'); ?>"
-                    class="text-sm font-semibold leading-6 text-gray-900">Cancel</a>
+                    class="text-sm font-semibold leading-6 text-gray-900">Batal</a>
                 <button type="submit"
                     class="rounded-md bg-cyan-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-600 transition-colors">
-                    Save Unit
+                    Simpan Unit
                 </button>
             </div>
         </form>

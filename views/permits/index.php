@@ -4,7 +4,7 @@ require_once '../../config/database.php';
 
 check_login();
 
-$page_title = "Permit Management";
+$page_title = "Manajemen Perizinan";
 
 $db = new Database();
 $conn = $db->getConnection();
@@ -61,13 +61,6 @@ if ($permit_type) {
 
 $where_sql = implode(" AND ", $where_clauses);
 
-// Fetch Data with Employee Position (Join Positions not explicitly present in previous schema but assuming employees table structure or relationships, sticking to direct employees columns if no positions table linked yet. Wait, sidebar has Positions link so table likely exists. Let's LEFT JOIN positions if employee has position_id)
-// Checking schema assumption: employees table likely has position_id. 
-// If unsure, I will fetch pure employee name for now, or assume 'position' column exists or relationship.
-// To be safe and fast, I will just display Employee Name and maybe a hardcoded/placeholder "Software Engineer" if I can't find the column, OR better: check if I can join `positions`.
-// Previous conversations showed `positions` table exists.
-// Let's try to join positions.
-
 $query = "
     SELECT p.*, e.full_name, e.position_id, pos.name as position_name, DATEDIFF(p.end_date, p.start_date) + 1 as duration
     FROM permits p
@@ -101,7 +94,7 @@ $permits = $stmt->fetchAll(PDO::FETCH_ASSOC);
 include '../layouts/header.php';
 ?>
 
-<div class="px-4 sm:px-6 lg:px-8 bg-gray-50 min-h-screen pb-10">
+<div class="bg-gray-50 min-h-screen pb-10">
 
     <!-- Top Header Section -->
     <div class="flex justify-between items-start mb-8 pt-6">
@@ -111,17 +104,17 @@ include '../layouts/header.php';
                 <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
-                <span class="font-medium text-cyan-600">Permit Management</span>
+                <span class="font-medium text-cyan-600">Manajemen Perizinan</span>
             </div>
-            <h1 class="text-2xl font-bold text-slate-900">Permit Management</h1>
-            <p class="mt-1 text-slate-500">Review and manage leave requests from your organization.</p>
+            <h1 class="text-2xl font-bold text-slate-900">Manajemen Perizinan</h1>
+            <p class="mt-1 text-slate-500">Tinjau dan kelola pengajuan izin dari organisasi Anda.</p>
         </div>
         <a href="<?php url('views/permits/create.php'); ?>"
             class="bg-cyan-50 text-cyan-700 hover:bg-cyan-100 px-4 py-2 rounded-lg text-sm font-medium flex items-center transition-colors">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
-            Manual Request
+            Pengajuan Manual
         </a>
     </div>
 
@@ -136,12 +129,11 @@ include '../layouts/header.php';
                             d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                 </div>
-                <!-- Mock Trend -->
-                <span class="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">+5% vs last
-                    week</span>
+                <span class="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">+5% vs minggu
+                    lalu</span>
             </div>
             <div class="mt-4">
-                <p class="text-slate-500 text-sm font-medium">Pending Requests</p>
+                <p class="text-slate-500 text-sm font-medium">Menunggu Persetujuan</p>
                 <h3 class="text-3xl font-bold text-slate-800 mt-1"><?php echo $stats['pending']; ?></h3>
             </div>
         </div>
@@ -155,10 +147,11 @@ include '../layouts/header.php';
                             d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                     </svg>
                 </div>
-                <span class="text-xs font-medium text-red-600 bg-red-50 px-2 py-1 rounded-full">-2% vs last week</span>
+                <span class="text-xs font-medium text-red-600 bg-red-50 px-2 py-1 rounded-full">-2% vs minggu
+                    lalu</span>
             </div>
             <div class="mt-4">
-                <p class="text-slate-500 text-sm font-medium">Staff on Leave Today</p>
+                <p class="text-slate-500 text-sm font-medium">Staf Izin Hari Ini</p>
                 <h3 class="text-3xl font-bold text-slate-800 mt-1"><?php echo $stats['leave_today']; ?></h3>
             </div>
         </div>
@@ -172,11 +165,11 @@ include '../layouts/header.php';
                             d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                 </div>
-                <span class="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">+1% vs last
-                    month</span>
+                <span class="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">+1% vs bulan
+                    lalu</span>
             </div>
             <div class="mt-4">
-                <p class="text-slate-500 text-sm font-medium">Monthly Approval Rate</p>
+                <p class="text-slate-500 text-sm font-medium">Tingkat Persetujuan Bulanan</p>
                 <h3 class="text-3xl font-bold text-slate-800 mt-1"><?php echo $stats['approval_rate']; ?>%</h3>
             </div>
         </div>
@@ -190,10 +183,10 @@ include '../layouts/header.php';
             <nav class="flex space-x-8" aria-label="Tabs">
                 <?php
                 $tabs = [
-                    'all' => 'All Requests',
-                    'Pending' => 'Pending',
-                    'Approved' => 'Approved',
-                    'Rejected' => 'Rejected'
+                    'all' => 'Semua Pengajuan',
+                    'Pending' => 'Menunggu',
+                    'Approved' => 'Disetujui',
+                    'Rejected' => 'Ditolak'
                 ];
                 foreach ($tabs as $key => $label):
                     $isActive = ($tab === $key);
@@ -218,12 +211,13 @@ include '../layouts/header.php';
                     <div class="relative">
                         <select name="type" onchange="this.form.submit()"
                             class="appearance-none bg-white border border-slate-300 text-slate-700 py-2 pl-4 pr-10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500">
-                            <option value="">Permit Type: All</option>
-                            <option value="Sick" <?php echo $permit_type == 'Sick' ? 'selected' : ''; ?>>Sick Leave
+                            <option value="">Jenis Izin: Semua</option>
+                            <option value="Sick" <?php echo $permit_type == 'Sick' ? 'selected' : ''; ?>>Sakit
                             </option>
-                            <option value="Leave" <?php echo $permit_type == 'Leave' ? 'selected' : ''; ?>>Annual Leave
+                            <option value="Leave" <?php echo $permit_type == 'Leave' ? 'selected' : ''; ?>>Cuti Tahunan
                             </option>
-                            <option value="Other" <?php echo $permit_type == 'Other' ? 'selected' : ''; ?>>Other</option>
+                            <option value="Other" <?php echo $permit_type == 'Other' ? 'selected' : ''; ?>>Lainnya
+                            </option>
                         </select>
                         <div
                             class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
@@ -233,13 +227,11 @@ include '../layouts/header.php';
                             </svg>
                         </div>
                     </div>
-
-                    <!-- Placeholder for Department Filter - Requires dynamic loading if desired, sticking to Type mainly as requested -->
                 </form>
             </div>
 
             <div class="text-sm text-slate-500">
-                Showing <?php echo count($permits); ?> results
+                Menampilkan <?php echo count($permits); ?> hasil
             </div>
         </div>
 
@@ -249,24 +241,27 @@ include '../layouts/header.php';
                 <thead
                     class="bg-gray-50 text-slate-500 border-b border-slate-100 uppercase tracking-wider text-xs font-semibold">
                     <tr>
-                        <th scope="col" class="px-6 py-4">Employee</th>
-                        <th scope="col" class="px-6 py-4">Type</th>
-                        <th scope="col" class="px-6 py-4">Period</th>
-                        <th scope="col" class="px-6 py-4">Reason Snippet</th>
+                        <th scope="col" class="px-6 py-4">Pegawai</th>
+                        <th scope="col" class="px-6 py-4">Jenis</th>
+                        <th scope="col" class="px-6 py-4">Periode</th>
+                        <th scope="col" class="px-6 py-4">Alasan</th>
                         <th scope="col" class="px-6 py-4">Status</th>
-                        <th scope="col" class="px-6 py-4 text-right">Actions</th>
+                        <th scope="col" class="px-6 py-4 text-right">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 bg-white">
                     <?php if (empty($permits)): ?>
                         <tr>
                             <td colspan="6" class="px-6 py-8 text-center text-slate-500">
-                                No permits found.
+                                Tidak ada pengajuan ditemukan.
                             </td>
                         </tr>
                     <?php endif; ?>
 
-                    <?php foreach ($permits as $permit): ?>
+                    <?php
+                    $months = ['Jan' => 'Jan', 'Feb' => 'Feb', 'Mar' => 'Mar', 'Apr' => 'Apr', 'May' => 'Mei', 'Jun' => 'Jun', 'Jul' => 'Jul', 'Aug' => 'Agu', 'Sep' => 'Sep', 'Oct' => 'Okt', 'Nov' => 'Nov', 'Dec' => 'Des'];
+                    foreach ($permits as $permit):
+                        ?>
                         <tr class="hover:bg-slate-50 transition-colors">
                             <!-- Employee -->
                             <td class="px-6 py-4">
@@ -276,9 +271,11 @@ include '../layouts/header.php';
                                         alt="">
                                     <div class="ml-4">
                                         <div class="font-medium text-slate-900">
-                                            <?php echo htmlspecialchars($permit['full_name']); ?></div>
+                                            <?php echo htmlspecialchars($permit['full_name']); ?>
+                                        </div>
                                         <div class="text-slate-500 text-xs">
-                                            <?php echo htmlspecialchars($permit['position_name'] ?? 'Employee'); ?></div>
+                                            <?php echo htmlspecialchars($permit['position_name'] ?? 'Pegawai'); ?>
+                                        </div>
                                     </div>
                                 </div>
                             </td>
@@ -287,20 +284,23 @@ include '../layouts/header.php';
                             <td class="px-6 py-4">
                                 <?php
                                 $typeClass = '';
-                                $typeLabel = strtoupper($permit['permit_type']);
+                                $typeLabel = '';
                                 switch ($permit['permit_type']) {
                                     case 'Sick':
                                         $typeClass = 'bg-red-50 text-red-600 border border-red-100';
-                                        $typeLabel .= ' LEAVE';
+                                        $typeLabel = 'SAKIT';
                                         break;
                                     case 'Leave':
                                         $typeClass = 'bg-purple-50 text-purple-600 border border-purple-100';
+                                        $typeLabel = 'CUTI TAHUNAN';
                                         break;
                                     case 'Other':
                                         $typeClass = 'bg-blue-50 text-blue-600 border border-blue-100';
+                                        $typeLabel = 'LAINNYA';
                                         break;
                                     default:
                                         $typeClass = 'bg-gray-50 text-gray-600';
+                                        $typeLabel = strtoupper($permit['permit_type']);
                                 }
                                 ?>
                                 <span class="px-2.5 py-1 rounded-md text-xs font-bold <?php echo $typeClass; ?>">
@@ -311,11 +311,17 @@ include '../layouts/header.php';
                             <!-- Period -->
                             <td class="px-6 py-4">
                                 <div class="text-slate-900 font-medium">
-                                    <?php echo date('M d', strtotime($permit['start_date'])); ?> -
-                                    <?php echo date('M d', strtotime($permit['end_date'])); ?>
+                                    <?php
+                                    $startMonth = date('M', strtotime($permit['start_date']));
+                                    $endMonth = date('M', strtotime($permit['end_date']));
+                                    echo ($months[$startMonth] ?? $startMonth) . ' ' . date('d', strtotime($permit['start_date']));
+                                    ?> -
+                                    <?php
+                                    echo ($months[$endMonth] ?? $endMonth) . ' ' . date('d', strtotime($permit['end_date']));
+                                    ?>
                                 </div>
                                 <div class="text-slate-500 text-xs">
-                                    <?php echo $permit['duration']; ?> days
+                                    <?php echo $permit['duration']; ?> hari
                                 </div>
                             </td>
 
@@ -331,16 +337,23 @@ include '../layouts/header.php';
                             <td class="px-6 py-4">
                                 <?php
                                 $statusColor = 'slate';
-                                if ($permit['status'] == 'Approved')
+                                $statusText = $permit['status'];
+                                if ($permit['status'] == 'Approved') {
                                     $statusColor = 'green';
-                                if ($permit['status'] == 'Pending')
+                                    $statusText = 'Disetujui';
+                                }
+                                if ($permit['status'] == 'Pending') {
                                     $statusColor = 'orange';
-                                if ($permit['status'] == 'Rejected')
+                                    $statusText = 'Menunggu';
+                                }
+                                if ($permit['status'] == 'Rejected') {
                                     $statusColor = 'red';
+                                    $statusText = 'Ditolak';
+                                }
                                 ?>
                                 <div class="flex items-center text-<?php echo $statusColor; ?>-600 font-medium text-sm">
                                     <span class="h-2 w-2 rounded-full bg-<?php echo $statusColor; ?>-500 mr-2"></span>
-                                    <?php echo $permit['status']; ?>
+                                    <?php echo $statusText; ?>
                                 </div>
                             </td>
 
@@ -350,17 +363,17 @@ include '../layouts/header.php';
                                     <div class="flex justify-end items-center gap-2">
                                         <a href="<?php url('logic/permits/quick_action.php?action=approve&id=' . $permit['id']); ?>"
                                             class="bg-cyan-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-cyan-700 transition">
-                                            Approve
+                                            Setujui
                                         </a>
                                         <a href="<?php url('logic/permits/quick_action.php?action=reject&id=' . $permit['id']); ?>"
                                             class="bg-white border border-slate-200 text-red-600 px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-red-50 transition">
-                                            Reject
+                                            Tolak
                                         </a>
                                     </div>
                                 <?php else: ?>
                                     <span
                                         class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-500">
-                                        Processed
+                                        Diproses
                                     </span>
                                 <?php endif; ?>
                             </td>
@@ -373,17 +386,17 @@ include '../layouts/header.php';
         <!-- Pagination -->
         <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
             <p class="text-sm text-slate-500">
-                Page <?php echo $page; ?> of <?php echo max($total_pages, 1); ?>
+                Halaman <?php echo $page; ?> dari <?php echo max($total_pages, 1); ?>
             </p>
             <div class="flex gap-2">
                 <?php if ($page > 1): ?>
                     <a href="?page=<?php echo $page - 1; ?>&tab=<?php echo $tab; ?>&type=<?php echo $permit_type; ?>"
-                        class="px-3 py-1.5 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50">Previous</a>
+                        class="px-3 py-1.5 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50">Sebelumnya</a>
                 <?php endif; ?>
 
                 <?php if ($page < $total_pages): ?>
                     <a href="?page=<?php echo $page + 1; ?>&tab=<?php echo $tab; ?>&type=<?php echo $permit_type; ?>"
-                        class="px-3 py-1.5 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50">Next</a>
+                        class="px-3 py-1.5 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50">Selanjutnya</a>
                 <?php endif; ?>
             </div>
         </div>

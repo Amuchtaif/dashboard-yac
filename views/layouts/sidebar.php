@@ -96,8 +96,8 @@ function getIconClass($path)
 
             <!-- Work Schedules -->
             <a href="<?php url('views/settings/schedules/index.php'); ?>"
-                class="<?php echo isActive('schedules'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
-                <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('schedules'); ?> transition-colors"
+                class="<?php echo isActive('settings/schedules'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('settings/schedules'); ?> transition-colors"
                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                     stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -216,6 +216,30 @@ function getIconClass($path)
                 Data Kelas
             </a>
 
+            <!-- Subjects -->
+            <a href="<?php url('views/subjects/index.php'); ?>"
+                class="<?php echo isActive('subjects'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('subjects'); ?> transition-colors"
+                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18c-2.305 0-4.408.867-6 2.292m0-14.25v14.25" />
+                </svg>
+                Mata Pelajaran
+            </a>
+
+            <!-- Class Schedules -->
+            <a href="<?php url('views/class_schedules/index.php'); ?>"
+                class="<?php echo isActive('class_schedules'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('class_schedules'); ?> transition-colors"
+                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5m-9-6h.008v.008H12v-.008zM12 15h.008v.008H12V15zm0 2.25h.008v.008H12v-.008zM9.75 15h.008v.008H9.75V15zm0 2.25h.008v.008H9.75v-.008zM7.5 15h.008v.008H7.5V15zm0 2.25h.008v.008H7.5v-.008zm6.75-4.5h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V15zm0 2.25h.008v.008h-.008v-.008zm2.25-4.5h.008v.008H16.5v-.008zm0 2.25h.008v.008H16.5V15z" />
+                </svg>
+                Jadwal Pelajaran
+            </a>
+
             <!-- Class Placement -->
             <a href="<?php url('views/placements/index.php'); ?>"
                 class="<?php echo isActive('placements'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
@@ -232,14 +256,12 @@ function getIconClass($path)
     <!-- Small Profile Section (Removed absolute, using flex-shrink-0) -->
     <div class="p-4 border-t border-slate-100 bg-white flex-shrink-0">
         <div class="flex items-center gap-3">
-            <img class="h-9 w-9 rounded-full border border-slate-200"
-                src="https://ui-avatars.com/api/?name=<?php echo urlencode($_SESSION['user_name'] ?? 'Alex Morgan'); ?>&background=0F172A&color=fff"
-                alt="">
+            <img class="h-8 w-8 rounded-full border border-slate-200 object-cover"
+                src="https://ui-avatars.com/api/?name=Admin&background=random" alt="User Profile">
             <div class="flex-1 min-w-0">
                 <p class="text-sm font-semibold text-slate-800 truncate">
                     <?php echo htmlspecialchars($_SESSION['user_name'] ?? 'Alex Morgan'); ?>
                 </p>
-                <p class="text-xs text-cyan-600 truncate">Super Admin</p>
             </div>
             <a href="<?php url('logic/auth/logout.php'); ?>" class="text-slate-400 hover:text-red-500 transition-colors"
                 title="Sign Out">

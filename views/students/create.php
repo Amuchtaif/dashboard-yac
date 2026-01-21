@@ -18,7 +18,7 @@ $grade_levels = $stmt_grades->fetchAll(PDO::FETCH_ASSOC);
 include '../layouts/header.php';
 ?>
 
-<div class="px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto">
+<div class="max-w-3xl mx-auto pb-10">
     <!-- Breadcrumb -->
     <nav class="flex mb-4" aria-label="Breadcrumb">
         <ol class="inline-flex items-center space-x-1 md:space-x-3 text-sm">

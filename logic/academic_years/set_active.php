@@ -17,10 +17,10 @@ try {
     $conn->beginTransaction();
 
     // Deactivate all
-    $conn->query("UPDATE academic_years SET status = 'Inactive'");
+    $conn->query("UPDATE academic_years SET is_active = 0");
 
     // Activate selected
-    $stmt = $conn->prepare("UPDATE academic_years SET status = 'Active' WHERE id = :id");
+    $stmt = $conn->prepare("UPDATE academic_years SET is_active = 1 WHERE id = :id");
     $stmt->execute([':id' => $id]);
 
     $conn->commit();

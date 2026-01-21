@@ -4,7 +4,7 @@ require_once '../../config/database.php';
 
 check_login();
 
-$page_title = "Office Settings";
+$page_title = "Pengaturan Kantor";
 
 $db = new Database();
 $conn = $db->getConnection();
@@ -40,18 +40,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if ($result) {
                 // Redirect to self with success for clean refresh
-                header("Location: " . BASE_URL . "/views/settings/office.php?success=" . urlencode("Settings updated successfully"));
+                header("Location: " . BASE_URL . "/views/settings/office.php?success=" . urlencode("Pengaturan berhasil diperbarui"));
                 exit;
             } else {
-                $message = "Failed to update settings.";
+                $message = "Gagal memperbarui pengaturan.";
                 $msg_type = "error";
             }
         } catch (PDOException $e) {
-            $message = "Database Error: " . $e->getMessage();
+            $message = "Kesalahan Database: " . $e->getMessage();
             $msg_type = "error";
         }
     } else {
-        $message = "All fields are required.";
+        $message = "Semua bidang wajib diisi.";
         $msg_type = "error";
     }
 }
@@ -83,7 +83,7 @@ $office_name = $settings['office_name'];
 include '../layouts/header.php';
 ?>
 
-<div class="px-4 sm:px-6 lg:px-8 pb-10">
+<div class="pb-10">
 
     <!-- Breadcrumbs -->
     <nav class="flex mb-4" aria-label="Breadcrumb">
@@ -96,7 +96,7 @@ include '../layouts/header.php';
                             d="M9.293 2.293a1 1 0 011.414 0l7 7A1 1 0 0117 11h-1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-3a1 1 0 00-1-1H9a1 1 0 00-1 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-6H3a1 1 0 01-.707-1.707l7-7z"
                             clip-rule="evenodd" />
                     </svg>
-                    Dashboard
+                    Beranda
                 </a>
             </li>
             <li>
@@ -106,7 +106,7 @@ include '../layouts/header.php';
                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="m1 9 4-4-4-4" />
                     </svg>
-                    <span class="ml-1 text-slate-500 hover:text-slate-800">Settings</span>
+                    <span class="ml-1 text-slate-500 hover:text-slate-800">Pengaturan</span>
                 </div>
             </li>
             <li aria-current="page">
@@ -116,7 +116,7 @@ include '../layouts/header.php';
                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="m1 9 4-4-4-4" />
                     </svg>
-                    <span class="ml-1 font-medium text-slate-800">Office Location</span>
+                    <span class="ml-1 font-medium text-slate-800">Lokasi Kantor</span>
                 </div>
             </li>
         </ol>
@@ -125,25 +125,13 @@ include '../layouts/header.php';
     <!-- Page Header -->
     <div class="md:flex md:items-center md:justify-between mb-8">
         <div class="min-w-0 flex-1">
-            <h2 class="text-2xl font-bold leading-7 text-slate-900 sm:truncate sm:text-3xl sm:tracking-tight">Office
-                Location & Geofencing</h2>
-            <p class="mt-1 text-sm text-slate-500">Configure the primary coordinate boundaries for employee check-ins.
-            </p>
+            <h2 class="text-2xl font-bold leading-7 text-slate-900 sm:truncate sm:text-3xl sm:tracking-tight">Lokasi
+                Kantor & Geofencing</h2>
+            <p class="mt-1 text-sm text-slate-500">Konfigurasikan batas koordinat utama untuk absensi pegawai.</p>
         </div>
     </div>
 
     <!-- Alerts -->
-    <?php if (isset($_GET['success'])): ?>
-        <div
-            class="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
-                <path fill-rule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
-                    clip-rule="evenodd" />
-            </svg>
-            <?php echo htmlspecialchars($_GET['success']); ?>
-        </div>
-    <?php endif; ?>
     <?php if ($message): ?>
         <div
             class="mb-6 rounded-md p-4 <?php echo $msg_type == 'success' ? 'bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20' : 'bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/10'; ?>">
@@ -164,7 +152,7 @@ include '../layouts/header.php';
                                 d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 00-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 002.682 2.282 16.975 16.975 0 001.145.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z"
                                 clip-rule="evenodd" />
                         </svg>
-                        <h3 class="text-lg font-bold text-slate-800">Office Coordinates</h3>
+                        <h3 class="text-lg font-bold text-slate-800">Koordinat Kantor</h3>
                     </div>
                 </div>
 
@@ -172,20 +160,20 @@ include '../layouts/header.php';
 
                     <!-- Office Name (Added back) -->
                     <div>
-                        <label for="office_name" class="block text-sm font-semibold text-slate-700 mb-2">Office
-                            Name</label>
+                        <label for="office_name" class="block text-sm font-semibold text-slate-700 mb-2">Nama
+                            Kantor</label>
                         <input type="text" name="office_name" id="office_name"
                             value="<?php echo htmlspecialchars($office_name); ?>"
                             class="block w-full px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 focus:outline-none transition-all placeholder:text-slate-400 shadow-sm"
-                            placeholder="e.g. Headquarters">
+                            placeholder="misal: Kantor Pusat">
                     </div>
 
                     <!-- Coordinates Row -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Latitude -->
                         <div>
-                            <label for="office_lat"
-                                class="block text-sm font-semibold text-slate-700 mb-2">Latitude</label>
+                            <label for="office_lat" class="block text-sm font-semibold text-slate-700 mb-2">Garis
+                                Lintang (Latitude)</label>
                             <div class="relative rounded-md shadow-sm">
                                 <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                                     <span class="text-gray-400 sm:text-sm font-bold">LAT</span>
@@ -193,14 +181,14 @@ include '../layouts/header.php';
                                 <input type="text" name="office_lat" id="office_lat"
                                     value="<?php echo htmlspecialchars($lat); ?>"
                                     class="block w-full pl-12 pr-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 focus:outline-none transition-all placeholder:text-slate-400 shadow-sm"
-                                    placeholder="e.g. 34.0522" required>
+                                    placeholder="misal: 34.0522" required>
                             </div>
                         </div>
 
                         <!-- Longitude -->
                         <div>
-                            <label for="office_long"
-                                class="block text-sm font-semibold text-slate-700 mb-2">Longitude</label>
+                            <label for="office_long" class="block text-sm font-semibold text-slate-700 mb-2">Garis Bujur
+                                (Longitude)</label>
                             <div class="relative rounded-md shadow-sm">
                                 <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                                     <span class="text-gray-400 sm:text-sm font-bold">LNG</span>
@@ -208,7 +196,7 @@ include '../layouts/header.php';
                                 <input type="text" name="office_long" id="office_long"
                                     value="<?php echo htmlspecialchars($long); ?>"
                                     class="block w-full pl-12 pr-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 focus:outline-none transition-all placeholder:text-slate-400 shadow-sm"
-                                    placeholder="e.g. -118.2437" required>
+                                    placeholder="misal: -118.2437" required>
                             </div>
                         </div>
                     </div>
@@ -216,12 +204,12 @@ include '../layouts/header.php';
                     <!-- Radius Slider -->
                     <div>
                         <div class="flex justify-between items-center mb-4">
-                            <label for="geofence_radius" class="block text-sm font-semibold text-slate-700">Allowed
-                                Geofence Radius</label>
+                            <label for="geofence_radius" class="block text-sm font-semibold text-slate-700">Radius
+                                Geofence yang Diizinkan</label>
                             <span
                                 class="inline-flex items-center rounded-md bg-cyan-50 px-2 py-1 text-xs font-bold text-cyan-700 ring-1 ring-inset ring-cyan-700/10"
                                 id="radius-display">
-                                <?php echo htmlspecialchars($radius); ?> meters
+                                <?php echo htmlspecialchars($radius); ?> meter
                             </span>
                         </div>
                         <input type="range" name="geofence_radius" id="geofence_radius" min="50" max="1000" step="10"
@@ -244,7 +232,7 @@ include '../layouts/header.php';
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M15.042 21.672L13.684 16.6m0 0l-2.51 2.225.569-9.47 5.227 7.917-3.286-.672zM12 2.25V4.5m5.834.166l-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.243l-1.59-1.59" />
                         </svg>
-                        Use My Current Location
+                        Gunakan Lokasi Saya Saat Ini
                     </button>
 
                     <div class="flex items-center gap-3 w-full sm:w-auto">
@@ -252,7 +240,7 @@ include '../layouts/header.php';
                             class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 transition-colors">Reset</button>
                         <button type="submit"
                             class="px-6 py-2 bg-cyan-600 hover:bg-cyan-700 text-white text-sm font-bold rounded-lg shadow-sm hover:shadow-md transition-all focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 w-full sm:w-auto">
-                            Save Changes
+                            Simpan Perubahan
                         </button>
                     </div>
                 </div>
@@ -263,7 +251,7 @@ include '../layouts/header.php';
         <div class="lg:col-span-1">
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden h-full flex flex-col">
                 <div class="px-6 py-4 border-b border-slate-100">
-                    <h3 class="text-base font-bold text-slate-800">Location Preview</h3>
+                    <h3 class="text-base font-bold text-slate-800">Pratinjau Lokasi</h3>
                 </div>
                 <div
                     class="relative flex-1 bg-slate-50 min-h-[300px] flex items-center justify-center overflow-hidden group">
@@ -282,7 +270,7 @@ include '../layouts/header.php';
                                 clip-rule="evenodd" />
                         </svg>
                         <p class="text-xs text-slate-500 leading-relaxed">
-                            Verify the location on the map. Update coordinates to move the pin.
+                            Verifikasi lokasi di peta. Perbarui koordinat untuk memindahkan pin.
                         </p>
                     </div>
                 </div>
@@ -299,7 +287,7 @@ include '../layouts/header.php';
     const mapPreview = document.getElementById('map-preview');
 
     slider.addEventListener('input', function () {
-        display.textContent = this.value + ' meters';
+        display.textContent = this.value + ' meter';
     });
 
     // Update Map on Input Change
@@ -318,20 +306,18 @@ include '../layouts/header.php';
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(showPosition, showError);
         } else {
-            alert("Geolocation is not supported by this browser.");
+            alert("Geolokasi tidak didukung oleh browser ini.");
         }
     }
 
     function showPosition(position) {
         document.getElementById('office_lat').value = position.coords.latitude;
         document.getElementById('office_long').value = position.coords.longitude;
-        // Trigger generic change for map update if needed, or call updateMap()
         updateMap();
     }
 
     function showError(error) {
-        // Basic error alert
-        alert("Unable to retrieve location (Error code: " + error.code + ")");
+        alert("Tidak dapat mengambil lokasi (Kode error: " + error.code + ")");
     }
 </script>
 

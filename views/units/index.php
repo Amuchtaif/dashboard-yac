@@ -4,7 +4,7 @@ require_once '../../config/database.php';
 
 check_login();
 
-$page_title = "Units";
+$page_title = "Unit Organisasi";
 
 $db = new Database();
 $conn = $db->getConnection();
@@ -50,11 +50,11 @@ $divisions = $conn->query("SELECT id, name FROM divisions ORDER BY name ASC")->f
 include '../layouts/header.php';
 ?>
 
-<div class="px-4 sm:px-6 lg:px-8">
+<div class="pb-10">
     <div class="sm:flex sm:items-center">
         <div class="sm:flex-auto">
-            <h1 class="text-xl font-bold text-slate-900">Units / Teams</h1>
-            <p class="mt-2 text-sm text-slate-500">Manage operational units and teams within departments.</p>
+            <h1 class="text-xl font-bold text-slate-900">Unit / Tim</h1>
+            <p class="mt-2 text-sm text-slate-500">Kelola unit operasional dan tim di dalam divisi.</p>
         </div>
         <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none flex justify-end">
             <a href="<?php url('views/units/create.php'); ?>"
@@ -63,7 +63,7 @@ include '../layouts/header.php';
                     stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
-                Add Unit
+                Tambah Unit
             </a>
         </div>
     </div>
@@ -71,7 +71,7 @@ include '../layouts/header.php';
     <!-- Stats Cards -->
     <div class="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         <div class="overflow-hidden rounded-xl bg-white p-4 shadow-sm border border-slate-100">
-            <dt class="truncate text-sm font-medium text-slate-500">Total Units</dt>
+            <dt class="truncate text-sm font-medium text-slate-500">Total Unit</dt>
             <dd class="mt-2 text-3xl font-bold tracking-tight text-slate-900">
                 <?php echo $total_units; ?>
             </dd>
@@ -91,16 +91,16 @@ include '../layouts/header.php';
                                     No.</th>
                                 <th scope="col"
                                     class="py-3.5 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 sm:pl-6">
-                                    Unit Name</th>
+                                    Nama Unit</th>
                                 <th scope="col"
                                     class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                    Division</th>
+                                    Divisi</th>
                                 <th scope="col"
                                     class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                    Members</th>
+                                    Anggota</th>
                                 <th scope="col"
                                     class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                    Schedule</th>
+                                    Jadwal</th>
                                 <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
                                     <span class="sr-only">Actions</span>
                                 </th>
@@ -116,12 +116,12 @@ include '../layouts/header.php';
                                         <?php echo htmlspecialchars($unit['name']); ?>
                                     </td>
                                     <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                        <?php echo htmlspecialchars($unit['division_name'] ?? 'Unassigned'); ?>
+                                        <?php echo htmlspecialchars($unit['division_name'] ?? 'Tidak Ada Divisi'); ?>
                                     </td>
                                     <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                                         <span
                                             class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-800">
-                                            <?php echo $unit['member_count']; ?> Employees
+                                            <?php echo $unit['member_count']; ?> Pegawai
                                         </span>
                                     </td>
                                     <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
@@ -131,7 +131,7 @@ include '../layouts/header.php';
                                                 <?php echo htmlspecialchars($unit['schedule_name']); ?>
                                             </span>
                                         <?php else: ?>
-                                            <span class="text-slate-400 italic text-xs">Follows Division</span>
+                                            <span class="text-slate-400 italic text-xs">Mengikuti Divisi</span>
                                         <?php endif; ?>
                                     </td>
                                     <td
@@ -169,18 +169,18 @@ include '../layouts/header.php';
                                     class="block rounded-md border-0 py-1.5 pl-3 pr-8 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-cyan-600 sm:text-xs sm:leading-6">
                                     <?php foreach ([10, 20, 50, 100] as $val): ?>
                                         <option value="<?php echo $val; ?>" <?php echo $limit == $val ? 'selected' : ''; ?>>
-                                            Show <?php echo $val; ?>
+                                            Tampilkan <?php echo $val; ?>
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
                                 <p class="text-sm text-gray-700">
-                                    Showing
+                                    Menampilkan
                                     <span class="font-medium"><?php echo ($total_units > 0) ? $offset + 1 : 0; ?></span>
-                                    to
+                                    sampai
                                     <span class="font-medium"><?php echo min($offset + $limit, $total_units); ?></span>
-                                    of
+                                    dari
                                     <span class="font-medium"><?php echo $total_units; ?></span>
-                                    results
+                                    hasil
                                 </p>
                             </div>
                             <div>
@@ -249,16 +249,16 @@ include '../layouts/header.php';
                             class="relative transform overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
                             <form action="<?php url('logic/units/store.php'); ?>" method="POST">
                                 <div class="mb-4">
-                                    <label for="name" class="block text-sm font-medium text-gray-700">Unit Name</label>
+                                    <label for="name" class="block text-sm font-medium text-gray-700">Nama Unit</label>
                                     <input type="text" name="name" id="name" required
                                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 sm:text-sm">
                                 </div>
                                 <div class="mb-4">
                                     <label for="division_id"
-                                        class="block text-sm font-medium text-gray-700">Division</label>
+                                        class="block text-sm font-medium text-gray-700">Divisi</label>
                                     <select name="division_id" id="division_id" required
                                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 sm:text-sm">
-                                        <option value="">Select Division</option>
+                                        <option value="">Pilih Divisi</option>
                                         <?php foreach ($divisions as $div): ?>
                                             <option value="<?php echo $div['id']; ?>">
                                                 <?php echo htmlspecialchars($div['name']); ?>
@@ -269,11 +269,11 @@ include '../layouts/header.php';
                                 <div class="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3">
                                     <button type="submit"
                                         class="inline-flex w-full justify-center rounded-md border border-transparent bg-cyan-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 sm:text-sm">
-                                        Save Unit
+                                        Simpan Unit
                                     </button>
                                     <button type="button" onclick="closeAddModal()"
                                         class="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 sm:mt-0 sm:text-sm">
-                                        Cancel
+                                        Batal
                                     </button>
                                 </div>
                             </form>

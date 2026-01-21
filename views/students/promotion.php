@@ -16,7 +16,7 @@ $units = $conn->query("SELECT id, name FROM education_units ORDER BY id ASC")->f
 $classes = $conn->query("SELECT id, name, education_unit_id FROM grade_levels ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 // Fetch Academic Years from DB
-$academic_years = $conn->query("SELECT id, name FROM academic_years ORDER BY start_date DESC")->fetchAll(PDO::FETCH_ASSOC);
+$academic_years = $conn->query("SELECT id, name, semester FROM academic_years ORDER BY start_date DESC")->fetchAll(PDO::FETCH_ASSOC);
 
 // --- Source Filter Parameters ---
 // To load the list of students to promote
@@ -59,7 +59,7 @@ if ($source_class_id && $source_year_id) {
 include '../layouts/header.php';
 ?>
 
-<div class="px-4 sm:px-6 lg:px-8 pb-10">
+<div class="pb-10">
     <!-- Breadcrumb -->
     <nav class="flex mb-4" aria-label="Breadcrumb">
         <ol class="inline-flex items-center space-x-1 md:space-x-3 text-xs text-slate-500">
@@ -108,42 +108,6 @@ include '../layouts/header.php';
     </div>
 
     <!-- Alert Messages -->
-    <?php if (isset($_GET['success'])): ?>
-        <div class="mb-6 rounded-md bg-green-50 p-4 border border-green-200">
-            <div class="flex">
-                <div class="flex-shrink-0">
-                    <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path fill-rule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
-                            clip-rule="evenodd" />
-                    </svg>
-                </div>
-                <div class="ml-3">
-                    <p class="text-sm font-medium text-green-800">
-                        <?php echo htmlspecialchars($_GET['success']); ?>
-                    </p>
-                </div>
-            </div>
-        </div>
-    <?php endif; ?>
-    <?php if (isset($_GET['error'])): ?>
-        <div class="mb-6 rounded-md bg-red-50 p-4 border border-red-200">
-            <div class="flex">
-                <div class="flex-shrink-0">
-                    <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path fill-rule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
-                            clip-rule="evenodd" />
-                    </svg>
-                </div>
-                <div class="ml-3">
-                    <p class="text-sm font-medium text-red-800">
-                        <?php echo htmlspecialchars($_GET['error']); ?>
-                    </p>
-                </div>
-            </div>
-        </div>
-    <?php endif; ?>
 
     <!-- Step 1: Source Selection Form -->
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
@@ -241,12 +205,11 @@ include '../layouts/header.php';
                     class="inline-flex items-center justify-between w-full rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-600 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-colors shadow-sm">
                     <span id="source-year-text" class="truncate">
                         <?php
-                        $yearLabel = "-- Tahun Ajaran --"; // Default label
                         if (!empty($academic_years)) {
                             // First, check if there's a match
                             foreach ($academic_years as $y) {
                                 if ($source_year_id == $y['id']) {
-                                    $yearLabel = $y['name'];
+                                    $yearLabel = $y['name'] . ' - ' . $y['semester'];
                                     break;
                                 }
                             }
@@ -267,9 +230,9 @@ include '../layouts/header.php';
                             -- Tahun Ajaran --
                         </li>
                         <?php foreach ($academic_years as $y): ?>
-                            <li onclick="selectFilterOption('source-year', '<?php echo $y['id']; ?>', '<?php echo htmlspecialchars(addslashes($y['name']), ENT_QUOTES); ?>')"
+                            <li onclick="selectFilterOption('source-year', '<?php echo $y['id']; ?>', '<?php echo htmlspecialchars(addslashes($y['name'] . ' - ' . $y['semester']), ENT_QUOTES); ?>')"
                                 class="cursor-pointer px-4 py-2 text-sm text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors <?php echo ($source_year_id == $y['id']) ? 'bg-cyan-50 text-cyan-700' : ''; ?>">
-                                <?php echo htmlspecialchars($y['name']); ?>
+                                <?php echo htmlspecialchars($y['name'] . ' - ' . $y['semester']); ?>
                             </li>
                         <?php endforeach; ?>
                     </ul>
@@ -344,9 +307,9 @@ include '../layouts/header.php';
                             class="hidden absolute top-full left-0 mt-1 w-full origin-top-left rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50 max-h-60 overflow-y-auto">
                             <ul class="py-1">
                                 <?php foreach ($academic_years as $y): ?>
-                                    <li onclick="selectTargetOption('target-year', '<?php echo $y['id']; ?>', '<?php echo htmlspecialchars(addslashes($y['name']), ENT_QUOTES); ?>')"
+                                    <li onclick="selectTargetOption('target-year', '<?php echo $y['id']; ?>', '<?php echo htmlspecialchars(addslashes($y['name'] . ' - ' . $y['semester']), ENT_QUOTES); ?>')"
                                         class="cursor-pointer px-4 py-2 text-sm text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
-                                        <?php echo htmlspecialchars($y['name']); ?>
+                                        <?php echo htmlspecialchars($y['name'] . ' - ' . $y['semester']); ?>
                                     </li>
                                 <?php endforeach; ?>
                             </ul>
@@ -430,34 +393,6 @@ include '../layouts/header.php';
 </div>
 
 <script>
-    // --- Generic Dropdown Logic (Reusable) ---
-    let activeDropdownId = null;
-
-    function toggleDropdown(id) {
-        const menu = document.getElementById(id + '-menu');
-        const arrow = document.getElementById(id + '-arrow');
-
-        // Close currently active if different
-        if (activeDropdownId && activeDropdownId !== id) {
-            const activeMenu = document.getElementById(activeDropdownId + '-menu');
-            const activeArrow = document.getElementById(activeDropdownId + '-arrow');
-
-            if (activeMenu) activeMenu.classList.add('hidden');
-            if (activeArrow) activeArrow.classList.remove('rotate-180');
-        }
-
-        if (menu.classList.contains('hidden')) {
-            // Open
-            menu.classList.remove('hidden');
-            if (arrow) arrow.classList.add('rotate-180');
-            activeDropdownId = id;
-        } else {
-            // Close
-            menu.classList.add('hidden');
-            if (arrow) arrow.classList.remove('rotate-180');
-            activeDropdownId = null;
-        }
-    }
 
     // --- Filter Option Selection (Source Form) ---
     // Updates input and submits the Source Form to reload page
@@ -481,15 +416,6 @@ include '../layouts/header.php';
         toggleDropdown(name);
     }
 
-    // Close dropdowns when clicking outside
-    document.addEventListener('click', (e) => {
-        if (activeDropdownId) {
-            const container = document.getElementById(activeDropdownId + '-container');
-            if (container && !container.contains(e.target)) {
-                toggleDropdown(activeDropdownId);
-            }
-        }
-    });
 
     // Toggle All Checkboxes
     const selectAllInfo = document.getElementById('select-all');

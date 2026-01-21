@@ -34,14 +34,14 @@ $page_title = "Edit Unit";
 include '../layouts/header.php';
 ?>
 
-<div class="px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto">
+<div class="max-w-3xl mx-auto pb-10">
     <!-- Breadcrumb -->
     <nav class="flex mb-4" aria-label="Breadcrumb">
         <ol class="inline-flex items-center space-x-1 md:space-x-3 text-sm">
             <li class="inline-flex items-center">
                 <a href="<?php url('views/dashboard/index.php'); ?>"
                     class="inline-flex items-center text-slate-500 hover:text-slate-700">
-                    Home
+                    Beranda
                 </a>
             </li>
             <li>
@@ -52,7 +52,7 @@ include '../layouts/header.php';
                             d="m1 9 4-4-4-4" />
                     </svg>
                     <a href="<?php url('views/units/index.php'); ?>"
-                        class="ml-1 text-slate-500 hover:text-slate-700">Units</a>
+                        class="ml-1 text-slate-500 hover:text-slate-700">Unit</a>
                 </div>
             </li>
             <li aria-current="page">
@@ -70,7 +70,7 @@ include '../layouts/header.php';
 
     <div class="mb-8">
         <h1 class="text-2xl font-bold text-slate-900">Edit Unit</h1>
-        <p class="mt-2 text-sm text-slate-600">Update unit details.</p>
+        <p class="mt-2 text-sm text-slate-600">Perbarui rincian unit.</p>
     </div>
 
     <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl md:col-span-2">
@@ -81,7 +81,7 @@ include '../layouts/header.php';
                 <div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
 
                     <div class="sm:col-span-4">
-                        <label for="name" class="block text-sm font-medium leading-6 text-gray-900">Unit Name</label>
+                        <label for="name" class="block text-sm font-medium leading-6 text-gray-900">Nama Unit</label>
                         <div class="mt-2">
                             <input type="text" name="name" id="name" required
                                 value="<?php echo htmlspecialchars($unit['name']); ?>"
@@ -91,7 +91,7 @@ include '../layouts/header.php';
 
                     <div class="sm:col-span-4">
                         <label for="division_id"
-                            class="block text-sm font-medium leading-6 text-gray-900">Division</label>
+                            class="block text-sm font-medium leading-6 text-gray-900">Divisi</label>
                         <div class="mt-2 relative" id="dropdown-container-division">
                             <input type="hidden" name="division_id" id="input-division"
                                 value="<?php echo $unit['division_id']; ?>">
@@ -99,7 +99,7 @@ include '../layouts/header.php';
                                 class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200 transition-all">
                                 <span id="text-division" class="block truncate">
                                     <?php
-                                    $currentDivisionName = 'Select Division';
+                                    $currentDivisionName = 'Pilih Divisi';
                                     foreach ($divisions as $div) {
                                         if ($unit['division_id'] == $div['id']) {
                                             $currentDivisionName = $div['name'];
@@ -120,9 +120,9 @@ include '../layouts/header.php';
                             <div id="menu-division"
                                 class="absolute z-50 mt-1 hidden max-h-60 w-full overflow-auto rounded-lg bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                                 <ul class="py-1">
-                                    <li onclick="selectFormOption('division', '', 'Select Division')"
+                                    <li onclick="selectFormOption('division', '', 'Pilih Divisi')"
                                         class="cursor-pointer px-4 py-2 text-sm text-slate-500 hover:bg-slate-50 hover:text-cyan-700 transition-colors">
-                                        Select Division
+                                        Pilih Divisi
                                     </li>
                                     <?php foreach ($divisions as $div): ?>
                                         <li onclick="selectFormOption('division', '<?php echo $div['id']; ?>', '<?php echo htmlspecialchars($div['name'], ENT_QUOTES); ?>')"
@@ -180,8 +180,8 @@ include '../layouts/header.php';
                     </div>
 
                     <div class="sm:col-span-4">
-                        <label for="schedule_id" class="block text-sm font-medium leading-6 text-gray-900">Work
-                            Schedule</label>
+                        <label for="schedule_id" class="block text-sm font-medium leading-6 text-gray-900">Jadwal
+                            Kerja</label>
                         <div class="mt-2 relative" id="dropdown-container-schedule">
                             <input type="hidden" name="schedule_id" id="input-schedule"
                                 value="<?php echo $unit['schedule_id']; ?>">
@@ -189,7 +189,7 @@ include '../layouts/header.php';
                                 class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200 transition-all">
                                 <span id="text-schedule" class="block truncate">
                                     <?php
-                                    $currentScheduleName = '-- Follow Division Schedule (Default) --';
+                                    $currentScheduleName = '-- Ikuti Jadwal Divisi (Default) --';
                                     foreach ($schedules as $schedule) {
                                         if ($unit['schedule_id'] == $schedule['id']) {
                                             $currentScheduleName = $schedule['name'];
@@ -210,32 +210,32 @@ include '../layouts/header.php';
                             <div id="menu-schedule"
                                 class="absolute z-50 mt-1 hidden max-h-60 w-full overflow-auto rounded-lg bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                                 <ul class="py-1">
-                                    <li onclick="selectFormOption('schedule', '', '-- Follow Division Schedule (Default) --')"
+                                    <li onclick="selectFormOption('schedule', '', '-- Ikuti Jadwal Divisi (Default) --')"
                                         class="cursor-pointer px-4 py-2 text-sm text-slate-500 hover:bg-slate-50 hover:text-cyan-700 transition-colors">
-                                        -- Follow Division Schedule (Default) --
+                                        -- Ikuti Jadwal Divisi (Default) --
                                     </li>
                                     <?php foreach ($schedules as $schedule): ?>
                                         <li onclick="selectFormOption('schedule', '<?php echo $schedule['id']; ?>', '<?php echo htmlspecialchars($schedule['name'], ENT_QUOTES); ?>')"
-                                                class="cursor-pointer px-4 py-2 text-sm text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
-                                                <?php echo htmlspecialchars($schedule['name']); ?>
-                                            </li>
+                                            class="cursor-pointer px-4 py-2 text-sm text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
+                                            <?php echo htmlspecialchars($schedule['name']); ?>
+                                        </li>
                                     <?php endforeach; ?>
                                 </ul>
                             </div>
-                            <p class=" mt-1 text-xs text-slate-500">Leave empty to use the schedule assigned to the
-                                        Division.</p>
-                            </div>
+                            <p class=" mt-1 text-xs text-slate-500">Kosongkan untuk menggunakan jadwal yang ditetapkan
+                                pada Divisi.</p>
                         </div>
                     </div>
                 </div>
-                <div class="flex items-center justify-end gap-x-6 border-t border-gray-900/10 px-4 py-4 sm:px-8">
-                    <a href="<?php url('views/units/index.php'); ?>"
-                        class="text-sm font-semibold leading-6 text-gray-900">Cancel</a>
-                    <button type="submit"
-                        class="rounded-md bg-cyan-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-600 transition-colors">
-                        Update Unit
-                    </button>
-                </div>
+            </div>
+            <div class="flex items-center justify-end gap-x-6 border-t border-gray-900/10 px-4 py-4 sm:px-8">
+                <a href="<?php url('views/units/index.php'); ?>"
+                    class="text-sm font-semibold leading-6 text-gray-900">Batal</a>
+                <button type="submit"
+                    class="rounded-md bg-cyan-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-600 transition-colors">
+                    Simpan Perubahan
+                </button>
+            </div>
         </form>
     </div>
 </div>

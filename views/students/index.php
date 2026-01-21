@@ -122,7 +122,7 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
 include '../layouts/header.php';
 ?>
 
-<div class="px-4 sm:px-6 lg:px-8 pb-10">
+<div class="pb-10">
 
     <!-- Breadcrumb -->
     <nav class="flex mb-4" aria-label="Breadcrumb">

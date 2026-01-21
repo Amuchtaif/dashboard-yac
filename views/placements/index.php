@@ -73,7 +73,7 @@ $page_title = "Class Placement";
 include '../layouts/header.php';
 ?>
 
-<div class="px-4 sm:px-6 lg:px-8 pb-10">
+<div class="pb-10">
     <!-- Breadcrumb -->
     <nav class="flex mb-4" aria-label="Breadcrumb">
         <ol class="inline-flex items-center space-x-1 md:space-x-3 text-xs text-slate-500">

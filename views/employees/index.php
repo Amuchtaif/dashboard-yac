@@ -4,7 +4,7 @@ require_once '../../config/database.php';
 
 check_login();
 
-$page_title = "Employees";
+$page_title = "Data Pegawai";
 
 $db = new Database();
 $conn = $db->getConnection();
@@ -92,17 +92,17 @@ $export_url = "export.php?" . $export_query;
 include '../layouts/header.php';
 ?>
 
-<div class="px-4 sm:px-6 lg:px-8">
+<div class="pb-10">
 
     <!-- Page Header -->
     <div class="sm:flex sm:items-center">
         <div class="sm:flex-auto">
-            <h1 class="text-xl font-bold text-slate-900">All Employees</h1>
-            <p class="mt-2 text-sm text-slate-500">Manage your team members and their account permissions here.</p>
+            <h1 class="text-xl font-bold text-slate-900">Semua Pegawai</h1>
+            <p class="mt-2 text-sm text-slate-500">Kelola anggota tim dan izin akun mereka di sini.</p>
         </div>
         <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none flex gap-3">
             <!-- Export Dropdown -->
-            <div class="relative group" id="export-dropdown-container">
+            <div class="relative group" id="export-container">
                 <button type="button" onclick="toggleDropdown('export')"
                     class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 sm:w-auto transition-colors">
                     <svg class="-ml-1 mr-2 h-4 w-4 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -150,7 +150,7 @@ include '../layouts/header.php';
                     stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
-                Add New Employee
+                Tambah Pegawai Baru
             </a>
         </div>
     </div>
@@ -171,7 +171,7 @@ include '../layouts/header.php';
             </div>
             <input type="text" name="search" value="<?php echo htmlspecialchars($search); ?>"
                 class="block w-full rounded-lg border-slate-200 pl-10 pt-2 pb-2 text-sm focus:border-cyan-500 focus:ring-cyan-500 bg-slate-50 border placeholder:text-slate-400 text-slate-600"
-                placeholder="Search by name, email, or ID..." onchange="this.form.submit()">
+                placeholder="Cari berdasarkan nama, email, atau ID..." onchange="this.form.submit()">
         </div>
 
         <!-- Filter Dropdowns -->
@@ -184,11 +184,11 @@ include '../layouts/header.php';
                     class="inline-flex items-center justify-between gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-colors w-40">
                     <span id="filter-division-text" class="truncate">
                         <?php
-                        $currDiv = "Department: All";
+                        $currDiv = "Divisi: Semua";
                         if ($division_id) {
                             foreach ($divisions as $d) {
                                 if ($d['id'] == $division_id) {
-                                    $currDiv = "Dept: " . $d['name'];
+                                    $currDiv = "Div: " . $d['name'];
                                     break;
                                 }
                             }
@@ -204,11 +204,11 @@ include '../layouts/header.php';
                 <div id="filter-division-menu"
                     class="hidden absolute top-full left-0 mt-1 w-56 origin-top-left rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50 max-h-60 overflow-y-auto">
                     <ul class="py-1">
-                        <li onclick="selectFilterOption('division', '', 'Department: All')"
+                        <li onclick="selectFilterOption('division', '', 'Divisi: Semua')"
                             class="cursor-pointer px-4 py-2 text-xs text-slate-500 hover:bg-slate-50 hover:text-cyan-700">
-                            Department: All</li>
+                            Divisi: Semua</li>
                         <?php foreach ($divisions as $div): ?>
-                            <li onclick="selectFilterOption('division', '<?php echo $div['id']; ?>', 'Dept: <?php echo htmlspecialchars($div['name'], ENT_QUOTES); ?>')"
+                            <li onclick="selectFilterOption('division', '<?php echo $div['id']; ?>', 'Div: <?php echo htmlspecialchars($div['name'], ENT_QUOTES); ?>')"
                                 class="cursor-pointer px-4 py-2 text-xs text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
                                 <?php echo htmlspecialchars($div['name']); ?>
                             </li>
@@ -224,7 +224,7 @@ include '../layouts/header.php';
                     class="inline-flex items-center justify-between gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-colors w-40">
                     <span id="filter-unit-text" class="truncate">
                         <?php
-                        $currUnit = "Unit: All";
+                        $currUnit = "Unit: Semua";
                         if ($unit_id) {
                             foreach ($units_all as $u) {
                                 if ($u['id'] == $unit_id) {
@@ -244,9 +244,9 @@ include '../layouts/header.php';
                 <div id="filter-unit-menu"
                     class="hidden absolute top-full left-0 mt-1 w-56 origin-top-left rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50 max-h-60 overflow-y-auto">
                     <ul class="py-1">
-                        <li onclick="selectFilterOption('unit', '', 'Unit: All')"
+                        <li onclick="selectFilterOption('unit', '', 'Unit: Semua')"
                             class="cursor-pointer px-4 py-2 text-xs text-slate-500 hover:bg-slate-50 hover:text-cyan-700">
-                            Unit: All</li>
+                            Unit: Semua</li>
                         <?php foreach ($units_all as $u): ?>
                             <li onclick="selectFilterOption('unit', '<?php echo $u['id']; ?>', 'Unit: <?php echo htmlspecialchars($u['name'], ENT_QUOTES); ?>')"
                                 class="cursor-pointer px-4 py-2 text-xs text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
@@ -264,11 +264,11 @@ include '../layouts/header.php';
                     class="inline-flex items-center justify-between gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-colors w-32">
                     <span id="filter-status-text" class="truncate">
                         <?php
-                        $currStatus = "Status: All";
+                        $currStatus = "Status: Semua";
                         if ($status === 'active')
-                            $currStatus = "Active";
+                            $currStatus = "Aktif";
                         elseif ($status === 'inactive')
-                            $currStatus = "Inactive";
+                            $currStatus = "Nonaktif";
                         echo htmlspecialchars($currStatus);
                         ?>
                     </span>
@@ -280,15 +280,15 @@ include '../layouts/header.php';
                 <div id="filter-status-menu"
                     class="hidden absolute top-full left-0 mt-1 w-32 origin-top-left rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
                     <ul class="py-1">
-                        <li onclick="selectFilterOption('status', '', 'Status: All')"
+                        <li onclick="selectFilterOption('status', '', 'Status: Semua')"
                             class="cursor-pointer px-4 py-2 text-xs text-slate-500 hover:bg-slate-50 hover:text-cyan-700">
-                            Status: All</li>
-                        <li onclick="selectFilterOption('status', 'active', 'Active')"
+                            Status: Semua</li>
+                        <li onclick="selectFilterOption('status', 'active', 'Aktif')"
                             class="cursor-pointer px-4 py-2 text-xs text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
-                            Active</li>
-                        <li onclick="selectFilterOption('status', 'inactive', 'Inactive')"
+                            Aktif</li>
+                        <li onclick="selectFilterOption('status', 'inactive', 'Nonaktif')"
                             class="cursor-pointer px-4 py-2 text-xs text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
-                            Inactive</li>
+                            Nonaktif</li>
                     </ul>
                 </div>
             </div>
@@ -318,8 +318,8 @@ include '../layouts/header.php';
             </div>
             <div>
                 <p class="font-bold text-slate-800 text-sm"><span id="selected-count"
-                        class="text-cyan-600 text-lg">0</span> Users Selected</p>
-                <p class="text-xs text-slate-500">Perform bulk actions</p>
+                        class="text-cyan-600 text-lg">0</span> Pengguna Terpilih</p>
+                <p class="text-xs text-slate-500">Lakukan aksi massal</p>
             </div>
         </div>
 
@@ -345,7 +345,7 @@ include '../layouts/header.php';
                         <ul class="py-1">
                             <li onclick="selectBulkOption('division', '', 'Change Division')"
                                 class="cursor-pointer px-4 py-2 text-sm text-slate-500 hover:bg-slate-50 hover:text-cyan-700">
-                                Change Division</li>
+                                Ubah Divisi</li>
                             <?php foreach ($divisions as $div): ?>
                                 <li onclick="selectBulkOption('division', '<?php echo $div['id']; ?>', '<?php echo htmlspecialchars($div['name'], ENT_QUOTES); ?>')"
                                     class="cursor-pointer px-4 py-2 text-sm text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
@@ -372,10 +372,10 @@ include '../layouts/header.php';
                         <ul class="py-1" id="bulk-unit-list">
                             <li onclick="selectBulkOption('unit', '', 'Change Unit')"
                                 class="cursor-pointer px-4 py-2 text-sm text-slate-500 hover:bg-slate-50 hover:text-cyan-700">
-                                Change Unit</li>
-                            <li onclick="selectBulkOption('unit', 'NULL', 'No Unit')"
+                                Ubah Unit</li>
+                            <li onclick="selectBulkOption('unit', 'NULL', 'Tidak Ada Unit')"
                                 class="cursor-pointer px-4 py-2 text-sm text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
-                                No Unit</li>
+                                Tidak Ada Unit</li>
                         </ul>
                     </div>
                 </div>
@@ -396,7 +396,7 @@ include '../layouts/header.php';
                         <ul class="py-1">
                             <li onclick="selectBulkOption('position', '', 'Change Position')"
                                 class="cursor-pointer px-4 py-2 text-sm text-slate-500 hover:bg-slate-50 hover:text-cyan-700">
-                                Change Position</li>
+                                Ubah Jabatan</li>
                             <?php foreach ($positions as $pos): ?>
                                 <li onclick="selectBulkOption('position', '<?php echo $pos['id']; ?>', '<?php echo htmlspecialchars($pos['name'], ENT_QUOTES); ?>')"
                                     class="cursor-pointer px-4 py-2 text-sm text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
@@ -409,7 +409,7 @@ include '../layouts/header.php';
 
                 <button type="submit"
                     class="rounded-lg bg-cyan-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-600 transition-all">
-                    Apply
+                    Terapkan
                 </button>
             </div>
         </form>
@@ -437,19 +437,19 @@ include '../layouts/header.php';
                             No.</th>
                         <th scope="col"
                             class="py-3.5 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 sm:pl-6">
-                            Employee</th>
+                            Pegawai</th>
                         <th scope="col"
                             class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                            Contact</th>
+                            Kontak</th>
                         <th scope="col"
                             class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                            Division</th>
+                            Divisi</th>
                         <th scope="col"
                             class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
                             Status</th>
                         <th scope="col"
                             class="relative py-3.5 pl-3 pr-4 sm:pr-6 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">
-                            Actions</th>
+                            Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200 bg-white">
@@ -499,27 +499,29 @@ include '../layouts/header.php';
                                     <?php echo htmlspecialchars($emp['unit_name'] ?? '-'); ?>
                                 </div>
                             </td>
-                            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                <?php if (isset($emp['status']) && $emp['status'] === 'inactive'): ?>
-                                    <span
-                                        class="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700 border border-red-100">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-red-500"></span>
-                                        Inactive
-                                    </span>
-                                <?php else: ?>
-                                    <span
-                                        class="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700 border border-green-100">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-green-500"></span>
-                                        Active
-                                    </span>
-                                <?php endif; ?>
+                            <td class="whitespace-nowrap px-3 py-4">
+                                <?php
+                                $statusColor = 'slate';
+                                $statusText = $emp['status'] ?? 'active';
+                                if ($statusText === 'active') {
+                                    $statusColor = 'green';
+                                    $statusText = 'Aktif';
+                                } else {
+                                    $statusColor = 'red';
+                                    $statusText = 'Nonaktif';
+                                }
+                                ?>
+                                <span
+                                    class="inline-flex items-center rounded-md bg-<?php echo $statusColor; ?>-50 px-2 py-1 text-xs font-medium text-<?php echo $statusColor; ?>-700 ring-1 ring-inset ring-<?php echo $statusColor; ?>-600/20 uppercase tracking-wider">
+                                    <?php echo $statusText; ?>
+                                </span>
                             </td>
                             <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                                 <div class="flex items-center justify-end gap-3 text-gray-400">
                                     <!-- Status Toggle -->
                                     <a href="<?php url('logic/employees/toggle_status.php?id=' . $emp['id']); ?>"
                                         class="hover:text-amber-600 transition-colors"
-                                        title="<?php echo (isset($emp['status']) && $emp['status'] === 'inactive') ? 'Activate' : 'Deactivate'; ?>">
+                                        title="<?php echo (isset($emp['status']) && $emp['status'] === 'inactive') ? 'Aktifkan' : 'Nonaktifkan'; ?>">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                             stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
                                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -528,7 +530,7 @@ include '../layouts/header.php';
                                     </a>
 
                                     <a href="<?php url('views/employees/form.php?id=' . $emp['id']); ?>"
-                                        class="hover:text-cyan-600 transition-colors" title="Edit">
+                                        class="hover:text-cyan-600 transition-colors" title="Ubah">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                             stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
                                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -537,7 +539,7 @@ include '../layouts/header.php';
                                     </a>
                                     <button
                                         onclick="openDeleteModal('<?php url('logic/employees/delete.php?id=' . $emp['id']); ?>')"
-                                        class="hover:text-red-600 transition-colors" title="Delete">
+                                        class="hover:text-red-600 transition-colors" title="Hapus">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                             stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
                                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -559,18 +561,18 @@ include '../layouts/header.php';
                             class="block rounded-md border-0 py-1.5 pl-3 pr-8 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-cyan-600 sm:text-xs sm:leading-6">
                             <?php foreach ([10, 20, 50, 100] as $val): ?>
                                 <option value="<?php echo $val; ?>" <?php echo $limit == $val ? 'selected' : ''; ?>>
-                                    Show <?php echo $val; ?>
+                                    Tampilkan <?php echo $val; ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
                         <p class="text-sm text-gray-700">
-                            Showing
+                            Menampilkan
                             <span class="font-medium"><?php echo $offset + 1; ?></span>
-                            to
+                            sampai
                             <span class="font-medium"><?php echo min($offset + $limit, $total_rows); ?></span>
-                            of
+                            dari
                             <span class="font-medium"><?php echo $total_rows; ?></span>
-                            results
+                            hasil
                         </p>
                     </div>
                     <div>
@@ -723,49 +725,8 @@ include '../layouts/header.php';
     });
 
     // --- Generic Dropdown Logic ---
-    let activeDropdownId = null;
+    // Uses global toggleDropdown from footer.php
 
-    function toggleDropdown(id) {
-        // Construct the menu ID based on whether it is a generic, export, filter, or bulk dropdown
-        // The HTML IDs are consistent: [id]-menu and [id]-arrow
-        const menu = document.getElementById(id + '-menu');
-        const arrow = document.getElementById(id + '-arrow');
-
-        // Close currently active if different
-        if (activeDropdownId && activeDropdownId !== id) {
-            const activeMenu = document.getElementById(activeDropdownId + '-menu');
-            const activeArrow = document.getElementById(activeDropdownId + '-arrow');
-
-            if (activeMenu) {
-                activeMenu.classList.add('hidden', 'opacity-0', 'scale-95');
-                activeMenu.classList.remove('opacity-100', 'scale-100');
-            }
-            if (activeArrow) {
-                activeArrow.classList.remove('rotate-180');
-            }
-        }
-
-        if (menu.classList.contains('hidden')) {
-            // Open
-            menu.classList.remove('hidden');
-            requestAnimationFrame(() => {
-                menu.classList.remove('opacity-0', 'scale-95');
-                menu.classList.add('opacity-100', 'scale-100');
-            });
-            if (arrow) arrow.classList.add('rotate-180');
-            activeDropdownId = id;
-        } else {
-            // Close
-            menu.classList.remove('opacity-100', 'scale-100');
-            menu.classList.add('opacity-0', 'scale-95');
-            if (arrow) arrow.classList.remove('rotate-180');
-
-            setTimeout(() => {
-                menu.classList.add('hidden');
-            }, 200);
-            activeDropdownId = null;
-        }
-    }
 
     // --- Filter Option Selection ---
     function selectFilterOption(name, value, text) {
@@ -796,30 +757,8 @@ include '../layouts/header.php';
         }
     }
 
-    // Close dropdowns when clicking outside
-    document.addEventListener('click', (e) => {
-        if (activeDropdownId) {
-            // Check if click is inside the container of the active dropdown
+    // Global click listener in footer.php handles closing
 
-            let containerId = activeDropdownId + '-container';
-            // Exception: 'export' -> 'export-dropdown-container' (renaming in HTML would be better, but let's handle it)
-            if (activeDropdownId === 'export') containerId = 'export-dropdown-container';
-
-            if (!e.target.closest('#' + containerId)) {
-                // If clicked outside, close it
-                const menu = document.getElementById(activeDropdownId + '-menu');
-                const arrow = document.getElementById(activeDropdownId + '-arrow');
-
-                if (menu) {
-                    menu.classList.remove('opacity-100', 'scale-100');
-                    menu.classList.add('opacity-0', 'scale-95');
-                    setTimeout(() => menu.classList.add('hidden'), 200);
-                }
-                if (arrow) arrow.classList.remove('rotate-180');
-                activeDropdownId = null;
-            }
-        }
-    });
 
     // Load Units for Bulk Edit (Custom Dropdown Version)
     function loadBulkUnits(divisionId) {

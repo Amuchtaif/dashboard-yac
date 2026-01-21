@@ -9,11 +9,22 @@ $conn = $db->getConnection();
 
 $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 $is_edit = $id > 0;
-$page_title = $is_edit ? "Edit Schedule" : "Create Schedule";
+$page_title = $is_edit ? "Ubah Jadwal" : "Buat Jadwal";
 
 // Initialize Schedule
 $schedule = [
     'name' => ''
+];
+
+// Day mapping for UI
+$day_map = [
+    'Monday' => 'Senin',
+    'Tuesday' => 'Selasa',
+    'Wednesday' => 'Rabu',
+    'Thursday' => 'Kamis',
+    'Friday' => 'Jumat',
+    'Saturday' => 'Sabtu',
+    'Sunday' => 'Minggu'
 ];
 
 // Initialize Days Defaults
@@ -35,7 +46,7 @@ if ($is_edit) {
     $schedule = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$schedule) {
-        header("Location: " . BASE_URL . "views/settings/schedules/index.php?error=" . urlencode("Schedule not found"));
+        header("Location: " . BASE_URL . "views/settings/schedules/index.php?error=" . urlencode("Jadwal tidak ditemukan"));
         exit;
     }
 
@@ -68,9 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt = $conn->prepare("UPDATE work_schedules SET name = :name WHERE id = :id");
                 $stmt->execute([':name' => $name, ':id' => $id]);
                 
-                // Delete old details to re-insert (easiest strategy for simple 7-day override)
-                // Or update individually. Checking for existence is better.
-                // Let's use INSERT ON DUPLICATE KEY UPDATE logic or just DELETE -> INSERT since it's only 7 rows
+                // Delete old details to re-insert
                 $conn->prepare("DELETE FROM work_schedule_details WHERE schedule_id = :id")->execute([':id' => $id]);
                 $current_id = $id;
 
@@ -100,29 +109,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             $conn->commit();
-            header("Location: " . BASE_URL . "/views/settings/schedules/index.php?success=" . urlencode("Schedule saved successfully"));
+            header("Location: " . BASE_URL . "/views/settings/schedules/index.php?success=" . urlencode("Jadwal berhasil disimpan"));
             exit;
 
         } catch (Exception $e) {
             $conn->rollBack();
-            $error = "Error saving schedule: " . $e->getMessage();
+            $error = "Error simpan jadwal: " . $e->getMessage();
         }
     } else {
-        $error = "Name is required.";
+        $error = "Nama jadwal wajib diisi.";
     }
 }
 
 include '../../layouts/header.php';
 ?>
 
-<div class="px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto pb-10">
+<div class="max-w-5xl mx-auto pb-10">
     <!-- Breadcrumb -->
     <nav class="flex mb-4" aria-label="Breadcrumb">
         <ol class="inline-flex items-center space-x-1 md:space-x-3 text-sm">
             <li class="inline-flex items-center">
                 <a href="<?php url('views/settings/schedules/index.php'); ?>"
                     class="inline-flex items-center text-slate-500 hover:text-slate-700">
-                    Schedules
+                    Jadwal
                 </a>
             </li>
             <li>
@@ -133,7 +142,7 @@ include '../../layouts/header.php';
                             d="m1 9 4-4-4-4" />
                     </svg>
                     <span class="ml-1 font-medium text-slate-800">
-                        <?php echo $is_edit ? 'Edit' : 'Create'; ?>
+                        <?php echo $is_edit ? 'Ubah' : 'Buat'; ?>
                     </span>
                 </div>
             </li>
@@ -144,7 +153,7 @@ include '../../layouts/header.php';
         <h1 class="text-2xl font-bold text-slate-900">
             <?php echo $page_title; ?>
         </h1>
-        <p class="mt-2 text-sm text-slate-600">Configure weekly working hours and shifts.</p>
+        <p class="mt-2 text-sm text-slate-600">Konfigurasi jam kerja mingguan dan shift.</p>
     </div>
 
     <?php if (isset($error)): ?>
@@ -158,23 +167,23 @@ include '../../layouts/header.php';
             <div class="px-4 py-6 sm:p-8">
                 <!-- Schedule Name -->
                 <div class="mb-8 max-w-md">
-                    <label for="name" class="block text-sm font-medium leading-6 text-gray-900">Schedule Name</label>
+                    <label for="name" class="block text-sm font-medium leading-6 text-gray-900">Nama Jadwal</label>
                     <div class="mt-2">
                         <input type="text" name="name" id="name" required
                             value="<?php echo htmlspecialchars($schedule['name']); ?>"
                             class="block w-full px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 focus:outline-none transition-all placeholder:text-slate-400 shadow-sm"
-                            placeholder="e.g. Regular Shift">
+                            placeholder="Misal: Shift Reguler">
                     </div>
                 </div>
 
                 <!-- Daily Grid -->
                 <div class="border rounded-lg overflow-hidden">
                     <div class="bg-gray-50 px-4 py-3 border-b grid grid-cols-12 gap-4 text-sm font-semibold text-gray-900">
-                        <div class="col-span-3">Day</div>
-                        <div class="col-span-2 text-center">Day Off</div>
+                        <div class="col-span-3">Hari</div>
+                        <div class="col-span-2 text-center">Libur</div>
                         <div class="col-span-7 grid grid-cols-2 gap-4">
-                            <div>Start Time</div>
-                            <div>End Time</div>
+                            <div>Jam Masuk</div>
+                            <div>Jam Pulang</div>
                         </div>
                     </div>
                     
@@ -185,7 +194,7 @@ include '../../layouts/header.php';
                         ?>
                         <div class="px-4 py-3 grid grid-cols-12 gap-4 items-center hover:bg-gray-50 transition-colors">
                             <div class="col-span-3 font-medium text-gray-900">
-                                <?php echo $day; ?>
+                                <?php echo $day_map[$day]; ?>
                             </div>
                             <div class="col-span-2 text-center">
                                 <input type="checkbox" name="details[<?php echo $day; ?>][is_day_off]" 
@@ -216,10 +225,10 @@ include '../../layouts/header.php';
 
             <div class="flex items-center justify-end gap-x-6 border-t border-gray-900/10 px-4 py-4 sm:px-8">
                 <a href="<?php url('views/settings/schedules/index.php'); ?>"
-                    class="text-sm font-semibold leading-6 text-gray-900">Cancel</a>
+                    class="text-sm font-semibold leading-6 text-gray-900">Batal</a>
                 <button type="submit"
                     class="rounded-md bg-cyan-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-600 transition-colors">
-                    <?php echo $is_edit ? 'Update Schedule' : 'Create Schedule'; ?>
+                    <?php echo $is_edit ? 'Perbarui Jadwal' : 'Buat Jadwal'; ?>
                 </button>
             </div>
         </form>
@@ -235,12 +244,12 @@ function toggleDay(day) {
     if (isOff) {
         startInput.disabled = true;
         endInput.disabled = true;
-        startInput.value = ''; // Optional: clear value
+        startInput.value = ''; 
         endInput.value = '';
     } else {
         startInput.disabled = false;
         endInput.disabled = false;
-        if (!startInput.value) startInput.value = '08:00'; // Restore default
+        if (!startInput.value) startInput.value = '08:00'; 
         if (!endInput.value) endInput.value = '17:00';
     }
 }

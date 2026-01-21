@@ -4,7 +4,7 @@ require_once '../../config/database.php';
 
 check_login();
 
-$page_title = "Positions";
+$page_title = "Data Jabatan";
 
 $db = new Database();
 $conn = $db->getConnection();
@@ -45,11 +45,11 @@ $positions = $stmt->fetchAll(PDO::FETCH_ASSOC);
 include '../layouts/header.php';
 ?>
 
-<div class="px-4 sm:px-6 lg:px-8">
+<div class="pb-10">
     <div class="sm:flex sm:items-center">
         <div class="sm:flex-auto">
-            <h1 class="text-xl font-bold text-slate-900">Positions</h1>
-            <p class="mt-2 text-sm text-slate-500">Manage employee job titles and hierarchy levels.</p>
+            <h1 class="text-xl font-bold text-slate-900">Data Jabatan</h1>
+            <p class="mt-2 text-sm text-slate-500">Kelola gelar pekerjaan karyawan dan tingkat hierarki.</p>
         </div>
         <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none flex justify-end">
             <a href="<?php url('views/positions/form.php'); ?>"
@@ -58,7 +58,7 @@ include '../layouts/header.php';
                     stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
-                Add Position
+                Tambah Jabatan
             </a>
         </div>
     </div>
@@ -76,13 +76,13 @@ include '../layouts/header.php';
                                     No.</th>
                                 <th scope="col"
                                     class="py-3.5 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 sm:pl-6">
-                                    Position Name</th>
+                                    Nama Jabatan</th>
                                 <th scope="col"
                                     class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
                                     Level</th>
                                 <th scope="col"
                                     class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                    Employees</th>
+                                    Jumlah Pegawai</th>
                                 <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
                                     <span class="sr-only">Actions</span>
                                 </th>
@@ -137,8 +137,9 @@ include '../layouts/header.php';
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <tr>
-                                    <td colspan="5" class="py-10 text-center text-sm text-gray-500">No positions found. Add
-                                        one to get started.</td>
+                                    <td colspan="5" class="py-10 text-center text-sm text-gray-500">Data jabatan tidak
+                                        ditemukan. Tambahkan
+                                        data baru untuk memulai.</td>
                                 </tr>
                             <?php endif; ?>
                         </tbody>
@@ -152,18 +153,18 @@ include '../layouts/header.php';
                                     class="block rounded-md border-0 py-1.5 pl-3 pr-8 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-cyan-600 sm:text-xs sm:leading-6">
                                     <?php foreach ([10, 20, 50, 100] as $val): ?>
                                         <option value="<?php echo $val; ?>" <?php echo $limit == $val ? 'selected' : ''; ?>>
-                                            Show <?php echo $val; ?>
+                                            Tampilkan <?php echo $val; ?>
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
                                 <p class="text-sm text-gray-700">
-                                    Showing
+                                    Menampilkan
                                     <span class="font-medium"><?php echo ($total_rows > 0) ? $offset + 1 : 0; ?></span>
-                                    to
+                                    sampai
                                     <span class="font-medium"><?php echo min($offset + $limit, $total_rows); ?></span>
-                                    of
+                                    dari
                                     <span class="font-medium"><?php echo $total_rows; ?></span>
-                                    results
+                                    hasil
                                 </p>
                             </div>
                             <div>

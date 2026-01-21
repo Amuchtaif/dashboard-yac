@@ -4,7 +4,7 @@ require_once '../../../config/database.php';
 
 check_login();
 
-$page_title = "Work Schedules";
+$page_title = "Jadwal Kerja";
 
 $db = new Database();
 $conn = $db->getConnection();
@@ -15,7 +15,7 @@ $schedules = $conn->query("SELECT * FROM work_schedules ORDER BY id ASC")->fetch
 include '../../layouts/header.php';
 ?>
 
-<div class="px-4 sm:px-6 lg:px-8 pb-10">
+<div class="pb-10">
 
     <!-- Breadcrumb -->
     <nav class="flex mb-4" aria-label="Breadcrumb">
@@ -28,7 +28,7 @@ include '../../layouts/header.php';
                             d="M9.293 2.293a1 1 0 011.414 0l7 7A1 1 0 0117 11h-1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-3a1 1 0 00-1-1H9a1 1 0 00-1 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-6H3a1 1 0 01-.707-1.707l7-7z"
                             clip-rule="evenodd" />
                     </svg>
-                    Dashboard
+                    Beranda
                 </a>
             </li>
             <li>
@@ -39,7 +39,7 @@ include '../../layouts/header.php';
                             d="m1 9 4-4-4-4" />
                     </svg>
                     <a href="<?php url('views/settings/index.php'); ?>"
-                        class="ml-1 text-slate-500 hover:text-slate-800">Settings</a>
+                        class="ml-1 text-slate-500 hover:text-slate-800">Pengaturan</a>
                 </div>
             </li>
             <li>
@@ -49,7 +49,7 @@ include '../../layouts/header.php';
                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="m1 9 4-4-4-4" />
                     </svg>
-                    <span class="ml-1 font-medium text-slate-800">Schedules</span>
+                    <span class="ml-1 font-medium text-slate-800">Jadwal</span>
                 </div>
             </li>
         </ol>
@@ -58,9 +58,9 @@ include '../../layouts/header.php';
     <!-- Header -->
     <div class="md:flex md:items-center md:justify-between mb-6">
         <div class="min-w-0 flex-1">
-            <h2 class="text-2xl font-bold leading-7 text-slate-900 sm:truncate sm:text-3xl sm:tracking-tight">Work
-                Schedules</h2>
-            <p class="mt-1 text-sm text-slate-500">Manage working hours and shifts.</p>
+            <h2 class="text-2xl font-bold leading-7 text-slate-900 sm:truncate sm:text-3xl sm:tracking-tight">Jadwal
+                Kerja</h2>
+            <p class="mt-1 text-sm text-slate-500">Kelola jam kerja dan shift pegawai.</p>
         </div>
         <div class="mt-4 flex md:ml-4 md:mt-0">
             <a href="<?php url('views/settings/schedules/form.php'); ?>"
@@ -69,7 +69,7 @@ include '../../layouts/header.php';
                     <path
                         d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
                 </svg>
-                Create New Schedule
+                Buat Jadwal Baru
             </a>
         </div>
     </div>
@@ -81,10 +81,10 @@ include '../../layouts/header.php';
                 <tr>
                     <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">No
                     </th>
-                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Schedule Name</th>
+                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Nama Jadwal</th>
                     <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Status</th>
                     <th scope="col"
-                        class="relative py-3.5 pl-3 pr-4 sm:pr-6 text-right text-sm font-semibold text-gray-900">Actions
+                        class="relative py-3.5 pl-3 pr-4 sm:pr-6 text-right text-sm font-semibold text-gray-900">Aksi
                     </th>
                 </tr>
             </thead>
@@ -105,13 +105,13 @@ include '../../layouts/header.php';
                             <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                                 <span
                                     class="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
-                                    <?php echo $active_days ?: 0; ?> Working Days
+                                    <?php echo $active_days ?: 0; ?> Hari Kerja
                                 </span>
                             </td>
                             <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                                 <div class="flex items-center justify-end gap-3 text-gray-400">
                                     <a href="<?php url('views/settings/schedules/form.php?id=' . $schedule['id']); ?>"
-                                        class="hover:text-cyan-600 transition-colors" title="Edit">
+                                        class="hover:text-cyan-600 transition-colors" title="Ubah">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                             stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
                                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -120,7 +120,7 @@ include '../../layouts/header.php';
                                     </a>
                                     <button
                                         onclick="openDeleteModal('<?php url('views/settings/schedules/delete.php?id=' . $schedule['id']); ?>')"
-                                        class="hover:text-red-600 transition-colors" title="Delete">
+                                        class="hover:text-red-600 transition-colors" title="Hapus">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                             stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
                                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -133,8 +133,8 @@ include '../../layouts/header.php';
                     <?php endforeach; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="5" class="py-10 text-center text-sm text-gray-500">No schedules found. Create one to
-                            get started.</td>
+                        <td colspan="5" class="py-10 text-center text-sm text-gray-500">Tidak ada jadwal ditemukan. Buat
+                            satu untuk memulai.</td>
                     </tr>
                 <?php endif; ?>
             </tbody>

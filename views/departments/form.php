@@ -9,7 +9,7 @@ $conn = $db->getConnection();
 
 $id = isset($_GET['id']) ? $_GET['id'] : null;
 $is_edit = !empty($id);
-$page_title = $is_edit ? "Edit Department" : "Add Department";
+$page_title = $is_edit ? "Edit Divisi" : "Tambah Divisi";
 
 // Fetch Schedules
 $schedules = $conn->query("SELECT * FROM work_schedules ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
@@ -37,14 +37,14 @@ if ($is_edit) {
 include '../layouts/header.php';
 ?>
 
-<div class="px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto pb-10">
+<div class="max-w-3xl mx-auto pb-10">
     <!-- Breadcrumb -->
     <nav class="flex mb-4" aria-label="Breadcrumb">
         <ol class="inline-flex items-center space-x-1 md:space-x-3 text-sm">
             <li class="inline-flex items-center">
                 <a href="<?php url('views/dashboard/index.php'); ?>"
                     class="inline-flex items-center text-slate-500 hover:text-slate-700">
-                    Home
+                    Beranda
                 </a>
             </li>
             <li>
@@ -55,7 +55,7 @@ include '../layouts/header.php';
                             d="m1 9 4-4-4-4" />
                     </svg>
                     <a href="<?php url('views/departments/index.php'); ?>"
-                        class="ml-1 text-slate-500 hover:text-slate-700">Divisions</a>
+                        class="ml-1 text-slate-500 hover:text-slate-700">Divisi</a>
                 </div>
             </li>
             <li aria-current="page">
@@ -66,7 +66,7 @@ include '../layouts/header.php';
                             d="m1 9 4-4-4-4" />
                     </svg>
                     <span class="ml-1 font-medium text-slate-800">
-                        <?php echo $is_edit ? "Edit" : "Add New"; ?>
+                        <?php echo $is_edit ? "Edit" : "Tambah Baru"; ?>
                     </span>
                 </div>
             </li>
@@ -75,10 +75,10 @@ include '../layouts/header.php';
 
     <div class="mb-8">
         <h1 class="text-2xl font-bold text-slate-900">
-            <?php echo $is_edit ? "Edit Division" : "Add New Division"; ?>
+            <?php echo $is_edit ? "Edit Divisi" : "Tambah Divisi Baru"; ?>
         </h1>
         <p class="mt-2 text-sm text-slate-600">
-            <?php echo $is_edit ? "Update division details and default schedule." : "Create a new division to organize your workforce."; ?>
+            <?php echo $is_edit ? "Perbarui rincian divisi dan jadwal standar." : "Buat divisi baru untuk mengatur tenaga kerja Anda."; ?>
         </p>
     </div>
 
@@ -107,21 +107,20 @@ include '../layouts/header.php';
 
                     <!-- Department Name -->
                     <div class="sm:col-span-4">
-                        <label for="name" class="block text-sm font-medium leading-6 text-gray-900">Division
-                            Name</label>
+                        <label for="name" class="block text-sm font-medium leading-6 text-gray-900">Nama Divisi</label>
                         <div class="mt-2">
                             <input type="text" name="name" id="name" required
                                 value="<?php echo htmlspecialchars($department['name']); ?>"
                                 class="block w-full px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 focus:outline-none transition-all placeholder:text-slate-400 shadow-sm"
-                                placeholder="e.g. Finance">
+                                placeholder="misal: Keuangan">
                         </div>
                     </div>
 
                     <!-- Manager -->
                     <div class="sm:col-span-4">
-                        <label for="manager_id" class="block text-sm font-medium leading-6 text-gray-900">Division
-                            Manager</label>
-                        <p class="text-xs text-slate-500 mb-2">Select the person in charge of this division.</p>
+                        <label for="manager_id" class="block text-sm font-medium leading-6 text-gray-900">Manajer
+                            Divisi</label>
+                        <p class="text-xs text-slate-500 mb-2">Pilih orang yang bertanggung jawab atas divisi ini.</p>
                         <div class="mt-2 relative">
                             <!-- Custom Searchable Dropdown for Manager -->
                             <div class="relative" id="manager-dropdown-container">
@@ -133,7 +132,7 @@ include '../layouts/header.php';
                                     <span class="block truncate" id="manager-selected-text">
                                         <?php
                                         // Pre-fill selected name if editing
-                                        $selected_name = 'Select Manager';
+                                        $selected_name = 'Pilih Manajer';
                                         if (!empty($department['manager_id'])) {
                                             foreach ($employees as $emp) {
                                                 if ($emp['id'] == $department['manager_id']) {
@@ -163,7 +162,7 @@ include '../layouts/header.php';
                                     <div class="sticky top-0 z-10 bg-white px-2 py-2 border-b border-slate-100">
                                         <input type="text" id="manager-search-input"
                                             class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-cyan-600 sm:text-sm sm:leading-6 px-3"
-                                            placeholder="Search...">
+                                            placeholder="Cari...">
                                     </div>
 
                                     <!-- Options List -->
@@ -240,10 +239,9 @@ include '../layouts/header.php';
 
                     <!-- Default Work Schedule -->
                     <div class="sm:col-span-4">
-                        <label for="schedule_id" class="block text-sm font-medium leading-6 text-gray-900">Default Work
-                            Schedule</label>
-                        <p class="text-xs text-slate-500 mb-2">Select the default shift for employees in this
-                            division.</p>
+                        <label for="schedule_id" class="block text-sm font-medium leading-6 text-gray-900">Jadwal Kerja
+                            Standar</label>
+                        <p class="text-xs text-slate-500 mb-2">Pilih shift default untuk karyawan di divisi ini.</p>
                         <div class="mt-2 relative" id="dropdown-container-schedule">
                             <input type="hidden" name="schedule_id" id="input-schedule"
                                 value="<?php echo $department['schedule_id']; ?>">
@@ -251,7 +249,7 @@ include '../layouts/header.php';
                                 class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200 transition-all">
                                 <span id="text-schedule" class="block truncate">
                                     <?php
-                                    $currentScheduleName = 'Select a Schedule...';
+                                    $currentScheduleName = 'Pilih Jadwal...';
                                     foreach ($schedules as $schedule) {
                                         if ($department['schedule_id'] == $schedule['id']) {
                                             $currentScheduleName = $schedule['name'];
@@ -272,9 +270,9 @@ include '../layouts/header.php';
                             <div id="menu-schedule"
                                 class="absolute z-50 mt-1 hidden max-h-60 w-full overflow-auto rounded-lg bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                                 <ul class="py-1">
-                                    <li onclick="selectFormOption('schedule', '', 'Select a Schedule...')"
+                                    <li onclick="selectFormOption('schedule', '', 'Pilih Jadwal...')"
                                         class="cursor-pointer px-4 py-2 text-sm text-slate-500 hover:bg-slate-50 hover:text-cyan-700 transition-colors">
-                                        Select a Schedule...
+                                        Pilih Jadwal...
                                     </li>
                                     <?php foreach ($schedules as $schedule): ?>
                                         <li onclick="selectFormOption('schedule', '<?php echo $schedule['id']; ?>', '<?php echo htmlspecialchars($schedule['name'], ENT_QUOTES); ?>')"
@@ -335,10 +333,10 @@ include '../layouts/header.php';
             </div>
             <div class="flex items-center justify-end gap-x-6 border-t border-gray-900/10 px-4 py-4 sm:px-8">
                 <a href="<?php url('views/departments/index.php'); ?>"
-                    class="text-sm font-semibold leading-6 text-gray-900">Cancel</a>
+                    class="text-sm font-semibold leading-6 text-gray-900">Batal</a>
                 <button type="submit"
                     class="rounded-md bg-cyan-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-600 transition-colors">
-                    <?php echo $is_edit ? "Update Division" : "Save Division"; ?>
+                    <?php echo $is_edit ? "Simpan Perubahan" : "Simpan Divisi"; ?>
                 </button>
             </div>
         </form>

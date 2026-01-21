@@ -15,7 +15,7 @@ $years = $conn->query("SELECT * FROM academic_years ORDER BY start_date DESC")->
 include '../layouts/header.php';
 ?>
 
-<div class="px-4 sm:px-6 lg:px-8 pb-10">
+<div class="pb-10">
     <!-- Breadcrumb -->
     <nav class="flex mb-4" aria-label="Breadcrumb">
         <ol class="inline-flex items-center space-x-1 md:space-x-3 text-xs text-slate-500">
@@ -60,44 +60,6 @@ include '../layouts/header.php';
         </div>
     </div>
 
-    <!-- Alert Messages -->
-    <?php if (isset($_GET['success'])): ?>
-        <div class="mb-6 rounded-md bg-green-50 p-4 border border-green-200">
-            <div class="flex">
-                <div class="flex-shrink-0">
-                    <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path fill-rule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
-                            clip-rule="evenodd" />
-                    </svg>
-                </div>
-                <div class="ml-3">
-                    <p class="text-sm font-medium text-green-800">
-                        <?php echo htmlspecialchars($_GET['success']); ?>
-                    </p>
-                </div>
-            </div>
-        </div>
-    <?php endif; ?>
-    <?php if (isset($_GET['error'])): ?>
-        <div class="mb-6 rounded-md bg-red-50 p-4 border border-red-200">
-            <div class="flex">
-                <div class="flex-shrink-0">
-                    <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path fill-rule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
-                            clip-rule="evenodd" />
-                    </svg>
-                </div>
-                <div class="ml-3">
-                    <p class="text-sm font-medium text-red-800">
-                        <?php echo htmlspecialchars($_GET['error']); ?>
-                    </p>
-                </div>
-            </div>
-        </div>
-    <?php endif; ?>
-
     <!-- Table -->
     <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         <table class="min-w-full divide-y divide-gray-200">
@@ -113,7 +75,8 @@ include '../layouts/header.php';
                         class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
                         Periode</th>
                     <th scope="col"
-                        class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Status
+                        class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                        Status
                     </th>
                     <th scope="col"
                         class="relative py-3.5 pl-3 pr-4 sm:pr-6 text-right font-semibold text-xs uppercase tracking-wide text-gray-500">
@@ -134,7 +97,8 @@ include '../layouts/header.php';
                                 <?php echo $index + 1; ?>.
                             </td>
                             <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900">
-                                <?php echo htmlspecialchars($year['name']); ?>
+                                <?php echo htmlspecialchars($year['name']); ?> -
+                                <?php echo htmlspecialchars($year['semester']); ?>
                             </td>
                             <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                                 <?php
@@ -144,29 +108,17 @@ include '../layouts/header.php';
                                 ?>
                             </td>
                             <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                <?php if ($year['status'] == 'Active'): ?>
+                                <?php if ($year['is_active'] == 1): ?>
                                     <span
                                         class="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">Aktif</span>
                                 <?php else: ?>
-                                    <span
-                                        class="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">Tidak
-                                        Aktif</span>
+                                    <button
+                                        onclick="confirmActivate('<?php url('logic/academic_years/set_active.php?id=' . $year['id']); ?>')"
+                                        class="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20 hover:bg-blue-100 transition-colors">Aktifkan</button>
                                 <?php endif; ?>
                             </td>
                             <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                                 <div class="flex justify-end gap-2">
-                                    <?php if ($year['status'] != 'Active'): ?>
-                                        <a href="<?php url('logic/academic_years/set_active.php?id=' . $year['id']); ?>"
-                                            class="text-green-600 hover:text-green-900 p-1 hover:bg-green-50 rounded transition-colors"
-                                            title="Set Aktif"
-                                            onclick="return confirm('Set tahun ini sebagai aktif? Tahun lain akan dinonaktifkan.')">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                        </a>
-                                    <?php endif; ?>
                                     <button onclick="openEditModal(<?php echo htmlspecialchars(json_encode($year)); ?>)"
                                         class="text-indigo-600 hover:text-indigo-900 p-1 hover:bg-indigo-50 rounded transition-colors"
                                         title="Edit">
@@ -176,9 +128,10 @@ include '../layouts/header.php';
                                                 d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
                                         </svg>
                                     </button>
-                                    <a href="<?php url('logic/academic_years/delete.php?id=' . $year['id']); ?>"
+                                    <a href="javascript:void(0)"
+                                        onclick="openDeleteModal('<?php url('logic/academic_years/delete.php?id=' . $year['id']); ?>')"
                                         class="text-red-500 hover:text-red-700 p-1 hover:bg-red-50 rounded transition-colors"
-                                        title="Delete" onclick="return confirm('Hapus tahun ajaran ini?')">
+                                        title="Delete">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                             stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
                                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -196,88 +149,278 @@ include '../layouts/header.php';
 </div>
 
 <!-- Add Modal -->
-<div id="addModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-        <div class="mt-3">
-            <h3 class="text-lg leading-6 font-medium text-gray-900 border-b pb-2 mb-4">Tambah Tahun Ajaran</h3>
-            <form action="<?php url('logic/academic_years/store.php'); ?>" method="POST">
-                <div class="mb-4 text-left">
-                    <label class="block text-gray-700 text-sm font-bold mb-2">Nama (Contoh: 2024/2025)</label>
-                    <input type="text" name="name" required
-                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                </div>
-                <div class="mb-4 text-left">
-                    <label class="block text-gray-700 text-sm font-bold mb-2">Tanggal Mulai</label>
-                    <input type="date" name="start_date"
-                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                </div>
-                <div class="mb-4 text-left">
-                    <label class="block text-gray-700 text-sm font-bold mb-2">Tanggal Selesai</label>
-                    <input type="date" name="end_date"
-                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                </div>
-                <div class="flex items-center justify-end mt-6">
-                    <button type="button" onclick="closeModal('addModal')"
-                        class="bg-gray-200 text-gray-800 px-4 py-2 rounded mr-2 hover:bg-gray-300">Batal</button>
-                    <button type="submit"
-                        class="bg-cyan-600 text-white px-4 py-2 rounded hover:bg-cyan-700">Simpan</button>
-                </div>
-            </form>
+<div id="addModal" class="fixed inset-0 z-[60] hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog"
+    aria-modal="true">
+    <!-- Backdrop -->
+    <div id="addModalBackdrop"
+        class="fixed inset-0 bg-slate-900/50 transition-opacity duration-300 opacity-0 backdrop-blur-sm"></div>
+
+    <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <!-- Modal Panel -->
+        <div id="addModalPanel"
+            class="relative transform overflow-hidden rounded-xl bg-white text-left shadow-2xl transition-all duration-300 opacity-0 scale-95 sm:my-8 sm:w-full sm:max-w-md">
+            <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                <h3 class="text-xl font-bold leading-6 text-slate-900 border-b border-slate-100 pb-4 mb-6"
+                    id="modal-title">
+                    Tambah Tahun Ajaran
+                </h3>
+                <form action="<?php url('logic/academic_years/store.php'); ?>" method="POST" class="space-y-5">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Nama <span
+                                class="text-xs font-normal text-slate-400">(Contoh: 2024/2025)</span></label>
+                        <div class="relative">
+                            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                <svg class="h-5 w-5 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                                </svg>
+                            </div>
+                            <input type="text" name="name" required
+                                class="block w-full rounded-lg border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-slate-900 focus:border-cyan-500 focus:ring-cyan-500 sm:text-sm transition-all shadow-sm"
+                                placeholder="2024/2025">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Semester</label>
+                        <div class="relative" id="add-semester-container">
+                            <input type="hidden" name="semester" id="add-semester-input" value="Ganjil">
+                            <button type="button" onclick="toggleDropdown('add-semester')"
+                                class="flex w-full items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-left text-sm text-slate-900 focus:border-cyan-500 focus:ring-cyan-500 transition-all shadow-sm">
+                                <span id="add-semester-text">Ganjil</span>
+                                <svg class="h-5 w-5 text-slate-400 transition-transform duration-200"
+                                    id="add-semester-arrow" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                            <div id="add-semester-menu"
+                                class="hidden absolute z-10 mt-1 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                                <ul class="py-1">
+                                    <li onclick="selectOption('add-semester', 'Ganjil', 'Ganjil')"
+                                        class="cursor-pointer select-none py-2.5 px-4 text-slate-900 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
+                                        Ganjil
+                                    </li>
+                                    <li onclick="selectOption('add-semester', 'Genap', 'Genap')"
+                                        class="cursor-pointer select-none py-2.5 px-4 text-slate-900 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
+                                        Genap
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Tanggal Mulai</label>
+                            <input type="date" name="start_date" required
+                                class="block w-full rounded-lg border-slate-200 bg-slate-50 px-4 py-2.5 text-slate-900 focus:border-cyan-500 focus:ring-cyan-500 sm:text-sm transition-all shadow-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Tanggal Selesai</label>
+                            <input type="date" name="end_date" required
+                                class="block w-full rounded-lg border-slate-200 bg-slate-50 px-4 py-2.5 text-slate-900 focus:border-cyan-500 focus:ring-cyan-500 sm:text-sm transition-all shadow-sm">
+                        </div>
+                    </div>
+                    <div
+                        class="mt-8 flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-4 border-t border-slate-100">
+                        <button type="button" onclick="closeModal('addModal')"
+                            class="inline-flex justify-center rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 transition-all">
+                            Batal
+                        </button>
+                        <button type="submit"
+                            class="inline-flex justify-center rounded-lg bg-cyan-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-600 transition-all">
+                            Simpan Data
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>
 
 <!-- Edit Modal -->
-<div id="editModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-        <div class="mt-3">
-            <h3 class="text-lg leading-6 font-medium text-gray-900 border-b pb-2 mb-4">Edit Tahun Ajaran</h3>
-            <form action="<?php url('logic/academic_years/update.php'); ?>" method="POST">
-                <input type="hidden" name="id" id="edit_id">
-                <input type="hidden" name="status" id="edit_status">
-                <div class="mb-4 text-left">
-                    <label class="block text-gray-700 text-sm font-bold mb-2">Nama</label>
-                    <input type="text" name="name" id="edit_name" required
-                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+<div id="editModal" class="hidden fixed inset-0 z-[60] overflow-y-auto" aria-labelledby="modal-title" role="dialog"
+    aria-modal="true">
+    <!-- Backdrop -->
+    <div id="editModalBackdrop"
+        class="fixed inset-0 bg-slate-900/50 transition-opacity duration-300 opacity-0 backdrop-blur-sm"></div>
+
+    <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <!-- Modal Panel -->
+        <div id="editModalPanel"
+            class="relative transform overflow-hidden rounded-xl bg-white text-left shadow-2xl transition-all duration-300 opacity-0 scale-95 sm:my-8 sm:w-full sm:max-w-md">
+            <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                <h3 class="text-xl font-bold leading-6 text-slate-900 border-b border-slate-100 pb-4 mb-6"
+                    id="modal-title">
+                    Edit Tahun Ajaran
+                </h3>
+                <form action="<?php url('logic/academic_years/update.php'); ?>" method="POST" class="space-y-5">
+                    <input type="hidden" name="id" id="edit_id">
+                    <input type="hidden" name="status" id="edit_is_active">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Nama <span
+                                class="text-xs font-normal text-slate-400">(Contoh: 2024/2025)</span></label>
+                        <div class="relative">
+                            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                <svg class="h-5 w-5 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                                </svg>
+                            </div>
+                            <input type="text" name="name" id="edit_name" required
+                                class="block w-full rounded-lg border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-slate-900 focus:border-cyan-500 focus:ring-cyan-500 sm:text-sm transition-all shadow-sm"
+                                placeholder="2024/2025">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Semester</label>
+                        <div class="relative" id="edit-semester-container">
+                            <input type="hidden" name="semester" id="edit_semester" value="Ganjil">
+                            <button type="button" onclick="toggleDropdown('edit-semester')"
+                                class="flex w-full items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-left text-sm text-slate-900 focus:border-cyan-500 focus:ring-cyan-500 transition-all shadow-sm">
+                                <span id="edit-semester-text">Ganjil</span>
+                                <svg class="h-5 w-5 text-slate-400 transition-transform duration-200"
+                                    id="edit-semester-arrow" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                            <div id="edit-semester-menu"
+                                class="hidden absolute z-10 mt-1 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                                <ul class="py-1">
+                                    <li onclick="selectOption('edit-semester', 'Ganjil', 'Ganjil')"
+                                        class="cursor-pointer select-none py-2.5 px-4 text-slate-900 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
+                                        Ganjil
+                                    </li>
+                                    <li onclick="selectOption('edit-semester', 'Genap', 'Genap')"
+                                        class="cursor-pointer select-none py-2.5 px-4 text-slate-900 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
+                                        Genap
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Tanggal Mulai</label>
+                            <input type="date" name="start_date" id="edit_start_date" required
+                                class="block w-full rounded-lg border-slate-200 bg-slate-50 px-4 py-2.5 text-slate-900 focus:border-cyan-500 focus:ring-cyan-500 sm:text-sm transition-all shadow-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Tanggal Selesai</label>
+                            <input type="date" name="end_date" id="edit_end_date" required
+                                class="block w-full rounded-lg border-slate-200 bg-slate-50 px-4 py-2.5 text-slate-900 focus:border-cyan-500 focus:ring-cyan-500 sm:text-sm transition-all shadow-sm">
+                        </div>
+                    </div>
+                    <div
+                        class="mt-8 flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-4 border-t border-slate-100">
+                        <button type="button" onclick="closeModal('editModal')"
+                            class="inline-flex justify-center rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 transition-all">
+                            Batal
+                        </button>
+                        <button type="submit"
+                            class="inline-flex justify-center rounded-lg bg-cyan-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-600 transition-all">
+                            Simpan Perubahan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Activate Confirmation Modal -->
+<div id="activateModal" class="fixed inset-0 z-[60] hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog"
+    aria-modal="true">
+    <!-- Backdrop -->
+    <div id="activateModalBackdrop"
+        class="fixed inset-0 bg-slate-900/50 transition-opacity duration-300 opacity-0 backdrop-blur-sm"></div>
+
+    <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <!-- Modal Panel -->
+        <div id="activateModalPanel"
+            class="relative transform overflow-hidden rounded-xl bg-white text-left shadow-2xl transition-all duration-300 opacity-0 scale-95 sm:my-8 sm:w-full sm:max-w-lg">
+            <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                <div class="sm:flex sm:items-start">
+                    <div
+                        class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
+                        <svg class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                            stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                        </svg>
+                    </div>
+                    <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+                        <h3 class="text-lg font-bold leading-6 text-slate-900" id="modal-title">Aktifkan Semester</h3>
+                        <div class="mt-2 text-sm text-slate-500">
+                            Anda yakin ingin mengaktifkan Semester ini? Semester yang sedang aktif akan otomatis
+                            dinonaktifkan.
+                        </div>
+                    </div>
                 </div>
-                <div class="mb-4 text-left">
-                    <label class="block text-gray-700 text-sm font-bold mb-2">Tanggal Mulai</label>
-                    <input type="date" name="start_date" id="edit_start_date"
-                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                </div>
-                <div class="mb-4 text-left">
-                    <label class="block text-gray-700 text-sm font-bold mb-2">Tanggal Selesai</label>
-                    <input type="date" name="end_date" id="edit_end_date"
-                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                </div>
-                <div class="flex items-center justify-end mt-6">
-                    <button type="button" onclick="closeModal('editModal')"
-                        class="bg-gray-200 text-gray-800 px-4 py-2 rounded mr-2 hover:bg-gray-300">Batal</button>
-                    <button type="submit"
-                        class="bg-cyan-600 text-white px-4 py-2 rounded hover:bg-cyan-700">Simpan</button>
-                </div>
-            </form>
+            </div>
+            <div class="bg-slate-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 gap-2">
+                <a id="confirmActivateBtn" href="#"
+                    class="inline-flex w-full justify-center rounded-lg bg-cyan-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 sm:w-auto transition-all transform active:scale-95">
+                    Aktifkan
+                </a>
+                <button type="button" onclick="closeModal('activateModal')"
+                    class="mt-3 inline-flex w-full justify-center rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 sm:mt-0 sm:w-auto transition-all">
+                    Batal
+                </button>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
     function openModal(id) {
-        document.getElementById(id).classList.remove('hidden');
+        const modal = document.getElementById(id);
+        const backdrop = document.getElementById(id + 'Backdrop');
+        const panel = document.getElementById(id + 'Panel');
+
+        modal.classList.remove('hidden');
+
+        // Small delay to trigger transitions
+        setTimeout(() => {
+            backdrop.classList.remove('opacity-0');
+            panel.classList.remove('opacity-0', 'scale-95');
+        }, 10);
     }
 
     function closeModal(id) {
-        document.getElementById(id).classList.add('hidden');
+        const modal = document.getElementById(id);
+        const backdrop = document.getElementById(id + 'Backdrop');
+        const panel = document.getElementById(id + 'Panel');
+
+        backdrop.classList.add('opacity-0');
+        panel.classList.add('opacity-0', 'scale-95');
+
+        // Delay hiding the modal until animations are done
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
     }
 
     function openEditModal(data) {
         document.getElementById('edit_id').value = data.id;
         document.getElementById('edit_name').value = data.name;
+        document.getElementById('edit_semester').value = data.semester;
+        document.getElementById('edit-semester-text').innerText = data.semester;
         document.getElementById('edit_start_date').value = data.start_date;
         document.getElementById('edit_end_date').value = data.end_date;
-        document.getElementById('edit_status').value = data.status;
+        document.getElementById('edit_is_active').value = data.is_active;
         openModal('editModal');
     }
+
+    function confirmActivate(url) {
+        document.getElementById('confirmActivateBtn').href = url;
+        openModal('activateModal');
+    }
+
 </script>
 
 <?php include '../layouts/footer.php'; ?>

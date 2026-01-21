@@ -4,7 +4,7 @@ require_once '../../config/database.php';
 
 check_login();
 
-$page_title = "Departments";
+$page_title = "Divisi";
 
 $db = new Database();
 $conn = $db->getConnection();
@@ -58,7 +58,7 @@ $departments = $stmt->fetchAll(PDO::FETCH_ASSOC);
 include '../layouts/header.php';
 ?>
 
-<div class="px-4 sm:px-6 lg:px-8 pb-10">
+<div class="pb-10">
 
     <!-- Breadcrumbs -->
     <nav class="flex mb-4" aria-label="Breadcrumb">
@@ -71,7 +71,7 @@ include '../layouts/header.php';
                             d="M9.293 2.293a1 1 0 011.414 0l7 7A1 1 0 0117 11h-1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-3a1 1 0 00-1-1H9a1 1 0 00-1 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-6H3a1 1 0 01-.707-1.707l7-7z"
                             clip-rule="evenodd" />
                     </svg>
-                    Home
+                    Beranda
                 </a>
             </li>
             <li aria-current="page">
@@ -81,7 +81,7 @@ include '../layouts/header.php';
                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="m1 9 4-4-4-4" />
                     </svg>
-                    <span class="ml-1 text-slate-500 hover:text-slate-800">Departments</span>
+                    <span class="ml-1 text-slate-500 hover:text-slate-800">Divisi</span>
                 </div>
             </li>
         </ol>
@@ -91,8 +91,8 @@ include '../layouts/header.php';
     <div class="md:flex md:items-center md:justify-between mb-8">
         <div class="min-w-0 flex-1">
             <h2 class="text-2xl font-bold leading-7 text-slate-900 sm:truncate sm:text-3xl sm:tracking-tight">
-                Divisions Management</h2>
-            <p class="mt-1 text-sm text-slate-500">Organize company structure and manage team allocations.</p>
+                Manajemen Divisi</h2>
+            <p class="mt-1 text-sm text-slate-500">Atur struktur perusahaan dan kelola alokasi tim.</p>
         </div>
         <div class="mt-4 flex md:ml-4 md:mt-0">
             <!-- Add Department Trigger -->
@@ -102,7 +102,7 @@ include '../layouts/header.php';
                     <path
                         d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
                 </svg>
-                Add Division
+                Tambah Divisi
             </a>
         </div>
     </div>
@@ -113,7 +113,7 @@ include '../layouts/header.php';
         <div
             class="bg-white overflow-hidden rounded-xl border border-slate-200 shadow-sm p-6 flex justify-between items-start">
             <div>
-                <p class="text-sm font-medium text-slate-500 truncate">Total Divisions</p>
+                <p class="text-sm font-medium text-slate-500 truncate">Total Divisi</p>
                 <p class="mt-2 text-3xl font-bold text-slate-900"><?php echo $total_depts; ?></p>
             </div>
             <div class="p-3 bg-blue-50 rounded-lg text-blue-600">
@@ -129,7 +129,7 @@ include '../layouts/header.php';
         <div
             class="bg-white overflow-hidden rounded-xl border border-slate-200 shadow-sm p-6 flex justify-between items-start">
             <div>
-                <p class="text-sm font-medium text-slate-500 truncate">Total Units / Teams</p>
+                <p class="text-sm font-medium text-slate-500 truncate">Total Unit / Tim</p>
                 <p class="mt-2 text-3xl font-bold text-slate-900"><?php echo $total_units; ?></p>
             </div>
             <div class="p-3 bg-purple-50 rounded-lg text-purple-600">
@@ -145,7 +145,7 @@ include '../layouts/header.php';
         <div
             class="bg-white overflow-hidden rounded-xl border border-slate-200 shadow-sm p-6 flex justify-between items-start">
             <div>
-                <p class="text-sm font-medium text-slate-500 truncate">Total Headcount</p>
+                <p class="text-sm font-medium text-slate-500 truncate">Total Karyawan</p>
                 <p class="mt-2 text-3xl font-bold text-slate-900"><?php echo $total_employees; ?></p>
             </div>
             <div class="p-3 bg-green-50 rounded-lg text-green-600">
@@ -172,7 +172,7 @@ include '../layouts/header.php';
             </div>
             <input type="text"
                 class="block w-full rounded-lg border-slate-200 pl-10 pt-2 pb-2 text-sm focus:border-cyan-500 focus:ring-cyan-500 bg-slate-50 border placeholder:text-slate-400 text-slate-600"
-                placeholder="Search departments...">
+                placeholder="Cari divisi...">
         </div>
 
         <div class="flex gap-3">
@@ -205,22 +205,22 @@ include '../layouts/header.php';
                 <tr>
                     <th scope="col"
                         class="py-3.5 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 sm:pl-6">
-                        Division</th>
+                        Divisi</th>
                     <th scope="col"
                         class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                        Manager</th>
+                        Manajer</th>
                     <th scope="col"
                         class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                        Members</th>
+                        Anggota</th>
                     <th scope="col"
                         class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                        Units/Teams</th>
+                        Unit/Tim</th>
                     <th scope="col"
                         class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Status
                     </th>
                     <th scope="col"
                         class="relative py-3.5 pl-3 pr-4 sm:pr-6 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">
-                        Actions</th>
+                        Aksi</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-200 bg-white">
@@ -256,7 +256,7 @@ include '../layouts/header.php';
                                 <?php else: ?>
                                     <span
                                         class="inline-flex items-center px-2 py-1 rounded-md bg-gray-50 text-xs font-medium text-gray-400 ring-1 ring-inset ring-gray-500/10">
-                                        Not Assigned
+                                        Belum Ditentukan
                                     </span>
                                 <?php endif; ?>
                             </div>
@@ -275,21 +275,21 @@ include '../layouts/header.php';
                                     </span>
                                 <?php endif; ?>
                                 <?php if ($dept['member_count'] == 0): ?>
-                                    <span class="text-xs text-gray-400 italic">No members</span>
+                                    <span class="text-xs text-gray-400 italic">Tidak ada anggota</span>
                                 <?php endif; ?>
                             </div>
                         </td>
                         <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                             <span
                                 class="inline-flex items-center rounded-md bg-purple-50 px-2 py-1 text-xs font-medium text-purple-700 ring-1 ring-inset ring-purple-700/10">
-                                <?php echo $dept['unit_count']; ?> Teams
+                                <?php echo $dept['unit_count']; ?> Tim
                             </span>
                         </td>
                         <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                             <span
                                 class="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700 border border-green-100">
                                 <span class="h-1.5 w-1.5 rounded-full bg-green-500"></span>
-                                Active
+                                Aktif
                             </span>
                         </td>
                         <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">

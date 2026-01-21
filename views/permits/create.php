@@ -4,7 +4,7 @@ require_once '../../config/database.php';
 
 check_login();
 
-$page_title = "Add Permit";
+$page_title = "Tambah Izin";
 
 $db = new Database();
 $conn = $db->getConnection();
@@ -15,13 +15,13 @@ $employees = $conn->query("SELECT id, full_name FROM employees ORDER BY full_nam
 include '../layouts/header.php';
 ?>
 
-<div class="px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto">
+<div class="max-w-3xl mx-auto pb-10">
     <!-- Breadcrumb -->
     <nav class="flex mb-4" aria-label="Breadcrumb">
         <ol class="inline-flex items-center space-x-1 md:space-x-3 text-sm">
             <li class="inline-flex items-center">
                 <a href="<?php url('views/dashboard/index.php'); ?>"
-                    class="text-slate-500 hover:text-slate-700">Home</a>
+                    class="text-slate-500 hover:text-slate-700">Beranda</a>
             </li>
             <li>
                 <div class="flex items-center">
@@ -29,7 +29,7 @@ include '../layouts/header.php';
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                     </svg>
                     <a href="<?php url('views/permits/index.php'); ?>"
-                        class="ml-1 text-slate-500 hover:text-slate-700">Permits</a>
+                        class="ml-1 text-slate-500 hover:text-slate-700">Perizinan</a>
                 </div>
             </li>
             <li>
@@ -37,15 +37,15 @@ include '../layouts/header.php';
                     <svg class="w-3 h-3 text-gray-400 mx-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                     </svg>
-                    <span class="ml-1 font-medium text-slate-800">Add Request</span>
+                    <span class="ml-1 font-medium text-slate-800">Tambah Pengajuan</span>
                 </div>
             </li>
         </ol>
     </nav>
 
     <div class="mb-8">
-        <h1 class="text-2xl font-bold text-slate-900">Manual Permit Input</h1>
-        <p class="mt-2 text-sm text-slate-600">Create a new permit request for an employee.</p>
+        <h1 class="text-2xl font-bold text-slate-900">Input Izin Manual</h1>
+        <p class="mt-2 text-sm text-slate-600">Buat pengajuan izin baru untuk pegawai.</p>
     </div>
 
     <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl md:col-span-2">
@@ -56,13 +56,13 @@ include '../layouts/header.php';
                     <!-- Employee (Advanced Searchable Dropdown) -->
                     <div class="sm:col-span-4">
                         <label for="employee_id"
-                            class="block text-sm font-medium leading-6 text-gray-900">Employee</label>
+                            class="block text-sm font-medium leading-6 text-gray-900">Pegawai</label>
                         <div class="mt-2 relative" id="dropdown-container-employee">
                             <input type="hidden" name="employee_id" id="input-employee"
                                 value="<?php echo isset($employee_id) ? $employee_id : ''; ?>">
                             <button type="button" onclick="toggleFormDropdown('employee')" id="button-employee"
                                 class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200 transition-all">
-                                <span id="text-employee" class="block truncate">Select Employee</span>
+                                <span id="text-employee" class="block truncate">Pilih Pegawai</span>
                                 <svg class="h-4 w-4 text-slate-500 transition-transform duration-200"
                                     id="arrow-employee" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
                                     fill="currentColor">
@@ -77,12 +77,12 @@ include '../layouts/header.php';
                                 <div class="sticky top-0 z-10 bg-white px-3 py-2 border-b border-slate-100">
                                     <input type="text" id="search-employee" onkeyup="filterDropdown('employee')"
                                         class="block w-full rounded-md border-0 py-1.5 px-3 text-slate-900 ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-cyan-600 sm:text-sm sm:leading-6"
-                                        placeholder="Search employee...">
+                                        placeholder="Cari pegawai...">
                                 </div>
                                 <ul class="py-1" id="list-employee">
-                                    <li onclick="selectFormOption('employee', '', 'Select Employee')"
+                                    <li onclick="selectFormOption('employee', '', 'Pilih Pegawai')"
                                         class="cursor-pointer px-4 py-2 text-sm text-slate-500 hover:bg-slate-50 hover:text-cyan-700 transition-colors">
-                                        Select Employee
+                                        Pilih Pegawai
                                     </li>
                                     <?php foreach ($employees as $emp): ?>
                                         <li onclick="selectFormOption('employee', '<?php echo $emp['id']; ?>', '<?php echo htmlspecialchars($emp['full_name'], ENT_QUOTES); ?>')"
@@ -97,13 +97,13 @@ include '../layouts/header.php';
 
                     <!-- Permit Type (Custom Dropdown) -->
                     <div class="sm:col-span-4">
-                        <label for="permit_type" class="block text-sm font-medium leading-6 text-gray-900">Permission
-                            Type</label>
+                        <label for="permit_type" class="block text-sm font-medium leading-6 text-gray-900">Jenis
+                            Izin</label>
                         <div class="mt-2 relative" id="dropdown-container-type">
                             <input type="hidden" name="permit_type" id="input-type" value="">
                             <button type="button" onclick="toggleFormDropdown('type')" id="button-type"
                                 class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200 transition-all">
-                                <span id="text-type" class="block truncate">Select Type</span>
+                                <span id="text-type" class="block truncate">Pilih Jenis</span>
                                 <svg class="h-4 w-4 text-slate-500 transition-transform duration-200" id="arrow-type"
                                     xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd"
@@ -114,21 +114,21 @@ include '../layouts/header.php';
                             <div id="menu-type"
                                 class="absolute z-50 mt-1 hidden max-h-60 w-full overflow-auto rounded-lg bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                                 <ul class="py-1">
-                                    <li onclick="selectFormOption('type', 'Sick', 'Sick (Sakit)')"
+                                    <li onclick="selectFormOption('type', 'Sick', 'Sakit')"
                                         class="cursor-pointer px-4 py-2 text-sm text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
-                                        Sick (Sakit)
+                                        Sakit
                                     </li>
-                                    <li onclick="selectFormOption('type', 'Permission', 'Permission (Izin)')"
+                                    <li onclick="selectFormOption('type', 'Permission', 'Izin')"
                                         class="cursor-pointer px-4 py-2 text-sm text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
-                                        Permission (Izin)
+                                        Izin
                                     </li>
-                                    <li onclick="selectFormOption('type', 'Leave', 'Leave (Cuti)')"
+                                    <li onclick="selectFormOption('type', 'Leave', 'Cuti')"
                                         class="cursor-pointer px-4 py-2 text-sm text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
-                                        Leave (Cuti)
+                                        Cuti
                                     </li>
-                                    <li onclick="selectFormOption('type', 'Other', 'Other (Lainnya)')"
+                                    <li onclick="selectFormOption('type', 'Other', 'Lainnya')"
                                         class="cursor-pointer px-4 py-2 text-sm text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
-                                        Other (Lainnya)
+                                        Lainnya
                                     </li>
                                 </ul>
                             </div>
@@ -206,8 +206,8 @@ include '../layouts/header.php';
 
                     <!-- Dates -->
                     <div class="sm:col-span-3">
-                        <label for="start_date" class="block text-sm font-medium leading-6 text-gray-900">Start
-                            Date</label>
+                        <label for="start_date" class="block text-sm font-medium leading-6 text-gray-900">Tanggal
+                            Mulai</label>
                         <div class="mt-2">
                             <input type="date" name="start_date" id="start_date" required
                                 class="block w-full px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 focus:outline-none transition-all shadow-sm">
@@ -215,7 +215,8 @@ include '../layouts/header.php';
                     </div>
 
                     <div class="sm:col-span-3">
-                        <label for="end_date" class="block text-sm font-medium leading-6 text-gray-900">End Date</label>
+                        <label for="end_date" class="block text-sm font-medium leading-6 text-gray-900">Tanggal
+                            Selesai</label>
                         <div class="mt-2">
                             <input type="date" name="end_date" id="end_date" required
                                 class="block w-full px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 focus:outline-none transition-all shadow-sm">
@@ -224,10 +225,10 @@ include '../layouts/header.php';
 
                     <!-- File Upload -->
                     <div class="col-span-full">
-                        <label for="attachment" class="block text-sm font-medium leading-6 text-gray-900">Attachment
-                            (Proof)</label>
+                        <label for="attachment" class="block text-sm font-medium leading-6 text-gray-900">Lampiran
+                            (Bukti)</label>
                         <div class="mt-2 text-sm text-slate-500">
-                            Upload image (jpg, png) or PDF document. Max 2MB.
+                            Unggah gambar (jpg, png) atau dokumen PDF. Maks 2MB.
                         </div>
                         <div class="mt-2">
                             <input type="file" name="attachment" id="attachment" accept=".jpg,.jpeg,.png,.pdf" class="block w-full text-sm text-slate-500
@@ -241,7 +242,7 @@ include '../layouts/header.php';
 
                     <!-- Reason -->
                     <div class="col-span-full">
-                        <label for="reason" class="block text-sm font-medium leading-6 text-gray-900">Reason</label>
+                        <label for="reason" class="block text-sm font-medium leading-6 text-gray-900">Alasan</label>
                         <div class="mt-2">
                             <textarea id="reason" name="reason" rows="3" required
                                 class="block w-full px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 focus:outline-none transition-all shadow-sm"></textarea>
@@ -252,10 +253,10 @@ include '../layouts/header.php';
             </div>
             <div class="flex items-center justify-end gap-x-6 border-t border-gray-900/10 px-4 py-4 sm:px-8">
                 <a href="<?php url('views/permits/index.php'); ?>"
-                    class="text-sm font-semibold leading-6 text-gray-900">Cancel</a>
+                    class="text-sm font-semibold leading-6 text-gray-900">Batal</a>
                 <button type="submit"
-                    class="rounded-md bg-cyan-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-600 transition-colors">Submit
-                    Request</button>
+                    class="rounded-md bg-cyan-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-600 transition-colors">Kirim
+                    Pengajuan</button>
             </div>
         </form>
     </div>

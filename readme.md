@@ -25,46 +25,6 @@ High-performance Human Resource & School Management System for Yayasan Al-Azhar 
 *   **Authentication:** Custom JSON-based Auth (Encrypted Passwords).
 *   **Third-Party Services:** Google Firebase (FCM), Google Charts.
 
-## 📂 Project Structure
-```
-/dashboard-yac
-├── /api                 # JSON Endpoints for Mobile App
-│   ├── attendance.php   # Check-in/out Logic
-│   ├── submit_permit.php# Leave Requests
-│   └── ...
-├── /config              # Database & App Configuration
-├── /logic               # Backend Business Logic for Web Forms
-├── /views               # Admin Panel UI (Tailwind CSS)
-│   ├── /dashboard       # Main Stats View
-│   ├── /organization    # Org Chart Visualization
-│   ├── /students        # Student Management
-│   └── ...
-└── /uploads             # Stored Attachments (Permits, Profiles)
-```
-
-## ⚙️ Installation & Setup
-
-1.  **Clone the Repository**
-    Clone this folder into your web server's root (e.g., `C:\xampp\htdocs\dashboard-yac`).
-
-2.  **Database Setup**
-    *   Create a new MySQL database named `dashboard_yac` (or similar).
-    *   Import `schema.sql` to create the table structures.
-    *   Import `organization_migration.sql` to populate initial organization data (if available).
-
-3.  **Configuration**
-    *   Open `config/database.php` and update your DB credentials:
-        ```php
-        $this->host = "localhost";
-        $this->db_name = "dashboard_yac";
-        $this->username = "root";
-        $this->password = "";
-        ```
-
-4.  **Firebase Setup (For Notifications)**
-    *   Place your Firebase Service Account JSON file in `config/service-account.json`.
-    *   Ensure the PHP server has `write` permissions to the `config` directory if tokens are cached.
-
 ## 🧪 Testing the API
 You can test the API endpoints using Postman or Insomnia.
 
