@@ -344,56 +344,12 @@ include '../layouts/header.php';
 </div>
 
 <script>
-    // --- Generic Dropdown Logic (Reusable) ---
-    let activeDropdownId = null;
-
-    function toggleDropdown(id) {
-        const menu = document.getElementById(id + '-menu');
-        const arrow = document.getElementById(id + '-arrow');
-
-        // Close currently active if different
-        if (activeDropdownId && activeDropdownId !== id) {
-            const activeMenu = document.getElementById(activeDropdownId + '-menu');
-            const activeArrow = document.getElementById(activeDropdownId + '-arrow');
-
-            if (activeMenu) {
-                activeMenu.classList.add('hidden');
-            }
-            if (activeArrow) {
-                activeArrow.classList.remove('rotate-180');
-            }
-        }
-
-        if (menu.classList.contains('hidden')) {
-            // Open
-            menu.classList.remove('hidden');
-            if (arrow) arrow.classList.add('rotate-180');
-            activeDropdownId = id;
-        } else {
-            // Close
-            menu.classList.add('hidden');
-            if (arrow) arrow.classList.remove('rotate-180');
-            activeDropdownId = null;
-        }
-    }
-
     // --- Filter Option Selection ---
     function selectFilterOption(name, value, text) {
         document.getElementById('filter-' + name + '-input').value = value;
         // Submit immediately
         document.getElementById('filter-form').submit();
     }
-
-    // Close dropdowns when clicking outside
-    document.addEventListener('click', (e) => {
-        if (activeDropdownId) {
-            const container = document.getElementById(activeDropdownId + '-container');
-            if (container && !container.contains(e.target)) {
-                toggleDropdown(activeDropdownId);
-            }
-        }
-    });
-
 </script>
 
 <?php include '../layouts/footer.php'; ?>

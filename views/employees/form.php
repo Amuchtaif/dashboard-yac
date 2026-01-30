@@ -430,7 +430,8 @@ include '../layouts/header.php';
     const currentUnitId = "<?php echo $employee['unit_id']; ?>";
     const currentDivisionId = "<?php echo $employee['division_id']; ?>";
 
-    let activeDropdownId = null;
+    // activeDropdownId is global from footer.php
+
 
     // --- Dropdown Interactions ---
     function toggleFormDropdown(id) {
