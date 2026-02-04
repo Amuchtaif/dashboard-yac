@@ -1,0 +1,29 @@
+2026-02-04 16:45:06 - Starting Notification Process. Approver ID: 179
+2026-02-04 16:45:06 - Token found: dBZdcG_FT0...
+2026-02-04 16:45:06 - Google Access Token Acquired
+2026-02-04 16:45:07 - FCM Response: {
+  "error": {
+    "code": 400,
+    "message": "Invalid JSON payload received. Unknown name \"priority\" at 'message.android.notification': Cannot find field.",
+    "status": "INVALID_ARGUMENT",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.BadRequest",
+        "fieldViolations": [
+          {
+            "field": "message.android.notification",
+            "description": "Invalid JSON payload received. Unknown name \"priority\" at 'message.android.notification': Cannot find field."
+          }
+        ]
+      }
+    ]
+  }
+}
+
+2026-02-04 16:50:37 - Starting Notification Process. Approver ID: 179
+2026-02-04 16:50:37 - Token found: dBZdcG_FT0...
+2026-02-04 16:50:37 - Google Access Token Acquired
+2026-02-04 16:50:38 - FCM Response: {
+  "name": "projects/dashboard-yac/messages/0:1770198643922345%a6008fffa6008fff"
+}
+

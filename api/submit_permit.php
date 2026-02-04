@@ -104,12 +104,31 @@ try {
 
         // SKENARIO 1: STAFF / GURU (Level >= 4)
         if ($level >= 4) {
-            // Priority A: Cari KEPALA UNIT (Level 3)
-            $approver_id = findBoss($conn, 3, 'unit_id', $unit_id);
+            // LOGIKA BARU BERDASARKAN HASIL DIAGNOSA (SMART BOSS QUERY)
+            // Mencari atasan di Divisi yang sama.
+            // Prioritas 1: Unit ID sama (Atasan Langsung)
+            // Prioritas 2: Unit ID NULL (Atasan Tk. Divisi Global seperti Pak Muadin)
 
-            // Priority B (Fallback): Jika Ka. Unit tidak ada, cari KEPALA BIDANG (Level 2)
-            if (!$approver_id) {
-                $approver_id = findBoss($conn, 2, 'division_id', $division_id);
+            $sqlBoss = "SELECT e.id FROM employees e 
+                        JOIN positions p ON e.position_id = p.id 
+                        WHERE e.division_id = :div_id 
+                        AND p.level IN (1, 2, 3) 
+                        AND (e.unit_id = :unit_id OR e.unit_id IS NULL)
+                        AND e.status = 'active'
+                        ORDER BY 
+                            CASE WHEN e.unit_id = :unit_id THEN 1 ELSE 2 END, -- Prioritas Unit Sama
+                            p.level DESC 
+                        LIMIT 1";
+
+            $stmtBoss = $conn->prepare($sqlBoss);
+            $stmtBoss->execute([
+                ':div_id' => $division_id,
+                ':unit_id' => $unit_id
+            ]);
+            $bossData = $stmtBoss->fetch(PDO::FETCH_ASSOC);
+
+            if ($bossData) {
+                $approver_id = $bossData['id'];
             }
         }
 
@@ -147,71 +166,152 @@ try {
     $stmtInsert->bindParam(':app_id', $approver_id);
 
     if ($stmtInsert->execute()) {
-        // --- NOTIFICATION LOGIC (FCM V1) ---
+        // --- NOTIFICATION LOGIC (FCM V1 - Native PHP) ---
+        // --- NOTIFICATION LOGIC (FCM V1 - Native PHP) ---
+        // DEBUG LOGGER
+        function logFCM($msg)
+        {
+            file_put_contents('debug_fcm.log', date('Y-m-d H:i:s') . " - " . $msg . "\n", FILE_APPEND);
+        }
+
+        logFCM("Starting Notification Process. Approver ID: " . ($approver_id ?? 'NULL'));
+
         if ($approver_id) {
             try {
                 // 1. Get Approver Token
                 $stmtToken = $conn->prepare("SELECT fcm_token FROM employees WHERE id = :aid LIMIT 1");
                 $stmtToken->execute([':aid' => $approver_id]);
-                $tokenData = $stmtToken->fetch(PDO::FETCH_ASSOC);
+                $tokenRow = $stmtToken->fetch(PDO::FETCH_ASSOC);
 
-                if ($tokenData && !empty($tokenData['fcm_token'])) {
-                    $approverToken = $tokenData['fcm_token'];
+                if ($tokenRow && !empty($tokenRow['fcm_token'])) {
+                    $targetToken = $tokenRow['fcm_token'];
+                    logFCM("Token found: " . substr($targetToken, 0, 10) . "...");
 
-                    // 2. Load Service Account to get Project ID
-                    $keyFilePath = '../config/service-account.json';
-                    if (file_exists($keyFilePath)) {
-                        $keyFile = json_decode(file_get_contents($keyFilePath), true);
-                        $projectId = $keyFile['project_id'];
+                    // 2. Load Service Account
+                    $serviceAccountPath = 'service-account.json';
+                    if (file_exists($serviceAccountPath)) {
+                        $credentials = json_decode(file_get_contents($serviceAccountPath), true);
+                        $clientEmail = $credentials['client_email'];
+                        $privateKey = $credentials['private_key'];
+                        $projectId = $credentials['project_id'];
 
-                        // 3. Get Access Token
-                        $tokenGen = new GoogleAccessToken($keyFilePath);
-                        $accessToken = $tokenGen->getToken();
+                        // 3. Generate Google Access Token (JWT Manual)
+                        if (!function_exists('base64UrlEncode')) {
+                            function base64UrlEncode($data)
+                            {
+                                return str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($data));
+                            }
+                        }
 
-                        if ($accessToken) {
-                            // 4. Construct Payload (FCM V1)
-                            $title = "Izin Masuk Baru";
-                            $body = "Ada pengajuan izin baru dari ID: $user_id. Tipe: $permit_type";
+                        $header = json_encode(['alg' => 'RS256', 'typ' => 'JWT']);
+                        $now = time();
+                        $payload = json_encode([
+                            'iss' => $clientEmail,
+                            'sub' => $clientEmail,
+                            'aud' => 'https://oauth2.googleapis.com/token',
+                            'iat' => $now,
+                            'exp' => $now + 3600,
+                            'scope' => 'https://www.googleapis.com/auth/firebase.messaging'
+                        ]);
 
-                            $payload = [
+                        $base64Header = base64UrlEncode($header);
+                        $base64Payload = base64UrlEncode($payload);
+                        $signatureInput = $base64Header . "." . $base64Payload;
+
+                        $signature = '';
+                        if (!openssl_sign($signatureInput, $signature, $privateKey, 'SHA256')) {
+                            logFCM("OpenSSL Sign Failed");
+                            throw new Exception("OpenSSL Sign Failed");
+                        }
+                        $jwt = $signatureInput . "." . base64UrlEncode($signature);
+
+                        // Tukar JWT dengan Access Token
+                        $ch = curl_init();
+                        curl_setopt($ch, CURLOPT_URL, 'https://oauth2.googleapis.com/token');
+                        curl_setopt($ch, CURLOPT_POST, true);
+                        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
+                            'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+                            'assertion' => $jwt
+                        ]));
+                        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                        $response = curl_exec($ch);
+                        if (curl_errno($ch)) {
+                            logFCM("Curl JWT Error: " . curl_error($ch));
+                        }
+                        curl_close($ch);
+
+                        $tokenData = json_decode($response, true);
+                        if (isset($tokenData['access_token'])) {
+                            $accessToken = $tokenData['access_token'];
+                            logFCM("Google Access Token Acquired");
+
+                            // 4. Kirim Notifikasi (FCM V1)
+                            $fcmUrl = "https://fcm.googleapis.com/v1/projects/$projectId/messages:send";
+                            $newPermitId = $conn->lastInsertId();
+
+                            // Get Employee Name for clearer notification
+                            $stmtName = $conn->prepare("SELECT full_name FROM employees WHERE id = :uid LIMIT 1");
+                            $stmtName->execute([':uid' => $user_id]);
+                            $empName = $stmtName->fetchColumn();
+
+                            $senderName = $empName ? $empName : "ID: $user_id";
+
+                            $payloadData = [
                                 'message' => [
-                                    'token' => $approverToken,
+                                    'token' => $targetToken,
                                     'notification' => [
-                                        'title' => $title,
-                                        'body' => $body
+                                        'title' => 'Izin Baru: ' . $senderName,
+                                        'body' => "Menunggu persetujuan Anda."
+                                    ],
+                                    // CRITICAL FOR FLUTTER APP:
+                                    'android' => [
+                                        'priority' => 'HIGH', // FCM V1 uses uppercase 'HIGH'
+                                        'notification' => [
+                                            'channel_id' => 'high_importance_channel', // MUST MATCH FLUTTER CONFIG
+                                            'sound' => 'default',
+                                            'default_sound' => true
+                                            // 'priority' removed from here as it caused invalid argument error
+                                        ]
                                     ],
                                     'data' => [
+                                        'screen' => 'approval',
                                         'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
-                                        'screen' => 'approval_list',
-                                        'permit_id' => (string) $conn->lastInsertId()
+                                        'permit_id' => (string) $newPermitId
                                     ]
                                 ]
                             ];
 
-                            // 5. Send Request
                             $ch = curl_init();
-                            curl_setopt($ch, CURLOPT_URL, "https://fcm.googleapis.com/v1/projects/$projectId/messages:send");
+                            curl_setopt($ch, CURLOPT_URL, $fcmUrl);
                             curl_setopt($ch, CURLOPT_POST, true);
                             curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                                'Authorization: Bearer ' . $accessToken,
-                                'Content-Type: application/json'
+                                "Authorization: Bearer $accessToken",
+                                "Content-Type: application/json"
                             ]);
-                            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+                            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payloadData));
                             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-                            $response = curl_exec($ch);
-                            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                            $fcmResult = curl_exec($ch);
+                            if (curl_errno($ch)) {
+                                logFCM("Curl FCM Error: " . curl_error($ch));
+                            } else {
+                                logFCM("FCM Response: " . $fcmResult);
+                            }
                             curl_close($ch);
-
-                            // Optional: Log response if needed for debugging
-                            // file_put_contents('fcm_log.txt', $response . PHP_EOL, FILE_APPEND);
+                        } else {
+                            logFCM("Failed to get Access Token. Response: " . $response);
                         }
+                    } else {
+                        logFCM("Service Account file not found: $serviceAccountPath");
                     }
+                } else {
+                    logFCM("Approver found but NO TOKEN or Token Empty.");
                 }
             } catch (Exception $e) {
-                // Silent fail for notification to not block permit submission
-                // file_put_contents('fcm_error.txt', $e->getMessage() . PHP_EOL, FILE_APPEND);
+                logFCM("Exception: " . $e->getMessage());
+                // Silent fail: Notification error should not stop the process
             }
+        } else {
+            logFCM("No Approver ID determined.");
         }
         // --- END NOTIFICATION ---
 

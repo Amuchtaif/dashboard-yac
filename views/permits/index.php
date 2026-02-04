@@ -94,7 +94,7 @@ $permits = $stmt->fetchAll(PDO::FETCH_ASSOC);
 include '../layouts/header.php';
 ?>
 
-<div class="bg-gray-50 min-h-screen pb-10">
+<div class="min-h-screen pb-10">
 
     <!-- Top Header Section -->
     <div class="flex justify-between items-start mb-8 pt-6">
@@ -385,19 +385,63 @@ include '../layouts/header.php';
 
         <!-- Pagination -->
         <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
-            <p class="text-sm text-slate-500">
-                Halaman <?php echo $page; ?> dari <?php echo max($total_pages, 1); ?>
-            </p>
-            <div class="flex gap-2">
-                <?php if ($page > 1): ?>
-                    <a href="?page=<?php echo $page - 1; ?>&tab=<?php echo $tab; ?>&type=<?php echo $permit_type; ?>"
-                        class="px-3 py-1.5 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50">Sebelumnya</a>
-                <?php endif; ?>
+            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-sm text-gray-700">
+                        Menampilkan
+                        <span class="font-medium"><?php echo ($offset + 1); ?></span>
+                        sampai
+                        <span class="font-medium"><?php echo min($offset + $limit, $total_rows); ?></span>
+                        dari
+                        <span class="font-medium"><?php echo $total_rows; ?></span>
+                        hasil
+                    </p>
+                </div>
+                <div>
+                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                        <!-- Previous -->
+                        <?php if ($page > 1): ?>
+                            <a href="?page=<?php echo $page - 1; ?>&tab=<?php echo $tab; ?>&type=<?php echo $permit_type; ?>"
+                                class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                <span class="sr-only">Previous</span>
+                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                                    fill="currentColor" aria-hidden="true">
+                                    <path fill-rule="evenodd"
+                                        d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                            </a>
+                        <?php endif; ?>
 
-                <?php if ($page < $total_pages): ?>
-                    <a href="?page=<?php echo $page + 1; ?>&tab=<?php echo $tab; ?>&type=<?php echo $permit_type; ?>"
-                        class="px-3 py-1.5 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50">Selanjutnya</a>
-                <?php endif; ?>
+                        <!-- Numbers -->
+                        <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                            <!-- Show valid pages: first, last, current, and surrounding -->
+                            <?php if ($i == 1 || $i == $total_pages || ($i >= $page - 2 && $i <= $page + 2)): ?>
+                                <a href="?page=<?php echo $i; ?>&tab=<?php echo $tab; ?>&type=<?php echo $permit_type; ?>"
+                                    class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium <?php echo $i === $page ? 'bg-cyan-50 text-cyan-600 z-10' : 'bg-white text-gray-500 hover:bg-gray-50'; ?>">
+                                    <?php echo $i; ?>
+                                </a>
+                            <?php elseif ($i == $page - 3 || $i == $page + 3): ?>
+                                <span
+                                    class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">...</span>
+                            <?php endif; ?>
+                        <?php endfor; ?>
+
+                        <!-- Next -->
+                        <?php if ($page < $total_pages): ?>
+                            <a href="?page=<?php echo $page + 1; ?>&tab=<?php echo $tab; ?>&type=<?php echo $permit_type; ?>"
+                                class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                <span class="sr-only">Next</span>
+                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                                    fill="currentColor" aria-hidden="true">
+                                    <path fill-rule="evenodd"
+                                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                            </a>
+                        <?php endif; ?>
+                    </nav>
+                </div>
             </div>
         </div>
 
