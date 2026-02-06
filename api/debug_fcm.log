@@ -27,3 +27,38 @@
   "name": "projects/dashboard-yac/messages/0:1770198643922345%a6008fffa6008fff"
 }
 
+2026-02-05 09:44:07 - Starting Notification Process. Approver ID: 179
+2026-02-05 09:44:07 - Token found: dBZdcG_FT0...
+2026-02-05 09:44:07 - Google Access Token Acquired
+2026-02-05 09:44:07 - FCM Response: {
+  "name": "projects/dashboard-yac/messages/0:1770259454308469%a6008fffa6008fff"
+}
+
+2026-02-05 11:54:38 - Starting Notification Process. Approver ID: 10
+2026-02-05 11:54:38 - Token found: dBZdcG_FT0...
+2026-02-05 11:54:38 - Google Access Token Acquired
+2026-02-05 11:54:39 - FCM Response: {
+  "name": "projects/dashboard-yac/messages/0:1770267285970009%a6008fffa6008fff"
+}
+
+2026-02-05 12:00:21 - Starting Notification Process. Approver ID: 10
+2026-02-05 12:00:21 - Token found: dBZdcG_FT0...
+2026-02-05 12:00:21 - Google Access Token Acquired
+2026-02-05 12:00:21 - FCM Response: {
+  "name": "projects/dashboard-yac/messages/0:1770267628641624%a6008fffa6008fff"
+}
+
+2026-02-05 12:04:44 - Starting Notification Process. Approver ID: 57
+2026-02-05 12:04:44 - Token found: fAo4Ozv0SL...
+2026-02-05 12:04:44 - Google Access Token Acquired
+2026-02-05 12:04:44 - FCM Response: {
+  "name": "projects/dashboard-yac/messages/0:1770267891652477%a6008fffa6008fff"
+}
+
+2026-02-05 13:05:40 - Starting Notification Process. Approver ID: 199
+2026-02-05 13:05:40 - Token found: fzRjWowsSH...
+2026-02-05 13:05:41 - Google Access Token Acquired
+2026-02-05 13:05:41 - FCM Response: {
+  "name": "projects/dashboard-yac/messages/0:1770271548195492%a6008fffa6008fff"
+}
+
