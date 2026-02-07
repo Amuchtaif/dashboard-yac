@@ -19,9 +19,10 @@ if (!empty($division_id)) {
 }
 
 // 1. Fetch Meetings
-$sql = "SELECT m.*, d.name as division_name 
+$sql = "SELECT m.*, d.name as division_name, e.full_name as creator_name 
         FROM meetings m 
         LEFT JOIN divisions d ON m.division_id = d.id 
+        LEFT JOIN employees e ON m.created_by = e.id
         $whereClause 
         ORDER BY m.meeting_date DESC, m.start_time ASC";
 
@@ -94,6 +95,9 @@ include '../layouts/header.php';
                             Title / Division</th>
                         <th scope="col"
                             class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                            Creator</th>
+                        <th scope="col"
+                            class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
                             Date & Time</th>
                         <th scope="col"
                             class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
@@ -126,6 +130,10 @@ include '../layouts/header.php';
                                         <?= htmlspecialchars($m['division_name']) ?>
                                     </span>
                                 </div>
+
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
+                                <?= htmlspecialchars($m['creator_name'] ?? 'Unknown') ?>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="text-sm text-slate-700 font-medium">
@@ -155,19 +163,34 @@ include '../layouts/header.php';
                                     <?= htmlspecialchars($m['location']) ?>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium space-x-2">
-                                <a href="details.php?id=<?= $m['id'] ?>"
-                                    class="inline-flex items-center text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-md transition-colors">
-                                    View
-                                </a>
-                                <a href="edit.php?id=<?= $m['id'] ?>"
-                                    class="inline-flex items-center text-amber-600 hover:text-amber-900 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-md transition-colors">
-                                    Edit
-                                </a>
-                                <button onclick="confirmDelete(<?= $m['id'] ?>)"
-                                    class="inline-flex items-center text-rose-600 hover:text-rose-900 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-md transition-colors">
-                                    Delete
-                                </button>
+                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                                <div class="flex items-center justify-center gap-2">
+                                    <!-- View Button -->
+                                    <a href="details.php?id=<?= $m['id'] ?>"
+                                        class="p-2 text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
+                                        title="Lihat Detail">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                    </a>
+                                    <!-- Edit Button -->
+                                    <a href="edit.php?id=<?= $m['id'] ?>"
+                                        class="p-2 text-amber-600 hover:text-amber-900 bg-amber-50 hover:bg-amber-100 rounded-lg transition-colors"
+                                        title="Edit Rapat">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        </svg>
+                                    </a>
+                                    <!-- Delete Button -->
+                                    <button onclick="confirmDelete(<?= $m['id'] ?>, '<?= htmlspecialchars(addslashes($m['title'])) ?>')"
+                                        class="p-2 text-rose-600 hover:text-rose-900 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors"
+                                        title="Hapus Rapat">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -178,43 +201,117 @@ include '../layouts/header.php';
 </div>
 
 <script>
-    function confirmDelete(id) {
-        Swal.fire({
-            title: 'Are you sure?',
-            text: "You won't be able to revert this!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#4f46e5', // Indigo 600
-            cancelButtonColor: '#ef4444', // Red 500
-            confirmButtonText: 'Yes, delete it!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Perform delete via fetch
-                fetch('../../logic/meetings/delete.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: id })
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            Swal.fire(
-                                'Deleted!',
-                                'Meeting has been deleted.',
-                                'success'
-                            ).then(() => {
-                                location.reload();
-                            });
-                        } else {
-                            Swal.fire('Error', 'Failed to delete meeting.', 'error');
-                        }
-                    })
-                    .catch(err => {
-                        Swal.fire('Error', 'Something went wrong.', 'error');
-                    });
+    function confirmDelete(id, title) {
+        // Set the meeting info in the modal
+        document.getElementById('meetingDeleteName').textContent = '"' + title + '"';
+        document.getElementById('meetingConfirmDeleteBtn').setAttribute('data-id', id);
+        
+        // Open modal
+        const modal = document.getElementById('meetingDeleteModal');
+        const backdrop = document.getElementById('meetingDeleteBackdrop');
+        const panel = document.getElementById('meetingDeletePanel');
+
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            backdrop.classList.remove('opacity-0');
+            panel.classList.remove('opacity-0', 'scale-95');
+        }, 10);
+    }
+
+    function closeMeetingDeleteModal() {
+        const modal = document.getElementById('meetingDeleteModal');
+        const backdrop = document.getElementById('meetingDeleteBackdrop');
+        const panel = document.getElementById('meetingDeletePanel');
+
+        backdrop.classList.add('opacity-0');
+        panel.classList.add('opacity-0', 'scale-95');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
+    }
+
+    async function executeMeetingDelete() {
+        const btn = document.getElementById('meetingConfirmDeleteBtn');
+        const id = btn.getAttribute('data-id');
+        const spinner = document.getElementById('meetingDeleteSpinner');
+        const btnText = document.getElementById('meetingDeleteBtnText');
+        
+        // Show loading state
+        btn.disabled = true;
+        spinner.classList.remove('hidden');
+        btnText.textContent = 'Menghapus...';
+
+        try {
+            const response = await fetch('../../logic/meetings/delete.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: parseInt(id) })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                btnText.textContent = 'Berhasil!';
+                setTimeout(() => {
+                    window.location.reload();
+                }, 500);
+            } else {
+                alert('Gagal menghapus: ' + (data.message || 'Terjadi kesalahan'));
+                btn.disabled = false;
+                spinner.classList.add('hidden');
+                btnText.textContent = 'Ya, Hapus';
             }
-        });
+        } catch (err) {
+            console.error('Delete error:', err);
+            alert('Tidak dapat terhubung ke server');
+            btn.disabled = false;
+            spinner.classList.add('hidden');
+            btnText.textContent = 'Ya, Hapus';
+        }
     }
 </script>
+
+<!-- Custom Delete Modal for Meetings -->
+<div id="meetingDeleteModal" class="fixed inset-0 z-[60] hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <!-- Backdrop -->
+    <div id="meetingDeleteBackdrop" onclick="closeMeetingDeleteModal()" class="fixed inset-0 bg-slate-900/50 transition-opacity duration-300 opacity-0 backdrop-blur-sm"></div>
+
+    <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <!-- Modal Panel -->
+        <div id="meetingDeletePanel" class="relative transform overflow-hidden rounded-xl bg-white text-left shadow-2xl transition-all duration-300 opacity-0 scale-95 sm:my-8 sm:w-full sm:max-w-lg">
+            <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                <div class="sm:flex sm:items-start">
+                    <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                        <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                        </svg>
+                    </div>
+                    <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+                        <h3 class="text-lg font-bold leading-6 text-slate-900">Hapus Rapat?</h3>
+                        <div class="mt-2">
+                            <p class="text-sm text-slate-500">Anda yakin ingin menghapus rapat:</p>
+                            <p class="text-sm font-semibold text-slate-800 mt-1" id="meetingDeleteName"></p>
+                            <p class="text-xs text-slate-400 mt-2">Tindakan ini tidak dapat dibatalkan.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-slate-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 gap-2">
+                <button type="button" id="meetingConfirmDeleteBtn" onclick="executeMeetingDelete()"
+                    class="inline-flex w-full justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:w-auto transition-all transform active:scale-95">
+                    <svg class="w-4 h-4 mr-2 hidden animate-spin" id="meetingDeleteSpinner" viewBox="0 0 24 24" fill="none">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span id="meetingDeleteBtnText">Ya, Hapus</span>
+                </button>
+                <button type="button" onclick="closeMeetingDeleteModal()"
+                    class="mt-3 inline-flex w-full justify-center rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 sm:mt-0 sm:w-auto transition-all">
+                    Batal
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <?php include '../layouts/footer.php'; ?>

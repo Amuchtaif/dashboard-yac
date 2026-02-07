@@ -21,9 +21,11 @@ try {
     // If user_id is provided, show meetings where user is participant OR creator
     if ($user_id) {
         $sql = "SELECT m.*, d.name as division_name, 
+                e.full_name as creator_name,
                 (SELECT status FROM meeting_participants mp WHERE mp.meeting_id = m.id AND mp.employee_id = ? LIMIT 1) as my_status
                 FROM meetings m 
                 LEFT JOIN divisions d ON m.division_id = d.id
+                LEFT JOIN employees e ON m.created_by = e.id
                 WHERE (m.created_by = ? 
                    OR m.id IN (SELECT meeting_id FROM meeting_participants WHERE employee_id = ?))";
         $params[] = $user_id;
@@ -32,8 +34,11 @@ try {
         $types .= "iii";
     } else {
         // If no user_id, show all (public/admin view)
-        $sql = "SELECT m.*, d.name as division_name FROM meetings m 
-                LEFT JOIN divisions d ON m.division_id = d.id WHERE 1=1";
+        $sql = "SELECT m.*, d.name as division_name, e.full_name as creator_name 
+                FROM meetings m 
+                LEFT JOIN divisions d ON m.division_id = d.id
+                LEFT JOIN employees e ON m.created_by = e.id
+                WHERE 1=1";
     }
 
     // Date Filter
@@ -68,6 +73,21 @@ try {
         // Convert time to easier format if needed, or keep raw
         $row['start_time_formatted'] = substr($row['start_time'], 0, 5);
         $row['end_time_formatted'] = substr($row['end_time'], 0, 5);
+        
+        // Add 'date' alias for Flutter compatibility (Flutter expects 'date', DB has 'meeting_date')
+        $row['date'] = $row['meeting_date'];
+        
+        // Calculate status based on date (if not already set in DB)
+        if (!isset($row['status']) || empty($row['status'])) {
+            $meetingDate = strtotime($row['meeting_date']);
+            $today = strtotime(date('Y-m-d'));
+            if ($meetingDate >= $today) {
+                $row['status'] = 'upcoming';
+            } else {
+                $row['status'] = 'finished';
+            }
+        }
+        
         $meetings[] = $row;
     }
 

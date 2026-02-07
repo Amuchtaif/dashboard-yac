@@ -62,3 +62,24 @@
   "name": "projects/dashboard-yac/messages/0:1770271548195492%a6008fffa6008fff"
 }
 
+2026-02-07 09:46:10 - Starting Notification Process. Approver ID: 179
+2026-02-07 09:46:10 - Token found: fzRjWowsSH...
+2026-02-07 09:46:11 - Google Access Token Acquired
+2026-02-07 09:46:11 - FCM Response: {
+  "name": "projects/dashboard-yac/messages/0:1770432372687666%a6008fffa6008fff"
+}
+
+2026-02-07 09:47:21 - Starting Notification Process. Approver ID: 179
+2026-02-07 09:47:21 - Token found: fzRjWowsSH...
+2026-02-07 09:47:21 - Google Access Token Acquired
+2026-02-07 09:47:21 - FCM Response: {
+  "name": "projects/dashboard-yac/messages/0:1770432443031203%a6008fffa6008fff"
+}
+
+2026-02-07 12:46:54 - Starting Notification Process. Approver ID: 179
+2026-02-07 12:46:54 - Token found: fzRjWowsSH...
+2026-02-07 12:46:55 - Google Access Token Acquired
+2026-02-07 12:46:55 - FCM Response: {
+  "name": "projects/dashboard-yac/messages/0:1770443217086148%a6008fffa6008fff"
+}
+
