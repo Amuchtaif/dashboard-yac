@@ -39,6 +39,12 @@ if ($status) {
 
 $where_sql = implode(" AND ", $where_clauses);
 
+// Fetch Active Academic Year
+$active_year_query = "SELECT id FROM academic_years WHERE is_active = 1 LIMIT 1";
+$active_year_stmt = $conn->query($active_year_query);
+$active_year = $active_year_stmt->fetch(PDO::FETCH_ASSOC);
+$active_year_id = $active_year ? $active_year['id'] : 1; // Default to 1 if none found
+
 // Fetch All Matching Students (No Pagination)
 $query = "
     SELECT 
@@ -46,21 +52,32 @@ $query = "
         s.nomor_induk, 
         s.status, 
         s.tahun_ajaran,
-        gl.name AS class_name,
-        eu.name AS unit_name
+        eu.name AS unit_name,
+        gl.name AS class_name
     FROM students s
     LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = :active_year_id
     LEFT JOIN grade_levels gl ON sch.class_id = gl.id
     LEFT JOIN education_units eu ON gl.education_unit_id = eu.id
-    WHERE s.status != 'Deleted' AND ($where_sql)
-    ORDER BY eu.name ASC, s.nama_siswa ASC
+    WHERE ($where_sql)
+    ORDER BY 
+        CASE 
+            WHEN eu.name LIKE '%PG%' THEN 1
+            WHEN eu.name LIKE '%TK%' THEN 2
+            WHEN eu.name LIKE '%SD%' THEN 3
+            WHEN eu.name LIKE '%MTs%' THEN 4
+            WHEN eu.name LIKE '%MA%' THEN 5
+            WHEN eu.name LIKE '%Mahad%' THEN 6
+            ELSE 7 
+        END ASC, 
+        gl.name ASC, 
+        s.nama_siswa ASC
 ";
 
 $stmt = $conn->prepare($query);
+$stmt->bindValue(':active_year_id', $active_year_id, PDO::PARAM_INT); // Bind Active Year
 foreach ($params as $key => $val) {
     $stmt->bindValue($key, $val);
 }
-$stmt->bindValue(':active_year_id', 1, PDO::PARAM_INT); // Active Year ID = 1
 $stmt->execute();
 $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -77,7 +94,7 @@ $no = 1;
 foreach ($students as $row) {
     fputcsv($output, [
         $no++,
-        $row['nama_siswa'],
+        ucwords(strtolower($row['nama_siswa'])),
         "'" . $row['nomor_induk'], // Prevent Excel auto-format
         $row['unit_name'] ?? '-',
         $row['class_name'] ?? '-',

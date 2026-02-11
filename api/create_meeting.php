@@ -57,20 +57,15 @@ if (!in_array($type, ['online', 'offline'])) {
 }
 
 // 2b. Validasi Hak Akses (Can Create Meeting)
-$sqlPerm = "SELECT p.can_create_meeting FROM employees e 
-            JOIN positions p ON e.position_id = p.id 
-            WHERE e.id = ?";
-$stmtPerm = $mysqli->prepare($sqlPerm);
-$stmtPerm->bind_param("i", $created_by);
-$stmtPerm->execute();
-$resPerm = $stmtPerm->get_result();
-$permData = $resPerm->fetch_assoc();
+include_once '../config/permission.php';
 
-if (!$permData || $permData['can_create_meeting'] != 1) {
+if (!hasPermission($created_by, 'create_meeting')) {
     http_response_code(403);
     echo json_encode(["success" => false, "message" => "Forbidden: Anda tidak memiliki hak akses untuk membuat rapat."]);
     exit();
 }
+
+
 
 // 3. Generate Token Unik
 $qr_token = uniqid('MEET-');

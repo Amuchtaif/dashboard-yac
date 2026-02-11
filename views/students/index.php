@@ -14,6 +14,12 @@ $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 10;
 if (!in_array($limit, [10, 50, 100]))
     $limit = 10;
 
+// --- Fetch Active Academic Year ---
+$active_year_query = "SELECT id, name FROM academic_years WHERE is_active = 1 LIMIT 1";
+$active_year_stmt = $conn->query($active_year_query);
+$active_year = $active_year_stmt->fetch(PDO::FETCH_ASSOC);
+$active_year_id = $active_year ? $active_year['id'] : null;
+
 $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int) $_GET['page'] : 1;
 if ($page < 1)
     $page = 1;
@@ -75,12 +81,16 @@ $count_query = "
     LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = :active_year_id
     LEFT JOIN grade_levels gl ON sch.class_id = gl.id
     LEFT JOIN education_units eu ON gl.education_unit_id = eu.id
-    WHERE s.status = 'Aktiv' AND ($where_sql)
+    WHERE ($where_sql)
 ";
 $count_stmt = $conn->prepare($count_query);
 // Bind active_year_id for join condition
-$params[':active_year_id'] = 1;
-$count_stmt->execute($params);
+$params[':active_year_id'] = $active_year_id; 
+// Need to re-bind manually because execute($params) adds named params, but we modified $params
+foreach ($params as $key => $val) {
+    $count_stmt->bindValue($key, $val);
+}
+$count_stmt->execute();
 $total_students = $count_stmt->fetchColumn();
 $total_pages = ceil($total_students / $limit);
 
@@ -100,20 +110,30 @@ $query = "
     LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = :active_year_id
     LEFT JOIN grade_levels gl ON sch.class_id = gl.id
     LEFT JOIN education_units eu ON gl.education_unit_id = eu.id
-    WHERE s.status = 'Aktiv' AND ($where_sql)
-    ORDER BY eu.name ASC, s.nama_siswa ASC
+    WHERE ($where_sql)
+    ORDER BY 
+        CASE 
+            WHEN eu.name LIKE '%PG%' THEN 1
+            WHEN eu.name LIKE '%TK%' THEN 2
+            WHEN eu.name LIKE '%SD%' THEN 3
+            WHEN eu.name LIKE '%MTs%' THEN 4
+            WHEN eu.name LIKE '%MA%' THEN 5
+            WHEN eu.name LIKE '%Mahad%' THEN 6
+            ELSE 7 
+        END ASC, 
+        gl.name ASC, 
+        s.nama_siswa ASC
     LIMIT :limit OFFSET :offset
 ";
-
-// Merge pagination params
-$query_params = array_merge($params, [':limit' => $limit, ':offset' => $offset]);
 
 $stmt = $conn->prepare($query);
 // Bind params manually
 foreach ($params as $key => $val) {
-    $stmt->bindValue($key, $val);
+    if($key != ':limit' && $key != ':offset') // limit/offset are separate
+        $stmt->bindValue($key, $val);
 }
-$stmt->bindValue(':active_year_id', 1, PDO::PARAM_INT); // Assuming Active Year ID = 1
+// Add limit/offset back
+$stmt->bindValue(':active_year_id', $active_year_id, PDO::PARAM_INT);
 $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
 $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
 $stmt->execute();
@@ -416,7 +436,7 @@ include '../layouts/header.php';
                                     </div>
                                     <div class="ml-4">
                                         <div class="font-bold text-slate-900">
-                                            <?php echo htmlspecialchars($student['nama_siswa']); ?>
+                                            <?php echo htmlspecialchars(ucwords(strtolower($student['nama_siswa']))); ?>
                                         </div>
                                         <div class="text-xs text-slate-500 mt-0.5">
                                             NIS: <?php echo htmlspecialchars($student['nomor_induk'] ?? '-'); ?>
@@ -431,7 +451,13 @@ include '../layouts/header.php';
                                 </span>
                             </td>
                             <td class="whitespace-nowrap px-3 py-4 text-sm text-slate-900">
-                                <?php echo htmlspecialchars($student['tahun_ajaran'] ?? ''); ?>
+                                <?php 
+                                if (!empty($student['class_id']) && !empty($active_year['name'])) {
+                                    echo htmlspecialchars($active_year['name']);
+                                } else {
+                                    echo htmlspecialchars($student['tahun_ajaran'] ?? '-'); 
+                                }
+                                ?>
                             </td>
                             <td class="whitespace-nowrap px-3 py-4 text-sm text-slate-500">
                                 <div class="font-medium text-slate-900">
@@ -448,16 +474,8 @@ include '../layouts/header.php';
                             </td>
                             <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                                 <div class="flex justify-end gap-3 text-gray-400">
-                                    <a href="#" class="hover:text-cyan-600 transition-colors">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                            stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        </svg>
-                                    </a>
-                                    <a href="#" class="hover:text-cyan-600 transition-colors">
+
+                                    <a href="<?php url('views/students/edit.php?id=' . $student['id']); ?>" class="hover:text-cyan-600 transition-colors" title="Edit">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                             stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
                                             <path stroke-linecap="round" stroke-linejoin="round"

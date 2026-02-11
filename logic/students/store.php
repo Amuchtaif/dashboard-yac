@@ -7,16 +7,32 @@ check_login();
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // 1. Sanitize & Retrieve Input
     $nama_siswa = trim($_POST['nama_siswa'] ?? '');
+    $nama_siswa = ucwords(strtolower($nama_siswa));
     $nomor_induk = trim($_POST['nomor_induk'] ?? '');
-    $tahun_ajaran = trim($_POST['tahun_ajaran'] ?? '');
-    $class_id = trim($_POST['class_id'] ?? ''); // New Class ID
+    $academic_year_id = isset($_POST['academic_year_id']) ? intval($_POST['academic_year_id']) : 0;
+    
+    // Fetch Year Name from DB for legacy 'tahun_ajaran' column
+    $db = new Database();
+    $conn = $db->getConnection();
+    
+    $year_stmt = $conn->prepare("SELECT name FROM academic_years WHERE id = :id");
+    $year_stmt->execute([':id' => $academic_year_id]);
+    $year_data = $year_stmt->fetch(PDO::FETCH_ASSOC);
+    $tahun_ajaran = $year_data ? $year_data['name'] : '';
+    
+    // Validation
+    if (empty($academic_year_id)) {
+        header("Location: ../../views/students/create.php?error=Tahun Ajaran wajib dipilih");
+        exit();
+    }
+
+    $class_id = trim($_POST['class_id'] ?? ''); 
     $tempat_lahir = trim($_POST['tempat_lahir'] ?? '');
     $tanggal_lahir = trim($_POST['tanggal_lahir'] ?? '');
     $alamat = trim($_POST['alamat'] ?? '');
     $status = trim($_POST['status'] ?? 'Aktif');
     $spp = trim($_POST['spp'] ?? 0);
     $daftar_ulang = trim($_POST['daftar_ulang'] ?? 0);
-    $academic_year_id = 1; // HARDCODED for now
 
     // 2. Validation
     if (empty($nama_siswa) || empty($nomor_induk)) {

@@ -4,10 +4,45 @@ require_once '../../config/database.php';
 
 check_login();
 
-$page_title = "Tambah Siswa Baru";
+$id = isset($_GET['id']) ? $_GET['id'] : null;
+if (!$id) {
+    header("Location: index.php?error=ID Siswa tidak valid");
+    exit();
+}
 
 $db = new Database();
 $conn = $db->getConnection();
+
+// Fetch Student Data
+$query = "SELECT * FROM students WHERE id = :id";
+$stmt = $conn->prepare($query);
+$stmt->execute([':id' => $id]);
+$student = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if (!$student) {
+    header("Location: index.php?error=Siswa tidak ditemukan");
+    exit();
+}
+
+// Fetch Active Class History for this student (to pre-select class)
+// We need to know which academic year is active or just show the latest one?
+// Usually edit shows the *current* state.
+// Fetch Active Academic Year first
+$active_year_query = "SELECT id FROM academic_years WHERE is_active = 1 LIMIT 1";
+$active_year_stmt = $conn->query($active_year_query);
+$active_year = $active_year_stmt->fetch(PDO::FETCH_ASSOC);
+$active_year_id = $active_year ? $active_year['id'] : null;
+
+$current_class_id = '';
+if ($active_year_id) {
+    $hist_query = "SELECT class_id FROM student_class_history WHERE student_id = :sid AND academic_year_id = :ayid LIMIT 1";
+    $hist_stmt = $conn->prepare($hist_query);
+    $hist_stmt->execute([':sid' => $id, ':ayid' => $active_year_id]);
+    $history = $hist_stmt->fetch(PDO::FETCH_ASSOC);
+    if ($history) {
+        $current_class_id = $history['class_id'];
+    }
+}
 
 // Fetch Grade Levels for Dropdown
 $query_grades = "SELECT * FROM grade_levels ORDER BY name ASC";
@@ -15,6 +50,7 @@ $stmt_grades = $conn->prepare($query_grades);
 $stmt_grades->execute();
 $grade_levels = $stmt_grades->fetchAll(PDO::FETCH_ASSOC);
 
+$page_title = "Edit Data Siswa";
 include '../layouts/header.php';
 ?>
 
@@ -46,21 +82,23 @@ include '../layouts/header.php';
                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="m1 9 4-4-4-4" />
                     </svg>
-                    <span class="ml-1 font-medium text-slate-800">Tambah Baru</span>
+                    <span class="ml-1 font-medium text-slate-800">Edit Siswa</span>
                 </div>
             </li>
         </ol>
     </nav>
 
     <div class="mb-8">
-        <h1 class="text-2xl font-bold text-slate-900">Tambah Siswa Baru</h1>
-        <p class="mt-2 text-sm text-slate-600">Daftarkan siswa baru ke dalam sistem.</p>
+        <h1 class="text-2xl font-bold text-slate-900">Edit Data Siswa</h1>
+        <p class="mt-2 text-sm text-slate-600">Perbarui informasi siswa.</p>
     </div>
 
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <div class="h-1 bg-cyan-500 w-full"></div>
 
-        <form action="<?php url('logic/students/store.php'); ?>" method="POST" enctype="multipart/form-data">
+        <form action="<?php url('logic/students/update.php'); ?>" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="id" value="<?php echo htmlspecialchars($student['id']); ?>">
+            <input type="hidden" name="active_year_id" value="<?php echo $active_year_id; ?>">
 
             <!-- Section 1: Identitas Siswa -->
             <div class="p-8 border-b border-slate-100">
@@ -80,28 +118,29 @@ include '../layouts/header.php';
                         <label for="nama_siswa" class="block text-sm font-semibold text-slate-700 mb-1">Nama Lengkap
                             Siswa</label>
                         <input type="text" name="nama_siswa" id="nama_siswa" required
-                            class="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all placeholder:text-slate-400"
-                            placeholder="Contoh: Andi Wijaya">
+                            value="<?php echo htmlspecialchars($student['nama_siswa']); ?>"
+                            class="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all placeholder:text-slate-400">
                     </div>
                     <div>
                         <label for="nomor_induk" class="block text-sm font-semibold text-slate-700 mb-1">Nomor Induk
                             (NISN)</label>
                         <input type="text" name="nomor_induk" id="nomor_induk" required
-                            class="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all placeholder:text-slate-400"
-                            placeholder="Masukkan 10 digit NISN">
+                            value="<?php echo htmlspecialchars($student['nomor_induk']); ?>"
+                            class="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all placeholder:text-slate-400">
                     </div>
 
                     <div>
                         <label for="tempat_lahir" class="block text-sm font-semibold text-slate-700 mb-1">Tempat
                             Lahir</label>
                         <input type="text" name="tempat_lahir" id="tempat_lahir"
-                            class="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all placeholder:text-slate-400"
-                            placeholder="Kota Kelahiran">
+                            value="<?php echo htmlspecialchars($student['tempat_lahir'] ?? ''); ?>"
+                            class="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all placeholder:text-slate-400">
                     </div>
                     <div>
                         <label for="tanggal_lahir" class="block text-sm font-semibold text-slate-700 mb-1">Tanggal
                             Lahir</label>
                         <input type="date" name="tanggal_lahir" id="tanggal_lahir"
+                            value="<?php echo htmlspecialchars($student['tanggal_lahir'] ?? ''); ?>"
                             class="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all text-slate-600">
                     </div>
 
@@ -109,8 +148,7 @@ include '../layouts/header.php';
                         <label for="alamat" class="block text-sm font-semibold text-slate-700 mb-1">Alamat
                             Lengkap</label>
                         <textarea name="alamat" id="alamat" rows="2"
-                            class="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all placeholder:text-slate-400"
-                            placeholder="Jl. Merdeka No. 123, Kel. Suka Maju, Kec. Jaya"></textarea>
+                            class="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all placeholder:text-slate-400"><?php echo htmlspecialchars($student['alamat'] ?? ''); ?></textarea>
                     </div>
                 </div>
             </div>
@@ -127,47 +165,51 @@ include '../layouts/header.php';
                     <h3 class="text-base font-bold text-slate-800 uppercase">Informasi Akademik</h3>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label for="academic_year_id" class="block text-sm font-semibold text-slate-700 mb-1">Tahun
-                            Ajaran</label>
-                        <select name="academic_year_id" id="academic_year_id" required
-                            class="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all bg-white text-slate-700">
-                            <option value="">Pilih Tahun</option>
-                            <?php foreach ($academic_years as $year): ?>
-                                <option value="<?php echo $year['id']; ?>" <?php echo ($year['id'] == $active_year_id) ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($year['name']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
+                         <?php 
+                            // Display Academic Year (Not editable here, usually edited in history or promotion, 
+                            // but we can show the string from students table or just the current year context)
+                            // Let's show the column value from students table for reference
+                         ?>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Tahun Ajaran (Terakhir Update)</label>
+                        <input type="text" disabled value="<?php echo htmlspecialchars($student['tahun_ajaran'] ?? '-'); ?>"
+                             class="w-full px-4 py-2.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-500 text-sm">
                     </div>
-                    <div class="md:col-span-2"> <!-- Span 2 cols for Class -->
-                        <label for="class_id" class="block text-sm font-semibold text-slate-700 mb-1">Kelas</label>
-                        <select name="class_id" id="class_id" required
-                            class="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all bg-white text-slate-700">
-                            <option value="">Pilih Kelas</option>
-                            <?php foreach ($grade_levels as $grade): ?>
-                                <option value="<?php echo $grade['id']; ?>">
-                                    <?php echo htmlspecialchars($grade['name']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                        <p class="text-xs text-slate-500 mt-1">Siswa akan otomatis masuk ke history kelas ini.</p>
-                    </div>
+                    
                     <div>
                         <label for="status" class="block text-sm font-semibold text-slate-700 mb-1">Status</label>
                         <select name="status" id="status"
                             class="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all bg-white text-slate-700">
-                            <option value="Aktif">Aktif</option>
-                            <option value="Izin">Izin (Cuti)</option>
-                            <option value="Nonaktif">Nonaktif</option>
-                            <option value="Lulus">Lulus</option>
+                            <?php foreach(['Aktif', 'Izin', 'Nonaktif', 'Lulus'] as $st): ?>
+                                <option value="<?php echo $st; ?>" <?php echo ($student['status'] == $st) ? 'selected' : ''; ?>>
+                                    <?php echo $st; ?>
+                                </option>
+                            <?php endforeach; ?>
                         </select>
+                    </div>
+
+                    <div class="md:col-span-2"> <!-- Span 2 cols for Class -->
+                        <label for="class_id" class="block text-sm font-semibold text-slate-700 mb-1">Kelas (Tahun Ajaran Aktif)</label>
+                        <?php if($active_year_id): ?>
+                            <select name="class_id" id="class_id"
+                                class="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all bg-white text-slate-700">
+                                <option value="">Pilih Kelas</option>
+                                <?php foreach ($grade_levels as $grade): ?>
+                                    <option value="<?php echo $grade['id']; ?>" <?php echo ($grade['id'] == $current_class_id) ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($grade['name']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                            <p class="text-xs text-slate-500 mt-1">Mengubah ini akan memperbarui penempatan kelas siswa di tahun ajaran aktif.</p>
+                        <?php else: ?>
+                            <p class="text-red-500 text-sm">Tidak ada tahun ajaran aktif. Silakan aktifkan tahun ajaran terlebih dahulu untuk mengatur kelas.</p>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
 
-            <!-- Section 3: Data Keuangan & Foto (Split) -->
+            <!-- Section 3: Data Keuangan & Foto -->
             <div class="p-8">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <!-- Left: Data Keuangan -->
@@ -193,8 +235,8 @@ include '../layouts/header.php';
                                         <span class="text-slate-500 text-sm">Rp</span>
                                     </div>
                                     <input type="number" name="spp" id="spp"
-                                        class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all placeholder:text-slate-400"
-                                        placeholder="0">
+                                        value="<?php echo htmlspecialchars($student['spp'] ?? 0); ?>"
+                                        class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all placeholder:text-slate-400">
                                 </div>
                             </div>
                             <div>
@@ -205,8 +247,8 @@ include '../layouts/header.php';
                                         <span class="text-slate-500 text-sm">Rp</span>
                                     </div>
                                     <input type="number" name="daftar_ulang" id="daftar_ulang"
-                                        class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all placeholder:text-slate-400"
-                                        placeholder="0">
+                                        value="<?php echo htmlspecialchars($student['daftar_ulang'] ?? 0); ?>"
+                                        class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all placeholder:text-slate-400">
                                 </div>
                             </div>
                         </div>
@@ -224,8 +266,16 @@ include '../layouts/header.php';
                                         clip-rule="evenodd" />
                                 </svg>
                             </div>
-                            <h3 class="text-base font-bold text-slate-800 uppercase">Unggah Foto</h3>
+                            <h3 class="text-base font-bold text-slate-800 uppercase">Foto Profil</h3>
                         </div>
+
+                        <?php if(!empty($student['foto']) && file_exists("../../uploads/students/" . $student['foto'])): ?>
+                            <div class="mb-4 text-center">
+                                <img src="../../uploads/students/<?php echo htmlspecialchars($student['foto']); ?>" 
+                                     alt="Current Photo" class="h-32 w-32 object-cover rounded-full mx-auto border-2 border-slate-200">
+                                <p class="text-xs text-slate-500 mt-2">Foto saat ini</p>
+                            </div>
+                        <?php endif; ?>
 
                         <label for="foto"
                             class="block w-full h-[140px] border-2 border-dashed border-slate-300 rounded-lg bg-slate-50 hover:bg-slate-100 hover:border-cyan-500 transition-all cursor-pointer flex flex-col items-center justify-center text-center p-6 group">
@@ -237,8 +287,8 @@ include '../layouts/header.php';
                                         d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
                                 </svg>
                             </div>
-                            <p class="text-sm font-medium text-slate-700">Klik untuk unggah foto siswa</p>
-                            <p class="text-xs text-slate-400 mt-1">Format: JPG, PNG (Max. 2MB)</p>
+                            <p class="text-sm font-medium text-slate-700">Klik untuk ganti foto</p>
+                            <p class="text-xs text-slate-400 mt-1">Biarkan kosong jika tidak ingin mengubah</p>
                             <input type="file" name="foto" id="foto" class="hidden">
                         </label>
                     </div>
@@ -251,7 +301,7 @@ include '../layouts/header.php';
                     class="text-sm font-semibold leading-6 text-gray-700 hover:text-gray-900">Batalkan</a>
                 <button type="submit"
                     class="rounded-lg bg-cyan-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-600 transition-colors">
-                    Simpan Data Siswa
+                    Simpan Perubahan
                 </button>
             </div>
 

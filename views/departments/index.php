@@ -81,7 +81,7 @@ include '../layouts/header.php';
                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="m1 9 4-4-4-4" />
                     </svg>
-                    <span class="ml-1 text-slate-500 hover:text-slate-800">Divisi</span>
+                <span class="ml-1 text-slate-500 hover:text-slate-800">Bidang</span>
                 </div>
             </li>
         </ol>
@@ -91,8 +91,8 @@ include '../layouts/header.php';
     <div class="md:flex md:items-center md:justify-between mb-8">
         <div class="min-w-0 flex-1">
             <h2 class="text-2xl font-bold leading-7 text-slate-900 sm:truncate sm:text-3xl sm:tracking-tight">
-                Manajemen Divisi</h2>
-            <p class="mt-1 text-sm text-slate-500">Atur struktur perusahaan dan kelola alokasi tim.</p>
+                Manajemen Bidang</h2>
+            <p class="mt-1 text-sm text-slate-500">Atur struktur bidang yayasan.</p>
         </div>
         <div class="mt-4 flex md:ml-4 md:mt-0">
             <!-- Add Department Trigger -->
@@ -102,7 +102,7 @@ include '../layouts/header.php';
                     <path
                         d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
                 </svg>
-                Tambah Divisi
+                Tambah Bidang
             </a>
         </div>
     </div>
@@ -113,7 +113,7 @@ include '../layouts/header.php';
         <div
             class="bg-white overflow-hidden rounded-xl border border-slate-200 shadow-sm p-6 flex justify-between items-start">
             <div>
-                <p class="text-sm font-medium text-slate-500 truncate">Total Divisi</p>
+                <p class="text-sm font-medium text-slate-500 truncate">Total Bidang</p>
                 <p class="mt-2 text-3xl font-bold text-slate-900"><?php echo $total_depts; ?></p>
             </div>
             <div class="p-3 bg-blue-50 rounded-lg text-blue-600">
@@ -205,10 +205,10 @@ include '../layouts/header.php';
                 <tr>
                     <th scope="col"
                         class="py-3.5 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 sm:pl-6">
-                        Divisi</th>
+                        Bidang</th>
                     <th scope="col"
                         class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                        Manajer</th>
+                        Kepala Bidang</th>
                     <th scope="col"
                         class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
                         Anggota</th>

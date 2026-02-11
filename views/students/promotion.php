@@ -48,7 +48,7 @@ if ($source_class_id && $source_year_id) {
         JOIN student_class_history sch ON s.id = sch.student_id
         WHERE sch.class_id = :class_id 
           AND sch.academic_year_id = :year_id
-          AND s.status = 'Aktiv'
+          AND s.status = 'Aktif'
         ORDER BY s.nama_siswa ASC
     ";
     $stmt = $conn->prepare($sql);
