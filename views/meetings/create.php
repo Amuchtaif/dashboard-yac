@@ -54,7 +54,7 @@ include '../layouts/header.php';
         </div>
     </div>
 
-    <div class="max-w-4xl bg-white rounded-xl shadow-sm border border-slate-200">
+    <div class="w-full bg-white rounded-xl shadow-sm border border-slate-200">
         <form id="createForm" class="p-8 space-y-6">
             <!-- Hidden inputs -->
             <input type="hidden" name="created_by" value="<?php echo $_SESSION['user_id'] ?? 1; ?>">

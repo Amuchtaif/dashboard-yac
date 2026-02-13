@@ -99,7 +99,11 @@ try {
                 'start_time' => $today_shift['start_time'],
                 'end_time' => $today_shift['end_time'],
                 'is_day_off' => (bool) $today_shift['is_day_off']
-            ] : null
+            ] : null,
+            'is_koordinator' => (function($uid) {
+                include_once '../config/permission.php';
+                return hasPermission($uid, 'access_tahfidz');
+            })($user['id'])
         ];
 
         echo json_encode([

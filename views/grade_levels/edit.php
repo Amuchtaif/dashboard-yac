@@ -33,7 +33,7 @@ $page_title = "Edit Class";
 include '../layouts/header.php';
 ?>
 
-<div class="max-w-4xl mx-auto pb-10">
+<div class="w-full pb-10">
     <!-- Header -->
     <div class="mb-8">
         <nav class="flex mb-4" aria-label="Breadcrumb">

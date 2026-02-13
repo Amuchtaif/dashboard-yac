@@ -32,6 +32,8 @@ try {
     $query = "SELECT 
                 s.id, 
                 s.nama_siswa as full_name, 
+                s.kelas,
+                s.tingkat,
                 COALESCE((SELECT COUNT(DISTINCT juz) FROM tahfidz_memorization WHERE student_id = s.id), 0) as total_juz,
                 COALESCE((SELECT surah_end FROM tahfidz_memorization WHERE student_id = s.id ORDER BY date DESC, id DESC LIMIT 1), '-') as last_surah
               FROM halaqah_members hm

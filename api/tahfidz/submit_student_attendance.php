@@ -27,6 +27,14 @@ $session = isset($input['session']) ? $input['session'] : 'Pagi';
 $teacher_id = isset($input['teacher_id']) ? $input['teacher_id'] : null;
 $students = isset($input['students']) ? $input['students'] : [];
 
+// Check Permission
+require_once __DIR__ . '/../../config/permission.php';
+if ($teacher_id && !hasPermission($teacher_id, 'access_tahfidz')) {
+    http_response_code(403);
+    echo json_encode(["success" => false, "message" => "Forbidden: Anda tidak memiliki akses Tahfidz."]);
+    exit;
+}
+
 if (empty($students)) {
     http_response_code(400);
     echo json_encode(["success" => false, "message" => "No student data provided"]);

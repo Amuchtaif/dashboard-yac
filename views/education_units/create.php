@@ -15,7 +15,7 @@ $units = $conn->query("SELECT id, name FROM units WHERE division_id = 2 AND name
 include '../layouts/header.php';
 ?>
 
-<div class="max-w-5xl mx-auto pb-10">
+<div class="w-full pb-10">
     <div class="mb-8">
         <nav class="flex mb-4" aria-label="Breadcrumb">
             <ol class="inline-flex items-center space-x-1 md:space-x-3 text-xs text-slate-500">

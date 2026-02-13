@@ -65,7 +65,7 @@ foreach ($all_employees as $emp) {
             $level2_by_div[$emp['division_id']] = $emp;
         }
     } elseif ($lvl == 3) {
-        if (!isset($level3_by_unit[$emp['unit_id']])) {
+        if (!empty($emp['unit_id']) && !isset($level3_by_unit[$emp['unit_id']])) {
             $level3_by_unit[$emp['unit_id']] = $emp;
         }
     }
@@ -88,7 +88,7 @@ foreach ($all_employees as $emp) {
                 $parentId = (string) $level2_by_div[$emp['division_id']]['id'];
             }
         } elseif ($lvl >= 4) {
-            if (isset($level3_by_unit[$emp['unit_id']])) {
+            if (!empty($emp['unit_id']) && isset($level3_by_unit[$emp['unit_id']])) {
                 $parentId = (string) $level3_by_unit[$emp['unit_id']]['id'];
             } else {
                 if (isset($level2_by_div[$emp['division_id']])) {
@@ -111,7 +111,7 @@ foreach ($all_employees as $emp) {
                 $parentId = (string) $level1_ids[0];
             }
         } elseif ($lvl >= 4) {
-            if (isset($level3_by_unit[$emp['unit_id']])) {
+            if (!empty($emp['unit_id']) && isset($level3_by_unit[$emp['unit_id']])) {
                 $parentId = (string) $level3_by_unit[$emp['unit_id']]['id'];
             } elseif (isset($level2_by_div[$emp['division_id']])) {
                 $parentId = (string) $level2_by_div[$emp['division_id']]['id'];

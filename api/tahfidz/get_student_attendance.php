@@ -15,7 +15,7 @@ $student_id = isset($_GET['student_id']) ? $_GET['student_id'] : null;
 
 try {
     $attendance_records = [];
-    $query = "SELECT ta.*, s.name as student_name, s.class_grade 
+    $query = "SELECT ta.*, s.nama_siswa as student_name, s.kelas, s.tingkat 
               FROM tahfidz_attendance ta 
               LEFT JOIN students s ON ta.student_id = s.id 
               WHERE 1=1";
@@ -35,7 +35,7 @@ try {
         $types .= "i";
     }
 
-    $query .= " ORDER BY ta.date DESC, s.name ASC";
+    $query .= " ORDER BY ta.date DESC, s.nama_siswa ASC";
 
     if (isset($mysqli)) {
         $stmt = $mysqli->prepare($query);

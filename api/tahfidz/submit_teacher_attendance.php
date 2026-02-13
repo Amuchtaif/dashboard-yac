@@ -25,6 +25,13 @@ if (!$teacher_id) {
     exit;
 }
 
+// Check Permission
+include_once '../../config/permission.php';
+if (!hasPermission($teacher_id, 'access_tahfidz')) {
+    echo json_encode(["success" => false, "message" => "Akses Ditolak: Anda tidak memiliki izin untuk membuka/menutup halaqoh."]);
+    exit;
+}
+
 try {
     if ($action === 'check_in') {
         // Check if already checked in FOR THIS SESSION

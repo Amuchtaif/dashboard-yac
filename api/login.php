@@ -57,6 +57,10 @@ try {
 
     if ($user && password_verify($password, $user['password'])) {
         unset($user['password']);
+        
+        // Determine coordinate status based on access_tahfidz permission
+        include_once '../config/permission.php';
+        $user['is_koordinator'] = hasPermission($user['id'], 'access_tahfidz');
 
         echo json_encode([
             "success" => true,

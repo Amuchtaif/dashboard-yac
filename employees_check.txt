@@ -1,0 +1,21 @@
+Array
+(
+    [0] => Array
+        (
+            [id] => 25
+            [full_name] => Ahmad Ghozali
+            [division_id] => 2
+            [unit_id] => 
+            [position_id] => 12
+        )
+
+    [1] => Array
+        (
+            [id] => 200
+            [full_name] => Mulyana
+            [division_id] => 4
+            [unit_id] => 
+            [position_id] => 5
+        )
+
+)

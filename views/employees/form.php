@@ -49,7 +49,7 @@ $schedules = $conn->query("SELECT * FROM work_schedules ORDER BY name ASC")->fet
 include '../layouts/header.php';
 ?>
 
-<div class="max-w-5xl mx-auto pb-10">
+<div class="w-full pb-10">
     <div class="mb-8">
         <nav class="flex mb-4" aria-label="Breadcrumb">
             <ol class="inline-flex items-center space-x-1 md:space-x-3 text-xs text-slate-500">
@@ -157,7 +157,7 @@ include '../layouts/header.php';
                     </div>
 
                     <!-- Personal Fields -->
-                    <div class="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div>
                             <label for="full_name" class="block text-sm font-semibold text-slate-700 mb-1">Nama Lengkap
                                 <span class="text-red-500">*</span></label>
@@ -211,7 +211,7 @@ include '../layouts/header.php';
             </div>
 
             <!-- Employment Details Section -->
-            <div class="p-8">
+            <div class="p-8 space-y-8">
                 <div class="flex items-center gap-3 mb-6">
                     <div class="p-2 bg-cyan-50 rounded-lg text-cyan-600">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
@@ -223,7 +223,7 @@ include '../layouts/header.php';
                     <h3 class="text-base font-bold text-slate-800">Rincian Pekerjaan (Organisasi)</h3>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <!-- Employee ID (Read only mock) -->
                     <?php if (!$is_edit): ?>
                         <div>

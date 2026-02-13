@@ -13,7 +13,7 @@ $teacher_id = isset($_GET['teacher_id']) ? $_GET['teacher_id'] : null;
 
 try {
     $memorization_records = [];
-    $query = "SELECT m.*, s.name as student_name 
+    $query = "SELECT m.*, s.nama_siswa as student_name, s.kelas, s.tingkat 
               FROM tahfidz_memorization m
               LEFT JOIN students s ON m.student_id = s.id
               WHERE 1=1";

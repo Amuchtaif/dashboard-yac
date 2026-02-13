@@ -21,6 +21,14 @@ $total_score = isset($input['total_score']) ? $input['total_score'] : ($tajweed_
 $comments = isset($input['comments']) ? $input['comments'] : '';
 $teacher_id = isset($input['teacher_id']) ? $input['teacher_id'] : null;
 
+// Check Permission
+include_once '../../config/permission.php';
+if ($teacher_id && !hasPermission($teacher_id, 'access_tahfidz')) {
+    http_response_code(403);
+    echo json_encode(["success" => false, "message" => "Forbidden: Anda tidak memiliki akses Tahfidz."]);
+    exit;
+}
+
 if (!$student_id) {
     http_response_code(400);
     echo json_encode(["success" => false, "message" => "Student ID is required"]);

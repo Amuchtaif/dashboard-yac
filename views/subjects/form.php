@@ -24,7 +24,7 @@ if ($id) {
 include '../layouts/header.php';
 ?>
 
-<div class="max-w-4xl mx-auto pb-10">
+<div class="w-full pb-10">
     <div class="md:flex md:items-center md:justify-between mb-8">
         <div class="flex-1 min-w-0">
             <h2 class="text-2xl font-bold leading-7 text-slate-900 sm:text-3xl sm:truncate">

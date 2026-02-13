@@ -13,7 +13,7 @@ $teacher_id = isset($_GET['teacher_id']) ? $_GET['teacher_id'] : null;
 
 try {
     $assessments = [];
-    $query = "SELECT a.*, s.name as student_name 
+    $query = "SELECT a.*, s.nama_siswa as student_name, s.kelas, s.tingkat 
               FROM tahfidz_assessments a
               LEFT JOIN students s ON a.student_id = s.id
               WHERE 1=1";
