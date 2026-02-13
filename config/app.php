@@ -1,4 +1,5 @@
 <?php
+date_default_timezone_set('Asia/Jakarta');
 // Base URL configuration
 define('BASE_URL', 'http://localhost/dashboard-yac');
 

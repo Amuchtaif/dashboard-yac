@@ -42,6 +42,7 @@ if (!function_exists('hasPermission')) {
             $permission_map = [
                 'access_tahfidz' => 'can_access_tahfidz',
                 'create_meeting' => 'can_create_meeting',
+                'approve_permits' => 'can_approve_permits',
             ];
 
             if (!array_key_exists($permission_name, $permission_map)) {

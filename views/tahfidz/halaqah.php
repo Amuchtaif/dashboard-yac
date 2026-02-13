@@ -1,0 +1,200 @@
+<?php
+require_once '../../config/app.php';
+require_once '../../config/database.php';
+
+check_login();
+
+$page_title = "Data Halaqah";
+
+$db = new Database();
+$conn = $db->getConnection();
+
+// --- Fetch Data ---
+// 1. Fetch Halaqah Groups with Teachers
+$groups_query = "
+    SELECT hg.*, e.full_name as teacher_name,
+    (SELECT COUNT(*) FROM halaqah_members WHERE group_id = hg.id) as member_count
+    FROM halaqah_groups hg
+    JOIN employees e ON hg.teacher_id = e.id
+    ORDER BY hg.group_name ASC
+";
+$groups = $conn->query($groups_query)->fetchAll(PDO::FETCH_ASSOC);
+
+// 2. Fetch All Teachers (for group creation)
+$teachers_query = "SELECT id, full_name FROM employees ORDER BY full_name ASC";
+$teachers = $conn->query($teachers_query)->fetchAll(PDO::FETCH_ASSOC);
+
+// 3. Fetch All Students (for member management)
+$students_query = "SELECT id, nama_siswa as full_name FROM students ORDER BY nama_siswa ASC";
+$all_students = $conn->query($students_query)->fetchAll(PDO::FETCH_ASSOC);
+
+include '../layouts/header.php';
+?>
+
+<div class="space-y-6 pb-12">
+    <!-- Header -->
+    <div class="sm:flex sm:items-center sm:justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-800">Manajemen Data Halaqah</h1>
+            <p class="text-slate-500 mt-1">Kelola kelompok halaqah dan penempatan santri.</p>
+        </div>
+        <div class="mt-4 sm:mt-0">
+            <button onclick="openModal('modal-add-group')" 
+                class="inline-flex items-center justify-center rounded-lg bg-cyan-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all">
+                <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                Tambah Kelompok
+            </button>
+        </div>
+    </div>
+
+    <!-- Groups Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <?php if (count($groups) > 0): ?>
+            <?php foreach ($groups as $group): ?>
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition-all group">
+                    <div class="p-6">
+                        <div class="flex justify-between items-start">
+                            <div class="flex items-center gap-3">
+                                <div class="h-12 w-12 rounded-xl bg-cyan-50 flex items-center justify-center text-cyan-600">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-slate-800 text-lg"><?php echo htmlspecialchars($group['group_name']); ?></h3>
+                                    <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Kelompok Halaqah</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button onclick="deleteGroup(<?php echo $group['id']; ?>)" class="p-2 text-slate-400 hover:text-red-600 transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 space-y-4">
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-slate-500">Pengampu</span>
+                                <span class="font-semibold text-slate-700"><?php echo htmlspecialchars($group['teacher_name']); ?></span>
+                            </div>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-slate-500">Jumlah Santri</span>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-cyan-50 text-cyan-700">
+                                    <?php echo $group['member_count']; ?> Santri
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 px-6 py-4 border-t border-slate-100 flex justify-between items-center">
+                        <a href="halaqah_members.php?group_id=<?php echo $group['id']; ?>" 
+                           class="text-sm font-bold text-cyan-600 hover:text-cyan-700 transition-colors inline-flex items-center">
+                            Kelola Santri
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <div class="col-span-full py-20 bg-white rounded-2xl border border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400 text-center px-6">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mb-4 text-slate-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+                <p class="text-lg font-bold text-slate-600">Belum ada kelompok halaqah</p>
+                <p class="text-sm mt-1 max-w-xs">Mulai dengan menambahkan kelompok halaqah baru dan tugaskan pengampu.</p>
+                <button onclick="openModal('modal-add-group')" class="mt-6 text-cyan-600 font-bold hover:underline">Tambah Kelompok Sekarang</button>
+            </div>
+        <?php endif; ?>
+    </div>
+</div>
+
+<!-- Modal Add Group -->
+<div id="modal-add-group" class="fixed inset-0 z-50 hidden overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+            <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm opacity-100"></div>
+        </div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-slate-200">
+            <form action="../../logic/tahfidz/manage_halaqah.php" method="POST">
+                <input type="hidden" name="action" value="create_group">
+                <div class="bg-white px-8 pt-8 pb-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-bold text-slate-800">Tambah Kelompok Baru</h3>
+                        <button type="button" onclick="closeModal('modal-add-group')" class="text-slate-400 hover:text-slate-600">
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-5">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Nama Kelompok</label>
+                            <input type="text" name="group_name" required placeholder="Contoh: Halaqah Abu Bakar"
+                                class="block w-full rounded-xl border-slate-200 bg-slate-50 border px-4 py-3 text-sm focus:border-cyan-500 focus:ring-cyan-500 transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Pilih Pengampu (Ustadz)</label>
+                            <select name="teacher_id" required
+                                class="block w-full rounded-xl border-slate-200 bg-slate-50 border px-4 py-3 text-sm focus:border-cyan-500 focus:ring-cyan-500 transition-all select-custom">
+                                <option value="">Pilih Pengampu...</option>
+                                <?php foreach ($teachers as $t): ?>
+                                    <option value="<?php echo $t['id']; ?>"><?php echo htmlspecialchars($t['full_name']); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-slate-50 px-8 py-6 flex flex-row-reverse gap-3">
+                    <button type="submit" class="inline-flex justify-center rounded-xl bg-cyan-600 px-6 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-cyan-700 focus:outline-none transition-all">
+                        Simpan Kelompok
+                    </button>
+                    <button type="button" onclick="closeModal('modal-add-group')" class="inline-flex justify-center rounded-xl bg-white border border-slate-200 px-6 py-2.5 text-sm font-bold text-slate-600 shadow-sm hover:bg-slate-50 focus:outline-none transition-all">
+                        Batal
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openModal(id) {
+        document.getElementById(id).classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal(id) {
+        document.getElementById(id).classList.add('hidden');
+        document.body.style.overflow = 'auto';
+    }
+
+    function deleteGroup(id) {
+        if (confirm('Apakah Anda yakin ingin menghapus kelompok ini? Semua data anggota di dalamnya juga akan terhapus.')) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '../../logic/tahfidz/manage_halaqah.php';
+            
+            const actionInput = document.createElement('input');
+            actionInput.type = 'hidden';
+            actionInput.name = 'action';
+            actionInput.value = 'delete_group';
+            form.appendChild(actionInput);
+            
+            const idInput = document.createElement('input');
+            idInput.type = 'hidden';
+            idInput.name = 'group_id';
+            idInput.value = id;
+            form.appendChild(idInput);
+            
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+</script>
+
+<?php include '../layouts/footer.php'; ?>

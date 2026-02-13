@@ -14,6 +14,17 @@ function getIconClass($path)
     global $current_page;
     return strpos($current_page, $path) !== false ? 'text-cyan-600' : 'text-slate-400 group-hover:text-slate-600';
 }
+
+// Fetch current user's tahfidz access
+require_once __DIR__ . '/../../config/permission.php';
+$can_access_tahfidz = false;
+if (isset($_SESSION['user_id'])) {
+    $can_access_tahfidz = hasPermission($_SESSION['user_id'], 'access_tahfidz');
+}
+// Admin override or fallback
+if (isset($_SESSION['user_id']) && $_SESSION['user_id'] == 1) {
+    $can_access_tahfidz = true;
+}
 ?>
 <!-- Sidebar Container -->
 <aside class="w-64 bg-white border-r border-slate-200 hidden md:flex flex-col shadow-sm z-20 h-full fixed left-0 top-0">
@@ -102,7 +113,7 @@ function getIconClass($path)
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                           d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
                 </svg>
-                Hak Akses
+                Hak Akses Aplikasi
             </a>
 
             <!-- Work Schedules -->
@@ -119,13 +130,13 @@ function getIconClass($path)
 
             <!-- Attendance -->
             <a href="<?php url('views/attendance/index.php'); ?>"
-                class="<?php echo isActive('attendance'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                class="<?php echo isActive('views/attendance/'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
                 <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('attendance'); ?> transition-colors"
                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                         d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                Absensi
+                Absensi Pegawai
             </a>
 
             <!-- Permits -->
@@ -177,6 +188,7 @@ function getIconClass($path)
             </a>
 
             <!-- Tahfidz Management -->
+            <?php if ($can_access_tahfidz): ?>
             <div class="pt-4 pb-2">
                 <p class="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Manajemen Tahfidz</p>
             </div>
@@ -189,6 +201,16 @@ function getIconClass($path)
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18c-2.305 0-4.408.867-6 2.292m0-14.25v14.25" />
                 </svg>
                 Dashboard Tahfidz
+            </a>
+
+            <a href="<?php url('views/tahfidz/halaqah.php'); ?>"
+                class="<?php echo isActive('tahfidz/halaqah'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('tahfidz/halaqah'); ?> transition-colors"
+                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                </svg>
+                Data Halaqah
             </a>
 
             <a href="<?php url('views/tahfidz/teacher_attendance.php'); ?>"
@@ -211,15 +233,7 @@ function getIconClass($path)
                 Absensi Santri
             </a>
 
-             <a href="<?php url('views/tahfidz/role_access.php'); ?>"
-                class="<?php echo isActive('tahfidz/role_access'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
-                <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('tahfidz/role_access'); ?> transition-colors"
-                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                    stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
-                </svg>
-                Akses Pengampu
-            </a>
+
 
             <a href="<?php url('views/tahfidz/report.php'); ?>"
                 class="<?php echo isActive('tahfidz/report'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
@@ -230,6 +244,7 @@ function getIconClass($path)
                 </svg>
                 Laporan Hafalan
             </a>
+            <?php endif; ?>
 
             <div class="pt-4 pb-2">
                 <p class="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Manajemen Akademik</p>

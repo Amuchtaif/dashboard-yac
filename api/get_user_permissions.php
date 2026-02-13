@@ -38,7 +38,8 @@ try {
                 p.name as position_name,
                 p.level as position_level,
                 p.can_create_meeting,
-                p.can_approve_permits
+                p.can_approve_permits,
+                p.can_access_tahfidz
               FROM employees e 
               JOIN positions p ON e.position_id = p.id 
               WHERE e.id = :user_id 
@@ -51,10 +52,12 @@ try {
     if ($stmt->rowCount() > 0) {
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         
-        // Build permissions object
+        // Build permissions object using hybrid permission logic
+        include_once '../config/permission.php';
         $permissions = [
-            "can_create_meeting" => (bool)$row['can_create_meeting'],
-            "can_approve_permits" => isset($row['can_approve_permits']) ? (bool)$row['can_approve_permits'] : false,
+            "can_create_meeting" => hasPermission($user_id, 'create_meeting'),
+            "can_approve_permits" => hasPermission($user_id, 'approve_permits'),
+            "can_access_tahfidz" => hasPermission($user_id, 'access_tahfidz'),
         ];
         
         echo json_encode([

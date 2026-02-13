@@ -44,7 +44,7 @@ if ($id <= 0) {
 }
 
 // Whitelist allowed columns to prevent SQL injection or arbitrary column updates
-$allowed_columns = ['can_create_meeting', 'can_approve_permits']; 
+$allowed_columns = ['can_create_meeting', 'can_approve_permits', 'can_access_tahfidz']; 
 if (!in_array($permission_type, $allowed_columns)) {
     echo json_encode(['success' => false, 'message' => 'Invalid permission type: ' . htmlspecialchars($permission_type)]);
     exit;
@@ -60,6 +60,17 @@ try {
             $checkColumn = $conn->query("SHOW COLUMNS FROM positions LIKE 'can_approve_permits'");
             if ($checkColumn->rowCount() === 0) {
                 $conn->exec("ALTER TABLE `positions` ADD COLUMN `can_approve_permits` TINYINT(1) NOT NULL DEFAULT 0 AFTER `can_create_meeting`");
+            }
+        } catch (Exception $e) {
+            // Column might already exist, continue
+        }
+    }
+    // Auto-migration: Ensure can_access_tahfidz column exists
+    if ($permission_type === 'can_access_tahfidz') {
+        try {
+            $checkColumn = $conn->query("SHOW COLUMNS FROM positions LIKE 'can_access_tahfidz'");
+            if ($checkColumn->rowCount() === 0) {
+                $conn->exec("ALTER TABLE `positions` ADD COLUMN `can_access_tahfidz` TINYINT(1) NOT NULL DEFAULT 0 AFTER `can_approve_permits`");
             }
         } catch (Exception $e) {
             // Column might already exist, continue

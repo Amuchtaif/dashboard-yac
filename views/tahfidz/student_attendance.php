@@ -12,6 +12,7 @@ $conn = $db->getConnection();
 $start_date = isset($_GET['start_date']) ? $_GET['start_date'] : date('Y-m-d');
 $end_date = isset($_GET['end_date']) ? $_GET['end_date'] : date('Y-m-d');
 $unit_filter = isset($_GET['unit']) ? $_GET['unit'] : '';
+$search = isset($_GET['search']) ? trim($_GET['search']) : '';
 
 // --- Fetch Units for Filter ---
 $units = $conn->query("SELECT DISTINCT tingkat FROM students WHERE tingkat IS NOT NULL AND tingkat != '' ORDER BY tingkat")->fetchAll(PDO::FETCH_COLUMN);
@@ -40,6 +41,11 @@ if (!empty($unit_filter)) {
     $params[':unit'] = $unit_filter;
 }
 
+if (!empty($search)) {
+    $query .= " AND (s.nama_siswa LIKE :search OR e.full_name LIKE :search)";
+    $params[':search'] = "%$search%";
+}
+
 $query .= " ORDER BY ta.date DESC, ta.created_at DESC";
 
 $stmt = $conn->prepare($query);
@@ -50,39 +56,72 @@ include '../layouts/header.php';
 ?>
 
 <div class="space-y-6">
-    <!-- Header & Filter -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
         <div>
             <h1 class="text-2xl font-bold text-slate-800">Absensi Santri</h1>
             <p class="text-slate-500 mt-1">Data kehadiran santri Tahfidz.</p>
         </div>
-        <form method="GET" class="flex flex-wrap gap-3 items-end">
-            <div>
-                <label class="block text-xs font-medium text-slate-700 mb-1">Unit</label>
-                <select name="unit" class="rounded-lg border-slate-200 text-sm focus:ring-blue-500 focus:border-blue-500">
-                    <option value="">Semua</option>
-                    <?php foreach ($units as $u): ?>
-                        <option value="<?php echo htmlspecialchars($u); ?>" <?php echo ($unit_filter == $u) ? 'selected' : ''; ?>>
-                            <?php echo htmlspecialchars($u); ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-slate-700 mb-1">Dari Tanggal</label>
-                <input type="date" name="start_date" value="<?php echo $start_date; ?>" 
-                       class="rounded-lg border-slate-200 text-sm focus:ring-blue-500 focus:border-blue-500">
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-slate-700 mb-1">Sampai Tanggal</label>
-                <input type="date" name="end_date" value="<?php echo $end_date; ?>" 
-                       class="rounded-lg border-slate-200 text-sm focus:ring-blue-500 focus:border-blue-500">
-            </div>
-            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                Filter
-            </button>
-        </form>
     </div>
+
+    <!-- Filter Card -->
+    <form id="filter-form" method="GET" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-4 justify-between items-center">
+        <!-- Search -->
+        <div class="relative w-full sm:w-80">
+            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                <svg class="h-4 w-4 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                </svg>
+            </div>
+            <input type="text" name="search" value="<?php echo htmlspecialchars($search); ?>"
+                class="block w-full rounded-lg border-slate-200 pl-10 pt-2 pb-2 text-sm focus:border-cyan-500 focus:ring-cyan-500 bg-slate-50 border placeholder:text-slate-400 text-slate-600"
+                placeholder="Cari nama santri..." onchange="this.form.submit()">
+        </div>
+
+        <!-- Right side filters -->
+        <div class="flex gap-2 w-full sm:w-auto flex-wrap items-center">
+            <!-- Unit Filter -->
+            <div class="relative group" id="filter-unit-container">
+                <input type="hidden" name="unit" id="filter-unit-input" value="<?php echo $unit_filter; ?>">
+                <button type="button" onclick="toggleDropdown('filter-unit')"
+                    class="inline-flex items-center justify-between gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-colors w-40">
+                    <span id="filter-unit-text" class="truncate">
+                        <?php
+                        $displayUnit = "Semua Unit";
+                        if ($unit_filter) $displayUnit = "Unit: " . $unit_filter;
+                        echo htmlspecialchars($displayUnit);
+                        ?>
+                    </span>
+                    <svg class="h-4 w-4 text-slate-400 transition-transform duration-200" id="filter-unit-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+                <div id="filter-unit-menu" class="hidden absolute top-full right-0 mt-1 w-48 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50 max-h-60 overflow-y-auto">
+                    <ul class="py-1">
+                        <li onclick="selectFilterOption('unit', '', 'Semua Unit')" class="cursor-pointer px-4 py-2 text-xs text-slate-500 hover:bg-slate-50 hover:text-cyan-700">Semua Unit</li>
+                        <?php foreach ($units as $u): ?>
+                            <li onclick="selectFilterOption('unit', '<?php echo htmlspecialchars($u, ENT_QUOTES); ?>', 'Unit: <?php echo htmlspecialchars($u, ENT_QUOTES); ?>')" class="cursor-pointer px-4 py-2 text-xs text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
+                                <?php echo htmlspecialchars($u); ?>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Date Range -->
+            <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1">
+                <input type="date" name="start_date" value="<?php echo $start_date; ?>" class="bg-transparent border-none text-xs text-slate-600 focus:ring-0 p-1 w-32" onchange="this.form.submit()">
+                <span class="text-slate-400 text-xs">-</span>
+                <input type="date" name="end_date" value="<?php echo $end_date; ?>" class="bg-transparent border-none text-xs text-slate-600 focus:ring-0 p-1 w-32" onchange="this.form.submit()">
+            </div>
+
+            <a href="student_attendance.php" class="inline-flex items-center p-2 rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-100 hover:text-red-500 focus:outline-none transition-colors" title="Reset Filters">
+                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </a>
+        </div>
+    </form>
 
     <!-- Data Table -->
     <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
@@ -94,9 +133,9 @@ include '../layouts/header.php';
                         <th class="px-6 py-4">Tanggal</th>
                         <th class="px-6 py-4">Nama Santri</th>
                         <th class="px-6 py-4 text-center">Kelas</th>
-                        <th class="px-6 py-4 text-center">Sesi</th>
+                        <th class="px-6 py-4 text-center">Halaqoh</th>
                         <th class="px-6 py-4 text-center">Status</th>
-                        <th class="px-6 py-4">Pencatat</th>
+                        <th class="px-6 py-4">Pengampu</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-sm">
@@ -143,10 +182,14 @@ include '../layouts/header.php';
                         </td>
                     </tr>
                     <?php endif; ?>
-                </tbody>
-            </table>
-        </div>
     </div>
 </div>
+
+<script>
+    function selectFilterOption(name, value, text) {
+        document.getElementById('filter-' + name + '-input').value = value;
+        document.getElementById('filter-form').submit();
+    }
+</script>
 
 <?php include '../layouts/footer.php'; ?>

@@ -70,6 +70,29 @@
             /* blue-200 */
             outline-offset: 2px;
         }
+
+        /* Custom Select Style */
+        .select-custom {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.75rem center;
+            background-repeat: no-repeat;
+            background-size: 1.25em 1.25em;
+            padding-right: 2.5rem !important;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .select-custom:hover {
+            border-color: #94a3b8;
+            background-color: #f8fafc;
+        }
+
+        .select-custom:focus {
+            ring: 2px;
+            ring-color: #3b82f6;
+            border-color: #3b82f6;
+            outline: none;
+        }
     </style>
 </head>
 

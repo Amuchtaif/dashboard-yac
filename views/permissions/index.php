@@ -20,6 +20,16 @@ try {
     // Column might already exist or error - continue anyway
 }
 
+// Auto-migration: Ensure can_access_tahfidz column exists
+try {
+    $checkColumn = $conn->query("SHOW COLUMNS FROM positions LIKE 'can_access_tahfidz'");
+    if ($checkColumn->rowCount() === 0) {
+        $conn->exec("ALTER TABLE `positions` ADD COLUMN `can_access_tahfidz` TINYINT(1) NOT NULL DEFAULT 0 AFTER `can_approve_permits`");
+    }
+} catch (Exception $e) {
+    // Column might already exist or error - continue anyway
+}
+
 // --- Pagination Logic ---
 $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 10;
 if (!in_array($limit, [10, 20, 50, 100]))
@@ -43,7 +53,8 @@ $query = "
         p.name, 
         p.level,
         p.can_create_meeting,
-        p.can_approve_permits
+        p.can_approve_permits,
+        p.can_access_tahfidz
     FROM positions p
     ORDER BY p.level ASC, p.name ASC
     LIMIT :limit OFFSET :offset
@@ -93,6 +104,9 @@ include '../layouts/header.php';
                                 <th scope="col"
                                     class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
                                     Akses Persetujuan Izin</th>
+                                <th scope="col"
+                                    class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                    Akses Menu Tahfidz</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200 bg-white">
@@ -130,6 +144,17 @@ include '../layouts/header.php';
                                                 <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
                                                 <span class="ml-3 text-sm font-medium text-gray-900 status-text-permit-<?php echo $pos['id']; ?>">
                                                     <?php echo isset($pos['can_approve_permits']) && $pos['can_approve_permits'] == 1 ? 'Ya' : 'Tidak'; ?>
+                                                </span>
+                                            </label>
+                                        </td>
+                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                            <label class="relative inline-flex items-center cursor-pointer">
+                                                <input type="checkbox" class="sr-only peer" 
+                                                    <?php echo isset($pos['can_access_tahfidz']) && $pos['can_access_tahfidz'] == 1 ? 'checked' : ''; ?>
+                                                    onchange="updatePermission(<?php echo $pos['id']; ?>, 'can_access_tahfidz', this.checked)">
+                                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                                <span class="ml-3 text-sm font-medium text-gray-900 status-text-tahfidz-<?php echo $pos['id']; ?>">
+                                                    <?php echo isset($pos['can_access_tahfidz']) && $pos['can_access_tahfidz'] == 1 ? 'Ya' : 'Tidak'; ?>
                                                 </span>
                                             </label>
                                         </td>
@@ -205,6 +230,8 @@ function updatePermission(id, permissionType, isChecked) {
         statusTextSelector = `.status-text-meeting-${id}`;
     } else if (permissionType === 'can_approve_permits') {
         statusTextSelector = `.status-text-permit-${id}`;
+    } else if (permissionType === 'can_access_tahfidz') {
+        statusTextSelector = `.status-text-tahfidz-${id}`;
     } else {
         statusTextSelector = `.status-text-${id}`;
     }
