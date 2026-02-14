@@ -18,9 +18,11 @@ $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $query = "
     SELECT 
         ta.*,
-        e.full_name AS teacher_name
+        e.full_name AS teacher_name,
+        c.full_name AS coordinator_name
     FROM tahfidz_teacher_attendance ta
     LEFT JOIN employees e ON ta.teacher_id = e.id
+    LEFT JOIN employees c ON ta.approved_by = c.id
     WHERE ta.date BETWEEN :start_date AND :end_date
 ";
 
@@ -123,7 +125,7 @@ include '../layouts/header.php';
                         <th class="px-6 py-4 w-16 text-center">No</th>
                         <th class="px-6 py-4">Tanggal</th>
                         <th class="px-6 py-4">Nama Pengampu</th>
-                        <th class="px-6 py-4 text-center">Status</th>
+                        <th class="px-6 py-4">Status & Verifikasi</th>
                         <th class="px-6 py-4 text-center">Jam Masuk</th>
                         <th class="px-6 py-4 text-center">Jam Pulang</th>
                         <th class="px-6 py-4">Halaqoh</th>
@@ -135,7 +137,7 @@ include '../layouts/header.php';
                     if (count($data) > 0): 
                         foreach ($data as $row): 
                     ?>
-                    <tr class="hover:bg-slate-50/50 transition-colors">
+                    <tr class="hover:bg-slate-50/50 transition-colors <?php echo ($row['status_approval'] == 'rejected') ? 'bg-red-50 hover:bg-red-100' : ''; ?>">
                         <td class="px-6 py-4 text-center text-slate-400"><?php echo $no++; ?></td>
                         <td class="px-6 py-4 text-slate-600">
                             <?php echo date('d/m/Y', strtotime($row['date'])); ?>
@@ -143,7 +145,7 @@ include '../layouts/header.php';
                         <td class="px-6 py-4 font-medium text-slate-800">
                             <?php echo htmlspecialchars($row['teacher_name'] ?? 'Unknown'); ?>
                         </td>
-                        <td class="px-6 py-4 text-center">
+                        <td class="px-6 py-4">
                             <?php
                                 $statusClass = 'bg-slate-100 text-slate-600';
                                 $s = strtolower($row['status']);
@@ -152,9 +154,34 @@ include '../layouts/header.php';
                                 elseif ($s == 'izin') $statusClass = 'bg-yellow-100 text-yellow-700';
                                 elseif ($s == 'alpha') $statusClass = 'bg-red-100 text-red-700';
                             ?>
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <?php echo $statusClass; ?>">
-                                <?php echo htmlspecialchars($row['status']); ?>
-                            </span>
+                            <div class="flex flex-col gap-1.5">
+                                <div>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium <?php echo $statusClass; ?>">
+                                        <?php echo htmlspecialchars($row['status']); ?>
+                                    </span>
+                                </div>
+                                
+                                <!-- Approval Status -->
+                                <?php if ($row['status_approval'] == 'approved'): ?>
+                                    <div class="flex items-center text-xs text-green-600">
+                                        <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        Disetujui: <?php echo htmlspecialchars($row['coordinator_name'] ?? 'Administrator'); ?>
+                                    </div>
+                                <?php elseif ($row['status_approval'] == 'rejected'): ?>
+                                    <div class="flex items-start text-xs text-red-600">
+                                        <svg class="w-3.5 h-3.5 mr-1 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        <div>
+                                            <span class="font-bold">Ditolak:</span> <?php echo htmlspecialchars($row['rejection_reason'] ?: 'Tanpa alasan'); ?>
+                                            <div class="text-[10px] opacity-75 mt-0.5">Oleh: <?php echo htmlspecialchars($row['coordinator_name'] ?? 'Administrator'); ?></div>
+                                        </div>
+                                    </div>
+                                <?php else: ?>
+                                    <div class="flex items-center text-xs text-yellow-600">
+                                        <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        Menunggu Verifikasi
+                                    </div>
+                                <?php endif; ?>
+                            </div>
                         </td>
                         <td class="px-6 py-4 text-center text-slate-600">
                             <?php echo $row['check_in_time'] ? date('H:i', strtotime($row['check_in_time'])) : '-'; ?>

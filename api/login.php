@@ -58,9 +58,9 @@ try {
     if ($user && password_verify($password, $user['password'])) {
         unset($user['password']);
         
-        // Determine coordinate status based on access_tahfidz permission
+        // Determine coordinator status based on position name
         include_once '../config/permission.php';
-        $user['is_koordinator'] = hasPermission($user['id'], 'access_tahfidz');
+        $user['is_koordinator'] = (stripos($user['position_name'], 'Koordinator Tahfidz') !== false) ? 1 : 0;
 
         echo json_encode([
             "success" => true,

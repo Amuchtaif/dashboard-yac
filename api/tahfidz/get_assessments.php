@@ -9,6 +9,7 @@ include_once '../../config/db_mysqli.php';
 
 $student_id = isset($_GET['student_id']) ? $_GET['student_id'] : null;
 $month = isset($_GET['month']) ? $_GET['month'] : null; // YYYY-MM
+$date = isset($_GET['date']) ? $_GET['date'] : null; // YYYY-MM-DD
 $teacher_id = isset($_GET['teacher_id']) ? $_GET['teacher_id'] : null;
 
 try {
@@ -30,6 +31,12 @@ try {
     if ($month) {
         $query .= " AND DATE_FORMAT(a.assessment_date, '%Y-%m') = ?";
         $params[] = $month;
+        $types .= "s";
+    }
+
+    if ($date) {
+        $query .= " AND DATE(a.assessment_date) = ?";
+        $params[] = $date;
         $types .= "s";
     }
 

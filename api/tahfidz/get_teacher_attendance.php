@@ -12,9 +12,10 @@ $teacher_id = isset($_GET['teacher_id']) ? $_GET['teacher_id'] : null;
 
 try {
     $attendance_records = [];
-    $query = "SELECT t.*, e.full_name as teacher_name
+    $query = "SELECT t.*, t.is_verified, t.status_approval, e.full_name as teacher_name, '' as teacher_photo, u.name as unit_name
               FROM tahfidz_teacher_attendance t
               LEFT JOIN employees e ON t.teacher_id = e.id
+              LEFT JOIN units u ON e.unit_id = u.id
               WHERE 1=1";
 
     $params = [];

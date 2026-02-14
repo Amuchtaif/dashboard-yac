@@ -54,10 +54,15 @@ try {
         
         // Build permissions object using hybrid permission logic
         include_once '../config/permission.php';
+        
+        // Check if user is Koordinator Tahfidz based on position name
+        $isKoordinator = (stripos($row['position_name'], 'Koordinator Tahfidz') !== false) ? 1 : 0;
+        
         $permissions = [
             "can_create_meeting" => hasPermission($user_id, 'create_meeting'),
             "can_approve_permits" => hasPermission($user_id, 'approve_permits'),
             "can_access_tahfidz" => hasPermission($user_id, 'access_tahfidz'),
+            "is_koordinator" => $isKoordinator,
         ];
         
         echo json_encode([

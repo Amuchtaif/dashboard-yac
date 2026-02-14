@@ -12,13 +12,22 @@ include_once '../../config/db_mysqli.php';
 
 $date = isset($_GET['date']) ? $_GET['date'] : null;
 $student_id = isset($_GET['student_id']) ? $_GET['student_id'] : null;
+$session = isset($_GET['session']) ? $_GET['session'] : null;
+$group_id = isset($_GET['group_id']) ? $_GET['group_id'] : null;
 
 try {
     $attendance_records = [];
     $query = "SELECT ta.*, s.nama_siswa as student_name, s.kelas, s.tingkat 
               FROM tahfidz_attendance ta 
-              LEFT JOIN students s ON ta.student_id = s.id 
-              WHERE 1=1";
+              LEFT JOIN students s ON ta.student_id = s.id ";
+
+    // Join halaqah tables if filtering by group
+    if ($group_id) {
+        $query .= " INNER JOIN halaqah_members hm ON hm.student_id = ta.student_id 
+                     INNER JOIN halaqah_groups hg ON hm.group_id = hg.id ";
+    }
+
+    $query .= " WHERE 1=1";
 
     $params = [];
     $types = "";
@@ -32,6 +41,18 @@ try {
     if ($student_id) {
         $query .= " AND ta.student_id = ?";
         $params[] = $student_id;
+        $types .= "i";
+    }
+
+    if ($session) {
+        $query .= " AND ta.session = ?";
+        $params[] = $session;
+        $types .= "s";
+    }
+
+    if ($group_id) {
+        $query .= " AND hg.id = ?";
+        $params[] = $group_id;
         $types .= "i";
     }
 

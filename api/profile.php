@@ -100,10 +100,7 @@ try {
                 'end_time' => $today_shift['end_time'],
                 'is_day_off' => (bool) $today_shift['is_day_off']
             ] : null,
-            'is_koordinator' => (function($uid) {
-                include_once '../config/permission.php';
-                return hasPermission($uid, 'access_tahfidz');
-            })($user['id'])
+            'is_koordinator' => (stripos($user['position_name'], 'Koordinator Tahfidz') !== false) ? 1 : 0
         ];
 
         echo json_encode([
