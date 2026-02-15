@@ -58,6 +58,8 @@ try {
               WHERE id = ?";
 
     $stmt = $mysqli->prepare($query);
+    file_put_contents('../../debug_api.txt', "Approving ID: $attendance_id | Session UID: " . var_export($_SESSION['user_id'], true) . " | UserID Var: " . var_export($user_id, true) . "\n", FILE_APPEND);
+    
     $stmt->bind_param("ii", $user_id, $attendance_id);
     
     if ($stmt->execute()) {
