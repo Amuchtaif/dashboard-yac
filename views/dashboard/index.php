@@ -21,8 +21,8 @@ $active_count = $conn->query("SELECT COUNT(*) FROM employees WHERE status = 'act
 $inactive_count = $conn->query("SELECT COUNT(*) FROM employees WHERE status = 'inactive'")->fetchColumn();
 
 // Fix: 'Telat' was missing. Added case-insensitive checks effectively.
-$present_count = $conn->query("SELECT COUNT(DISTINCT user_id) FROM attendance WHERE date = '$today' AND status IN ('Present', 'Late', 'Hadir', 'hadir', 'Telat')")->fetchColumn();
-$late_count = $conn->query("SELECT COUNT(DISTINCT user_id) FROM attendance WHERE date = '$today' AND status IN ('Late', 'Telat')")->fetchColumn();
+$present_count = $conn->query("SELECT COUNT(DISTINCT user_id) FROM attendances WHERE date = '$today' AND status IN ('Present', 'Late', 'Hadir', 'hadir', 'Telat')")->fetchColumn();
+$late_count = $conn->query("SELECT COUNT(DISTINCT user_id) FROM attendances WHERE date = '$today' AND status IN ('Late', 'Telat')")->fetchColumn();
 $absent_count = $active_count - $present_count; // Only count active employees for absence
 
 // Attendance Rates
@@ -36,7 +36,7 @@ for ($i = 6; $i >= 0; $i--) {
     $d = date('Y-m-d', strtotime("-$i days"));
     $day_label = date('D', strtotime($d));
 
-    $daily_count = $conn->query("SELECT COUNT(DISTINCT user_id) FROM attendance WHERE date = '$d' AND status IN ('Present', 'Late', 'Hadir', 'hadir', 'Telat')")->fetchColumn();
+    $daily_count = $conn->query("SELECT COUNT(DISTINCT user_id) FROM attendances WHERE date = '$d' AND status IN ('Present', 'Late', 'Hadir', 'hadir', 'Telat')")->fetchColumn();
 
     // Calculate percentage height relative to total employees (max 100%)
     $height_percent = $emp_count > 0 ? round(($daily_count / $emp_count) * 100) : 0;
@@ -53,12 +53,12 @@ for ($i = 6; $i >= 0; $i--) {
 // Union query to get both Check In and Check Out events ordered by time
 $activity_query = "
     SELECT a.user_id, e.full_name, a.time_in as time, 'Check In' as event_type, a.status as status_label, a.status as status_code
-    FROM attendance a 
+    FROM attendances a 
     JOIN employees e ON a.user_id = e.id 
     WHERE a.date = '$today'
     UNION
     SELECT a.user_id, e.full_name, a.time_out as time, 'Check Out' as event_type, a.status_out as status_label, a.status_out as status_code
-    FROM attendance a 
+    FROM attendances a 
     JOIN employees e ON a.user_id = e.id 
     WHERE a.date = '$today' AND a.time_out IS NOT NULL
     ORDER BY time DESC 

@@ -58,24 +58,33 @@ function calculateDistance($lat1, $lon1, $lat2, $lon2)
 
 try {
     // 3. CEK LOKASI KANTOR & RADIUS
-    $officeQuery = "SELECT latitude, longitude, radius_meters FROM office_settings LIMIT 1";
-    $stmtOffice = $conn->prepare($officeQuery);
+    $location_id = isset($data->location_id) ? $data->location_id : null;
+    
+    if ($location_id) {
+        $officeQuery = "SELECT latitude, longitude, radius_meter FROM locations WHERE id = :lid AND is_active = 1";
+        $stmtOffice = $conn->prepare($officeQuery);
+        $stmtOffice->bindParam(':lid', $location_id);
+    } else {
+        $officeQuery = "SELECT latitude, longitude, radius_meter FROM locations WHERE is_active = 1 LIMIT 1";
+        $stmtOffice = $conn->prepare($officeQuery);
+    }
+    
     $stmtOffice->execute();
     $office = $stmtOffice->fetch(PDO::FETCH_ASSOC);
 
     if (!$office) {
-        // Fallback default jika tabel kosong
-        $office = ['latitude' => '-6.200000', 'longitude' => '106.816666', 'radius_meters' => 100];
+        // Fallback default jika tidak ditemukan
+        $office = ['latitude' => '-6.200000', 'longitude' => '106.816666', 'radius_meter' => 100];
     }
 
     // Hitung Jarak
     $distance = calculateDistance($user_lat, $user_long, $office['latitude'], $office['longitude']);
 
     // Validasi Geofencing
-    if ($distance > $office['radius_meters']) {
+    if ($distance > $office['radius_meter']) {
         echo json_encode([
             "success" => false,
-            "message" => "Diluar jangkauan kantor! Jarak: $distance m (Max: {$office['radius_meters']} m)"
+            "message" => "Diluar jangkauan kantor! Jarak: $distance m (Max: {$office['radius_meter']} m)"
         ]);
         exit();
     }
@@ -168,7 +177,7 @@ try {
 
     if ($type == "IN") {
         // Cek Double Login
-        $checkQuery = "SELECT id FROM attendance WHERE user_id = :uid AND date = :date";
+        $checkQuery = "SELECT id FROM attendances WHERE user_id = :uid AND date = :date";
         $stmt = $conn->prepare($checkQuery);
         $stmt->bindParam(':uid', $user_id);
         $stmt->bindParam(':date', $today);
@@ -181,12 +190,13 @@ try {
             $status_in = ($now_time > $jam_masuk_kantor) ? "Telat" : "Hadir";
 
             // Query Insert
-            $insertQuery = "INSERT INTO attendance 
-                            (user_id, date, time_in, status, lat_in, long_in) 
-                            VALUES (:uid, :date, :time, :stat, :lat, :long)";
+            $insertQuery = "INSERT INTO attendances 
+                            (user_id, location_id, date, time_in, status, lat_in, long_in) 
+                            VALUES (:uid, :lid, :date, :time, :stat, :lat, :long)";
 
             $stmtInsert = $conn->prepare($insertQuery);
             $stmtInsert->bindParam(':uid', $user_id);
+            $stmtInsert->bindParam(':lid', $location_id);
             $stmtInsert->bindParam(':date', $today);
             $stmtInsert->bindParam(':time', $now_time);
             $stmtInsert->bindParam(':stat', $status_in);
@@ -205,7 +215,7 @@ try {
 
     } elseif ($type == "OUT") {
         // Cek Data Absen Masuk
-        $checkQuery = "SELECT id, time_out FROM attendance WHERE user_id = :uid AND date = :date";
+        $checkQuery = "SELECT id, time_out FROM attendances WHERE user_id = :uid AND date = :date";
         $stmt = $conn->prepare($checkQuery);
         $stmt->bindParam(':uid', $user_id);
         $stmt->bindParam(':date', $today);
@@ -221,7 +231,7 @@ try {
             $status_out = ($now_time < $jam_pulang_kantor) ? "Pulang Cepat" : "Pulang";
 
             // Query Update
-            $updateQuery = "UPDATE attendance 
+            $updateQuery = "UPDATE attendances 
                             SET time_out = :time, 
                                 status_out = :stat_out, 
                                 lat_out = :lat, 

@@ -1,0 +1,273 @@
+academic_years
+academic_years_old
+attendance
+class_schedules
+departments
+divisions
+education_units
+employee_assignments
+employees
+grade_levels
+halaqah_groups
+halaqah_members
+meeting_participants
+meetings
+office_settings
+permits
+positions
+student_class_history
+students
+subjects
+tahfidz_assessments
+tahfidz_attendance
+tahfidz_memorization
+tahfidz_teacher_attendance
+units
+user_permissions
+work_schedule_details
+work_schedulesTable: academic_years
+  - id (int(11))
+  - name (varchar(100))
+  - semester (enum('Ganjil','Genap'))
+  - start_date (date)
+  - end_date (date)
+  - is_active (tinyint(1))
+  - created_at (timestamp)
+  - updated_at (timestamp)
+Table: academic_years_old
+  - id (int(11))
+  - name (varchar(50))
+  - status (enum('Active','Inactive'))
+  - is_active (tinyint(1))
+  - start_date (date)
+  - end_date (date)
+  - created_at (timestamp)
+  - updated_at (timestamp)
+Table: attendance
+  - id (int(11))
+  - user_id (int(11))
+  - date (date)
+  - time_in (time)
+  - time_out (time)
+  - lat_in (varchar(50))
+  - long_in (varchar(50))
+  - lat_out (varchar(50))
+  - long_out (varchar(50))
+  - status (varchar(20))
+  - status_out (varchar(50))
+Table: class_schedules
+  - id (int(11))
+  - academic_year_id (int(11))
+  - grade_level_id (int(11))
+  - employee_id (int(11))
+  - subject_id (int(11))
+  - day (enum('Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'))
+  - start_time (time)
+  - end_time (time)
+Table: departments
+  - id (int(11))
+  - name (varchar(255))
+  - schedule_id (int(11))
+Table: divisions
+  - id (int(11))
+  - name (varchar(255))
+  - manager_id (int(11))
+  - schedule_id (int(11))
+Table: education_units
+  - id (int(11))
+  - name (varchar(255))
+  - category (varchar(255))
+  - description (text)
+  - grade_levels (varchar(255))
+  - operational_unit_id (int(11))
+  - student_count (int(11))
+  - teacher_count (int(11))
+  - icon (varchar(255))
+  - created_at (timestamp)
+Table: employee_assignments
+  - id (int(11))
+  - employee_id (int(11))
+  - position_id (int(11))
+  - unit_id (int(11))
+  - division_id (int(11))
+  - is_active (tinyint(1))
+  - created_at (timestamp)
+Table: employees
+  - id (int(11))
+  - nik (varchar(100))
+  - full_name (varchar(255))
+  - phone_number (varchar(20))
+  - address (varchar(255))
+  - division_id (int(11))
+  - unit_id (int(11))
+  - email (varchar(255))
+  - password (varchar(255))
+  - schedule_id (int(11))
+  - position_id (int(11))
+  - reports_to (int(11))
+  - status (enum('active','inactive'))
+  - fcm_token (text)
+  - created_at (timestamp)
+Table: grade_levels
+  - id (int(11))
+  - name (varchar(255))
+  - education_unit_id (int(11))
+  - teacher_id (int(11))
+  - level (varchar(50))
+  - category (varchar(255))
+  - created_at (timestamp)
+  - capacity (int(11))
+Table: halaqah_groups
+  - id (int(11))
+  - group_name (varchar(255))
+  - teacher_id (int(11))
+  - created_at (timestamp)
+Table: halaqah_members
+  - id (int(11))
+  - group_id (int(11))
+  - student_id (int(11))
+Table: meeting_participants
+  - id (int(11))
+  - meeting_id (int(11))
+  - employee_id (int(11))
+  - status (enum('invited','present','absent'))
+  - attendance_time (datetime)
+Table: meetings
+  - id (int(11))
+  - title (varchar(255))
+  - description (text)
+  - meeting_date (date)
+  - start_time (time)
+  - end_time (time)
+  - type (enum('online','offline'))
+  - location (varchar(255))
+  - created_by (int(11))
+  - division_id (int(11))
+  - qr_token (varchar(255))
+  - created_at (timestamp)
+Table: office_settings
+  - id (int(11))
+  - office_name (varchar(100))
+  - latitude (varchar(50))
+  - longitude (varchar(50))
+  - radius_meters (int(11))
+Table: permits
+  - id (int(11))
+  - employee_id (int(11))
+  - permit_type (varchar(50))
+  - start_date (date)
+  - end_date (date)
+  - reason (text)
+  - attachment (varchar(255))
+  - status (enum('Pending','Approved','Rejected'))
+  - approver_id (int(11))
+  - approved_by (int(11))
+  - rejection_note (text)
+  - approved_at (datetime)
+  - created_at (timestamp)
+Table: positions
+  - id (int(11))
+  - name (varchar(100))
+  - level (int(11))
+  - can_create_meeting (tinyint(1))
+  - can_approve_permits (tinyint(1))
+  - can_access_tahfidz (tinyint(1))
+Table: student_class_history
+  - id (int(11))
+  - student_id (int(11))
+  - class_id (int(11))
+  - academic_year_id (int(11))
+  - status (enum('ACTIVE','TRANSFERRED','DROPPED','PROMOTED','GRADUATED'))
+  - joined_at (date)
+  - left_at (date)
+  - created_at (timestamp)
+Table: students
+  - id (int(11))
+  - nama_siswa (varchar(255))
+  - nomor_induk (varchar(50))
+  - tahun_ajaran (varchar(20))
+  - tingkat (varchar(50))
+  - kelas (varchar(50))
+  - tempat_lahir (varchar(100))
+  - tanggal_lahir (date)
+  - alamat (text)
+  - status (varchar(50))
+  - spp (decimal(10,2))
+  - daftar_ulang (decimal(10,2))
+  - qr_code (varchar(255))
+  - foto (varchar(255))
+  - created_at (timestamp)
+Table: subjects
+  - id (int(11))
+  - name (varchar(255))
+  - category (enum('Umum','Diniyah','Muatan Lokal','Akademik'))
+  - code (varchar(50))
+  - description (text)
+Table: tahfidz_assessments
+  - id (int(11))
+  - student_id (int(11))
+  - assessment_date (date)
+  - category (varchar(50))
+  - tajweed_score (int(11))
+  - fluency_score (int(11))
+  - makhraj_score (int(11))
+  - total_score (int(11))
+  - comments (text)
+  - teacher_id (int(11))
+  - created_at (timestamp)
+Table: tahfidz_attendance
+  - id (int(11))
+  - student_id (int(11))
+  - date (date)
+  - status (enum('Hadir','Sakit','Izin','Alpha'))
+  - session (varchar(50))
+  - teacher_id (int(11))
+  - created_at (timestamp)
+Table: tahfidz_memorization
+  - id (int(11))
+  - student_id (int(11))
+  - date (date)
+  - surah_start (varchar(100))
+  - ayat_start (int(11))
+  - surah_end (varchar(100))
+  - ayat_end (int(11))
+  - juz (int(11))
+  - status (enum('Lancar','Kurang Lancar','Ulang','Ziyadah','Murajaah'))
+  - notes (text)
+  - teacher_id (int(11))
+  - created_at (timestamp)
+Table: tahfidz_teacher_attendance
+  - id (int(11))
+  - teacher_id (int(11))
+  - date (date)
+  - status (enum('Hadir','Sakit','Izin','Alpha'))
+  - check_in_time (time)
+  - check_out_time (time)
+  - notes (text)
+  - created_at (timestamp)
+  - status_approval (enum('pending','approved','rejected'))
+  - approved_by (int(11))
+  - approval_time (datetime)
+  - rejection_reason (text)
+  - is_verified (tinyint(1))
+Table: units
+  - id (int(11))
+  - division_id (int(11))
+  - name (varchar(255))
+  - schedule_id (int(11))
+Table: user_permissions
+  - id (int(11))
+  - employee_id (int(11))
+  - permission_name (varchar(50))
+  - is_allowed (tinyint(1))
+  - created_at (timestamp)
+Table: work_schedule_details
+  - id (int(11))
+  - schedule_id (int(11))
+  - day_name (enum('Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'))
+  - start_time (time)
+  - end_time (time)
+  - is_day_off (tinyint(1))
+Table: work_schedules
+  - id (int(11))
+  - name (varchar(50))

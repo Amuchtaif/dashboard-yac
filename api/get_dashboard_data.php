@@ -35,7 +35,7 @@ try {
     // BAGIAN 1: LAZY AUTO-CLOSE (Membersihkan Data Kemarin yang Lupa Pulang)
     // =================================================================================
 
-    $cleanupQuery = "UPDATE attendance 
+    $cleanupQuery = "UPDATE attendances 
                      SET time_out = '23:59:59', 
                          status_out = 'Lupa Absen Pulang' 
                      WHERE user_id = :uid 
@@ -52,7 +52,7 @@ try {
     // =================================================================================
 
     $statusQuery = "SELECT time_in, time_out, status 
-                    FROM attendance 
+                    FROM attendances 
                     WHERE user_id = :uid AND date = :today";
 
     $stmtStatus = $conn->prepare($statusQuery);
@@ -87,7 +87,7 @@ try {
                             time_in as time, 
                             date, 
                             status as status 
-                        FROM attendance 
+                        FROM attendances 
                         WHERE user_id = :uid AND date >= :start_date
                         
                         UNION ALL
@@ -98,7 +98,7 @@ try {
                             time_out as time, 
                             date, 
                             status_out as status 
-                        FROM attendance 
+                        FROM attendances 
                         WHERE user_id = :uid AND time_out IS NOT NULL AND date >= :start_date
                       ) AS combined_data
                       ORDER BY date DESC, time DESC";

@@ -23,11 +23,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($latitude && $longitude && $radius_meters) {
         try {
             // Update logic (ID = 1)
-            $sql = "UPDATE office_settings SET 
-                    office_name = :name, 
+            $sql = "UPDATE locations SET 
+                    name = :name, 
                     latitude = :lat, 
                     longitude = :long, 
-                    radius_meters = :rad 
+                    radius_meter = :rad 
                     WHERE id = 1";
 
             $stmt = $conn->prepare($sql);
@@ -59,16 +59,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Fetch Current Settings
 $settings = [];
 try {
-    $stmt = $conn->query("SELECT * FROM office_settings WHERE id = 1 LIMIT 1");
+    $stmt = $conn->query("SELECT * FROM locations WHERE id = 1 LIMIT 1");
     $settings = $stmt->fetch(PDO::FETCH_ASSOC);
 
     // Fallback if no row exists
     if (!$settings) {
         $settings = [
-            'office_name' => 'Kantor Pusat',
+            'name' => 'Kantor Pusat',
             'latitude' => '',
             'longitude' => '',
-            'radius_meters' => 100
+            'radius_meter' => 100
         ];
     }
 } catch (PDOException $e) {
@@ -77,8 +77,8 @@ try {
 
 $lat = $settings['latitude'];
 $long = $settings['longitude'];
-$radius = $settings['radius_meters'];
-$office_name = $settings['office_name'];
+$radius = $settings['radius_meter'];
+$office_name = $settings['name'];
 
 include '../layouts/header.php';
 ?>

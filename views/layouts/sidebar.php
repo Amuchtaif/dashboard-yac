@@ -174,17 +174,17 @@ if (isset($_SESSION['user_id']) && $_SESSION['user_id'] == 1) {
                 Struktur Organisasi
             </a>
 
-            <!-- Office Settings -->
-            <a href="<?php url('views/settings/office.php'); ?>"
-                class="<?php echo isActive('office.php'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
-                <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('office.php'); ?> transition-colors"
+            <!-- Locations Management -->
+            <a href="<?php url('views/settings/locations.php'); ?>"
+                class="<?php echo isActive('locations.php'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('locations.php'); ?> transition-colors"
                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                     stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
                     <path stroke-linecap="round" stroke-linejoin="round"
                         d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
                 </svg>
-                Lokasi Kantor
+                Manajemen Lokasi
             </a>
 
             <div class="pt-4 pb-2">

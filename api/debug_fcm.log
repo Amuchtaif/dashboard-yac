@@ -83,3 +83,20 @@
   "name": "projects/dashboard-yac/messages/0:1770443217086148%a6008fffa6008fff"
 }
 
+2026-02-16 16:22:35 - Starting Notification Process. Approver ID: 82
+2026-02-16 16:22:35 - Token found: fAo4Ozv0SL...
+2026-02-16 16:22:35 - Google Access Token Acquired
+2026-02-16 16:22:36 - FCM Response: {
+  "error": {
+    "code": 404,
+    "message": "Requested entity was not found.",
+    "status": "NOT_FOUND",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.firebase.fcm.v1.FcmError",
+        "errorCode": "UNREGISTERED"
+      }
+    ]
+  }
+}
+
