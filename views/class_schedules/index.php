@@ -44,14 +44,15 @@ $total_pages = ceil($total_rows / $limit);
 
 // Ambil data
 $query = "
-    SELECT cs.*, e.full_name as teacher_name, s.name as subject_name, gl.name as class_name, ay.name as ay_name
+    SELECT cs.*, e.full_name as teacher_name, s.name as subject_name, gl.name as class_name, ay.name as ay_name, lp.start_time, lp.end_time
     FROM class_schedules cs
     JOIN employees e ON cs.employee_id = e.id
     JOIN subjects s ON cs.subject_id = s.id
     JOIN grade_levels gl ON cs.grade_level_id = gl.id
     JOIN academic_years ay ON cs.academic_year_id = ay.id
+    LEFT JOIN lesson_periods lp ON cs.lesson_period_id = lp.id
     $where_sql
-    ORDER BY ay.name DESC, FIELD(cs.day, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'), cs.start_time ASC
+    ORDER BY ay.name DESC, FIELD(cs.day, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'), lp.start_time ASC
     LIMIT :limit OFFSET :offset
 ";
 $stmt = $conn->prepare($query);

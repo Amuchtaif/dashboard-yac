@@ -238,6 +238,17 @@ if (isset($_SESSION['user_id']) && $_SESSION['user_id'] == 1) {
                 Unit Pendidikan
             </a>
 
+            <!-- Lesson Periods -->
+            <a href="<?php url('views/lesson_periods/index.php'); ?>"
+                class="<?php echo isActive('lesson_periods'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('lesson_periods'); ?> transition-colors"
+                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Jam Pelajaran
+            </a>
+
             <!-- Grade Levels -->
             <a href="<?php url('views/grade_levels/index.php'); ?>"
                 class="<?php echo isActive('grade_levels'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">

@@ -1,2 +1,0 @@
-16:14:07 | Input: {"id":17,"action":"approve"} | Session UID: 'NONE'
-16:14:08 | Input: {"id":16,"action":"approve"} | Session UID: 'NONE'

@@ -1,4 +1,0 @@
-ID: 15 | Date: 2026-02-14 | Time: 19:45:15 | Status: approved | ApprovedBy ID: NULL | Name: NULL
-ID: 14 | Date: 2026-02-14 | Time: 19:31:22 | Status: rejected | ApprovedBy ID: 25 | Name: Ahmad Ghozali
-ID: 12 | Date: 2026-02-14 | Time: 15:17:30 | Status: approved | ApprovedBy ID: 25 | Name: Ahmad Ghozali
-ID: 11 | Date: 2026-02-14 | Time: 13:21:24 | Status: approved | ApprovedBy ID: 25 | Name: Ahmad Ghozali
