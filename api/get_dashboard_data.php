@@ -173,9 +173,9 @@ try {
         if ($scheduleData['is_day_off'] == 1) {
             $scheduleString = "Libur";
         } elseif (!empty($scheduleData['start_time']) && !empty($scheduleData['end_time'])) {
-            // Ubah format 08:00:00 menjadi 08:00 AM
-            $start = date("h:i A", strtotime($scheduleData['start_time']));
-            $end = date("h:i A", strtotime($scheduleData['end_time']));
+            // Ubah format 08:00:00 menjadi 08:00 (Format Indonesia 24 jam)
+            $start = date("H:i", strtotime($scheduleData['start_time']));
+            $end = date("H:i", strtotime($scheduleData['end_time']));
             $scheduleString = "$start - $end";
         }
     }

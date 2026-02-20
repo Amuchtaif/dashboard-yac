@@ -15,6 +15,20 @@ if (!$employee_id) {
 
 // Map Indonesian days request if needed, but DB uses English usually unless configured
 // Based on previous work, DB stores 'Monday', 'Tuesday' etc.
+$day_map = [
+    'Senin' => 'Monday',
+    'Selasa' => 'Tuesday',
+    'Rabu' => 'Wednesday',
+    'Kamis' => 'Thursday',
+    'Jumat' => 'Friday',
+    'Sabtu' => 'Saturday',
+    'Ahad' => 'Sunday',
+    'Minggu' => 'Sunday'
+];
+
+if (isset($day_map[$day])) {
+    $day = $day_map[$day];
+}
 
 try {
     $sql = "
@@ -29,7 +43,7 @@ try {
         FROM class_schedules cs
         JOIN subjects s ON cs.subject_id = s.id
         JOIN grade_levels gl ON cs.grade_level_id = gl.id
-        JOIN lesson_periods lp ON cs.lesson_period_id = lp.id
+        LEFT JOIN lesson_periods lp ON cs.lesson_period_id = lp.id
         WHERE cs.employee_id = :employee_id AND cs.day = :day
         ORDER BY lp.start_time ASC
     ";

@@ -26,30 +26,16 @@ try {
         $activeYear = $yearRow['name'];
     }
 
-    // 2. Filter students
-    if (!empty($activeYear)) {
-        // Normalize formats to cover slash vs hyphen differences (e.g. 2024/2025 vs 2024-2025)
-        $yearSlash = str_replace('-', '/', $activeYear);
-        $yearHyphen = str_replace('/', '-', $activeYear);
-        
-        // Use Prepared Statement for safety
-        $stmt = $mysqli->prepare("SELECT * FROM students WHERE tahun_ajaran = ? OR tahun_ajaran = ? ORDER BY nama_siswa ASC");
-        if ($stmt) {
-            $stmt->bind_param("ss", $yearSlash, $yearHyphen);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            while ($row = $result->fetch_assoc()) {
-                $students[] = $row;
-            }
-            $stmt->close();
-        } else {
-             throw new Exception("Failed to prepare statement: " . $mysqli->error);
+    // 2. Fetch all students (removed strict academic year filtering to show all data)
+    $query = "SELECT * FROM students ORDER BY nama_siswa ASC";
+    $result = $mysqli->query($query);
+    
+    if ($result) {
+        while ($row = $result->fetch_assoc()) {
+            $students[] = $row;
         }
     } else {
-        // Option: if no active year determined, return empty or all?
-        // User request specifically says "based on active year", so returning empty is safer if none active.
-        // Or we could try to just fetch all if logic fails, but let's stick to the rule.
-        // $students = []; 
+        throw new Exception("Error executing query: " . $mysqli->error);
     }
 
     echo json_encode([

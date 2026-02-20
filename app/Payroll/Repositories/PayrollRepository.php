@@ -70,14 +70,18 @@ class PayrollRepository
             $params['nik'] = $filters['nik'];
         }
         
-        // Filter by Month and Year using gaji_bulan or tanggal
-        if (isset($filters['bulan']) && $filters['bulan'] !== null && isset($filters['tahun']) && $filters['tahun'] !== null) {
+        // Filter by Month and Year independently with priority for gaji_bulan
+        if (isset($filters['bulan']) && $filters['bulan'] !== null && $filters['bulan'] !== '') {
             $monthName = $this->getMonthName((int)$filters['bulan']);
-            $year = $filters['tahun'];
-            $query .= " AND (gaji_bulan LIKE :period OR (MONTH(tanggal) = :m AND YEAR(tanggal) = :y))";
-            $params['period'] = "%$monthName $year%";
-            $params['m'] = (int)$filters['bulan'];
-            $params['y'] = (int)$filters['tahun'];
+            $query .= " AND (gaji_bulan LIKE :m_name OR (gaji_bulan NOT REGEXP 'Januari|Februari|Maret|April|Mei|Juni|Juli|Agustus|September|Oktober|November|Desember' AND MONTH(tanggal) = :m_num))";
+            $params['m_name'] = "%$monthName%";
+            $params['m_num'] = (int)$filters['bulan'];
+        }
+        
+        if (isset($filters['tahun']) && $filters['tahun'] !== null && $filters['tahun'] !== '') {
+            $query .= " AND (gaji_bulan LIKE :y_name OR (gaji_bulan NOT REGEXP '[0-9]{4}' AND YEAR(tanggal) = :y_num))";
+            $params['y_name'] = "%" . $filters['tahun'] . "%";
+            $params['y_num'] = (int)$filters['tahun'];
         }
         
         $query .= " ORDER BY id DESC LIMIT :limit OFFSET :offset";

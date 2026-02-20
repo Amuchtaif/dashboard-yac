@@ -38,24 +38,10 @@ try {
         $update_stmt = $conn->prepare("UPDATE class_journals SET topic = ?, notes = ?, teacher_id = ? WHERE id = ?");
         $update_stmt->execute([$topic, $notes, $teacher_id, $journal_id]);
     } else {
-        // Create new
-        $insert_stmt = $conn->prepare("INSERT INTO class_journals (class_schedule_id, teacher_id, date, topic, notes, start_time, end_time) VALUES (?, ?, ?, ?, ?, '00:00:00', '00:00:00')");
-        // Getting start/end time from schedule for reference? Or actual time?
-        // Let's fetch schedule times first to fill start/end meaningfully.
-        $sch_stmt = $conn->prepare("SELECT start_time, end_time FROM lesson_periods lp JOIN class_schedules cs ON cs.lesson_period_id = lp.id WHERE cs.id = ?");
-        $sch_stmt->execute([$schedule_id]);
-        $times = $sch_stmt->fetch(PDO::FETCH_ASSOC);
-        $start = $times ? $times['start_time'] : '00:00:00';
-        $end = $times ? $times['end_time'] : '00:00:00';
-
-        $insert_stmt->execute([$schedule_id, $teacher_id, $date, $topic, $notes]); // start/end handled by trigger or default? No, I added them in PHP. Wait, I didn't verify table structure for start/end.
-        // I created table with start_time, end_time.
-        // Re-check create_attendance_tables.php:
-        // class_journals ... start_time TIME NOT NULL, end_time TIME NOT NULL ...
-        // So I must provide them.
-        
-        $insert_stmt = $conn->prepare("INSERT INTO class_journals (class_schedule_id, teacher_id, date, topic, notes, start_time, end_time) VALUES (?, ?, ?, ?, ?, ?, ?)");
-        $insert_stmt->execute([$schedule_id, $teacher_id, $date, $topic, $notes, $start, $end]);
+        // Check if DB table has start_time/end_time. Previous check_journals_cols.php output showed they DO NOT exist.
+        // So we remove them from insert.
+        $insert_stmt = $conn->prepare("INSERT INTO class_journals (class_schedule_id, teacher_id, date, topic, notes) VALUES (?, ?, ?, ?, ?)");
+        $insert_stmt->execute([$schedule_id, $teacher_id, $date, $topic, $notes]);
         $journal_id = $conn->lastInsertId();
     }
 
