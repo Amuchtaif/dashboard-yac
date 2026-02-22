@@ -32,8 +32,11 @@ try {
     $database = new Database();
     $db = $database->getConnection();
 
-    // Query to get all permissions for a user via positions table
+    // Query to get user and their position (if any)
+    // Using LEFT JOIN so users without a position (e.g., Admin) are still found
     $query = "SELECT 
+                e.id as employee_id,
+                e.full_name,
                 p.id as position_id,
                 p.name as position_name,
                 p.level as position_level,
@@ -42,7 +45,7 @@ try {
                 p.can_access_tahfidz,
                 p.can_access_education
               FROM employees e 
-              JOIN positions p ON e.position_id = p.id 
+              LEFT JOIN positions p ON e.position_id = p.id 
               WHERE e.id = :user_id 
               LIMIT 1";
               
@@ -57,7 +60,8 @@ try {
         include_once '../config/permission.php';
         
         // Check if user is Koordinator Tahfidz based on position name
-        $isKoordinator = (stripos($row['position_name'], 'Koordinator Tahfidz') !== false) ? 1 : 0;
+        $posName = $row['position_name'] ?? '';
+        $isKoordinator = (stripos($posName, 'Koordinator Tahfidz') !== false) ? 1 : 0;
         
         $permissions = [
             "can_create_meeting" => hasPermission($user_id, 'create_meeting'),
@@ -70,9 +74,9 @@ try {
         echo json_encode([
             "success" => true,
             "data" => [
-                "position_id" => (int)$row['position_id'],
-                "position_name" => $row['position_name'],
-                "position_level" => (int)$row['position_level'],
+                "position_id" => $row['position_id'] ? (int)$row['position_id'] : null,
+                "position_name" => $row['position_name'] ?? 'No Position',
+                "position_level" => $row['position_level'] ? (int)$row['position_level'] : 99,
                 "permissions" => $permissions
             ]
         ]);
@@ -80,7 +84,7 @@ try {
         http_response_code(404);
         echo json_encode([
             "success" => false,
-            "message" => "User not found or no position assigned."
+            "message" => "User not found."
         ]);
     }
 

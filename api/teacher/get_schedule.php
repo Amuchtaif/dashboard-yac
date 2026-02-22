@@ -5,8 +5,7 @@ $db = new Database();
 $conn = $db->getConnection();
 
 $employee_id = $_GET['employee_id'] ?? null;
-$day = 'Monday'; // FORCED TO MONDAY FOR TESTING AND DEBUG
-// $day = $_GET['day'] ?? date('l'); // 'Monday', 'Tuesday', ...
+$day = $_GET['day'] ?? date('l'); // 'Monday', 'Tuesday', ...
 
 if (!$employee_id) {
     http_response_code(400);

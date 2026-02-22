@@ -39,6 +39,8 @@ try {
                 e.full_name, 
                 e.email, 
                 e.phone_number,
+                e.address,
+                e.address as alamat,
                 e.password, 
                 u.name AS unit_name, 
                 d.name AS division_name,

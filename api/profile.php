@@ -89,6 +89,7 @@ try {
             'email' => $user['email'],
             'phone_number' => $user['phone_number'],
             'address' => $user['address'],
+            'alamat' => $user['address'],
             'status' => $user['status'],
             'joined_at' => $user['joined_at'],
             'division_name' => $user['division_name'],
