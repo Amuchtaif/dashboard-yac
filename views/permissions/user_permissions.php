@@ -10,6 +10,21 @@ $page_title = "Hak Akses Spesifik Karyawan";
 $db = new Database();
 $conn = $db->getConnection();
 
+// Auto-migration: Ensure user_permissions table exists
+try {
+    $conn->exec("CREATE TABLE IF NOT EXISTS `user_permissions` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `employee_id` INT NOT NULL,
+        `permission_name` VARCHAR(100) NOT NULL,
+        `is_allowed` TINYINT(1) NOT NULL DEFAULT 0,
+        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY `unique_employee_permission` (`employee_id`, `permission_name`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+} catch (Exception $e) {
+    // Table might already exist
+}
+
 // --- Pagination Logic ---
 $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 10;
 if (!in_array($limit, [10, 20, 50, 100]))
@@ -22,9 +37,7 @@ $offset = ($page - 1) * $limit;
 
 // --- Search Logic ---
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
-$where_clauses = ["e.status = 'active'"]; // Only active employees? Or all. Let's filter active by default or just show all. User expects "Search Employee".
-// Let's safe filter active usually.
-$where_clauses = ["1=1"]; 
+$where_clauses = ["1=1"];
 $params = [];
 
 if ($search) {
@@ -41,17 +54,23 @@ $count_stmt->execute($params);
 $total_rows = $count_stmt->fetchColumn();
 $total_pages = ceil($total_rows / $limit);
 
-// Fetch Employees with Permissions
-// Left Join with user_permissions for each type
+// Fetch Employees with their position-based permissions AND user-specific overrides
 $query = "
     SELECT 
         e.id, 
         e.full_name, 
         e.email, 
         p.name as position_name,
-        up_meet.is_allowed as access_meeting,
-        up_tahfidz.is_allowed as access_tahfidz,
-        up_attend.is_allowed as access_attendance
+        -- Position-based (role) permissions
+        COALESCE(p.can_create_meeting, 0) as role_meeting,
+        COALESCE(p.can_approve_permits, 0) as role_permits,
+        COALESCE(p.can_access_tahfidz, 0) as role_tahfidz,
+        COALESCE(p.can_access_education, 0) as role_education,
+        -- User-specific overrides (NULL = no override)
+        up_meet.is_allowed as override_meeting,
+        up_tahfidz.is_allowed as override_tahfidz,
+        up_attend.is_allowed as override_attendance,
+        up_edu.is_allowed as override_education
     FROM employees e
     LEFT JOIN positions p ON e.position_id = p.id
     LEFT JOIN user_permissions up_meet 
@@ -60,6 +79,8 @@ $query = "
         ON e.id = up_tahfidz.employee_id AND up_tahfidz.permission_name = 'access_tahfidz'
     LEFT JOIN user_permissions up_attend 
         ON e.id = up_attend.employee_id AND up_attend.permission_name = 'access_attendance'
+    LEFT JOIN user_permissions up_edu 
+        ON e.id = up_edu.employee_id AND up_edu.permission_name = 'access_education'
     WHERE $where_sql
     ORDER BY e.full_name ASC
     LIMIT :limit OFFSET :offset
@@ -78,6 +99,45 @@ $employees = $stmt->fetchAll(PDO::FETCH_ASSOC);
 include '../layouts/header.php';
 ?>
 
+<style>
+    .perm-cell {
+        position: relative;
+    }
+    .perm-source {
+        font-size: 10px;
+        line-height: 1;
+        margin-top: 4px;
+        display: block;
+        text-align: center;
+    }
+    .perm-source.from-role {
+        color: #64748b;
+    }
+    .perm-source.from-override {
+        color: #8b5cf6;
+        font-weight: 600;
+    }
+    .perm-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 8px;
+        border-radius: 9999px;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.025em;
+    }
+    .perm-badge.active {
+        background-color: #ecfdf5;
+        color: #047857;
+        ring: 1px solid #a7f3d0;
+    }
+    .perm-badge.inactive {
+        background-color: #fef2f2;
+        color: #b91c1c;
+    }
+</style>
+
 <div class="pb-10">
     <!-- Header -->
     <div class="sm:flex sm:items-center justify-between">
@@ -92,8 +152,29 @@ include '../layouts/header.php';
         </div>
     </div>
 
+    <!-- Legend -->
+    <div class="mt-6 bg-gradient-to-r from-slate-50 to-violet-50 border border-slate-200 rounded-xl p-4">
+        <h3 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Keterangan Prioritas:</h3>
+        <div class="flex flex-wrap gap-4 text-xs text-slate-600">
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-semibold">
+                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    Jabatan
+                </span>
+                <span>= Izin bawaan dari jabatan</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 text-[10px] font-semibold">
+                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    Override
+                </span>
+                <span>= Izin khusus per karyawan (prioritas tertinggi)</span>
+            </div>
+        </div>
+    </div>
+
     <!-- Actions Bar -->
-    <div class="mt-8 bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-4 justify-between items-center">
+    <div class="mt-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-4 justify-between items-center">
         <!-- Search -->
         <form class="relative w-full sm:w-96" method="GET">
             <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
@@ -118,14 +199,28 @@ include '../layouts/header.php';
                                 <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 sm:pl-6 w-12">No.</th>
                                 <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 sm:pl-6">Nama Karyawan</th>
                                 <th scope="col" class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Jabatan</th>
-                                <th scope="col" class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 w-32">Akses Rapat</th>
-                                <th scope="col" class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 w-32">Akses Tahfidz</th>
-                                <th scope="col" class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 w-32">Akses Presensi</th>
+                                <th scope="col" class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 w-36">Akses Rapat</th>
+                                <th scope="col" class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 w-36">Akses Tahfidz</th>
+                                <th scope="col" class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 w-36">Akses Pendidikan</th>
+                                <th scope="col" class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 w-36">Akses Presensi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200 bg-white">
                             <?php if (count($employees) > 0): ?>
-                                <?php foreach ($employees as $index => $emp): ?>
+                                <?php foreach ($employees as $index => $emp): 
+                                    // Calculate effective permissions (override > role)
+                                    $eff_meeting = $emp['override_meeting'] !== null ? (int)$emp['override_meeting'] : (int)$emp['role_meeting'];
+                                    $src_meeting = $emp['override_meeting'] !== null ? 'override' : 'role';
+
+                                    $eff_tahfidz = $emp['override_tahfidz'] !== null ? (int)$emp['override_tahfidz'] : (int)$emp['role_tahfidz'];
+                                    $src_tahfidz = $emp['override_tahfidz'] !== null ? 'override' : 'role';
+
+                                    $eff_education = $emp['override_education'] !== null ? (int)$emp['override_education'] : (int)$emp['role_education'];
+                                    $src_education = $emp['override_education'] !== null ? 'override' : 'role';
+
+                                    $eff_attendance = $emp['override_attendance'] !== null ? (int)$emp['override_attendance'] : 0;
+                                    $src_attendance = $emp['override_attendance'] !== null ? 'override' : 'role';
+                                ?>
                                     <tr class="hover:bg-gray-50 transition-colors">
                                         <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-500 sm:pl-6">
                                             <?php echo $offset + $index + 1; ?>.
@@ -147,24 +242,29 @@ include '../layouts/header.php';
                                         </td>
                                         
                                         <!-- Access Meeting -->
-                                        <td class="whitespace-nowrap px-3 py-4 text-center">
-                                            <?php renderCheckbox($emp['id'], 'access_meeting', $emp['access_meeting']); ?>
+                                        <td class="whitespace-nowrap px-3 py-4 text-center perm-cell">
+                                            <?php renderToggle($emp['id'], 'access_meeting', $eff_meeting, $src_meeting); ?>
                                         </td>
                                         
                                         <!-- Access Tahfidz -->
-                                        <td class="whitespace-nowrap px-3 py-4 text-center">
-                                            <?php renderCheckbox($emp['id'], 'access_tahfidz', $emp['access_tahfidz']); ?>
+                                        <td class="whitespace-nowrap px-3 py-4 text-center perm-cell">
+                                            <?php renderToggle($emp['id'], 'access_tahfidz', $eff_tahfidz, $src_tahfidz); ?>
+                                        </td>
+
+                                        <!-- Access Education -->
+                                        <td class="whitespace-nowrap px-3 py-4 text-center perm-cell">
+                                            <?php renderToggle($emp['id'], 'access_education', $eff_education, $src_education); ?>
                                         </td>
                                         
                                         <!-- Access Attendance -->
-                                        <td class="whitespace-nowrap px-3 py-4 text-center">
-                                            <?php renderCheckbox($emp['id'], 'access_attendance', $emp['access_attendance']); ?>
+                                        <td class="whitespace-nowrap px-3 py-4 text-center perm-cell">
+                                            <?php renderToggle($emp['id'], 'access_attendance', $eff_attendance, $src_attendance); ?>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <tr>
-                                    <td colspan="6" class="py-10 text-center text-sm text-gray-500">Data karyawan tidak ditemukan.</td>
+                                    <td colspan="7" class="py-10 text-center text-sm text-gray-500">Data karyawan tidak ditemukan.</td>
                                 </tr>
                             <?php endif; ?>
                         </tbody>
@@ -212,23 +312,45 @@ include '../layouts/header.php';
 </div>
 
 <?php 
-function renderCheckbox($empId, $permName, $val) {
-    // val is 1, 0, or NULL. NULL means no override (default 0).
-    $isChecked = ($val == 1);
+function renderToggle($empId, $permName, $effectiveValue, $source) {
+    $isChecked = ($effectiveValue == 1);
+    $isOverride = ($source === 'override');
+    
+    $sourceLabel = $isOverride ? 'Override' : 'Jabatan';
+    $sourceClass = $isOverride ? 'from-override' : 'from-role';
+    $sourceIcon = $isOverride 
+        ? '<svg class="w-3 h-3 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>'
+        : '<svg class="w-3 h-3 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>';
+    
+    $toggleColor = $isOverride ? 'peer-checked:bg-violet-600 peer-focus:ring-violet-300' : 'peer-checked:bg-cyan-600 peer-focus:ring-cyan-300';
     ?>
-    <label class="relative inline-flex items-center cursor-pointer justify-center">
-        <input type="checkbox" class="sr-only peer" 
-            <?php echo $isChecked ? 'checked' : ''; ?>
-            onchange="updateUserPermission(<?php echo $empId; ?>, '<?php echo $permName; ?>', this.checked)">
-        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-cyan-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-600"></div>
-    </label>
+    <div class="flex flex-col items-center gap-1">
+        <label class="relative inline-flex items-center cursor-pointer justify-center">
+            <input type="checkbox" class="sr-only peer" 
+                <?php echo $isChecked ? 'checked' : ''; ?>
+                onchange="updateUserPermission(<?php echo $empId; ?>, '<?php echo $permName; ?>', this.checked, this)"
+                data-source="<?php echo $source; ?>"
+                data-emp-id="<?php echo $empId; ?>"
+                data-perm-name="<?php echo $permName; ?>">
+            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 <?php echo $toggleColor; ?> rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+        </label>
+        <span class="perm-source <?php echo $sourceClass; ?>" id="src-<?php echo $empId; ?>-<?php echo $permName; ?>">
+            <?php echo $sourceIcon; ?> <?php echo $sourceLabel; ?>
+        </span>
+    </div>
     <?php
 }
 ?>
 
 <script>
-function updateUserPermission(empId, permName, isChecked) {
+function updateUserPermission(empId, permName, isChecked, checkboxEl) {
     const apiUrl = '../../logic/permissions/update_employee_permission.php';
+    const sourceEl = document.getElementById(`src-${empId}-${permName}`);
+    
+    // Show saving state
+    if (sourceEl) {
+        sourceEl.innerHTML = '<span class="text-amber-500 animate-pulse">Menyimpan...</span>';
+    }
 
     fetch(apiUrl, {
         method: 'POST',
@@ -245,18 +367,35 @@ function updateUserPermission(empId, permName, isChecked) {
     .then(data => {
         if (data.success) {
             showNotification('success', 'Hak akses berhasil disimpan');
+            // Update source indicator to "Override" since we just set a user-specific permission
+            if (sourceEl) {
+                sourceEl.className = 'perm-source from-override';
+                sourceEl.innerHTML = '<svg class="w-3 h-3 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg> Override';
+            }
+            // Update toggle color to violet (override style)
+            const toggleDiv = checkboxEl.nextElementSibling;
+            if (toggleDiv) {
+                toggleDiv.className = toggleDiv.className
+                    .replace('peer-checked:bg-cyan-600', 'peer-checked:bg-violet-600')
+                    .replace('peer-focus:ring-cyan-300', 'peer-focus:ring-violet-300');
+            }
         } else {
             showNotification('error', 'Gagal: ' + (data.message || 'Error permission'));
-            // Revert checkbox if needed
+            // Revert checkbox
+            checkboxEl.checked = !isChecked;
         }
     })
     .catch((error) => {
         console.error('Error:', error);
         showNotification('error', 'Terjadi kesalahan koneksi');
+        checkboxEl.checked = !isChecked;
+        if (sourceEl) {
+            sourceEl.innerHTML = 'Error';
+        }
     });
 }
 
-// Notification Helper (Duplicated from index.php or shared)
+// Notification Helper
 function showNotification(type, message) {
     const existingNotif = document.getElementById('user-perm-notification');
     if (existingNotif) existingNotif.remove();
@@ -265,23 +404,53 @@ function showNotification(type, message) {
     notif.id = 'user-perm-notification';
     notif.style.cssText = `
         position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999;
-        padding: 12px 24px; border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 14px;
+        padding: 12px 24px; border-radius: 8px; font-family: 'Outfit', sans-serif; font-size: 14px;
         font-weight: 500; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        animation: slideDown 0.3s ease-out;
     `;
     
     if (type === 'success') {
         notif.style.backgroundColor = '#10B981';
         notif.style.color = '#fff';
+        notif.innerHTML = `
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
+            </svg>
+            <span>${message}</span>
+        `;
     } else {
         notif.style.backgroundColor = '#EF4444';
         notif.style.color = '#fff';
+        notif.innerHTML = `
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+            <span>${message}</span>
+        `;
     }
     
-    notif.innerHTML = `<span>${message}</span>`;
+    // Add animation
+    if (!document.getElementById('notif-animation-style')) {
+        const style = document.createElement('style');
+        style.id = 'notif-animation-style';
+        style.textContent = `
+            @keyframes slideDown {
+                from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+                to { opacity: 1; transform: translateX(-50%) translateY(0); }
+            }
+            @keyframes slideUp {
+                from { opacity: 1; transform: translateX(-50%) translateY(0); }
+                to { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
     document.body.appendChild(notif);
     
     setTimeout(() => {
-        notif.remove();
+        notif.style.animation = 'slideUp 0.3s ease-out forwards';
+        setTimeout(() => notif.remove(), 300);
     }, 3000);
 }
 </script>

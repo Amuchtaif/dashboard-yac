@@ -25,8 +25,8 @@ $user_id = $_GET['user_id'];
 // --- KONFIGURASI TANGGAL (PENTING UNTUK TESTING) ---
 // Gunakan date('Y-m-d') untuk production. 
 // Ubah manual string tanggalnya jika ingin simulasi hari libur/minggu.
-$today = date('Y-m-d');
-// $today = '2026-01-18'; // Uncomment baris ini untuk simulasi hari Minggu
+$today = '2026-02-23'; // FORCED TO MONDAY FOR TESTING AND DEBUG
+// $today = date('Y-m-d');
 
 $yesterday = date('Y-m-d', strtotime($today . " -1 days")); // Hitung tanggal kemarin relatif terhadap $today
 

@@ -39,7 +39,8 @@ try {
                 p.level as position_level,
                 p.can_create_meeting,
                 p.can_approve_permits,
-                p.can_access_tahfidz
+                p.can_access_tahfidz,
+                p.can_access_education
               FROM employees e 
               JOIN positions p ON e.position_id = p.id 
               WHERE e.id = :user_id 
@@ -62,6 +63,7 @@ try {
             "can_create_meeting" => hasPermission($user_id, 'create_meeting'),
             "can_approve_permits" => hasPermission($user_id, 'approve_permits'),
             "can_access_tahfidz" => hasPermission($user_id, 'access_tahfidz'),
+            "can_access_education" => hasPermission($user_id, 'access_education'),
             "is_koordinator" => $isKoordinator,
         ];
         
