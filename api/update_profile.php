@@ -9,31 +9,66 @@ require_once '../config/database.php';
 $database = new Database();
 $db = $database->getConnection();
 
-$data = json_decode(file_get_contents("php://input"));
+// Handle both JSON and FormData
+$json_data = json_decode(file_get_contents("php://input"));
+$user_id = isset($_POST['user_id']) ? $_POST['user_id'] : ($json_data->user_id ?? null);
 
-if (!empty($data->user_id)) {
+if (!empty($user_id)) {
     try {
         // Collect update parts
         $update_parts = [];
-        $params = [':id' => $data->user_id];
+        $params = [':id' => $user_id];
 
-        if (isset($data->full_name)) {
+        // Data from POST
+        $full_name = isset($_POST['full_name']) ? $_POST['full_name'] : ($json_data->full_name ?? null);
+        $phone_number = isset($_POST['phone_number']) ? $_POST['phone_number'] : ($json_data->phone_number ?? null);
+        $address = isset($_POST['address']) ? $_POST['address'] : ($json_data->address ?? null);
+
+        if ($full_name !== null) {
             $update_parts[] = "full_name = :full_name";
-            $params[':full_name'] = $data->full_name;
+            $params[':full_name'] = $full_name;
         }
 
-        if (isset($data->phone_number)) {
+        if ($phone_number !== null) {
             $update_parts[] = "phone_number = :phone_number";
-            $params[':phone_number'] = $data->phone_number;
+            $params[':phone_number'] = $phone_number;
         }
 
-        if (isset($data->address)) {
+        if ($address !== null) {
             $update_parts[] = "address = :address";
-            $params[':address'] = $data->address;
+            $params[':address'] = $address;
+        }
+
+        // Handle File Upload
+        if (isset($_FILES['profile_photo']) && $_FILES['profile_photo']['error'] === UPLOAD_ERR_OK) {
+            $file_tmp = $_FILES['profile_photo']['tmp_name'];
+            $file_name = $_FILES['profile_photo']['name'];
+            $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
+            
+            // Allowed extensions
+            $allowed_exts = ['jpg', 'jpeg', 'png', 'gif'];
+            
+            if (in_array($file_ext, $allowed_exts)) {
+                $new_file_name = "profile_" . $user_id . "_" . time() . "." . $file_ext;
+                $upload_dir = "../uploads/profile_photos/";
+                
+                // Remove old photo if exists
+                $stmt_old = $db->prepare("SELECT profile_photo FROM employees WHERE id = :id");
+                $stmt_old->execute([':id' => $user_id]);
+                $old_photo = $stmt_old->fetchColumn();
+                if ($old_photo && file_exists($upload_dir . $old_photo)) {
+                    unlink($upload_dir . $old_photo);
+                }
+
+                if (move_uploaded_file($file_tmp, $upload_dir . $new_file_name)) {
+                    $update_parts[] = "profile_photo = :profile_photo";
+                    $params[':profile_photo'] = $new_file_name;
+                }
+            }
         }
 
         if (empty($update_parts)) {
-            echo json_encode(["success" => false, "message" => "No data provided for update."]);
+            echo json_encode(["success" => false, "message" => "Tidak ada data yang diubah."]);
             exit();
         }
 
@@ -48,7 +83,7 @@ if (!empty($data->user_id)) {
                             e.email, 
                             e.phone_number,
                             e.address,
-                            e.address as alamat,
+                            e.profile_photo,
                             u.name AS unit_name, 
                             d.name AS division_name,
                             p.level AS position_level,
@@ -59,7 +94,7 @@ if (!empty($data->user_id)) {
                           LEFT JOIN divisions d ON e.division_id = d.id 
                           WHERE e.id = :id";
             $stmtFetch = $db->prepare($queryFetch);
-            $stmtFetch->bindParam(':id', $data->user_id);
+            $stmtFetch->bindParam(':id', $user_id);
             $stmtFetch->execute();
             $updatedUser = $stmtFetch->fetch(PDO::FETCH_ASSOC);
 

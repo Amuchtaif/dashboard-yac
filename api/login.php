@@ -40,6 +40,7 @@ try {
                 e.email, 
                 e.phone_number,
                 e.address,
+                e.profile_photo,
                 e.address as alamat,
                 e.password, 
                 u.name AS unit_name, 

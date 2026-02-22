@@ -4,7 +4,7 @@ date_default_timezone_set('Asia/Jakarta');
 define('BASE_URL', 'http://localhost/dashboard-yac');
 
 // App Name
-define('APP_NAME', 'AMS Admin');
+define('APP_NAME', 'Dashboard YAC');
 
 // Start Session
 if (session_status() == PHP_SESSION_NONE) {
