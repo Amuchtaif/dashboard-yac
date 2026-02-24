@@ -137,13 +137,20 @@
                             class="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"></span>
                     </button>
 
-                    <!-- Profile Dropdown -->
+                        <!-- Profile Dropdown -->
                     <div class="relative ml-2" id="profile-dropdown-container">
                         <button type="button" onclick="toggleProfileDropdown()"
                             class="flex items-center gap-2 focus:outline-none">
+                            <?php 
+                                $profile_name = $_SESSION['user_name'] ?? 'User';
+                                $profile_photo = $_SESSION['user_photo'] ?? '';
+                                $avatar_url = !empty($profile_photo) 
+                                    ? BASE_URL . '/public/uploads/employees/' . $profile_photo 
+                                    : "https://ui-avatars.com/api/?name=" . urlencode($profile_name) . "&background=random";
+                            ?>
                             <img class="h-8 w-8 rounded-full border border-slate-200 object-cover"
-                                src="https://ui-avatars.com/api/?name=Admin&background=random" alt="User Profile">
-                            <span class="hidden md:block text-sm font-medium text-slate-700">Admin</span>
+                                src="<?php echo $avatar_url; ?>" alt="User Profile">
+                            <span class="hidden md:block text-sm font-medium text-slate-700"><?php echo htmlspecialchars($profile_name); ?></span>
                             <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M19 9l-7 7-7-7"></path>

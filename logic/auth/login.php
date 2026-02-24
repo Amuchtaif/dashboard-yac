@@ -15,7 +15,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $conn = $db->getConnection();
 
     try {
-        $stmt = $conn->prepare("SELECT * FROM employees WHERE email = :email LIMIT 1");
+        $stmt = $conn->prepare("SELECT e.*, p.name as position_name FROM employees e LEFT JOIN positions p ON e.position_id = p.id WHERE e.email = :email LIMIT 1");
         $stmt->bindParam(':email', $email);
         $stmt->execute();
         $user = $stmt->fetch();
@@ -23,6 +23,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($user && password_verify($password, $user['password'])) {
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['user_name'] = $user['full_name'];
+            $_SESSION['user_photo'] = $user['profile_photo'];
+            $_SESSION['position_name'] = $user['position_name'];
             $_SESSION['email'] = $user['email'];
 
             header("Location: ../../views/dashboard/index.php");

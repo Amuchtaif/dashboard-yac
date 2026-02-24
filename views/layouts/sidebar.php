@@ -415,11 +415,21 @@ if (isset($_SESSION['user_id']) && $_SESSION['user_id'] == 1) {
     <!-- Small Profile Section (Removed absolute, using flex-shrink-0) -->
     <div class="p-4 border-t border-slate-100 bg-white flex-shrink-0">
         <div class="flex items-center gap-3">
+            <?php 
+                $profile_name = $_SESSION['user_name'] ?? 'User';
+                $profile_photo = $_SESSION['user_photo'] ?? '';
+                $avatar_url = !empty($profile_photo) 
+                    ? BASE_URL . '/public/uploads/employees/' . $profile_photo 
+                    : "https://ui-avatars.com/api/?name=" . urlencode($profile_name) . "&background=random";
+            ?>
             <img class="h-8 w-8 rounded-full border border-slate-200 object-cover"
-                src="https://ui-avatars.com/api/?name=Admin&background=random" alt="User Profile">
+                src="<?php echo $avatar_url; ?>" alt="User Profile">
             <div class="flex-1 min-w-0">
                 <p class="text-sm font-semibold text-slate-800 truncate">
-                    <?php echo htmlspecialchars($_SESSION['user_name'] ?? 'Alex Morgan'); ?>
+                    <?php echo htmlspecialchars($profile_name); ?>
+                </p>
+                <p class="text-[11px] text-slate-500 truncate">
+                    <?php echo htmlspecialchars($_SESSION['position_name'] ?? 'Pegawai'); ?>
                 </p>
             </div>
             <a href="<?php url('logic/auth/logout.php'); ?>" class="text-slate-400 hover:text-red-500 transition-colors"
