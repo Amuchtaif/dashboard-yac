@@ -66,6 +66,32 @@ $activity_query = "
 ";
 $recent_activities = $conn->query($activity_query)->fetchAll(PDO::FETCH_ASSOC);
 
+// --- Attendance Ratio (Pie Chart) ---
+$stmt = $conn->prepare("SELECT COUNT(*) FROM permits WHERE status = 'Approved' AND start_date <= :today AND end_date >= :today");
+$stmt->execute([':today' => $today]);
+$permits_today_count = $stmt->fetchColumn();
+
+$sudah_absen = (int)$present_count;
+$tidak_absen = (int)$permits_today_count;
+$belum_absen = max(0, (int)$active_count - $sudah_absen - $tidak_absen);
+
+$total_for_pie = $sudah_absen + $tidak_absen + $belum_absen;
+$sudah_percent = $total_for_pie > 0 ? round(($sudah_absen / $total_for_pie) * 100) : 0;
+$tidak_percent = $total_for_pie > 0 ? round(($tidak_absen / $total_for_pie) * 100) : 0;
+$belum_percent = $total_for_pie > 0 ? round(($belum_absen / $total_for_pie) * 100) : 0;
+
+// --- Recent Permits (5 entries) ---
+$recent_permits_query = "
+    SELECT p.*, e.full_name, pos.name as position_name
+    FROM permits p
+    JOIN employees e ON p.employee_id = e.id
+    LEFT JOIN positions pos ON e.position_id = pos.id
+    ORDER BY p.created_at DESC
+    LIMIT 5
+";
+$recent_permits = $conn->query($recent_permits_query)->fetchAll(PDO::FETCH_ASSOC);
+
+
 include '../layouts/header.php';
 ?>
 
@@ -224,53 +250,87 @@ include '../layouts/header.php';
     <!-- Main Content Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        <!-- Attendance Trends (Placeholder) -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6 lg:col-span-2">
+        <!-- Attendance Ratio Pie Chart -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
             <div class="flex items-center justify-between mb-4">
                 <div>
-                    <h3 class="text-base font-bold text-slate-800">Tren Kehadiran</h3>
-                    <p class="text-sm text-slate-500">Ringkasan kehadiran mingguan</p>
-                </div>
-                <div class="flex gap-2">
-                    <select
-                        class="bg-slate-50 border-none text-xs rounded-lg px-3 py-1.5 font-medium text-slate-600 focus:ring-0 cursor-pointer">
-                        <option>Minggu Ini</option>
-                        <option>Minggu Lalu</option>
-                    </select>
-                    <button class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-50 hover:text-slate-600">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
-                            <path
-                                d="M10.75 2.75a.75.75 0 00-1.5 0v8.614L6.295 8.235a.75.75 0 10-1.09 1.03l4.25 4.5a.75.75 0 001.09 0l4.25-4.5a.75.75 0 00-1.09-1.03l-2.965 3.129V2.75z" />
-                            <path
-                                d="M3.5 12.75a.75.75 0 00-1.5 0v2.5A2.75 2.75 0 004.75 18h10.5A2.75 2.75 0 0018 15.25v-2.5a.75.75 0 00-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5z" />
-                        </svg>
-                    </button>
+                    <h3 class="text-base font-bold text-slate-800">Rasio Kehadiran</h3>
+                    <p class="text-xs text-slate-500">Status kehadiran hari ini</p>
                 </div>
             </div>
-            <!-- Dynamic Chart -->
-            <div class="h-64 flex items-end justify-between px-4 pb-2 gap-2 border-b border-slate-100">
-                <?php foreach ($chart_data as $data): ?>
-                    <div class="flex flex-col items-center w-full group relative h-full justify-end">
-                        <!-- Tooltip -->
-                        <div class="absolute bottom-full mb-2 hidden group-hover:block z-10">
-                            <div class="bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap shadow-lg">
-                                <?php echo $data['count']; ?> Hadir<br>
-                                <span class="text-[10px] text-gray-400"><?php echo $data['date']; ?></span>
+            
+            <div class="relative h-56 flex items-center justify-center">
+                <canvas id="attendancePieChart"></canvas>
+            </div>
+            
+            <div class="mt-6 flex flex-wrap justify-center gap-4 text-xs font-medium">
+                <div class="flex items-center gap-1.5">
+                    <span class="w-3 h-3 rounded-full bg-cyan-500"></span>
+                    <span class="text-slate-600">Sudah Absen (<?php echo $sudah_percent; ?>%)</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span class="w-3 h-3 rounded-full bg-orange-400"></span>
+                    <span class="text-slate-600">Tidak Absen (<?php echo $tidak_percent; ?>%)</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span class="w-3 h-3 rounded-full bg-slate-200"></span>
+                    <span class="text-slate-600">Belum Absen (<?php echo $belum_percent; ?>%)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Permissions Card -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-base font-bold text-slate-800">Perizinan Pegawai</h3>
+                <a href="<?php url('views/permits/index.php'); ?>" class="text-xs font-semibold text-cyan-600 hover:text-cyan-700">Lihat Semua</a>
+            </div>
+
+            <div class="space-y-5">
+                <?php if (count($recent_permits) > 0): ?>
+                    <?php foreach ($recent_permits as $permit): ?>
+                        <div class="flex items-start gap-3">
+                            <div class="flex-shrink-0 pt-1">
+                                <?php
+                                $typeColor = 'bg-blue-100 text-blue-600';
+                                if ($permit['permit_type'] == 'Sick') $typeColor = 'bg-red-100 text-red-600';
+                                if ($permit['permit_type'] == 'Leave') $typeColor = 'bg-purple-100 text-purple-600';
+                                ?>
+                                <span class="inline-flex items-center justify-center h-8 w-8 rounded-lg <?php echo $typeColor; ?> text-[10px] font-bold">
+                                    <?php 
+                                    echo ($permit['permit_type'] == 'Sick') ? 'S' : (($permit['permit_type'] == 'Leave') ? 'C' : 'I'); 
+                                    ?>
+                                </span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-semibold text-slate-800 truncate">
+                                    <?php echo htmlspecialchars($permit['full_name']); ?>
+                                </p>
+                                <p class="text-xs text-slate-500 truncate">
+                                    <?php echo htmlspecialchars($permit['reason']); ?>
+                                </p>
+                            </div>
+                            <div class="text-right flex-shrink-0">
+                                <p class="text-[10px] font-medium text-slate-400 uppercase">
+                                    <?php echo date('d M', strtotime($permit['start_date'])); ?>
+                                </p>
+                                <?php
+                                $statusLabelColor = 'text-orange-500';
+                                if ($permit['status'] == 'Approved') $statusLabelColor = 'text-green-500';
+                                if ($permit['status'] == 'Rejected') $statusLabelColor = 'text-red-500';
+                                ?>
+                                <p class="text-[10px] font-bold <?php echo $statusLabelColor; ?>">
+                                    <?php echo strtoupper($permit['status']); ?>
+                                </p>
                             </div>
                         </div>
-
-                        <!-- Bar -->
-                        <div class="w-full max-w-[32px] bg-cyan-500 rounded-t-md hover:bg-cyan-600 transition-all duration-300 relative"
-                            style="height: <?php echo max((float) $data['height'], 4); ?>%;">
-                        </div>
-
-                        <!-- Label -->
-                        <div class="mt-3 text-xs text-slate-400 font-medium"><?php echo $data['day']; ?></div>
-                    </div>
-                <?php endforeach; ?>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <p class="text-sm text-slate-500 text-center py-4">Belum ada pengajuan izin.</p>
+                <?php endif; ?>
             </div>
-            <!-- Labels were moved inside the loop -->
         </div>
+
 
         <!-- Real-time Activity -->
         <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
@@ -332,44 +392,35 @@ include '../layouts/header.php';
 
     </div>
 
-    <!-- Quick Actions -->
-    <div
-        class="bg-slate-50 rounded-xl border border-slate-100 p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div>
-            <h3 class="text-base font-bold text-slate-800">Akses Cepat</h3>
-            <p class="text-sm text-slate-500">Kelola tugas harian dengan efisien</p>
-        </div>
-        <div class="flex gap-3">
-            <button
-                class="inline-flex items-center px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 mr-2">
-                    <path
-                        d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
-                </svg>
-                Tambah Pegawai
-            </button>
-            <button
-                class="inline-flex items-center px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-sm font-medium rounded-lg transition-colors shadow-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
-                    class="w-4 h-4 mr-2 text-slate-400">
-                    <path fill-rule="evenodd"
-                        d="M4.5 2A1.5 1.5 0 003 3.5v13A1.5 1.5 0 004.5 18h11a1.5 1.5 0 001.5-1.5V7.621a1.5 1.5 0 00-.44-1.06l-4.12-4.122A1.5 1.5 0 0011.378 2H4.5zm2.25 8.5a.75.75 0 000 1.5h6.5a.75.75 0 000-1.5h-6.5zm0 3a.75.75 0 000 1.5h6.5a.75.75 0 000-1.5h-6.5z"
-                        clip-rule="evenodd" />
-                </svg>
-                Buat Laporan
-            </button>
-            <button
-                class="inline-flex items-center px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-sm font-medium rounded-lg transition-colors shadow-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
-                    class="w-4 h-4 mr-2 text-slate-400">
-                    <path fill-rule="evenodd"
-                        d="M3.5 17a3.5 3.5 0 013.5-3.5h9c1.933 0 3.5 1.567 3.5 3.5 0 .58-.42 1-1 1H4a1 1 0 01-.5-1zM5 4.75A3.75 3.75 0 1112.5 4.75 3.75 3.75 0 015 4.75z"
-                        clip-rule="evenodd" />
-                </svg>
-                Konfigurasi Sistem
-            </button>
-        </div>
-    </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('attendancePieChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Sudah Absen', 'Tidak Absen', 'Belum Absen'],
+            datasets: [{
+                data: [<?php echo $sudah_absen; ?>, <?php echo $tidak_absen; ?>, <?php echo $belum_absen; ?>],
+                backgroundColor: ['#06b6d4', '#fb923c', '#e2e8f0'],
+                borderWidth: 0,
+                cutout: '70%'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+});
+</script>
+
 
 <?php include '../layouts/footer.php'; ?>

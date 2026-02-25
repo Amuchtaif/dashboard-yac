@@ -1,9 +1,14 @@
 <?php
 // config/db_mysqli.php
 date_default_timezone_set('Asia/Jakarta');
+// $host = "localhost";
+// $username = "root";
+// $password = "";
+// $dbname = "attendance_db";
+
 $host = "localhost";
-$username = "root";
-$password = "";
+$username = "andi";
+$password = "passwordbaru";
 $dbname = "attendance_db";
 
 $mysqli = new mysqli($host, $username, $password, $dbname);

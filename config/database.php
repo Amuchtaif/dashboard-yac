@@ -3,10 +3,15 @@ date_default_timezone_set('Asia/Jakarta');
 
 class Database
 {
+    // private $host = "localhost";
+    // private $db_name = "attendance_db";
+    // private $username = "root";
+    // private $password = "";
+
     private $host = "localhost";
     private $db_name = "attendance_db";
-    private $username = "root";
-    private $password = "";
+    private $username = "andi";
+    private $password = "passwordbaru";
     public $conn;
 
     public function getConnection()
