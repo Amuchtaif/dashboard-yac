@@ -1,0 +1,6 @@
+config/database.php
+config/db_mysqli.php
+.env
+vendor/
+node_modules/
+*.log
