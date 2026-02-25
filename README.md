@@ -1,3 +1,5 @@
+![Dashboard Screenshot](screenshot.png)
+
 # Dashboard YAC - Sistem Manajemen Terintegrasi
 
 Dashboard YAC adalah aplikasi berbasis web yang dirancang untuk mengelola berbagai aspek operasional institusi pendidikan, mulai dari manajemen sumber daya manusia (SDM), akademik, hingga program tahfidz Qur'an.
