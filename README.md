@@ -1,4 +1,5 @@
-![Dashboard Screenshot](screenshot.png)
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/311eabb6-5f6d-4c08-ade9-f5471c2bd407" />
+
 
 # Dashboard YAC - Sistem Manajemen Terintegrasi
 
