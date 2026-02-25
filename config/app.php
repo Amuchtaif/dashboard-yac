@@ -6,6 +6,10 @@ define('BASE_URL', 'http://localhost/dashboard-yac');
 // App Name
 define('APP_NAME', 'Dashboard YAC');
 
+// Set Session Lifetime to 6 hours (21600 seconds)
+ini_set('session.gc_maxlifetime', 21600);
+session_set_cookie_params(21600);
+
 // Start Session
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
