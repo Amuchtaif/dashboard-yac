@@ -3,6 +3,7 @@ require_once '../../../config/app.php';
 require_once '../../../config/database.php';
 
 check_login();
+check_permission('manage_employees');
 
 if (isset($_GET['id'])) {
     $id = (int) $_GET['id'];

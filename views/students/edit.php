@@ -3,6 +3,7 @@ require_once '../../config/app.php';
 require_once '../../config/database.php';
 
 check_login();
+check_permission('manage_academic');
 
 $id = isset($_GET['id']) ? $_GET['id'] : null;
 if (!$id) {

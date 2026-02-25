@@ -3,8 +3,8 @@ $current_page = $_SERVER['REQUEST_URI'];
 function isActive($path)
 {
     global $current_page;
-    // Fix: Check for specific view folder to avoid matching project name "dashboard-yac"
-    return strpos($current_page, $path) !== false
+    // Strict matching for path to avoid overlapping highlight
+    return (strpos($current_page, $path) !== false)
         ? 'bg-cyan-50 text-cyan-700 font-semibold border-l-[6px] border-cyan-600 rounded-r-3xl'
         : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 border-l-[6px] border-transparent rounded-r-3xl';
 }
@@ -15,15 +15,21 @@ function getIconClass($path)
     return strpos($current_page, $path) !== false ? 'text-cyan-600' : 'text-slate-400 group-hover:text-slate-600';
 }
 
-// Fetch current user's tahfidz access
+// Fetch current user's permissions
 require_once __DIR__ . '/../../config/permission.php';
-$can_access_tahfidz = false;
-if (isset($_SESSION['user_id'])) {
-    $can_access_tahfidz = hasPermission($_SESSION['user_id'], 'access_tahfidz');
-}
-// Admin override or fallback
-if (isset($_SESSION['user_id']) && $_SESSION['user_id'] == 1) {
-    $can_access_tahfidz = true;
+$user_id = $_SESSION['user_id'] ?? 0;
+
+$can_manage_employees = hasPermission($user_id, 'manage_employees');
+$can_manage_academic = hasPermission($user_id, 'manage_academic');
+$can_manage_tahfidz = hasPermission($user_id, 'manage_tahfidz');
+
+// Check if user is Administrator (Position)
+$is_admin = false;
+if (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Administrator') {
+    $can_manage_employees = true;
+    $can_manage_academic = true;
+    $can_manage_tahfidz = true;
+    $is_admin = true;
 }
 ?>
 <!-- Sidebar Container -->
@@ -57,6 +63,7 @@ if (isset($_SESSION['user_id']) && $_SESSION['user_id'] == 1) {
             </a>
 
             <!-- Manage Employee Category -->
+            <?php if ($can_manage_employees): ?>
             <div class="pt-4 pb-2">
                 <p class="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Manajemen Pegawai</p>
             </div>
@@ -105,16 +112,6 @@ if (isset($_SESSION['user_id']) && $_SESSION['user_id'] == 1) {
                 Jabatan
             </a>
 
-            <!-- Access Control (Permissions) -->
-            <a href="<?php url('views/permissions/index.php'); ?>"
-                class="<?php echo isActive('permissions'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
-                <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('permissions'); ?> transition-colors"
-                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                          d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
-                </svg>
-                Hak Akses Aplikasi
-            </a>
 
             <!-- Work Schedules -->
             <a href="<?php url('views/settings/schedules/index.php'); ?>"
@@ -198,7 +195,38 @@ if (isset($_SESSION['user_id']) && $_SESSION['user_id'] == 1) {
                 </svg>
                 Manajemen Lokasi
             </a>
+            <?php endif; ?>
 
+            <!-- Application Management Category -->
+            <?php if ($is_admin): ?>
+            <div class="pt-4 pb-2">
+                <p class="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Manajemen Aplikasi</p>
+            </div>
+
+            <!-- Access Control (Permissions) -->
+            <a href="<?php url('views/permissions/index.php'); ?>"
+                class="<?php echo isActive('permissions/index.php'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('permissions/index.php'); ?> transition-colors"
+                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                          d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
+                </svg>
+                Hak Akses Aplikasi
+            </a>
+
+            <!-- Web Access Control (Permissions) -->
+            <a href="<?php url('views/permissions/web_permissions.php'); ?>"
+                class="<?php echo isActive('permissions/web_permissions.php'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('permissions/web_permissions.php'); ?> transition-colors"
+                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                          d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9s2.015-9 4.5-9m0 0a9.004 9.004 0 018.716 6.747M12 3a9.004 9.004 0 00-8.716 6.747" />
+                </svg>
+                Hak Akses Web
+            </a>
+            <?php endif; ?>
+
+            <?php if ($can_manage_academic): ?>
             <div class="pt-4 pb-2">
                 <p class="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Manajemen Akademik</p>
             </div>
@@ -339,9 +367,10 @@ if (isset($_SESSION['user_id']) && $_SESSION['user_id'] == 1) {
                 </svg>
                 Penempatan Kelas
             </a>
+            <?php endif; ?>
 
             <!-- Tahfidz Management -->
-            <?php if ($can_access_tahfidz): ?>
+            <?php if ($can_manage_tahfidz): ?>
             <div class="pt-4 pb-2">
                 <p class="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Manajemen Tahfidz</p>
             </div>

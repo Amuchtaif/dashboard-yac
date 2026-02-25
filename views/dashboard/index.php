@@ -91,6 +91,12 @@ $recent_permits_query = "
 ";
 $recent_permits = $conn->query($recent_permits_query)->fetchAll(PDO::FETCH_ASSOC);
 
+// Map status to Indonesian labels
+$statusTextMap = [
+    'Pending' => 'Menunggu',
+    'Approved' => 'Disetujui',
+    'Rejected' => 'Ditolak'
+];
 
 include '../layouts/header.php';
 ?>
@@ -190,7 +196,6 @@ include '../layouts/header.php';
                 <dt class="text-sm font-medium text-slate-500 truncate">Hadir Hari Ini</dt>
                 <dd class="mt-1 flex items-baseline">
                     <div class="text-2xl font-bold text-slate-900"><?php echo number_format($present_count); ?></div>
-                    <span class="ml-2 text-sm font-medium text-slate-400"><?php echo $present_rate; ?>% Rate</span>
                 </dd>
             </div>
         </div>
@@ -288,25 +293,23 @@ include '../layouts/header.php';
 
             <div class="space-y-5">
                 <?php if (count($recent_permits) > 0): ?>
-                    <?php foreach ($recent_permits as $permit): ?>
-                        <div class="flex items-start gap-3">
-                            <div class="flex-shrink-0 pt-1">
-                                <?php
-                                $typeColor = 'bg-blue-100 text-blue-600';
-                                if ($permit['permit_type'] == 'Sick') $typeColor = 'bg-red-100 text-red-600';
-                                if ($permit['permit_type'] == 'Leave') $typeColor = 'bg-purple-100 text-purple-600';
-                                ?>
-                                <span class="inline-flex items-center justify-center h-8 w-8 rounded-lg <?php echo $typeColor; ?> text-[10px] font-bold">
-                                    <?php 
-                                    echo ($permit['permit_type'] == 'Sick') ? 'S' : (($permit['permit_type'] == 'Leave') ? 'C' : 'I'); 
-                                    ?>
+                    <?php 
+                    $no = 1;
+                    foreach ($recent_permits as $permit): 
+                    ?>
+                        <div class="flex items-start gap-4">
+                            <!-- Row Number -->
+                            <div class="flex-shrink-0 pt-0.5">
+                                <span class="inline-flex items-center justify-center h-7 w-7 rounded-full bg-slate-50 border border-slate-200 text-slate-500 text-xs font-bold">
+                                    <?php echo $no++; ?>
                                 </span>
                             </div>
                             <div class="flex-1 min-w-0">
                                 <p class="text-sm font-semibold text-slate-800 truncate">
                                     <?php echo htmlspecialchars($permit['full_name']); ?>
                                 </p>
-                                <p class="text-xs text-slate-500 truncate">
+                                <p class="text-xs text-slate-500 truncate mt-0.5">
+                                    <span class="font-medium text-slate-400"><?php echo htmlspecialchars($permit['permit_type']); ?>:</span> 
                                     <?php echo htmlspecialchars($permit['reason']); ?>
                                 </p>
                             </div>
@@ -320,7 +323,7 @@ include '../layouts/header.php';
                                 if ($permit['status'] == 'Rejected') $statusLabelColor = 'text-red-500';
                                 ?>
                                 <p class="text-[10px] font-bold <?php echo $statusLabelColor; ?>">
-                                    <?php echo strtoupper($permit['status']); ?>
+                                    <?php echo strtoupper($statusTextMap[$permit['status']] ?? $permit['status']); ?>
                                 </p>
                             </div>
                         </div>

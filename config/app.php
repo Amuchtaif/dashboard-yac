@@ -35,6 +35,30 @@ function check_login()
 }
 
 /**
+ * Helper to check permission and abort if unauthorized
+ */
+function check_permission($permission)
+{
+    check_login();
+    require_once __DIR__ . '/permission.php';
+    if (!hasPermission($_SESSION['user_id'], $permission)) {
+        // Redirect to dashboard with error or show 403
+        header("Location: " . BASE_URL . "/views/dashboard/index.php?error=unauthorized");
+        exit;
+    }
+}
+
+/**
+ * Helper to check permission without aborting
+ */
+function can($permission)
+{
+    if (!isset($_SESSION['user_id'])) return false;
+    require_once __DIR__ . '/permission.php';
+    return hasPermission($_SESSION['user_id'], $permission);
+}
+
+/**
  * Helper to get asset url
  */
 function asset($path)

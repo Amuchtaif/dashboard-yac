@@ -4,6 +4,7 @@ require_once '../../config/app.php';
 require_once '../../config/database.php';
 
 check_login();
+check_permission('manage_employees');
 
 $page_title = "Hak Akses Spesifik Karyawan";
 
@@ -145,7 +146,10 @@ include '../layouts/header.php';
             <h1 class="text-xl font-bold text-slate-900">Hak Akses Spesifik</h1>
             <p class="mt-2 text-sm text-slate-500">Kelola izin fitur khusus untuk setiap karyawan (Override Jabatan).</p>
         </div>
-        <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+        <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none flex gap-3">
+            <a href="user_web_permissions.php" class="inline-flex items-center justify-center rounded-lg border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:w-auto transition-colors">
+                Akses Spesifik Web &rarr;
+            </a>
             <a href="index.php" class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 sm:w-auto transition-colors">
                 &larr; Kembali ke Jabatan
             </a>

@@ -3,6 +3,7 @@ require_once '../../config/app.php';
 require_once '../../config/database.php';
 
 check_login();
+check_permission('manage_academic');
 
 if (!isset($_GET['id'])) {
     redirect('views/grade_levels/index.php?error=Invalid Request');

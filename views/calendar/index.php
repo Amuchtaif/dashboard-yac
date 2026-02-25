@@ -4,6 +4,7 @@ require_once '../../config/app.php';
 require_once '../../config/database.php';
 
 check_login();
+check_permission('manage_academic');
 
 $page_title = "Kalender Akademik";
 

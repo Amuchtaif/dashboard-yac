@@ -28,7 +28,20 @@ if (!function_exists('hasPermission')) {
             $db = new Database();
             $conn = $db->getConnection();
 
-            // 1. Check Specific User Permission (Exception)
+            // 0. Preliminary Check: Get Employee Position
+            $stmtEmp = $conn->prepare("SELECT e.position_id, p.name as position_name FROM employees e LEFT JOIN positions p ON e.position_id = p.id WHERE e.id = ? LIMIT 1");
+            $stmtEmp->execute([$employee_id]);
+            $employee = $stmtEmp->fetch(PDO::FETCH_ASSOC);
+
+            if (!$employee) return false;
+
+            // --- ADMINISTRATOR OVERRIDE ---
+            // If the position name is 'Administrator', grant all permissions automatically
+            if (isset($employee['position_name']) && $employee['position_name'] === 'Administrator') {
+                return true;
+            }
+
+            // 1. Check Specific User Permission (Exception/Override)
             $stmtIndex = $conn->prepare("SELECT is_allowed FROM user_permissions WHERE employee_id = ? AND permission_name = ? LIMIT 1");
             $stmtIndex->execute([$employee_id, $permission_name]);
             $user_perm = $stmtIndex->fetch(PDO::FETCH_ASSOC);
@@ -44,6 +57,9 @@ if (!function_exists('hasPermission')) {
                 'create_meeting' => 'can_create_meeting',
                 'approve_permits' => 'can_approve_permits',
                 'access_education' => 'can_access_education',
+                'manage_employees' => 'can_manage_employees',
+                'manage_academic' => 'can_manage_academic',
+                'manage_tahfidz' => 'can_manage_tahfidz',
             ];
 
             if (!array_key_exists($permission_name, $permission_map)) {
@@ -52,12 +68,7 @@ if (!function_exists('hasPermission')) {
 
             $column_name = $permission_map[$permission_name];
 
-            // Get Position
-            $stmtPos = $conn->prepare("SELECT position_id FROM employees WHERE id = ? LIMIT 1");
-            $stmtPos->execute([$employee_id]);
-            $employee = $stmtPos->fetch(PDO::FETCH_ASSOC);
-
-            if (!$employee || empty($employee['position_id'])) {
+            if (empty($employee['position_id'])) {
                 return false;
             }
 

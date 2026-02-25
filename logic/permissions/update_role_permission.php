@@ -44,7 +44,15 @@ if ($id <= 0) {
 }
 
 // Whitelist allowed columns to prevent SQL injection or arbitrary column updates
-$allowed_columns = ['can_create_meeting', 'can_approve_permits', 'can_access_tahfidz', 'can_access_education']; 
+$allowed_columns = [
+    'can_create_meeting', 
+    'can_approve_permits', 
+    'can_access_tahfidz', 
+    'can_access_education',
+    'can_manage_employees',
+    'can_manage_academic',
+    'can_manage_tahfidz'
+]; 
 if (!in_array($permission_type, $allowed_columns)) {
     echo json_encode(['success' => false, 'message' => 'Invalid permission type: ' . htmlspecialchars($permission_type)]);
     exit;

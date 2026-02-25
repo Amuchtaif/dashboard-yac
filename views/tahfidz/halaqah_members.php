@@ -3,6 +3,7 @@ require_once '../../config/app.php';
 require_once '../../config/database.php';
 
 check_login();
+check_permission('manage_tahfidz');
 
 $group_id = $_GET['group_id'] ?? null;
 if (!$group_id) {
