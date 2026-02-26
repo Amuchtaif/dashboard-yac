@@ -33,21 +33,26 @@ try {
                          e.full_name as employee_name,
                          u.name as unit_name,
                          d.name as division_name,
-                         app.full_name as approver_name
+                         app.full_name as approver_name,
+                         target.full_name as target_approver_name
                   FROM permits p 
                   LEFT JOIN employees e ON p.employee_id = e.id 
                   LEFT JOIN units u ON e.unit_id = u.id
                   LEFT JOIN divisions d ON e.division_id = d.id
                   LEFT JOIN employees app ON p.approved_by = app.id
+                  LEFT JOIN employees target ON p.approver_id = target.id
                   WHERE p.created_at >= :start_date AND p.created_at <= :end_date
                   ORDER BY p.created_at DESC";
         $stmt = $conn->prepare($query);
         $stmt->bindParam(':start_date', $firstDayOfMonth);
         $stmt->bindParam(':end_date', $lastDayOfMonth);
     } else {
-        // Normal user sees only their own permits for current month
-        $query = "SELECT p.*, app.full_name as approver_name 
+        // Normal user (including Level 2/3) sees ONLY their own permits for current month
+        $query = "SELECT p.*, 
+                         target.full_name as target_approver_name,
+                         app.full_name as approver_name 
                   FROM permits p 
+                  LEFT JOIN employees target ON p.approver_id = target.id
                   LEFT JOIN employees app ON p.approved_by = app.id
                   WHERE p.employee_id = :uid 
                   AND p.created_at >= :start_date AND p.created_at <= :end_date

@@ -78,54 +78,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $unit_id = $empData['unit_id'];
         $division_id = $empData['division_id']; // Menggunakan division_id
 
-        // Logic Approval Bertingkat:
-        // Level 4/5 (Staf/Guru) -> Cari Level 3 (Ka. Unit) di unit yang sama
-        // Level 3 (Ka. Unit)    -> Cari Level 2 (Ka. Bidang) di divisi yang sama
-        // Level 2 (Ka. Bidang)  -> Cari Level 1 (Mudir)
-
-        $approverQuery = "";
-        $approverParams = [];
-
+        // LOGIKA APPROVAL BERTINGKAT (WATERFALL) - SYNCED WITH API
+        // 1. STAFF / GURU (Level 4 atau 5)
         if ($level >= 4) {
-            // KASUS 1: STAF -> Cari Kepala Unit
-            // Cek apakah staf punya unit?
+            // A. Cari Kepala Unit (Level 3) di Unit yang sama
             if (!empty($unit_id)) {
-                $approverQuery = "SELECT e.id FROM employees e 
-                                  JOIN positions p ON e.position_id = p.id 
-                                  WHERE e.unit_id = :val_id AND p.level = 3 LIMIT 1";
-                $approverParams = [':val_id' => $unit_id];
-            } else {
-                // Jika staf tidak punya unit (staf divisi), langsung ke Kabid
-                $approverQuery = "SELECT e.id FROM employees e 
-                                  JOIN positions p ON e.position_id = p.id 
-                                  WHERE e.division_id = :val_id AND p.level = 2 LIMIT 1";
-                $approverParams = [':val_id' => $division_id];
+                $stmtBoss = $conn->prepare("SELECT e.id FROM employees e JOIN positions p ON e.position_id = p.id WHERE e.unit_id = :val AND p.level = 3 AND e.status = 'active' LIMIT 1");
+                $stmtBoss->execute([':val' => $unit_id]);
+                $approver_id = $stmtBoss->fetchColumn();
             }
-
-        } elseif ($level == 3) {
-            // KASUS 2: KEPALA UNIT -> Cari Kepala Bidang
-            $approverQuery = "SELECT e.id FROM employees e 
-                              JOIN positions p ON e.position_id = p.id 
-                              WHERE e.division_id = :val_id AND p.level = 2 LIMIT 1";
-            $approverParams = [':val_id' => $division_id];
-
-        } elseif ($level == 2) {
-            // KASUS 3: KEPALA BIDANG -> Cari Mudir (Level 1)
-            $approverQuery = "SELECT e.id FROM employees e 
-                              JOIN positions p ON e.position_id = p.id 
-                              WHERE p.level = 1 LIMIT 1";
-            $approverParams = [];
+            
+            // B. Jika tidak ada Ka Unit, cari Kabid (Level 2) di Divisi yang sama
+            if (!$approver_id && !empty($division_id)) {
+                $stmtBoss = $conn->prepare("SELECT e.id FROM employees e JOIN positions p ON e.position_id = p.id WHERE e.division_id = :val AND p.level = 2 AND e.status = 'active' LIMIT 1");
+                $stmtBoss->execute([':val' => $division_id]);
+                $approver_id = $stmtBoss->fetchColumn();
+            }
+        } 
+        // 2. KEPALA UNIT (Level 3)
+        elseif ($level == 3) {
+            // Cari Kabid (Level 2) di Divisi yang sama
+            if (!empty($division_id)) {
+                $stmtBoss = $conn->prepare("SELECT e.id FROM employees e JOIN positions p ON e.position_id = p.id WHERE e.division_id = :val AND p.level = 2 AND e.status = 'active' LIMIT 1");
+                $stmtBoss->execute([':val' => $division_id]);
+                $approver_id = $stmtBoss->fetchColumn();
+            }
+        }
+        // 3. KEPALA BIDANG (Level 2)
+        elseif ($level == 2) {
+            // Mudir (Level 1) HANYA menerima dari Level 2 (Kabid)
+            $stmtMudir = $conn->prepare("SELECT e.id FROM employees e JOIN positions p ON e.position_id = p.id WHERE p.level = 1 AND e.status = 'active' LIMIT 1");
+            $stmtMudir->execute();
+            $approver_id = $stmtMudir->fetchColumn();
         }
 
-        // Eksekusi pencarian Approver
-        if (!empty($approverQuery)) {
-            $stmtApp = $conn->prepare($approverQuery);
-            $stmtApp->execute($approverParams);
-            $approverData = $stmtApp->fetch(PDO::FETCH_ASSOC);
-
-            if ($approverData) {
-                $approver_id = $approverData['id'];
-            }
+        // --- PREVENT SELF-APPROVAL ---
+        if ($approver_id == $employee_id) {
+            $approver_id = null;
         }
     }
 

@@ -100,55 +100,45 @@ try {
             return $res ? $res['id'] : false;
         }
 
-        // --- ALUR PENCARIAN ATASAN BERTINGKAT ---
-
-        // SKENARIO 1: STAFF / GURU (Level >= 4)
+        // --- ALUR PENCARIAN ATASAN BERTINGKAT (WATERFALL) ---
+        // 1. STAFF / GURU (Level 4 atau 5)
         if ($level >= 4) {
-            // LOGIKA BARU BERDASARKAN HASIL DIAGNOSA (SMART BOSS QUERY)
-            // Mencari atasan di Divisi yang sama.
-            // Prioritas 1: Unit ID sama (Atasan Langsung)
-            // Prioritas 2: Unit ID NULL (Atasan Tk. Divisi Global seperti Pak Muadin)
-
-            $sqlBoss = "SELECT e.id FROM employees e 
-                        JOIN positions p ON e.position_id = p.id 
-                        WHERE e.division_id = :div_id 
-                        AND p.level IN (1, 2, 3) 
-                        AND (e.unit_id = :unit_id OR e.unit_id IS NULL)
-                        AND e.status = 'active'
-                        ORDER BY 
-                            CASE WHEN e.unit_id = :unit_id THEN 1 ELSE 2 END, -- Prioritas Unit Sama
-                            p.level DESC 
-                        LIMIT 1";
-
-            $stmtBoss = $conn->prepare($sqlBoss);
-            $stmtBoss->execute([
-                ':div_id' => $division_id,
-                ':unit_id' => $unit_id
-            ]);
-            $bossData = $stmtBoss->fetch(PDO::FETCH_ASSOC);
-
-            if ($bossData) {
-                $approver_id = $bossData['id'];
+            // A. Cari Kepala Unit (Level 3) di Unit yang sama
+            if (!empty($unit_id)) {
+                $approver_id = findBoss($conn, 3, 'unit_id', $unit_id);
+            }
+            
+            // B. Jika tidak ada Ka Unit, cari Kabid (Level 2) di Divisi yang sama
+            if (!$approver_id && !empty($division_id)) {
+                $approver_id = findBoss($conn, 2, 'division_id', $division_id);
+            }
+        } 
+        // 2. KEPALA UNIT (Level 3)
+        elseif ($level == 3) {
+            // Cari Kabid (Level 2) di Divisi yang sama
+            if (!empty($division_id)) {
+                $approver_id = findBoss($conn, 2, 'division_id', $division_id);
             }
         }
-
-        // SKENARIO 2: KEPALA UNIT (Level 3)
-        elseif ($level == 3) {
-            // Cari KEPALA BIDANG (Level 2)
-            $approver_id = findBoss($conn, 2, 'division_id', $division_id);
-        }
-
-        // SKENARIO 3: SAFETY NET (JARING PENGAMAN)
-        // Jika sampai sini approver_id masih NULL (misal Ka. Bidang juga kosong), 
-        // ATAU jika Pelapor adalah Ka. Bidang (Level 2)
-        // Maka lemparkan ke MUDIR (Level 1)
-        if (!$approver_id && $level != 1) {
-            $stmtMudir = $conn->prepare("SELECT e.id FROM employees e JOIN positions p ON e.position_id = p.id WHERE p.level = 1 LIMIT 1");
+        // 3. KEPALA BIDANG (Level 2)
+        elseif ($level == 2) {
+            // Mudir (Level 1) HANYA menerima dari Level 2 (Kabid)
+            $stmtMudir = $conn->prepare("
+                SELECT e.id FROM employees e 
+                JOIN positions p ON e.position_id = p.id 
+                WHERE p.level = 1 AND e.status = 'active' 
+                LIMIT 1
+            ");
             $stmtMudir->execute();
             $mudir = $stmtMudir->fetch(PDO::FETCH_ASSOC);
             if ($mudir) {
                 $approver_id = $mudir['id'];
             }
+        }
+
+        // --- PREVENT SELF-APPROVAL ---
+        if ($approver_id == $user_id) {
+            $approver_id = null; // Don't let user approve themselves
         }
     }
 

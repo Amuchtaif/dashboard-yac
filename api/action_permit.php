@@ -52,19 +52,51 @@ try {
     $newStatus = ($action == 'approve') ? 'Approved' : 'Rejected';
     $now = date('Y-m-d H:i:s');
 
-    // 3. EKSEKUSI UPDATE DATABASE
-    // Kita update: status, approved_by (pimpinan yg klik), approved_at, rejection_note
-    // Syarat WHERE: id harus cocok DAN approver_id harus cocok (security check)
+    // 3. SECURE VALIDATION (Strict Approver Check)
+    $stmtCheck = $conn->prepare("
+        SELECT p.approver_id, p.employee_id, p.status, pos.level as applicant_level
+        FROM permits p
+        JOIN employees e ON p.employee_id = e.id
+        JOIN positions pos ON e.position_id = pos.id
+        WHERE p.id = :pid LIMIT 1
+    ");
+    $stmtCheck->execute([':pid' => $permit_id]);
+    $pData = $stmtCheck->fetch(PDO::FETCH_ASSOC);
 
+    if (!$pData) sendResponse(false, "Izin tidak ditemukan");
+    if ($pData['status'] !== 'Pending') sendResponse(false, "Izin ini sudah diproses.");
+
+    // Fetch Current Approver Level
+    $stmtU = $conn->prepare("SELECT p.level FROM employees e JOIN positions p ON e.position_id = p.id WHERE e.id = :aid");
+    $stmtU->execute([':aid' => $approver_id]);
+    $uLevel = (int) $stmtU->fetchColumn();
+    
+    // Check Authorization
+    $isAuthorized = false;
+    if ($pData['approver_id'] == $approver_id) {
+        $isAuthorized = true;
+    } elseif ($uLevel === 1 && $pData['applicant_level'] == 2) {
+        // Mudir (1) is authorized to approve any Kabid (2) request
+        $isAuthorized = true;
+    }
+
+    if (!$isAuthorized) {
+        sendResponse(false, "Anda tidak memiliki wewenang untuk menyetujui izin ini.");
+    }
+
+    // Prevention: Cannot approve own permit
+    if ($pData['employee_id'] == $approver_id) {
+        sendResponse(false, "Anda tidak dapat menyetujui izin Anda sendiri.");
+    }
+
+    // 4. EKSEKUSI UPDATE DATABASE
+    // Note: We remove approver_id from WHERE to allow shared level 1 approval
     $sql = "UPDATE permits SET 
             status = :status, 
             approved_by = :aid, 
             approved_at = :now,
             rejection_note = :note
-            WHERE id = :pid AND approver_id = :aid";
-    // Note: Saya hapus 'AND approver_id = :aid' di WHERE agar lebih fleksibel 
-    // jika seandainya admin override, tapi idealnya tetap ada. 
-    // Untuk debugging, kita pakai WHERE id saja dulu.
+            WHERE id = :pid";
 
     $stmt = $conn->prepare($sql);
     $stmt->bindParam(':status', $newStatus);
@@ -80,20 +112,14 @@ try {
             // --- NOTIFICATION LOGIC ---
             // Kirim Notif ke Pemohon (Employee)
             // 1. Ambil employee_id dari permit_id
-            $stmtEmp = $conn->prepare("SELECT employee_id, permit_type FROM permits WHERE id = :pid LIMIT 1");
-            $stmtEmp->execute([':pid' => $permit_id]);
-            $permData = $stmtEmp->fetch(PDO::FETCH_ASSOC);
+            $employee_id = $pData['employee_id'];
 
-            if ($permData) {
-                $employee_id = $permData['employee_id'];
-                $pType = $permData['permit_type'];
+            // 2. Ambil FCM Token Employee
+            $stmtToken = $conn->prepare("SELECT fcm_token FROM employees WHERE id = :eid LIMIT 1");
+            $stmtToken->execute([':eid' => $employee_id]);
+            $tokenData = $stmtToken->fetch(PDO::FETCH_ASSOC);
 
-                // 2. Ambil FCM Token Employee
-                $stmtToken = $conn->prepare("SELECT fcm_token FROM employees WHERE id = :eid LIMIT 1");
-                $stmtToken->execute([':eid' => $employee_id]);
-                $tokenData = $stmtToken->fetch(PDO::FETCH_ASSOC);
-
-                if ($tokenData && !empty($tokenData['fcm_token'])) {
+            if ($tokenData && !empty($tokenData['fcm_token'])) {
                     $targetToken = $tokenData['fcm_token'];
 
                     // --- NATIVE PHP FCM V1 LOGIC (WITHOUT COMPOSER) ---
@@ -185,7 +211,6 @@ try {
                         // Silent fail (allow API to succeed even if notif fails)
                     }
                 }
-            }
             // --- END NOTE ---
 
             sendResponse(true, "Berhasil memproses izin: " . $newStatus);
