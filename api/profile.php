@@ -4,6 +4,7 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST");
 
 require_once '../config/database.php';
+require_once '../config/permission.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -101,7 +102,9 @@ try {
                 'end_time' => $today_shift['end_time'],
                 'is_day_off' => (bool) $today_shift['is_day_off']
             ] : null,
-            'is_koordinator' => (stripos($user['position_name'], 'Koordinator Tahfidz') !== false) ? 1 : 0
+            'is_koordinator' => (stripos($user['position_name'], 'Koordinator Tahfidz') !== false) ? 1 : 0,
+            'can_access_education' => hasPermission($user['id'], 'access_education') ? 1 : 0,
+            'can_manage_news' => hasPermission($user['id'], 'manage_news') ? 1 : 0
         ];
 
         echo json_encode([

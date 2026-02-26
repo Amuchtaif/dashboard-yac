@@ -68,6 +68,7 @@ try {
             "can_approve_permits" => hasPermission($user_id, 'approve_permits'),
             "can_access_tahfidz" => hasPermission($user_id, 'access_tahfidz'),
             "can_access_education" => hasPermission($user_id, 'access_education'),
+            "can_manage_news" => hasPermission($user_id, 'manage_news'),
             "is_koordinator" => $isKoordinator,
         ];
         

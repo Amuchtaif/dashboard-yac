@@ -41,6 +41,16 @@ try {
     // Column might already exist or error - continue anyway
 }
 
+// Auto-migration: Ensure can_manage_news column exists
+try {
+    $checkColumn = $conn->query("SHOW COLUMNS FROM positions LIKE 'can_manage_news'");
+    if ($checkColumn->rowCount() === 0) {
+        $conn->exec("ALTER TABLE `positions` ADD COLUMN `can_manage_news` TINYINT(1) NOT NULL DEFAULT 0 AFTER `can_access_education`");
+    }
+} catch (Exception $e) {
+    // Column might already exist or error - continue anyway
+}
+
 // --- Pagination Logic ---
 $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 10;
 if (!in_array($limit, [10, 20, 50, 100]))
@@ -66,7 +76,8 @@ $query = "
         p.can_create_meeting,
         p.can_approve_permits,
         p.can_access_tahfidz,
-        p.can_access_education
+        p.can_access_education,
+        p.can_manage_news
     FROM positions p
     ORDER BY p.level ASC, p.name ASC
     LIMIT :limit OFFSET :offset
@@ -125,6 +136,9 @@ include '../layouts/header.php';
                                 <th scope="col"
                                     class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
                                     Akses Menu Pendidikan</th>
+                                <th scope="col"
+                                    class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                    Manajemen Berita</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200 bg-white">
@@ -184,6 +198,17 @@ include '../layouts/header.php';
                                                 <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-violet-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-violet-600"></div>
                                                 <span class="ml-3 text-sm font-medium text-gray-900 status-text-education-<?php echo $pos['id']; ?>">
                                                     <?php echo isset($pos['can_access_education']) && $pos['can_access_education'] == 1 ? 'Ya' : 'Tidak'; ?>
+                                                </span>
+                                            </label>
+                                        </td>
+                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                            <label class="relative inline-flex items-center cursor-pointer">
+                                                <input type="checkbox" class="sr-only peer" 
+                                                    <?php echo isset($pos['can_manage_news']) && $pos['can_manage_news'] == 1 ? 'checked' : ''; ?>
+                                                    onchange="updatePermission(<?php echo $pos['id']; ?>, 'can_manage_news', this.checked)">
+                                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-rose-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-rose-600"></div>
+                                                <span class="ml-3 text-sm font-medium text-gray-900 status-text-news-<?php echo $pos['id']; ?>">
+                                                    <?php echo isset($pos['can_manage_news']) && $pos['can_manage_news'] == 1 ? 'Ya' : 'Tidak'; ?>
                                                 </span>
                                             </label>
                                         </td>
@@ -263,6 +288,8 @@ function updatePermission(id, permissionType, isChecked) {
         statusTextSelector = `.status-text-tahfidz-${id}`;
     } else if (permissionType === 'can_access_education') {
         statusTextSelector = `.status-text-education-${id}`;
+    } else if (permissionType === 'can_manage_news') {
+        statusTextSelector = `.status-text-news-${id}`;
     } else {
         statusTextSelector = `.status-text-${id}`;
     }

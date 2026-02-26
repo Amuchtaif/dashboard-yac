@@ -41,6 +41,16 @@ if (!function_exists('hasPermission')) {
                 return true;
             }
 
+            // --- TEACHING SCHEDULE OVERRIDE ---
+            // If the permission requested is 'access_education', check if they have a teaching schedule
+            if ($permission_name === 'access_education') {
+                $stmtSched = $conn->prepare("SELECT COUNT(*) FROM class_schedules WHERE employee_id = ?");
+                $stmtSched->execute([$employee_id]);
+                if ($stmtSched->fetchColumn() > 0) {
+                    return true;
+                }
+            }
+
             // 1. Check Specific User Permission (Exception/Override)
             $stmtIndex = $conn->prepare("SELECT is_allowed FROM user_permissions WHERE employee_id = ? AND permission_name = ? LIMIT 1");
             $stmtIndex->execute([$employee_id, $permission_name]);
@@ -60,6 +70,7 @@ if (!function_exists('hasPermission')) {
                 'manage_employees' => 'can_manage_employees',
                 'manage_academic' => 'can_manage_academic',
                 'manage_tahfidz' => 'can_manage_tahfidz',
+                'manage_news' => 'can_manage_news',
             ];
 
             if (!array_key_exists($permission_name, $permission_map)) {
