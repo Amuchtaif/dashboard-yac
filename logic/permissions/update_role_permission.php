@@ -51,7 +51,8 @@ $allowed_columns = [
     'can_access_education',
     'can_manage_employees',
     'can_manage_academic',
-    'can_manage_tahfidz'
+    'can_manage_tahfidz',
+    'can_manage_news'
 ]; 
 if (!in_array($permission_type, $allowed_columns)) {
     echo json_encode(['success' => false, 'message' => 'Invalid permission type: ' . htmlspecialchars($permission_type)]);
@@ -90,6 +91,17 @@ try {
             $checkColumn = $conn->query("SHOW COLUMNS FROM positions LIKE 'can_access_education'");
             if ($checkColumn->rowCount() === 0) {
                 $conn->exec("ALTER TABLE `positions` ADD COLUMN `can_access_education` TINYINT(1) NOT NULL DEFAULT 0 AFTER `can_access_tahfidz`");
+            }
+        } catch (Exception $e) {
+            // Column might already exist, continue
+        }
+    }
+    // Auto-migration: Ensure can_manage_news column exists
+    if ($permission_type === 'can_manage_news') {
+        try {
+            $checkColumn = $conn->query("SHOW COLUMNS FROM positions LIKE 'can_manage_news'");
+            if ($checkColumn->rowCount() === 0) {
+                $conn->exec("ALTER TABLE `positions` ADD COLUMN `can_manage_news` TINYINT(1) NOT NULL DEFAULT 0 AFTER `can_manage_tahfidz`");
             }
         } catch (Exception $e) {
             // Column might already exist, continue

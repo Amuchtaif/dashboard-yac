@@ -67,21 +67,28 @@ $query = "
         COALESCE(p.can_approve_permits, 0) as role_permits,
         COALESCE(p.can_access_tahfidz, 0) as role_tahfidz,
         COALESCE(p.can_access_education, 0) as role_education,
+        COALESCE(p.can_manage_news, 0) as role_news,
         -- User-specific overrides (NULL = no override)
         up_meet.is_allowed as override_meeting,
+        up_permits.is_allowed as override_permits,
         up_tahfidz.is_allowed as override_tahfidz,
         up_attend.is_allowed as override_attendance,
-        up_edu.is_allowed as override_education
+        up_edu.is_allowed as override_education,
+        up_news.is_allowed as override_news
     FROM employees e
     LEFT JOIN positions p ON e.position_id = p.id
     LEFT JOIN user_permissions up_meet 
         ON e.id = up_meet.employee_id AND up_meet.permission_name = 'access_meeting'
+    LEFT JOIN user_permissions up_permits 
+        ON e.id = up_permits.employee_id AND up_permits.permission_name = 'approve_permits'
     LEFT JOIN user_permissions up_tahfidz 
         ON e.id = up_tahfidz.employee_id AND up_tahfidz.permission_name = 'access_tahfidz'
     LEFT JOIN user_permissions up_attend 
         ON e.id = up_attend.employee_id AND up_attend.permission_name = 'access_attendance'
     LEFT JOIN user_permissions up_edu 
         ON e.id = up_edu.employee_id AND up_edu.permission_name = 'access_education'
+    LEFT JOIN user_permissions up_news 
+        ON e.id = up_news.employee_id AND up_news.permission_name = 'manage_news'
     WHERE $where_sql
     ORDER BY e.full_name ASC
     LIMIT :limit OFFSET :offset
@@ -203,9 +210,11 @@ include '../layouts/header.php';
                                 <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 sm:pl-6 w-12">No.</th>
                                 <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 sm:pl-6">Nama Karyawan</th>
                                 <th scope="col" class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Jabatan</th>
-                                <th scope="col" class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 w-36">Akses Rapat</th>
-                                <th scope="col" class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 w-36">Akses Tahfidz</th>
-                                <th scope="col" class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 w-36">Akses Pendidikan</th>
+                                <th scope="col" class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 w-36">Akses Buat Rapat</th>
+                                <th scope="col" class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 w-36">Akses Persetujuan Izin</th>
+                                <th scope="col" class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 w-36">Akses Menu Tahfidz</th>
+                                <th scope="col" class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 w-36">Akses Menu Pendidikan</th>
+                                <th scope="col" class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 w-36">Manajemen Berita</th>
                                 <th scope="col" class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 w-36">Akses Presensi</th>
                             </tr>
                         </thead>
@@ -216,11 +225,17 @@ include '../layouts/header.php';
                                     $eff_meeting = $emp['override_meeting'] !== null ? (int)$emp['override_meeting'] : (int)$emp['role_meeting'];
                                     $src_meeting = $emp['override_meeting'] !== null ? 'override' : 'role';
 
+                                    $eff_permits = $emp['override_permits'] !== null ? (int)$emp['override_permits'] : (int)$emp['role_permits'];
+                                    $src_permits = $emp['override_permits'] !== null ? 'override' : 'role';
+
                                     $eff_tahfidz = $emp['override_tahfidz'] !== null ? (int)$emp['override_tahfidz'] : (int)$emp['role_tahfidz'];
                                     $src_tahfidz = $emp['override_tahfidz'] !== null ? 'override' : 'role';
 
                                     $eff_education = $emp['override_education'] !== null ? (int)$emp['override_education'] : (int)$emp['role_education'];
                                     $src_education = $emp['override_education'] !== null ? 'override' : 'role';
+                                    
+                                    $eff_news = $emp['override_news'] !== null ? (int)$emp['override_news'] : (int)$emp['role_news'];
+                                    $src_news = $emp['override_news'] !== null ? 'override' : 'role';
 
                                     $eff_attendance = $emp['override_attendance'] !== null ? (int)$emp['override_attendance'] : 0;
                                     $src_attendance = $emp['override_attendance'] !== null ? 'override' : 'role';
@@ -250,6 +265,11 @@ include '../layouts/header.php';
                                             <?php renderToggle($emp['id'], 'access_meeting', $eff_meeting, $src_meeting); ?>
                                         </td>
                                         
+                                        <!-- Access Permits -->
+                                        <td class="whitespace-nowrap px-3 py-4 text-center perm-cell">
+                                            <?php renderToggle($emp['id'], 'approve_permits', $eff_permits, $src_permits); ?>
+                                        </td>
+                                        
                                         <!-- Access Tahfidz -->
                                         <td class="whitespace-nowrap px-3 py-4 text-center perm-cell">
                                             <?php renderToggle($emp['id'], 'access_tahfidz', $eff_tahfidz, $src_tahfidz); ?>
@@ -258,6 +278,11 @@ include '../layouts/header.php';
                                         <!-- Access Education -->
                                         <td class="whitespace-nowrap px-3 py-4 text-center perm-cell">
                                             <?php renderToggle($emp['id'], 'access_education', $eff_education, $src_education); ?>
+                                        </td>
+
+                                        <!-- Manajemen Berita -->
+                                        <td class="whitespace-nowrap px-3 py-4 text-center perm-cell">
+                                            <?php renderToggle($emp['id'], 'manage_news', $eff_news, $src_news); ?>
                                         </td>
                                         
                                         <!-- Access Attendance -->
