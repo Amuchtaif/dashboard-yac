@@ -1,0 +1,97 @@
+<?php
+header("Access-Control-Allow-Origin: *");
+header("Content-Type: application/json; charset=UTF-8");
+header("Access-Control-Allow-Methods: GET");
+
+require_once '../config/database.php';
+
+$database = new Database();
+$db = $database->getConnection();
+
+try {
+    $unit = $_GET['unit'] ?? null;
+    $class_id = $_GET['class_id'] ?? null;
+
+    if ($class_id) {
+        // Get subjects for this class today and their attendance status
+        $dayNum = date('N'); // 1 (Mon) - 7 (Sun)
+        $days = [1 => 'Monday', 2 => 'Tuesday', 3 => 'Wednesday', 4 => 'Thursday', 5 => 'Friday', 6 => 'Saturday', 7 => 'Sunday'];
+        $today = $days[$dayNum];
+
+        $query = "SELECT 
+                    cs.id as schedule_id,
+                    s.name as subject_name,
+                    e.full_name as teacher_name,
+                    lp.start_time,
+                    lp.end_time,
+                    (SELECT COUNT(*) FROM class_journals cj 
+                     WHERE cj.class_schedule_id = cs.id AND cj.date = CURDATE()) as is_attended
+                  FROM class_schedules cs
+                  JOIN subjects s ON cs.subject_id = s.id
+                  JOIN employees e ON cs.employee_id = e.id
+                  LEFT JOIN lesson_periods lp ON cs.lesson_period_id = lp.id
+                  WHERE cs.grade_level_id = :class_id AND cs.day = :today
+                  ORDER BY lp.start_time ASC";
+        
+        $stmt = $db->prepare($query);
+        $stmt->bindParam(':class_id', $class_id);
+        $stmt->bindParam(':today', $today);
+        $stmt->execute();
+        
+        $subjects = [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $subjects[] = [
+                "schedule_id" => (int)$row['schedule_id'],
+                "subject_name" => $row['subject_name'],
+                "teacher_name" => $row['teacher_name'],
+                "start_time" => $row['start_time'],
+                "end_time" => $row['end_time'],
+                "is_attended" => (int)$row['is_attended'] > 0
+            ];
+        }
+        
+        echo json_encode(["success" => true, "data" => $subjects]);
+    } else if ($unit) {
+        // Get classes for this unit and their attendance status today
+        // Check if ANY schedule for this class has a journal entry today
+        $query = "SELECT 
+                    gl.id, 
+                    gl.name as class_name, 
+                    (SELECT COUNT(*) FROM class_journals cj 
+                     JOIN class_schedules cs ON cj.class_schedule_id = cs.id
+                     WHERE cs.grade_level_id = gl.id AND cj.date = CURDATE()) as attendance_count
+                  FROM grade_levels gl
+                  WHERE gl.category = :unit
+                  ORDER BY gl.name ASC";
+        
+        $stmt = $db->prepare($query);
+        $stmt->bindParam(':unit', $unit);
+        $stmt->execute();
+        
+        $classes = [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $classes[] = [
+                "id" => (int)$row['id'],
+                "name" => $row['class_name'],
+                "is_attended" => (int)$row['attendance_count'] > 0
+            ];
+        }
+        
+        echo json_encode(["success" => true, "data" => $classes]);
+    } else {
+        // Get list of unique units with specific ordering
+        // Note: Field values must match exact DB strings (including apostrophes)
+        $query = "SELECT DISTINCT category as unit_name FROM grade_levels 
+                  WHERE category IS NOT NULL AND category != '' 
+                  ORDER BY FIELD(category, 'Playgroup', 'TKIT', 'SDIT', 'MTs', 'MA', 'Ma\'had Aly'), category ASC";
+        $stmt = $db->prepare($query);
+        $stmt->execute();
+        
+        $units = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        echo json_encode(["success" => true, "data" => $units]);
+    }
+
+} catch (PDOException $e) {
+    echo json_encode(["success" => false, "message" => "Database Error: " . $e->getMessage()]);
+}
+?>

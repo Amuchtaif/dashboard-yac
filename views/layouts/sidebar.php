@@ -22,6 +22,7 @@ $user_id = $_SESSION['user_id'] ?? 0;
 $can_manage_employees = hasPermission($user_id, 'manage_employees');
 $can_manage_academic = hasPermission($user_id, 'manage_academic');
 $can_manage_tahfidz = hasPermission($user_id, 'manage_tahfidz');
+$can_manage_news = hasPermission($user_id, 'manage_news');
 
 // Check if user is Administrator (Position)
 $is_admin = false;
@@ -29,6 +30,7 @@ if (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Adminis
     $can_manage_employees = true;
     $can_manage_academic = true;
     $can_manage_tahfidz = true;
+    $can_manage_news = true;
     $is_admin = true;
 }
 ?>
@@ -70,8 +72,8 @@ if (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Adminis
 
             <!-- Employees -->
             <a href="<?php url('views/employees/index.php'); ?>"
-                class="<?php echo isActive('employees'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
-                <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('employees'); ?> transition-colors"
+                class="<?php echo (strpos($current_page, 'employees') !== false && strpos($current_page, 'reset_password') === false) ? 'bg-cyan-50 text-cyan-700 font-semibold border-l-[6px] border-cyan-600 rounded-r-3xl' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 border-l-[6px] border-transparent rounded-r-3xl'; ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo (strpos($current_page, 'employees') !== false && strpos($current_page, 'reset_password') === false) ? 'text-cyan-600' : 'text-slate-400 group-hover:text-slate-600'; ?> transition-colors"
                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                         d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -224,6 +226,30 @@ if (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Adminis
                 </svg>
                 Hak Akses Web
             </a>
+
+            <!-- Reset Password -->
+            <a href="<?php url('views/employees/reset_password.php'); ?>"
+                class="<?php echo isActive('reset_password'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('reset_password'); ?> transition-colors"
+                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                          d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
+                </svg>
+                Reset Password
+            </a>
+
+            <!-- News Management -->
+            <?php if ($can_manage_news): ?>
+            <a href="<?php url('views/news/index.php'); ?>"
+                class="<?php echo isActive('news'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('news'); ?> transition-colors"
+                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M16.5 7.5V18a2.25 2.25 0 002.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 002.25 2.25h13.5M6 7.5h3v3H6v-3z" />
+                </svg>
+                Manajemen Berita
+            </a>
+            <?php endif; ?>
             <?php endif; ?>
 
             <?php if ($can_manage_academic): ?>

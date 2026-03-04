@@ -45,7 +45,17 @@ try {
         $types .= "i";
     }
 
-    $sql .= " ORDER BY e.full_name ASC LIMIT 100";
+    $sql .= " ORDER BY e.full_name ASC";
+
+    // Support pagination dan ambil semua data
+    $fetchAll = isset($_GET['all']) && $_GET['all'] === 'true';
+    $limit = isset($_GET['limit']) ? intval($_GET['limit']) : 100;
+    $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+
+    if (!$fetchAll) {
+        $offset = ($page - 1) * $limit;
+        $sql .= " LIMIT $limit OFFSET $offset";
+    }
 
     $stmt = $mysqli->prepare($sql);
     if (!$stmt) {

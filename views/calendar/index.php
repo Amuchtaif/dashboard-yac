@@ -32,6 +32,42 @@ $prev_year = $month == 1 ? $year - 1 : $year;
 $next_month = $month == 12 ? 1 : $month + 1;
 $next_year = $month == 12 ? $year + 1 : $year;
 
+// --- Fetch Public Holidays (libur.deno.dev API) ---
+function get_public_holidays($year) {
+    if (!$year) $year = date('Y');
+    $cache_file = "../../tmp/holidays_$year.json";
+    if (file_exists($cache_file) && (time() - filemtime($cache_file)) < 86400) {
+        $cached_data = json_decode(file_get_contents($cache_file), true);
+        return is_array($cached_data) ? $cached_data : [];
+    }
+    
+    $url = "https://libur.deno.dev/api?year=$year";
+    
+    // Try file_get_contents first
+    $json = @file_get_contents($url);
+    
+    // Fallback to CURL if file_get_contents is disabled
+    if (!$json && function_exists('curl_init')) {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        $json = curl_exec($ch);
+        curl_close($ch);
+    }
+
+    if ($json) {
+        if (!is_dir("../../tmp")) mkdir("../../tmp", 0777, true);
+        file_put_contents($cache_file, $json);
+        $decoded_data = json_decode($json, true);
+        return is_array($decoded_data) ? $decoded_data : [];
+    }
+    return [];
+}
+
+$api_holidays = get_public_holidays($year);
+
 // --- Fetch Events for this month ---
 $first_of_month = date('Y-m-d', $first_day_ts);
 $last_of_month = date('Y-m-t', $first_day_ts);
@@ -43,22 +79,70 @@ $stmt = $conn->prepare($query);
 $stmt->execute([':first_day' => $first_of_month, ':last_day' => $last_of_month]);
 $events = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+// Map API holidays to events structure
+$public_events = [];
+for ($i = $year - 1; $i <= $year + 1; $i++) {
+    $api_year_holidays = get_public_holidays($i);
+    if (is_array($api_year_holidays)) {
+        foreach ($api_year_holidays as $h) {
+            // The API libur.deno.dev structure is actually {"date": "YYYY-MM-DD", "name": "Holiday Name"}
+            if (isset($h['date']) && isset($h['name'])) {
+                $public_events[] = [
+                    'id' => 'api_' . md5($h['date'] . $h['name']),
+                    'title' => $h['name'],
+                    'start_date' => $h['date'],
+                    'end_date' => $h['date'],
+                    'category' => 'Libur Nasional',
+                    'description' => 'Hari Libur Nasional (API)',
+                    'is_api' => true
+                ];
+            }
+        }
+    }
+}
+
 // Map events to days for the grid
 $days_events = [];
 for ($i = 1; $i <= $days_in_month; $i++) {
     $current_date = sprintf('%04d-%02d-%02d', $year, $month, $i);
-    $days_events[$i] = array_filter($events, function($e) use ($current_date) {
+    
+    // Combined local events and API holidays
+    $local_day_events = array_filter($events, function($e) use ($current_date) {
         return $current_date >= $e['start_date'] && $current_date <= ($e['end_date'] ?: $e['start_date']);
     });
+    
+    $api_day_events = array_filter($public_events, function($e) use ($current_date) {
+        return $current_date == $e['start_date'];
+    });
+    
+    $days_events[$i] = array_merge($local_day_events, $api_day_events);
 }
 
-// Upcoming holidays (current month or future)
+// Upcoming events for the ACTIVE month only
+$current_month_start = sprintf('%04d-%02d-01', $year, $month);
+$current_month_end = date('Y-m-t', strtotime($current_month_start));
+
 $upcoming_query = "SELECT * FROM academic_calendar 
-                   WHERE start_date >= :today 
-                   ORDER BY start_date ASC LIMIT 5";
+                   WHERE (start_date <= :end AND (end_date >= :start OR end_date IS NULL))
+                   ORDER BY start_date ASC";
 $upcoming_stmt = $conn->prepare($upcoming_query);
-$upcoming_stmt->execute([':today' => date('Y-m-d')]);
-$upcoming_holidays = $upcoming_stmt->fetchAll(PDO::FETCH_ASSOC);
+$upcoming_stmt->execute([':start' => $current_month_start, ':end' => $current_month_end]);
+$upcoming_db_events = $upcoming_stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Merge with upcoming API holidays for the active month
+$upcoming_api = array_filter($public_events, function($e) use ($current_month_start, $current_month_end) {
+    return $e['start_date'] >= $current_month_start && $e['start_date'] <= $current_month_end;
+});
+
+$upcoming_holidays = array_merge($upcoming_db_events, $upcoming_api);
+usort($upcoming_holidays, function($a, $b) {
+    return strcmp($a['start_date'], $b['start_date']);
+});
+
+// Remove duplicates (merged db and api might have same dates)
+$temp_unique = [];
+foreach($upcoming_holidays as $u) { $temp_unique[$u['start_date'].$u['title']] = $u; }
+$upcoming_holidays = array_values($temp_unique);
 
 include '../layouts/header.php';
 ?>
@@ -164,6 +248,7 @@ include '../layouts/header.php';
     .bg-collective { background-color: #fffbeb; color: #d97706; border-color: #fef3c7; }
     .bg-academic { background-color: #f0f9ff; color: #0284c7; border-color: #bae6fd; }
     .bg-meeting { background-color: #f5f3ff; color: #7c3aed; border-color: #ddd6fe; }
+    .bg-yayasan { background-color: #f0fdfa; color: #0d9488; border-color: #ccfbf1; }
     .bg-other { background-color: #f8fafc; color: #475569; border-color: #e2e8f0; }
 
     .glass-card {
@@ -336,6 +421,7 @@ include '../layouts/header.php';
                                 if ($ev['category'] == 'Cuti Bersama') $catClass = "bg-collective";
                                 if ($ev['category'] == 'Akademik') $catClass = "bg-academic";
                                 if ($ev['category'] == 'Rapat') $catClass = "bg-meeting";
+                                if ($ev['category'] == 'Kegiatan Yayasan') $catClass = "bg-yayasan";
                                 
                                 $title = htmlspecialchars($ev['title']);
                                 echo "
@@ -368,6 +454,10 @@ include '../layouts/header.php';
                     <div class="flex items-center gap-3">
                         <span class="w-3.5 h-3.5 rounded-full bg-indigo-500 shadow-sm"></span>
                         <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">RAPAT</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="w-3.5 h-3.5 rounded-full bg-teal-500 shadow-sm"></span>
+                        <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">KEGIATAN YAYASAN</span>
                     </div>
                 </div>
             </div>
@@ -453,6 +543,9 @@ include '../layouts/header.php';
                                 <div class="custom-select-option" data-value="Rapat" data-label="Rapat" data-color="bg-indigo-500">
                                     <span class="color-dot bg-indigo-500"></span> Rapat
                                 </div>
+                                <div class="custom-select-option" data-value="Kegiatan Yayasan" data-label="Kegiatan Yayasan" data-color="bg-teal-500">
+                                    <span class="color-dot bg-teal-500"></span> Kegiatan Yayasan
+                                </div>
                                 <div class="custom-select-option" data-value="Kegiatan" data-label="Kegiatan Sekolah" data-color="bg-purple-500">
                                     <span class="color-dot bg-purple-500"></span> Kegiatan Sekolah
                                 </div>
@@ -469,9 +562,15 @@ include '../layouts/header.php';
                                 <span id="sideBtnText">Simpan Kegiatan</span>
                             </span>
                         </button>
-                        <button type="button" id="cancelEditBtn" onclick="resetSideForm()" class="hidden w-full py-3 text-sm font-bold text-slate-400 hover:text-slate-600 transition-colors">
-                            Batal Edit
-                        </button>
+                        
+                        <div class="flex gap-2">
+                             <button type="button" id="deleteBtn" onclick="deleteEventAjax()" class="hidden flex-1 py-3 text-sm font-bold text-red-500 hover:bg-red-50 rounded-xl transition-colors border border-red-100">
+                                Hapus
+                            </button>
+                            <button type="button" id="cancelEditBtn" onclick="resetSideForm()" class="hidden flex-1 py-3 text-sm font-bold text-slate-400 hover:bg-slate-50 rounded-xl transition-colors border border-slate-100">
+                                Batal
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -497,7 +596,9 @@ include '../layouts/header.php';
                                         <div>
                                             <h4 class="text-sm font-bold text-slate-800 group-hover:text-[#0E83A3] transition-colors"><?php echo htmlspecialchars($upcoming['title']); ?></h4>
                                             <p class="text-xs text-slate-400 flex items-center gap-1.5 mt-1 font-medium">
-                                                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v12a2 2 0 00-2 2z" /></svg>
+                                                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25m-10.5 0h10.5m-10.5 0a2.25 2.25 0 00-2.25 2.25v10.5a2.25 2.25 0 002.25 2.25h10.5a2.25 2.25 0 002.25-2.25V7.5a2.25 2.25 0 00-2.25-2.25h-10.5z" />
+                                                </svg>
                                                 <?php echo date('d', strtotime($upcoming['start_date'])) . " " . $indo_months[(int)date('m', strtotime($upcoming['start_date']))] . " " . date('Y', strtotime($upcoming['start_date'])); ?>
                                             </p>
                                         </div>
@@ -606,6 +707,10 @@ function initCustomSelect(containerId, inputId) {
 const sidebarSelect = initCustomSelect('categorySelectSidebar', 'categoryInputSidebar');
 
 function editEvent(event) {
+    if (event.is_api) {
+        showToast('Hari Libur Nasional (API) tidak dapat diubah.', 'error');
+        return;
+    }
     document.getElementById('sideFormID').value = event.id;
     document.getElementById('sideFormTitle').value = event.title;
     document.getElementById('sideFormStartDate').value = event.start_date;
@@ -617,6 +722,7 @@ function editEvent(event) {
     document.getElementById('sideHeaderTitle').innerText = 'Edit Kegiatan';
     document.getElementById('sideBtnText').innerText = 'Update Kegiatan';
     document.getElementById('cancelEditBtn').classList.remove('hidden');
+    document.getElementById('deleteBtn').classList.remove('hidden');
     
     // Smooth scroll to sidebar
     document.getElementById('sideForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -628,6 +734,7 @@ function resetSideForm() {
     document.getElementById('sideHeaderTitle').innerText = 'Tambah Kegiatan';
     document.getElementById('sideBtnText').innerText = 'Simpan Kegiatan';
     document.getElementById('cancelEditBtn').classList.add('hidden');
+    document.getElementById('deleteBtn').classList.add('hidden');
     sidebarSelect.setValue('Libur Nasional');
 }
 
@@ -657,8 +764,36 @@ function submitEvent(data) {
 }
 
 function deleteEventAjax() {
+    openCalendarDeleteModal();
+}
+
+function openCalendarDeleteModal() {
+    const modal = document.getElementById('calendarDeleteModal');
+    const backdrop = document.getElementById('calDeleteBackdrop');
+    const panel = document.getElementById('calDeletePanel');
+
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        backdrop.classList.remove('opacity-0');
+        panel.classList.remove('opacity-0', 'scale-95');
+    }, 10);
+}
+
+function closeCalendarDeleteModal() {
+    const modal = document.getElementById('calendarDeleteModal');
+    const backdrop = document.getElementById('calDeleteBackdrop');
+    const panel = document.getElementById('calDeletePanel');
+
+    backdrop.classList.add('opacity-0');
+    panel.classList.add('opacity-0', 'scale-95');
+    setTimeout(() => {
+        modal.classList.add('hidden');
+    }, 300);
+}
+
+function confirmDeleteEvent() {
     const id = document.getElementById('sideFormID').value;
-    if (!id || !confirm('Yakin ingin menghapus kegiatan ini?')) return;
+    if (!id) return;
 
     fetch('../../logic/calendar/delete_event.php', {
         method: 'POST',
@@ -672,5 +807,37 @@ function deleteEventAjax() {
     });
 }
 </script>
+
+<!-- Custom Delete Modal for Calendar -->
+<div id="calendarDeleteModal" class="fixed inset-0 z-[60] hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div id="calDeleteBackdrop" class="fixed inset-0 bg-slate-900/50 transition-opacity duration-300 opacity-0 backdrop-blur-sm"></div>
+    <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div id="calDeletePanel" class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all duration-300 opacity-0 scale-95 sm:my-8 sm:w-full sm:max-w-md">
+            <div class="bg-white px-4 pb-4 pt-5 sm:p-8 sm:pb-6">
+                <div class="sm:flex sm:items-start">
+                    <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-red-50 sm:mx-0 sm:h-12 sm:w-12">
+                        <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                        </svg>
+                    </div>
+                    <div class="mt-3 text-center sm:ml-6 sm:mt-0 sm:text-left">
+                        <h3 class="text-xl font-bold leading-6 text-slate-900" id="modal-title">Hapus Kegiatan?</h3>
+                        <div class="mt-3">
+                            <p class="text-sm text-slate-500 leading-relaxed font-medium">Apakah Anda yakin ingin menghapus kegiatan ini dari kalender? Tindakan ini tidak dapat dibatalkan.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-slate-50 px-6 py-4 sm:flex sm:flex-row-reverse gap-3">
+                <button type="button" onclick="confirmDeleteEvent()" class="inline-flex w-full justify-center rounded-xl bg-red-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-red-500 sm:w-auto transition-all transform active:scale-95">
+                    Hapus Sekarang
+                </button>
+                <button type="button" onclick="closeCalendarDeleteModal()" class="mt-3 inline-flex w-full justify-center rounded-xl bg-white px-5 py-2.5 text-sm font-bold text-slate-600 shadow-sm ring-1 ring-inset ring-slate-200 hover:bg-slate-50 sm:mt-0 sm:w-auto transition-all">
+                    Batalkan
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <?php include '../layouts/footer.php'; ?>

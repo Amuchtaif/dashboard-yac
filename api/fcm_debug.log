@@ -66,3 +66,82 @@
 [2026-02-26 22:32:40] SUKSES: Token berhasil diupdate untuk User ID 179.
 [2026-02-26 23:13:24] Request Masuk! User ID: '40' | Token: fzRjWowsSH2rPph...
 [2026-02-26 23:13:24] SUKSES: Token berhasil diupdate untuk User ID 40.
+[2026-02-28 23:34:00] Request Masuk! User ID: '40' | Token: eEBbWF8KRRWjeXh...
+[2026-02-28 23:34:00] SUKSES: Token berhasil diupdate untuk User ID 40.
+[2026-03-01 11:49:33] Request Masuk! User ID: '40' | Token: fzRjWowsSH2rPph...
+[2026-03-01 11:49:33] SUKSES: Token berhasil diupdate untuk User ID 40.
+[2026-03-01 12:01:37] Request Masuk! User ID: '1' | Token: fzRjWowsSH2rPph...
+[2026-03-01 12:01:37] SUKSES: Token berhasil diupdate untuk User ID 1.
+[2026-03-01 12:43:33] Request Masuk! User ID: '1' | Token: fzRjWowsSH2rPph...
+[2026-03-01 12:43:33] SUKSES: Token berhasil diupdate untuk User ID 1.
+[2026-03-01 13:53:40] Request Masuk! User ID: '157' | Token: fzRjWowsSH2rPph...
+[2026-03-01 13:53:40] SUKSES: Token berhasil diupdate untuk User ID 157.
+[2026-03-01 13:56:54] Request Masuk! User ID: '199' | Token: d7g3xSwxS6Gnsjc...
+[2026-03-01 13:56:54] SUKSES: Token berhasil diupdate untuk User ID 199.
+[2026-03-01 14:32:21] Request Masuk! User ID: '40' | Token: fzRjWowsSH2rPph...
+[2026-03-01 14:32:21] SUKSES: Token berhasil diupdate untuk User ID 40.
+[2026-03-01 16:33:16] Request Masuk! User ID: '179' | Token: eLbnGmhdSsScJ9j...
+[2026-03-01 16:33:16] SUKSES: Token berhasil diupdate untuk User ID 179.
+2026-03-01 16:36:24 [MEETING] - Starting FCM notifications for meeting ID: 5
+2026-03-01 16:36:24 [MEETING] - FCM sent to participant ID 40
+2026-03-01 16:36:24 [MEETING] - FCM completed. Sent: 1 notifications
+[2026-03-01 16:38:11] Request Masuk! User ID: '179' | Token: fzRjWowsSH2rPph...
+[2026-03-01 16:38:11] SUKSES: Token berhasil diupdate untuk User ID 179.
+[2026-03-01 16:38:28] Request Masuk! User ID: '40' | Token: eLbnGmhdSsScJ9j...
+[2026-03-01 16:38:28] SUKSES: Token berhasil diupdate untuk User ID 40.
+[2026-03-01 16:41:08] Request Masuk! User ID: '199' | Token: d7g3xSwxS6Gnsjc...
+[2026-03-01 16:41:08] SUKSES: Token berhasil diupdate untuk User ID 199.
+2026-03-01 17:23:43 [MEETING] - Starting FCM notifications for meeting ID: 6
+2026-03-01 17:23:44 [MEETING] - FCM failed for participant ID 2: {
+  "error": {
+    "code": 404,
+    "message": "Requested entity was not found.",
+    "status": "NOT_FOUND",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.firebase.fcm.v1.FcmError",
+        "errorCode": "UNREGISTERED"
+      }
+    ]
+  }
+}
+
+2026-03-01 17:23:44 [MEETING] - FCM sent to participant ID 9
+2026-03-01 17:23:45 [MEETING] - FCM sent to participant ID 11
+2026-03-01 17:23:45 [MEETING] - FCM sent to participant ID 25
+2026-03-01 17:23:45 [MEETING] - FCM sent to participant ID 38
+2026-03-01 17:23:46 [MEETING] - FCM sent to participant ID 40
+2026-03-01 17:23:46 [MEETING] - FCM sent to participant ID 82
+2026-03-01 17:23:46 [MEETING] - FCM failed for participant ID 123: {
+  "error": {
+    "code": 404,
+    "message": "Requested entity was not found.",
+    "status": "NOT_FOUND",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.firebase.fcm.v1.FcmError",
+        "errorCode": "UNREGISTERED"
+      }
+    ]
+  }
+}
+
+2026-03-01 17:23:47 [MEETING] - FCM sent to participant ID 158
+2026-03-01 17:23:47 [MEETING] - FCM sent to participant ID 179
+2026-03-01 17:23:47 [MEETING] - FCM completed. Sent: 8 notifications
+[2026-03-03 10:37:09] Request Masuk! User ID: '179' | Token: fzRjWowsSH2rPph...
+[2026-03-03 10:37:09] SUKSES: Token berhasil diupdate untuk User ID 179.
+[2026-03-03 10:40:39] Request Masuk! User ID: '40' | Token: d7g3xSwxS6Gnsjc...
+[2026-03-03 10:40:39] SUKSES: Token berhasil diupdate untuk User ID 40.
+[2026-03-03 13:09:07] Request Masuk! User ID: '179' | Token: fzRjWowsSH2rPph...
+[2026-03-03 13:09:07] SUKSES: Token berhasil diupdate untuk User ID 179.
+[2026-03-03 13:40:08] Request Masuk! User ID: '117' | Token: fzRjWowsSH2rPph...
+[2026-03-03 13:40:08] SUKSES: Token berhasil diupdate untuk User ID 117.
+[2026-03-04 08:53:42] Request Masuk! User ID: '123' | Token: fzRjWowsSH2rPph...
+[2026-03-04 08:53:42] SUKSES: Token berhasil diupdate untuk User ID 123.
+[2026-03-04 09:06:47] Request Masuk! User ID: '60' | Token: fzRjWowsSH2rPph...
+[2026-03-04 09:06:47] SUKSES: Token berhasil diupdate untuk User ID 60.
+[2026-03-04 10:58:25] Request Masuk! User ID: '40' | Token: d7g3xSwxS6Gnsjc...
+[2026-03-04 10:58:25] SUKSES: Token berhasil diupdate untuk User ID 40.
+[2026-03-04 11:22:36] Request Masuk! User ID: '9' | Token: d7g3xSwxS6Gnsjc...
+[2026-03-04 11:22:36] SUKSES: Token berhasil diupdate untuk User ID 9.

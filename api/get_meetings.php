@@ -20,11 +20,11 @@ try {
     // Base query
     // If user_id is provided, show meetings where user is participant OR creator
     if ($user_id) {
-        $sql = "SELECT m.*, d.name as division_name, 
+        $sql = "SELECT m.*, d.name as department_name, d.name as division_name, 
                 e.full_name as creator_name,
                 (SELECT status FROM meeting_participants mp WHERE mp.meeting_id = m.id AND mp.employee_id = ? LIMIT 1) as my_status
                 FROM meetings m 
-                LEFT JOIN divisions d ON m.division_id = d.id
+                LEFT JOIN departments d ON m.department_id = d.id
                 LEFT JOIN employees e ON m.created_by = e.id
                 WHERE (m.created_by = ? 
                    OR m.id IN (SELECT meeting_id FROM meeting_participants WHERE employee_id = ?))";
@@ -34,9 +34,9 @@ try {
         $types .= "iii";
     } else {
         // If no user_id, show all (public/admin view)
-        $sql = "SELECT m.*, d.name as division_name, e.full_name as creator_name 
+        $sql = "SELECT m.*, d.name as department_name, d.name as division_name, e.full_name as creator_name 
                 FROM meetings m 
-                LEFT JOIN divisions d ON m.division_id = d.id
+                LEFT JOIN departments d ON m.department_id = d.id
                 LEFT JOIN employees e ON m.created_by = e.id
                 WHERE 1=1";
     }

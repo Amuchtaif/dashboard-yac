@@ -45,6 +45,7 @@ try {
         SELECT 
             st.id as student_id, 
             st.nama_siswa as student_name,
+            st.nomor_induk,
             sa.status
         FROM students st 
         LEFT JOIN student_attendances sa 

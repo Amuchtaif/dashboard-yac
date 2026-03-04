@@ -39,7 +39,10 @@ try {
             lp.start_time,
             lp.end_time,
             cs.day,
-            (SELECT COUNT(*) FROM class_journals cj WHERE cj.class_schedule_id = cs.id AND cj.date = CURDATE()) as is_attended
+            (SELECT COUNT(*) FROM class_journals cj WHERE cj.class_schedule_id = cs.id AND cj.date = CURDATE() AND (cj.topic != '' AND cj.notes != '')) as is_journal_filled,
+            (SELECT COUNT(*) FROM student_attendances sa 
+             JOIN class_journals cj ON sa.class_journal_id = cj.id 
+             WHERE cj.class_schedule_id = cs.id AND cj.date = CURDATE()) as has_attendance
         FROM class_schedules cs
         JOIN subjects s ON cs.subject_id = s.id
         JOIN grade_levels gl ON cs.grade_level_id = gl.id

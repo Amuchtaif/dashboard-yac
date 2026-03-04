@@ -27,7 +27,8 @@ $type = $input['type'] ?? $_POST['type'] ?? ''; // online, offline
 $location = $input['location'] ?? $_POST['location'] ?? '';
 $link = $input['link'] ?? $_POST['link'] ?? '';
 $created_by = $input['created_by'] ?? $_POST['created_by'] ?? '';
-$division_id = $input['division_id'] ?? $_POST['division_id'] ?? '';
+// Support both department_id and division_id for transition
+$department_id = $input['department_id'] ?? $input['division_id'] ?? $_POST['department_id'] ?? $_POST['division_id'] ?? '';
 
 // Accept both 'participants' (from Flutter) and 'participant_ids' (legacy)
 $participant_ids = $input['participants'] ?? $input['participant_ids'] ?? $_POST['participant_ids'] ?? [];
@@ -45,8 +46,8 @@ if (!is_array($participant_ids)) {
 }
 
 // 2. Validasi
-if (empty($title) || empty($meeting_date) || empty($start_time) || empty($end_time) || empty($type) || empty($created_by) || empty($division_id)) {
-    echo json_encode(["success" => false, "message" => "Kolom wajib diisi: title, date, start_time, end_time, type, created_by, division_id."]);
+if (empty($title) || empty($meeting_date) || empty($start_time) || empty($end_time) || empty($type) || empty($created_by) || empty($department_id)) {
+    echo json_encode(["success" => false, "message" => "Kolom wajib diisi: title, date, start_time, end_time, type, created_by, department_id."]);
     exit();
 }
 
@@ -65,8 +66,6 @@ if (!hasPermission($created_by, 'create_meeting')) {
     exit();
 }
 
-
-
 // 3. Generate Token Unik
 $qr_token = uniqid('MEET-');
 
@@ -75,16 +74,18 @@ $mysqli->begin_transaction();
 
 try {
     // A. Insert ke tabel meetings
-    $sqlMeeting = "INSERT INTO meetings (title, description, meeting_date, start_time, end_time, type, location, created_by, division_id, qr_token) 
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    $sqlMeeting = "INSERT INTO meetings (title, description, meeting_date, start_time, end_time, type, location, created_by, department_id, division_id, qr_token) 
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     $stmt = $mysqli->prepare($sqlMeeting);
     
     // Use link if online, location if offline
     $locationOrLink = ($type === 'online') ? $link : $location;
     
+    $dept_id_int = intval($department_id);
+
     $stmt->bind_param(
-        "sssssssiis",
+        "sssssssiiss",
         $title,
         $description,
         $meeting_date,
@@ -93,7 +94,8 @@ try {
         $type,
         $locationOrLink,
         $created_by,
-        $division_id,
+        $dept_id_int,
+        $dept_id_int, // Use same ID for both for now
         $qr_token
     );
 
@@ -129,8 +131,10 @@ try {
     
     if (!empty($participant_ids)) {
         // Log function
-        function logMeetingFCM($msg) {
-            file_put_contents('fcm_debug.log', date('Y-m-d H:i:s') . " [MEETING] - " . $msg . "\n", FILE_APPEND);
+        if (!function_exists('logMeetingFCM')) {
+            function logMeetingFCM($msg) {
+                file_put_contents('fcm_debug.log', date('Y-m-d H:i:s') . " [MEETING] - " . $msg . "\n", FILE_APPEND);
+            }
         }
         
         logMeetingFCM("Starting FCM notifications for meeting ID: $meeting_id");

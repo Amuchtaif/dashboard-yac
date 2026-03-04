@@ -82,66 +82,125 @@ include '../layouts/header.php';
     </div>
 
     <!-- Filter Bar -->
-    <form id="filterForm" class="mt-8 bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4" method="GET">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <form id="filterForm" class="mt-8 bg-white p-6 rounded-xl border border-slate-200 shadow-sm" method="GET">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
             <!-- Date -->
-            <div>
-                <label for="date" class="block text-sm font-medium text-slate-700 mb-1">Tanggal</label>
-                <input type="date" name="date" value="<?php echo htmlspecialchars($date); ?>" 
-                    onchange="this.form.submit()"
-                    class="block w-full rounded-lg border-slate-200 text-sm focus:border-cyan-500 focus:ring-cyan-500 bg-slate-50 border text-slate-600 py-2.5">
-                <p class="mt-1 text-xs text-slate-500"><?php echo $idn_day; ?></p>
+            <div class="space-y-1.5">
+                <label for="date" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Tanggal</label>
+                <div class="relative">
+                    <input type="date" name="date" value="<?php echo htmlspecialchars($date); ?>" 
+                        onchange="this.form.submit()"
+                        class="block w-full rounded-lg border-slate-200 text-sm focus:border-cyan-500 focus:ring-cyan-500 bg-slate-50 border text-slate-600 py-2.5 px-4 h-[45px]">
+                </div>
+                <!-- <p class="mt-1.5 text-[11px] font-medium text-cyan-600 bg-cyan-50 px-2 py-0.5 rounded-full inline-block"><?php echo $idn_day; ?></p> -->
             </div>
 
-            <!-- Unit -->
-            <div>
-                <label for="unit_id" class="block text-sm font-medium text-slate-700 mb-1">Unit</label>
-                <select name="unit_id" id="unit_id" onchange="filterGrades(); this.form.submit()"
-                    class="block w-full rounded-lg border-slate-200 text-sm focus:border-cyan-500 focus:ring-cyan-500 bg-slate-50 border text-slate-600 py-2.5">
-                    <option value="">Semua Unit</option>
-                    <?php foreach ($units as $u): ?>
-                        <option value="<?php echo $u['id']; ?>" <?php echo $unit_id == $u['id'] ? 'selected' : ''; ?>>
-                            <?php echo htmlspecialchars($u['name']); ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
+            <!-- Unit Filter -->
+            <div class="relative space-y-1.5" id="filter-unit-container">
+                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Unit</label>
+                <input type="hidden" name="unit_id" id="filter-unit-input" value="<?php echo $unit_id; ?>">
+                <button type="button" onclick="toggleDropdown('filter-unit')"
+                    class="inline-flex items-center justify-between gap-2 rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-colors w-full h-[45px]">
+                    <span id="filter-unit-text" class="truncate">
+                        <?php
+                        $unit_name = "Semua Unit";
+                        foreach ($units as $u) {
+                            if ($u['id'] == $unit_id) $unit_name = $u['name'];
+                        }
+                        echo htmlspecialchars($unit_name);
+                        ?>
+                    </span>
+                    <svg class="h-4 w-4 text-slate-400 transition-transform duration-200" id="filter-unit-arrow"
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+                <div id="filter-unit-menu"
+                    class="hidden absolute top-full left-0 mt-1 w-full min-w-[200px] origin-top-left rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50 max-h-60 overflow-y-auto">
+                    <ul class="py-1">
+                        <li onclick="selectFilterOption('unit', '', 'Semua Unit')"
+                            class="cursor-pointer px-4 py-2 text-sm text-slate-500 hover:bg-slate-50 hover:text-cyan-700">
+                            Semua Unit</li>
+                        <?php foreach ($units as $u): ?>
+                            <li onclick="selectFilterOption('unit', '<?php echo $u['id']; ?>', '<?php echo htmlspecialchars(addslashes($u['name']), ENT_QUOTES); ?>')"
+                                class="cursor-pointer px-4 py-2 text-sm text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
+                                <?php echo htmlspecialchars($u['name']); ?>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
             </div>
 
-            <!-- Grade -->
-            <div>
-                <label for="grade_id" class="block text-sm font-medium text-slate-700 mb-1">Kelas</label>
-                <select name="grade_id" id="grade_id" onchange="this.form.submit()"
-                    class="block w-full rounded-lg border-slate-200 text-sm focus:border-cyan-500 focus:ring-cyan-500 bg-slate-50 border text-slate-600 py-2.5">
-                    <option value="">Semua Kelas</option>
-                    <?php foreach ($grades as $g): ?>
-                        <option value="<?php echo $g['id']; ?>" 
+            <!-- Grade Filter -->
+            <div class="relative space-y-1.5" id="filter-grade-container">
+                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Kelas</label>
+                <input type="hidden" name="grade_id" id="filter-grade-input" value="<?php echo $grade_id; ?>">
+                <button type="button" onclick="toggleDropdown('filter-grade')"
+                    class="inline-flex items-center justify-between gap-2 rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-colors w-full h-[45px]">
+                    <span id="filter-grade-text" class="truncate">
+                        <?php
+                        $grade_name = "Semua Kelas";
+                        foreach ($grades as $g) {
+                            if ($g['id'] == $grade_id) $grade_name = $g['name'];
+                        }
+                        echo htmlspecialchars($grade_name);
+                        ?>
+                    </span>
+                    <svg class="h-4 w-4 text-slate-400 transition-transform duration-200" id="filter-grade-arrow"
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+                <div id="filter-grade-menu"
+                    class="hidden absolute top-full left-0 mt-1 w-full min-w-[200px] origin-top-left rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50 max-h-60 overflow-y-auto">
+                    <ul class="py-1">
+                        <li onclick="selectFilterOption('grade', '', 'Semua Kelas')"
+                            class="cursor-pointer px-4 py-2 text-sm text-slate-500 hover:bg-slate-50 hover:text-cyan-700">
+                            Semua Kelas</li>
+                        <?php foreach ($grades as $g): ?>
+                            <li onclick="selectFilterOption('grade', '<?php echo $g['id']; ?>', '<?php echo htmlspecialchars(addslashes($g['name']), ENT_QUOTES); ?>')"
                                 data-unit="<?php echo $g['education_unit_id']; ?>"
-                                <?php echo $grade_id == $g['id'] ? 'selected' : ''; ?>
+                                class="grade-option cursor-pointer px-4 py-2 text-sm text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors"
                                 <?php echo ($unit_id && $g['education_unit_id'] != $unit_id) ? 'style="display:none"' : ''; ?>>
-                            <?php echo htmlspecialchars($g['name']); ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
+                                <?php echo htmlspecialchars($g['name']); ?>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
+            </div>
+            
+            <div>
+                <a href="index.php" class="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-red-600 transition-all w-full h-[45px] shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    Reset
+                </a>
             </div>
         </div>
         <button type="submit" class="hidden">Filter</button>
     </form>
 
     <script>
+    function selectFilterOption(type, value, text) {
+        document.getElementById('filter-' + type + '-input').value = value;
+        // If it's unit, we might want to reset grade, but usually we just submit and let PHP handle it
+        document.getElementById('filterForm').submit();
+    }
+    
     function filterGrades() {
-        const unitId = document.getElementById('unit_id').value;
-        const gradeSelect = document.getElementById('grade_id');
-        const options = gradeSelect.options;
-        gradeSelect.value = "";
-        for (let i = 0; i < options.length; i++) {
-            const opt = options[i];
-            const optUnitId = opt.getAttribute('data-unit');
+        // This is now partially handled by the server on submit, 
+        // but if we wanted to do it client side before submit, we'd loop through .grade-option
+        const unitId = document.getElementById('filter-unit-input').value;
+        const items = document.querySelectorAll('.grade-option');
+        items.forEach(item => {
+            const optUnitId = item.getAttribute('data-unit');
             if (!unitId || !optUnitId || optUnitId === unitId) {
-                opt.style.display = "";
+                item.style.display = "";
             } else {
-                opt.style.display = "none";
+                item.style.display = "none";
             }
-        }
+        });
     }
     </script>
 
