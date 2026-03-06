@@ -77,7 +77,8 @@ $query = "
         p.can_approve_permits,
         p.can_access_tahfidz,
         p.can_access_education,
-        p.can_manage_news
+        p.can_manage_news,
+        p.can_manage_assignments
     FROM positions p
     ORDER BY p.level ASC, p.name ASC
     LIMIT :limit OFFSET :offset
@@ -139,6 +140,9 @@ include '../layouts/header.php';
                                 <th scope="col"
                                     class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
                                     Manajemen Berita</th>
+                                <th scope="col"
+                                    class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                    Akses Penugasan</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200 bg-white">
@@ -209,6 +213,17 @@ include '../layouts/header.php';
                                                 <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-rose-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-rose-600"></div>
                                                 <span class="ml-3 text-sm font-medium text-gray-900 status-text-news-<?php echo $pos['id']; ?>">
                                                     <?php echo isset($pos['can_manage_news']) && $pos['can_manage_news'] == 1 ? 'Ya' : 'Tidak'; ?>
+                                                </span>
+                                            </label>
+                                        </td>
+                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                            <label class="relative inline-flex items-center cursor-pointer">
+                                                <input type="checkbox" class="sr-only peer" 
+                                                    <?php echo isset($pos['can_manage_assignments']) && $pos['can_manage_assignments'] == 1 ? 'checked' : ''; ?>
+                                                    onchange="updatePermission(<?php echo $pos['id']; ?>, 'can_manage_assignments', this.checked)">
+                                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                                                <span class="ml-3 text-sm font-medium text-gray-900 status-text-assignments-<?php echo $pos['id']; ?>">
+                                                    <?php echo isset($pos['can_manage_assignments']) && $pos['can_manage_assignments'] == 1 ? 'Ya' : 'Tidak'; ?>
                                                 </span>
                                             </label>
                                         </td>
@@ -290,6 +305,8 @@ function updatePermission(id, permissionType, isChecked) {
         statusTextSelector = `.status-text-education-${id}`;
     } else if (permissionType === 'can_manage_news') {
         statusTextSelector = `.status-text-news-${id}`;
+    } else if (permissionType === 'can_manage_assignments') {
+        statusTextSelector = `.status-text-assignments-${id}`;
     } else {
         statusTextSelector = `.status-text-${id}`;
     }

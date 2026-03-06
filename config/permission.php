@@ -71,6 +71,7 @@ if (!function_exists('hasPermission')) {
                 'manage_academic' => 'can_manage_academic',
                 'manage_tahfidz' => 'can_manage_tahfidz',
                 'manage_news' => 'can_manage_news',
+                'manage_assignments' => 'can_manage_assignments',
             ];
 
             if (!array_key_exists($permission_name, $permission_map)) {

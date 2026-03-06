@@ -1,7 +1,0 @@
-<?php
-include_once 'config/database.php';
-$database = new Database();
-$db = $database->getConnection();
-$stmt = $db->query("SELECT id, title, likes_count, views_count FROM news");
-echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
-?>

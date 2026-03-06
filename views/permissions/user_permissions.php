@@ -68,13 +68,15 @@ $query = "
         COALESCE(p.can_access_tahfidz, 0) as role_tahfidz,
         COALESCE(p.can_access_education, 0) as role_education,
         COALESCE(p.can_manage_news, 0) as role_news,
+        COALESCE(p.can_manage_assignments, 0) as role_assignments,
         -- User-specific overrides (NULL = no override)
         up_meet.is_allowed as override_meeting,
         up_permits.is_allowed as override_permits,
         up_tahfidz.is_allowed as override_tahfidz,
         up_attend.is_allowed as override_attendance,
         up_edu.is_allowed as override_education,
-        up_news.is_allowed as override_news
+        up_news.is_allowed as override_news,
+        up_asn.is_allowed as override_assignments
     FROM employees e
     LEFT JOIN positions p ON e.position_id = p.id
     LEFT JOIN user_permissions up_meet 
@@ -89,6 +91,8 @@ $query = "
         ON e.id = up_edu.employee_id AND up_edu.permission_name = 'access_education'
     LEFT JOIN user_permissions up_news 
         ON e.id = up_news.employee_id AND up_news.permission_name = 'manage_news'
+    LEFT JOIN user_permissions up_asn 
+        ON e.id = up_asn.employee_id AND up_asn.permission_name = 'manage_assignments'
     WHERE $where_sql
     ORDER BY e.full_name ASC
     LIMIT :limit OFFSET :offset
@@ -215,6 +219,7 @@ include '../layouts/header.php';
                                 <th scope="col" class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 w-36">Akses Menu Tahfidz</th>
                                 <th scope="col" class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 w-36">Akses Menu Pendidikan</th>
                                 <th scope="col" class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 w-36">Manajemen Berita</th>
+                                <th scope="col" class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 w-36">Akses Penugasan</th>
                                 <th scope="col" class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 w-36">Akses Presensi</th>
                             </tr>
                         </thead>
@@ -222,23 +227,27 @@ include '../layouts/header.php';
                             <?php if (count($employees) > 0): ?>
                                 <?php foreach ($employees as $index => $emp): 
                                     // Calculate effective permissions (override > role)
+                                    // Source is only 'override' when the override value DIFFERS from role value
                                     $eff_meeting = $emp['override_meeting'] !== null ? (int)$emp['override_meeting'] : (int)$emp['role_meeting'];
-                                    $src_meeting = $emp['override_meeting'] !== null ? 'override' : 'role';
+                                    $src_meeting = ($emp['override_meeting'] !== null && (int)$emp['override_meeting'] !== (int)$emp['role_meeting']) ? 'override' : 'role';
 
                                     $eff_permits = $emp['override_permits'] !== null ? (int)$emp['override_permits'] : (int)$emp['role_permits'];
-                                    $src_permits = $emp['override_permits'] !== null ? 'override' : 'role';
+                                    $src_permits = ($emp['override_permits'] !== null && (int)$emp['override_permits'] !== (int)$emp['role_permits']) ? 'override' : 'role';
 
                                     $eff_tahfidz = $emp['override_tahfidz'] !== null ? (int)$emp['override_tahfidz'] : (int)$emp['role_tahfidz'];
-                                    $src_tahfidz = $emp['override_tahfidz'] !== null ? 'override' : 'role';
+                                    $src_tahfidz = ($emp['override_tahfidz'] !== null && (int)$emp['override_tahfidz'] !== (int)$emp['role_tahfidz']) ? 'override' : 'role';
 
                                     $eff_education = $emp['override_education'] !== null ? (int)$emp['override_education'] : (int)$emp['role_education'];
-                                    $src_education = $emp['override_education'] !== null ? 'override' : 'role';
+                                    $src_education = ($emp['override_education'] !== null && (int)$emp['override_education'] !== (int)$emp['role_education']) ? 'override' : 'role';
                                     
                                     $eff_news = $emp['override_news'] !== null ? (int)$emp['override_news'] : (int)$emp['role_news'];
-                                    $src_news = $emp['override_news'] !== null ? 'override' : 'role';
+                                    $src_news = ($emp['override_news'] !== null && (int)$emp['override_news'] !== (int)$emp['role_news']) ? 'override' : 'role';
+
+                                    $eff_assignments = $emp['override_assignments'] !== null ? (int)$emp['override_assignments'] : (int)$emp['role_assignments'];
+                                    $src_assignments = ($emp['override_assignments'] !== null && (int)$emp['override_assignments'] !== (int)$emp['role_assignments']) ? 'override' : 'role';
 
                                     $eff_attendance = $emp['override_attendance'] !== null ? (int)$emp['override_attendance'] : 0;
-                                    $src_attendance = $emp['override_attendance'] !== null ? 'override' : 'role';
+                                    $src_attendance = ($emp['override_attendance'] !== null && (int)$emp['override_attendance'] !== 0) ? 'override' : 'role';
                                 ?>
                                     <tr class="hover:bg-gray-50 transition-colors">
                                         <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-500 sm:pl-6">
@@ -262,38 +271,43 @@ include '../layouts/header.php';
                                         
                                         <!-- Access Meeting -->
                                         <td class="whitespace-nowrap px-3 py-4 text-center perm-cell">
-                                            <?php renderToggle($emp['id'], 'access_meeting', $eff_meeting, $src_meeting); ?>
+                                            <?php renderToggle($emp['id'], 'access_meeting', $eff_meeting, $src_meeting, $emp['role_meeting']); ?>
                                         </td>
                                         
                                         <!-- Access Permits -->
                                         <td class="whitespace-nowrap px-3 py-4 text-center perm-cell">
-                                            <?php renderToggle($emp['id'], 'approve_permits', $eff_permits, $src_permits); ?>
+                                            <?php renderToggle($emp['id'], 'approve_permits', $eff_permits, $src_permits, $emp['role_permits']); ?>
                                         </td>
                                         
                                         <!-- Access Tahfidz -->
                                         <td class="whitespace-nowrap px-3 py-4 text-center perm-cell">
-                                            <?php renderToggle($emp['id'], 'access_tahfidz', $eff_tahfidz, $src_tahfidz); ?>
+                                            <?php renderToggle($emp['id'], 'access_tahfidz', $eff_tahfidz, $src_tahfidz, $emp['role_tahfidz']); ?>
                                         </td>
 
                                         <!-- Access Education -->
                                         <td class="whitespace-nowrap px-3 py-4 text-center perm-cell">
-                                            <?php renderToggle($emp['id'], 'access_education', $eff_education, $src_education); ?>
+                                            <?php renderToggle($emp['id'], 'access_education', $eff_education, $src_education, $emp['role_education']); ?>
                                         </td>
 
                                         <!-- Manajemen Berita -->
                                         <td class="whitespace-nowrap px-3 py-4 text-center perm-cell">
-                                            <?php renderToggle($emp['id'], 'manage_news', $eff_news, $src_news); ?>
+                                            <?php renderToggle($emp['id'], 'manage_news', $eff_news, $src_news, $emp['role_news']); ?>
+                                        </td>
+
+                                        <!-- Akses Penugasan -->
+                                        <td class="whitespace-nowrap px-3 py-4 text-center perm-cell">
+                                            <?php renderToggle($emp['id'], 'manage_assignments', $eff_assignments, $src_assignments, $emp['role_assignments']); ?>
                                         </td>
                                         
                                         <!-- Access Attendance -->
                                         <td class="whitespace-nowrap px-3 py-4 text-center perm-cell">
-                                            <?php renderToggle($emp['id'], 'access_attendance', $eff_attendance, $src_attendance); ?>
+                                            <?php renderToggle($emp['id'], 'access_attendance', $eff_attendance, $src_attendance, 0); ?>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <tr>
-                                    <td colspan="7" class="py-10 text-center text-sm text-gray-500">Data karyawan tidak ditemukan.</td>
+                                    <td colspan="9" class="py-10 text-center text-sm text-gray-500">Data karyawan tidak ditemukan.</td>
                                 </tr>
                             <?php endif; ?>
                         </tbody>
@@ -341,7 +355,7 @@ include '../layouts/header.php';
 </div>
 
 <?php 
-function renderToggle($empId, $permName, $effectiveValue, $source) {
+function renderToggle($empId, $permName, $effectiveValue, $source, $roleValue = 0) {
     $isChecked = ($effectiveValue == 1);
     $isOverride = ($source === 'override');
     
@@ -358,6 +372,7 @@ function renderToggle($empId, $permName, $effectiveValue, $source) {
             <input type="checkbox" class="sr-only peer" 
                 <?php echo $isChecked ? 'checked' : ''; ?>
                 onchange="updateUserPermission(<?php echo $empId; ?>, '<?php echo $permName; ?>', this.checked, this)"
+                data-role-value="<?php echo $roleValue; ?>"
                 data-source="<?php echo $source; ?>"
                 data-emp-id="<?php echo $empId; ?>"
                 data-perm-name="<?php echo $permName; ?>">
@@ -381,6 +396,9 @@ function updateUserPermission(empId, permName, isChecked, checkboxEl) {
         sourceEl.innerHTML = '<span class="text-amber-500 animate-pulse">Menyimpan...</span>';
     }
 
+    const roleValue = parseInt(checkboxEl.getAttribute('data-role-value') || '0');
+    const isMatchingRole = (isChecked ? 1 : 0) === roleValue;
+
     fetch(apiUrl, {
         method: 'POST',
         headers: {
@@ -389,24 +407,36 @@ function updateUserPermission(empId, permName, isChecked, checkboxEl) {
         body: JSON.stringify({
             employee_id: empId,
             permission_name: permName,
-            is_allowed: isChecked ? 1 : 0
+            is_allowed: isChecked ? 1 : 0,
+            revert_to_role: isMatchingRole // Added this flag
         }),
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
             showNotification('success', 'Hak akses berhasil disimpan');
-            // Update source indicator to "Override" since we just set a user-specific permission
+            // Update source indicator based on whether it matches role
             if (sourceEl) {
-                sourceEl.className = 'perm-source from-override';
-                sourceEl.innerHTML = '<svg class="w-3 h-3 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg> Override';
+                if (isMatchingRole) {
+                    sourceEl.className = 'perm-source from-role';
+                    sourceEl.innerHTML = '<svg class="w-3 h-3 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg> Jabatan';
+                } else {
+                    sourceEl.className = 'perm-source from-override';
+                    sourceEl.innerHTML = '<svg class="w-3 h-3 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg> Override';
+                }
             }
-            // Update toggle color to violet (override style)
+            // Update toggle color
             const toggleDiv = checkboxEl.nextElementSibling;
             if (toggleDiv) {
-                toggleDiv.className = toggleDiv.className
-                    .replace('peer-checked:bg-cyan-600', 'peer-checked:bg-violet-600')
-                    .replace('peer-focus:ring-cyan-300', 'peer-focus:ring-violet-300');
+                if (isMatchingRole) {
+                    toggleDiv.className = toggleDiv.className
+                        .replace('peer-checked:bg-violet-600', 'peer-checked:bg-cyan-600')
+                        .replace('peer-focus:ring-violet-300', 'peer-focus:ring-cyan-300');
+                } else {
+                    toggleDiv.className = toggleDiv.className
+                        .replace('peer-checked:bg-cyan-600', 'peer-checked:bg-violet-600')
+                        .replace('peer-focus:ring-cyan-300', 'peer-focus:ring-violet-300');
+                }
             }
         } else {
             showNotification('error', 'Gagal: ' + (data.message || 'Error permission'));

@@ -23,16 +23,23 @@ $db = new Database();
 $conn = $db->getConnection();
 
 try {
-    // Upsert (Insert or Update on duplicate key)
-    $sql = "INSERT INTO user_permissions (employee_id, permission_name, is_allowed) 
-            VALUES (:employee_id, :permission_name, :is_allowed)
-            ON DUPLICATE KEY UPDATE is_allowed = :is_allowed_update";
-            
-    $stmt = $conn->prepare($sql);
-    $stmt->bindParam(':employee_id', $employee_id);
-    $stmt->bindParam(':permission_name', $permission_name);
-    $stmt->bindParam(':is_allowed', $is_allowed);
-    $stmt->bindParam(':is_allowed_update', $is_allowed);
+    if (isset($data['revert_to_role']) && $data['revert_to_role'] === true) {
+        $sql = "DELETE FROM user_permissions WHERE employee_id = :employee_id AND permission_name = :permission_name";
+        $stmt = $conn->prepare($sql);
+        $stmt->bindParam(':employee_id', $employee_id);
+        $stmt->bindParam(':permission_name', $permission_name);
+    } else {
+        // Upsert (Insert or Update on duplicate key)
+        $sql = "INSERT INTO user_permissions (employee_id, permission_name, is_allowed) 
+                VALUES (:employee_id, :permission_name, :is_allowed)
+                ON DUPLICATE KEY UPDATE is_allowed = :is_allowed_update";
+                
+        $stmt = $conn->prepare($sql);
+        $stmt->bindParam(':employee_id', $employee_id);
+        $stmt->bindParam(':permission_name', $permission_name);
+        $stmt->bindParam(':is_allowed', $is_allowed);
+        $stmt->bindParam(':is_allowed_update', $is_allowed);
+    }
     
     if ($stmt->execute()) {
         echo json_encode(['success' => true, 'message' => 'Hak akses berhasil diperbarui']);

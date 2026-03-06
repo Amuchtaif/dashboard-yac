@@ -52,7 +52,8 @@ $allowed_columns = [
     'can_manage_employees',
     'can_manage_academic',
     'can_manage_tahfidz',
-    'can_manage_news'
+    'can_manage_news',
+    'can_manage_assignments'
 ]; 
 if (!in_array($permission_type, $allowed_columns)) {
     echo json_encode(['success' => false, 'message' => 'Invalid permission type: ' . htmlspecialchars($permission_type)]);
