@@ -13,8 +13,17 @@ try {
     $task_id = $_POST['task_id'] ?? null;
     $report_notes = $_POST['report_notes'] ?? '';
 
-    // Log
-    file_put_contents(__DIR__ . '/../fcm_debug.log', date('Y-m-d H:i:s') . " [REPORT] - Task ID: $task_id\n", FILE_APPEND);
+    // Robust Log
+    $logFile = __DIR__ . '/../fcm_debug.log';
+    $logData = date('Y-m-d H:i:s') . " [REPORT_IN] - Task ID: " . ($task_id ?? 'NULL') . " | Notes: $report_notes\n";
+    if (!empty($_FILES)) {
+        foreach ($_FILES as $key => $file) {
+            $logData .= "  FILE[$key]: " . $file['name'] . " | Size: " . $file['size'] . " | Error: " . $file['error'] . "\n";
+        }
+    } else {
+        $logData .= "  NO FILES RECEIVED\n";
+    }
+    file_put_contents($logFile, $logData, FILE_APPEND);
 
     if (!$task_id) {
         echo json_encode(["status" => "error", "message" => "ID Tugas tidak disertakan."]);
@@ -56,6 +65,7 @@ try {
             report_notes = :report_notes, 
             report_attachment = :report_attachment,
             status = 'Selesai',
+            progress = 100,
             updated_at = CURRENT_TIMESTAMP
             WHERE id = :id";
 
@@ -67,9 +77,22 @@ try {
     ]);
 
     if ($result) {
-        echo json_encode(["status" => "success", "message" => "Laporan tugas berhasil dikirim dan status diupdate menjadi Selesai."]);
+        $logData = date('Y-m-d H:i:s') . " [REPORT_SUCCESS] - Task ID: $task_id update ok\n";
+        file_put_contents($logFile, $logData, FILE_APPEND);
+        echo json_encode([
+            "success" => true,
+            "status" => "success",
+            "message" => "Laporan tugas berhasil dikirim dan status diupdate menjadi Selesai."
+        ]);
     } else {
-        echo json_encode(["status" => "error", "message" => "Gagal memperbarui status tugas."]);
+        $err = $stmt->errorInfo();
+        $logData = date('Y-m-d H:i:s') . " [REPORT_ERROR] - SQL Error: " . json_encode($err) . "\n";
+        file_put_contents($logFile, $logData, FILE_APPEND);
+        echo json_encode([
+            "success" => false, 
+            "status" => "error", 
+            "message" => "Gagal memperbarui status tugas: " . $err[2]
+        ]);
     }
 
 } catch (Exception $e) {

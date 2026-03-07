@@ -70,6 +70,8 @@ try {
             "can_access_education" => hasPermission($user_id, 'access_education'),
             "can_manage_news" => hasPermission($user_id, 'manage_news'),
             "can_create_assignment" => hasPermission($user_id, 'manage_assignments'),
+            "can_access_kabid" => hasPermission($user_id, 'can_access_kabid'),
+            "can_access_kesantrian" => hasPermission($user_id, 'can_access_kesantrian'),
             "is_koordinator" => $isKoordinator,
         ];
         

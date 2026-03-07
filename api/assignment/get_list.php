@@ -87,6 +87,7 @@ try {
             $task['report_attachment_url'] = $baseUrl . "uploads/assignments/" . $task['report_attachment'];
         }
     }
+    unset($task); // CRITICAL: Break the reference to the last element
 
     // Header count based on Belum Dimulai
     $waiting_count = 0;

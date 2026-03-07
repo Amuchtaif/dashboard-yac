@@ -53,7 +53,9 @@ $allowed_columns = [
     'can_manage_academic',
     'can_manage_tahfidz',
     'can_manage_news',
-    'can_manage_assignments'
+    'can_manage_assignments',
+    'can_access_kabid',
+    'can_access_kesantrian'
 ]; 
 if (!in_array($permission_type, $allowed_columns)) {
     echo json_encode(['success' => false, 'message' => 'Invalid permission type: ' . htmlspecialchars($permission_type)]);
@@ -64,6 +66,28 @@ try {
     $db = new Database();
     $conn = $db->getConnection();
 
+    // Auto-migration: Ensure can_access_kesantrian column exists
+    if ($permission_type === 'can_access_kesantrian') {
+        try {
+            $checkColumn = $conn->query("SHOW COLUMNS FROM positions LIKE 'can_access_kesantrian'");
+            if ($checkColumn->rowCount() === 0) {
+                $conn->exec("ALTER TABLE `positions` ADD COLUMN `can_access_kesantrian` TINYINT(1) NOT NULL DEFAULT 0 AFTER `can_access_kabid`");
+            }
+        } catch (Exception $e) {
+            // Column might already exist, continue
+        }
+    }
+    // Auto-migration: Ensure can_access_kabid column exists
+    if ($permission_type === 'can_access_kabid') {
+        try {
+            $checkColumn = $conn->query("SHOW COLUMNS FROM positions LIKE 'can_access_kabid'");
+            if ($checkColumn->rowCount() === 0) {
+                $conn->exec("ALTER TABLE `positions` ADD COLUMN `can_access_kabid` TINYINT(1) NOT NULL DEFAULT 0 AFTER `can_manage_assignments`");
+            }
+        } catch (Exception $e) {
+            // Column might already exist, continue
+        }
+    }
     // Auto-migration: Ensure can_approve_permits column exists
     if ($permission_type === 'can_approve_permits') {
         try {

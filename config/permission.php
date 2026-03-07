@@ -29,7 +29,7 @@ if (!function_exists('hasPermission')) {
             $conn = $db->getConnection();
 
             // 0. Preliminary Check: Get Employee Position
-            $stmtEmp = $conn->prepare("SELECT e.position_id, p.name as position_name FROM employees e LEFT JOIN positions p ON e.position_id = p.id WHERE e.id = ? LIMIT 1");
+            $stmtEmp = $conn->prepare("SELECT e.position_id, p.name as position_name, p.level FROM employees e LEFT JOIN positions p ON e.position_id = p.id WHERE e.id = ? LIMIT 1");
             $stmtEmp->execute([$employee_id]);
             $employee = $stmtEmp->fetch(PDO::FETCH_ASSOC);
 
@@ -39,6 +39,25 @@ if (!function_exists('hasPermission')) {
             // If the position name is 'Administrator', grant all permissions automatically
             if (isset($employee['position_name']) && $employee['position_name'] === 'Administrator') {
                 return true;
+            }
+
+            // --- KEPALA BIDANG OVERRIDE ---
+            // Level 1 = Mudir, Level 2 = Kepala Bidang
+            if ($permission_name === 'can_access_kabid') {
+                if (isset($employee['level']) && ($employee['level'] == 1 || $employee['level'] == 2)) {
+                    return true;
+                }
+            }
+
+            // --- KESANTRIAN OVERRIDE ---
+            if ($permission_name === 'can_access_kesantrian') {
+                $posName = strtolower($employee['position_name'] ?? '');
+                if (isset($employee['level']) && $employee['level'] <= 3) {
+                    return true;
+                }
+                if (strpos($posName, 'musyrif') !== false || strpos($posName, 'kesantrian') !== false) {
+                    return true;
+                }
             }
 
             // --- TEACHING SCHEDULE OVERRIDE ---
@@ -72,6 +91,8 @@ if (!function_exists('hasPermission')) {
                 'manage_tahfidz' => 'can_manage_tahfidz',
                 'manage_news' => 'can_manage_news',
                 'manage_assignments' => 'can_manage_assignments',
+                'can_access_kabid' => 'can_access_kabid',
+                'can_access_kesantrian' => 'can_access_kesantrian',
             ];
 
             if (!array_key_exists($permission_name, $permission_map)) {

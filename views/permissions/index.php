@@ -47,9 +47,23 @@ try {
     if ($checkColumn->rowCount() === 0) {
         $conn->exec("ALTER TABLE `positions` ADD COLUMN `can_manage_news` TINYINT(1) NOT NULL DEFAULT 0 AFTER `can_access_education`");
     }
-} catch (Exception $e) {
-    // Column might already exist or error - continue anyway
-}
+} catch (Exception $e) { }
+
+// Auto-migration: Ensure can_access_kabid column exists
+try {
+    $checkColumn = $conn->query("SHOW COLUMNS FROM positions LIKE 'can_access_kabid'");
+    if ($checkColumn->rowCount() === 0) {
+        $conn->exec("ALTER TABLE `positions` ADD COLUMN `can_access_kabid` TINYINT(1) NOT NULL DEFAULT 0 AFTER `can_manage_assignments`");
+    }
+} catch (Exception $e) { }
+
+// Auto-migration: Ensure can_access_kesantrian column exists
+try {
+    $checkColumn = $conn->query("SHOW COLUMNS FROM positions LIKE 'can_access_kesantrian'");
+    if ($checkColumn->rowCount() === 0) {
+        $conn->exec("ALTER TABLE `positions` ADD COLUMN `can_access_kesantrian` TINYINT(1) NOT NULL DEFAULT 0 AFTER `can_access_kabid`");
+    }
+} catch (Exception $e) { }
 
 // --- Pagination Logic ---
 $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 10;
@@ -66,8 +80,6 @@ $total_rows = $conn->query("SELECT COUNT(*) FROM positions")->fetchColumn();
 $total_pages = ceil($total_rows / $limit);
 
 // Fetch Positions with permissions
-// We fetch only id, name, and can_create_meeting for now
-// In the future this can be expanded to join with a 'permissions' or 'role_permissions' table
 $query = "
     SELECT 
         p.id, 
@@ -78,7 +90,9 @@ $query = "
         p.can_access_tahfidz,
         p.can_access_education,
         p.can_manage_news,
-        p.can_manage_assignments
+        p.can_manage_assignments,
+        p.can_access_kabid,
+        p.can_access_kesantrian
     FROM positions p
     ORDER BY p.level ASC, p.name ASC
     LIMIT :limit OFFSET :offset
@@ -108,130 +122,118 @@ include '../layouts/header.php';
         </div>
     </div>
 
+    <!-- Custom Style for Modern Table -->
+    <style>
+        .sticky-col {
+            position: sticky;
+            left: 0;
+            background-color: white !important;
+            z-index: 10;
+        }
+        .permissions-table-container {
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 transparent;
+        }
+        .permissions-table-container::-webkit-scrollbar {
+            height: 6px;
+        }
+        .permissions-table-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .permissions-table-container::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 20px;
+        }
+        .group-header {
+            background-color: #f8fafc;
+            border-bottom: 2px solid #e2e8f0;
+            text-align: center;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            color: #64748b;
+            padding: 6px 0;
+            text-transform: uppercase;
+        }
+    </style>
+
     <!-- Table -->
     <div class="mt-8 flex flex-col">
-        <div class="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
+        <div class="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8 permissions-table-container">
             <div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
-                <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
+                <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-xl border border-slate-200">
+                    <table class="min-w-full divide-y divide-slate-200 border-separate border-spacing-0">
+                        <thead>
+                            <!-- Category Row -->
                             <tr>
-                                <th scope="col"
-                                    class="py-3.5 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 sm:pl-6 w-12">
-                                    No.</th>
-                                <th scope="col"
-                                    class="py-3.5 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 sm:pl-6">
-                                    Nama Jabatan</th>
-                                <th scope="col"
-                                    class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                    Level</th>
-                                <th scope="col"
-                                    class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                    Akses Buat Rapat</th>
-                                <th scope="col"
-                                    class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                    Akses Persetujuan Izin</th>
-                                <th scope="col"
-                                    class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                    Akses Menu Tahfidz</th>
-                                <th scope="col"
-                                    class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                    Akses Menu Pendidikan</th>
-                                <th scope="col"
-                                    class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                    Manajemen Berita</th>
-                                <th scope="col"
-                                    class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                    Akses Penugasan</th>
+                                <th colspan="3" class="bg-slate-50 border-b border-slate-200 sticky-col z-20"></th>
+                                <th colspan="4" class="group-header border-l border-slate-200">Akses Utama Portal</th>
+                                <th colspan="2" class="group-header border-l border-slate-200 bg-cyan-50/30 text-cyan-700">Fitur Operasional</th>
+                                <th colspan="2" class="group-header border-l border-slate-200 bg-indigo-50/30 text-indigo-700">Manajemen Konten</th>
+                            </tr>
+                            <tr class="bg-slate-50/80 backdrop-blur-sm">
+                                <th scope="col" class="sticky-col py-3.5 pl-4 pr-3 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500 sm:pl-6 w-12 border-b border-slate-200">No.</th>
+                                <th scope="col" class="sticky-col py-3.5 pl-4 pr-3 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500 sm:pl-6 min-w-[180px] border-b border-slate-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">Jabatan</th>
+                                <th scope="col" class="px-3 py-3.5 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">Level</th>
+                                
+                                <!-- Akses Utama -->
+                                <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200 border-l border-slate-100">Kepala Bidang</th>
+                                <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">Kesantrian</th>
+                                <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">Tahfidz</th>
+                                <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">Pendidikan</th>
+                                
+                                <!-- Operasional -->
+                                <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200 border-l border-slate-100">Buat Rapat</th>
+                                <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">Izin Pegawai</th>
+                                
+                                <!-- Manajemen -->
+                                <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200 border-l border-slate-100">Berita</th>
+                                <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">Penugasan</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-200 bg-white">
+                        <tbody class="divide-y divide-slate-100 bg-white">
                             <?php if (count($positions) > 0): ?>
                                 <?php foreach ($positions as $index => $pos): ?>
-                                    <tr class="hover:bg-gray-50 transition-colors">
-                                        <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-500 sm:pl-6">
-                                            <?php echo $offset + $index + 1; ?>.
+                                    <tr class="hover:bg-slate-50 transition-colors group">
+                                        <td class="sticky-col whitespace-nowrap py-4 pl-4 pr-3 text-xs text-slate-400 sm:pl-6 border-slate-100"><?php echo $offset + $index + 1; ?>.</td>
+                                        <td class="sticky-col whitespace-nowrap py-4 pl-4 pr-3 sm:pl-6 border-slate-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
+                                            <span class="text-sm font-bold text-slate-700 group-hover:text-cyan-700 transition-colors"><?php echo htmlspecialchars($pos['name']); ?></span>
                                         </td>
-                                        <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-gray-900 sm:pl-6">
-                                            <?php echo htmlspecialchars($pos['name']); ?>
+                                        <td class="whitespace-nowrap px-3 py-4 text-xs text-slate-500">
+                                            <span class="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600 border border-slate-200">L<?php echo $pos['level']; ?></span>
                                         </td>
-                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                            <span
-                                                class="inline-flex items-center rounded-md bg-slate-50 px-2 py-1 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-500/10">
-                                                Level <?php echo $pos['level']; ?>
-                                            </span>
+                                        
+                                        <!-- Column Toggles (Compact) -->
+                                        <?php 
+                                            $perms = [
+                                                ['type' => 'can_access_kabid',      'color' => 'orange', 'val' => $pos['can_access_kabid'] ?? 0],
+                                                ['type' => 'can_access_kesantrian', 'color' => 'pink',   'val' => $pos['can_access_kesantrian'] ?? 0],
+                                                ['type' => 'can_access_tahfidz',    'color' => 'blue',   'val' => $pos['can_access_tahfidz'] ?? 0],
+                                                ['type' => 'can_access_education',  'color' => 'violet', 'val' => $pos['can_access_education'] ?? 0],
+                                                ['type' => 'can_create_meeting',   'color' => 'cyan',   'val' => $pos['can_create_meeting'] ?? 0],
+                                                ['type' => 'can_approve_permits',   'color' => 'emerald','val' => $pos['can_approve_permits'] ?? 0],
+                                                ['type' => 'can_manage_news',       'color' => 'rose',   'val' => $pos['can_manage_news'] ?? 0],
+                                                ['type' => 'can_manage_assignments','color' => 'indigo', 'val' => $pos['can_manage_assignments'] ?? 0]
+                                            ];
+                                            
+                                            foreach($perms as $p):
+                                        ?>
+                                        <td class="whitespace-nowrap px-3 py-4 text-center">
+                                            <div class="flex justify-center">
+                                                <label class="relative inline-flex items-center cursor-pointer">
+                                                    <input type="checkbox" class="sr-only peer" 
+                                                        <?php echo $p['val'] == 1 ? 'checked' : ''; ?>
+                                                        onchange="updatePermission(<?php echo $pos['id']; ?>, '<?php echo $p['type']; ?>', this.checked)">
+                                                    <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-<?php echo $p['color']; ?>-600"></div>
+                                                </label>
+                                            </div>
                                         </td>
-                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                            <label class="relative inline-flex items-center cursor-pointer">
-                                                <input type="checkbox" class="sr-only peer" 
-                                                    <?php echo $pos['can_create_meeting'] == 1 ? 'checked' : ''; ?>
-                                                    onchange="updatePermission(<?php echo $pos['id']; ?>, 'can_create_meeting', this.checked)">
-                                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-cyan-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-600"></div>
-                                                <span class="ml-3 text-sm font-medium text-gray-900 status-text-meeting-<?php echo $pos['id']; ?>">
-                                                    <?php echo $pos['can_create_meeting'] == 1 ? 'Ya' : 'Tidak'; ?>
-                                                </span>
-                                            </label>
-                                        </td>
-                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                            <label class="relative inline-flex items-center cursor-pointer">
-                                                <input type="checkbox" class="sr-only peer" 
-                                                    <?php echo isset($pos['can_approve_permits']) && $pos['can_approve_permits'] == 1 ? 'checked' : ''; ?>
-                                                    onchange="updatePermission(<?php echo $pos['id']; ?>, 'can_approve_permits', this.checked)">
-                                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
-                                                <span class="ml-3 text-sm font-medium text-gray-900 status-text-permit-<?php echo $pos['id']; ?>">
-                                                    <?php echo isset($pos['can_approve_permits']) && $pos['can_approve_permits'] == 1 ? 'Ya' : 'Tidak'; ?>
-                                                </span>
-                                            </label>
-                                        </td>
-                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                            <label class="relative inline-flex items-center cursor-pointer">
-                                                <input type="checkbox" class="sr-only peer" 
-                                                    <?php echo isset($pos['can_access_tahfidz']) && $pos['can_access_tahfidz'] == 1 ? 'checked' : ''; ?>
-                                                    onchange="updatePermission(<?php echo $pos['id']; ?>, 'can_access_tahfidz', this.checked)">
-                                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                                                <span class="ml-3 text-sm font-medium text-gray-900 status-text-tahfidz-<?php echo $pos['id']; ?>">
-                                                    <?php echo isset($pos['can_access_tahfidz']) && $pos['can_access_tahfidz'] == 1 ? 'Ya' : 'Tidak'; ?>
-                                                </span>
-                                            </label>
-                                        </td>
-                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                            <label class="relative inline-flex items-center cursor-pointer">
-                                                <input type="checkbox" class="sr-only peer" 
-                                                    <?php echo isset($pos['can_access_education']) && $pos['can_access_education'] == 1 ? 'checked' : ''; ?>
-                                                    onchange="updatePermission(<?php echo $pos['id']; ?>, 'can_access_education', this.checked)">
-                                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-violet-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-violet-600"></div>
-                                                <span class="ml-3 text-sm font-medium text-gray-900 status-text-education-<?php echo $pos['id']; ?>">
-                                                    <?php echo isset($pos['can_access_education']) && $pos['can_access_education'] == 1 ? 'Ya' : 'Tidak'; ?>
-                                                </span>
-                                            </label>
-                                        </td>
-                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                            <label class="relative inline-flex items-center cursor-pointer">
-                                                <input type="checkbox" class="sr-only peer" 
-                                                    <?php echo isset($pos['can_manage_news']) && $pos['can_manage_news'] == 1 ? 'checked' : ''; ?>
-                                                    onchange="updatePermission(<?php echo $pos['id']; ?>, 'can_manage_news', this.checked)">
-                                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-rose-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-rose-600"></div>
-                                                <span class="ml-3 text-sm font-medium text-gray-900 status-text-news-<?php echo $pos['id']; ?>">
-                                                    <?php echo isset($pos['can_manage_news']) && $pos['can_manage_news'] == 1 ? 'Ya' : 'Tidak'; ?>
-                                                </span>
-                                            </label>
-                                        </td>
-                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                            <label class="relative inline-flex items-center cursor-pointer">
-                                                <input type="checkbox" class="sr-only peer" 
-                                                    <?php echo isset($pos['can_manage_assignments']) && $pos['can_manage_assignments'] == 1 ? 'checked' : ''; ?>
-                                                    onchange="updatePermission(<?php echo $pos['id']; ?>, 'can_manage_assignments', this.checked)">
-                                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
-                                                <span class="ml-3 text-sm font-medium text-gray-900 status-text-assignments-<?php echo $pos['id']; ?>">
-                                                    <?php echo isset($pos['can_manage_assignments']) && $pos['can_manage_assignments'] == 1 ? 'Ya' : 'Tidak'; ?>
-                                                </span>
-                                            </label>
-                                        </td>
+                                        <?php endforeach; ?>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <tr>
-                                    <td colspan="7" class="py-10 text-center text-sm text-gray-500">Data jabatan tidak ditemukan.</td>
+                                    <td colspan="11" class="py-10 text-center text-sm text-slate-500 italic">Data jabatan tidak ditemukan.</td>
                                 </tr>
                             <?php endif; ?>
                         </tbody>
@@ -307,6 +309,10 @@ function updatePermission(id, permissionType, isChecked) {
         statusTextSelector = `.status-text-news-${id}`;
     } else if (permissionType === 'can_manage_assignments') {
         statusTextSelector = `.status-text-assignments-${id}`;
+    } else if (permissionType === 'can_access_kabid') {
+        statusTextSelector = `.status-text-kabid-${id}`;
+    } else if (permissionType === 'can_access_kesantrian') {
+        statusTextSelector = `.status-text-kesantrian-${id}`;
     } else {
         statusTextSelector = `.status-text-${id}`;
     }

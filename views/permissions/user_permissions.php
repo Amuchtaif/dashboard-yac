@@ -69,6 +69,8 @@ $query = "
         COALESCE(p.can_access_education, 0) as role_education,
         COALESCE(p.can_manage_news, 0) as role_news,
         COALESCE(p.can_manage_assignments, 0) as role_assignments,
+        COALESCE(p.can_access_kabid, 0) as role_kabid,
+        COALESCE(p.can_access_kesantrian, 0) as role_kesantrian,
         -- User-specific overrides (NULL = no override)
         up_meet.is_allowed as override_meeting,
         up_permits.is_allowed as override_permits,
@@ -76,7 +78,9 @@ $query = "
         up_attend.is_allowed as override_attendance,
         up_edu.is_allowed as override_education,
         up_news.is_allowed as override_news,
-        up_asn.is_allowed as override_assignments
+        up_asn.is_allowed as override_assignments,
+        up_kabid.is_allowed as override_kabid,
+        up_ksn.is_allowed as override_kesantrian
     FROM employees e
     LEFT JOIN positions p ON e.position_id = p.id
     LEFT JOIN user_permissions up_meet 
@@ -93,6 +97,10 @@ $query = "
         ON e.id = up_news.employee_id AND up_news.permission_name = 'manage_news'
     LEFT JOIN user_permissions up_asn 
         ON e.id = up_asn.employee_id AND up_asn.permission_name = 'manage_assignments'
+    LEFT JOIN user_permissions up_kabid 
+        ON e.id = up_kabid.employee_id AND up_kabid.permission_name = 'can_access_kabid'
+    LEFT JOIN user_permissions up_ksn 
+        ON e.id = up_ksn.employee_id AND up_ksn.permission_name = 'can_access_kesantrian'
     WHERE $where_sql
     ORDER BY e.full_name ASC
     LIMIT :limit OFFSET :offset
@@ -116,37 +124,51 @@ include '../layouts/header.php';
         position: relative;
     }
     .perm-source {
-        font-size: 10px;
+        font-size: 9px;
         line-height: 1;
         margin-top: 4px;
         display: block;
         text-align: center;
+        letter-spacing: 0.02em;
     }
     .perm-source.from-role {
-        color: #64748b;
+        color: #94a3b8;
     }
     .perm-source.from-override {
         color: #8b5cf6;
-        font-weight: 600;
+        font-weight: 700;
+        text-transform: uppercase;
     }
-    .perm-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        padding: 2px 8px;
-        border-radius: 9999px;
+    .sticky-col {
+        position: sticky;
+        left: 0;
+        background-color: white !important;
+        z-index: 10;
+    }
+    .permissions-table-container {
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 transparent;
+    }
+    .permissions-table-container::-webkit-scrollbar {
+        height: 6px;
+    }
+    .permissions-table-container::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .permissions-table-container::-webkit-scrollbar-thumb {
+        background-color: #cbd5e1;
+        border-radius: 20px;
+    }
+    .group-header {
+        background-color: #f8fafc;
+        border-bottom: 2px solid #e2e8f0;
+        text-align: center;
         font-size: 10px;
-        font-weight: 600;
-        letter-spacing: 0.025em;
-    }
-    .perm-badge.active {
-        background-color: #ecfdf5;
-        color: #047857;
-        ring: 1px solid #a7f3d0;
-    }
-    .perm-badge.inactive {
-        background-color: #fef2f2;
-        color: #b91c1c;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        color: #64748b;
+        padding: 6px 0;
+        text-transform: uppercase;
     }
 </style>
 
@@ -172,7 +194,7 @@ include '../layouts/header.php';
         <h3 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Keterangan Prioritas:</h3>
         <div class="flex flex-wrap gap-4 text-xs text-slate-600">
             <div class="flex items-center gap-2">
-                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-semibold">
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-200 text-slate-600 text-[10px] font-semibold">
                     <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                     Jabatan
                 </span>
@@ -205,109 +227,87 @@ include '../layouts/header.php';
 
     <!-- Table -->
     <div class="mt-6 flex flex-col">
-        <div class="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
+        <div class="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8 permissions-table-container">
             <div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
-                <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
+                <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-xl border border-slate-200">
+                    <table class="min-w-full divide-y divide-slate-200 border-separate border-spacing-0">
+                        <thead>
+                            <!-- Category Row -->
                             <tr>
-                                <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 sm:pl-6 w-12">No.</th>
-                                <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 sm:pl-6">Nama Karyawan</th>
-                                <th scope="col" class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Jabatan</th>
-                                <th scope="col" class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 w-36">Akses Buat Rapat</th>
-                                <th scope="col" class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 w-36">Akses Persetujuan Izin</th>
-                                <th scope="col" class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 w-36">Akses Menu Tahfidz</th>
-                                <th scope="col" class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 w-36">Akses Menu Pendidikan</th>
-                                <th scope="col" class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 w-36">Manajemen Berita</th>
-                                <th scope="col" class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 w-36">Akses Penugasan</th>
-                                <th scope="col" class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 w-36">Akses Presensi</th>
+                                <th colspan="3" class="bg-slate-50 border-b border-slate-200 sticky-col z-20"></th>
+                                <th colspan="5" class="group-header border-l border-slate-200 bg-slate-50">Portal & Kategori</th>
+                                <th colspan="2" class="group-header border-l border-slate-200 bg-cyan-50/30 text-cyan-700">Operasional</th>
+                                <th colspan="2" class="group-header border-l border-slate-200 bg-indigo-50/30 text-indigo-700">Manajemen</th>
+                            </tr>
+                            <tr class="bg-slate-50/80 backdrop-blur-sm">
+                                <th scope="col" class="sticky-col py-3.5 pl-4 pr-3 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500 sm:pl-6 border-b border-slate-200">No.</th>
+                                <th scope="col" class="sticky-col py-3.5 pl-4 pr-3 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500 sm:pl-6 min-w-[200px] border-b border-slate-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">Nama Karyawan</th>
+                                <th scope="col" class="px-3 py-3.5 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">Jabatan</th>
+                                
+                                <!-- Akses Portal -->
+                                <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200 border-l border-slate-100">Kabid</th>
+                                <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">Kesantrian</th>
+                                <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">Tahfidz</th>
+                                <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">Pendidikan</th>
+                                <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">Absensi</th>
+                                
+                                <!-- Operasional -->
+                                <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200 border-l border-slate-100">Rapat</th>
+                                <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">Izin</th>
+                                
+                                <!-- Manajemen -->
+                                <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200 border-l border-slate-100">Berita</th>
+                                <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">Penugasan</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-200 bg-white">
+                        <tbody class="divide-y divide-slate-100 bg-white">
                             <?php if (count($employees) > 0): ?>
                                 <?php foreach ($employees as $index => $emp): 
-                                    // Calculate effective permissions (override > role)
-                                    // Source is only 'override' when the override value DIFFERS from role value
-                                    $eff_meeting = $emp['override_meeting'] !== null ? (int)$emp['override_meeting'] : (int)$emp['role_meeting'];
-                                    $src_meeting = ($emp['override_meeting'] !== null && (int)$emp['override_meeting'] !== (int)$emp['role_meeting']) ? 'override' : 'role';
-
-                                    $eff_permits = $emp['override_permits'] !== null ? (int)$emp['override_permits'] : (int)$emp['role_permits'];
-                                    $src_permits = ($emp['override_permits'] !== null && (int)$emp['override_permits'] !== (int)$emp['role_permits']) ? 'override' : 'role';
-
-                                    $eff_tahfidz = $emp['override_tahfidz'] !== null ? (int)$emp['override_tahfidz'] : (int)$emp['role_tahfidz'];
-                                    $src_tahfidz = ($emp['override_tahfidz'] !== null && (int)$emp['override_tahfidz'] !== (int)$emp['role_tahfidz']) ? 'override' : 'role';
-
-                                    $eff_education = $emp['override_education'] !== null ? (int)$emp['override_education'] : (int)$emp['role_education'];
-                                    $src_education = ($emp['override_education'] !== null && (int)$emp['override_education'] !== (int)$emp['role_education']) ? 'override' : 'role';
-                                    
-                                    $eff_news = $emp['override_news'] !== null ? (int)$emp['override_news'] : (int)$emp['role_news'];
-                                    $src_news = ($emp['override_news'] !== null && (int)$emp['override_news'] !== (int)$emp['role_news']) ? 'override' : 'role';
-
-                                    $eff_assignments = $emp['override_assignments'] !== null ? (int)$emp['override_assignments'] : (int)$emp['role_assignments'];
-                                    $src_assignments = ($emp['override_assignments'] !== null && (int)$emp['override_assignments'] !== (int)$emp['role_assignments']) ? 'override' : 'role';
-
-                                    $eff_attendance = $emp['override_attendance'] !== null ? (int)$emp['override_attendance'] : 0;
-                                    $src_attendance = ($emp['override_attendance'] !== null && (int)$emp['override_attendance'] !== 0) ? 'override' : 'role';
+                                    // Calculate all effective permissions
+                                    $p_list = [
+                                        ['name' => 'can_access_kabid',       'eff' => ($emp['override_kabid'] !== null ? (int)$emp['override_kabid'] : (int)$emp['role_kabid']), 'src' => ($emp['override_kabid'] !== null && (int)$emp['override_kabid'] !== (int)$emp['role_kabid'] ? 'override' : 'role'), 'role' => (int)$emp['role_kabid']],
+                                        ['name' => 'can_access_kesantrian',  'eff' => ($emp['override_kesantrian'] !== null ? (int)$emp['override_kesantrian'] : (int)$emp['role_kesantrian']), 'src' => ($emp['override_kesantrian'] !== null && (int)$emp['override_kesantrian'] !== (int)$emp['role_kesantrian'] ? 'override' : 'role'), 'role' => (int)$emp['role_kesantrian']],
+                                        ['name' => 'access_tahfidz',         'eff' => ($emp['override_tahfidz'] !== null ? (int)$emp['override_tahfidz'] : (int)$emp['role_tahfidz']), 'src' => ($emp['override_tahfidz'] !== null && (int)$emp['override_tahfidz'] !== (int)$emp['role_tahfidz'] ? 'override' : 'role'), 'role' => (int)$emp['role_tahfidz']],
+                                        ['name' => 'access_education',       'eff' => ($emp['override_education'] !== null ? (int)$emp['override_education'] : (int)$emp['role_education']), 'src' => ($emp['override_education'] !== null && (int)$emp['override_education'] !== (int)$emp['role_education'] ? 'override' : 'role'), 'role' => (int)$emp['role_education']],
+                                        ['name' => 'access_attendance',      'eff' => ($emp['override_attendance'] !== null ? (int)$emp['override_attendance'] : 0), 'src' => ($emp['override_attendance'] !== null && (int)$emp['override_attendance'] !== 0 ? 'override' : 'role'), 'role' => 0],
+                                        ['name' => 'access_meeting',         'eff' => ($emp['override_meeting'] !== null ? (int)$emp['override_meeting'] : (int)$emp['role_meeting']), 'src' => ($emp['override_meeting'] !== null && (int)$emp['override_meeting'] !== (int)$emp['role_meeting'] ? 'override' : 'role'), 'role' => (int)$emp['role_meeting']],
+                                        ['name' => 'approve_permits',        'eff' => ($emp['override_permits'] !== null ? (int)$emp['override_permits'] : (int)$emp['role_permits']), 'src' => ($emp['override_permits'] !== null && (int)$emp['override_permits'] !== (int)$emp['role_permits'] ? 'override' : 'role'), 'role' => (int)$emp['role_permits']],
+                                        ['name' => 'manage_news',            'eff' => ($emp['override_news'] !== null ? (int)$emp['override_news'] : (int)$emp['role_news']), 'src' => ($emp['override_news'] !== null && (int)$emp['override_news'] !== (int)$emp['role_news'] ? 'override' : 'role'), 'role' => (int)$emp['role_news']],
+                                        ['name' => 'manage_assignments',     'eff' => ($emp['override_assignments'] !== null ? (int)$emp['override_assignments'] : (int)$emp['role_assignments']), 'src' => ($emp['override_assignments'] !== null && (int)$emp['override_assignments'] !== (int)$emp['role_assignments'] ? 'override' : 'role'), 'role' => (int)$emp['role_assignments']]
+                                    ];
                                 ?>
-                                    <tr class="hover:bg-gray-50 transition-colors">
-                                        <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-500 sm:pl-6">
+                                    <tr class="hover:bg-slate-50 transition-colors group">
+                                        <td class="sticky-col whitespace-nowrap py-4 pl-4 pr-3 text-xs text-slate-400 sm:pl-6 border-slate-100">
                                             <?php echo $offset + $index + 1; ?>.
                                         </td>
-                                        <td class="whitespace-nowrap py-4 pl-4 pr-3 sm:pl-6">
+                                        <td class="sticky-col whitespace-nowrap py-4 pl-4 pr-3 sm:pl-6 border-slate-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
                                             <div class="flex items-center">
-                                                <div class="h-9 w-9 flex-shrink-0">
-                                                    <img class="h-9 w-9 rounded-full border border-gray-100"
+                                                <div class="h-8 w-8 flex-shrink-0">
+                                                    <img class="h-8 w-8 rounded-full ring-1 ring-slate-200"
                                                         src="https://ui-avatars.com/api/?name=<?php echo urlencode($emp['full_name']); ?>&background=random" alt="">
                                                 </div>
-                                                <div class="ml-4">
-                                                    <div class="font-medium text-gray-900"><?php echo htmlspecialchars($emp['full_name']); ?></div>
-                                                    <div class="text-xs text-gray-500"><?php echo htmlspecialchars($emp['email']); ?></div>
+                                                <div class="ml-3">
+                                                    <div class="text-[11px] font-bold text-slate-700 group-hover:text-violet-700 transition-colors"><?php echo htmlspecialchars($emp['full_name']); ?></div>
+                                                    <div class="text-[9px] text-slate-400"><?php echo htmlspecialchars($emp['email']); ?></div>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                            <?php echo htmlspecialchars($emp['position_name'] ?? '-'); ?>
+                                        <td class="whitespace-nowrap px-3 py-4 text-[10px] text-slate-500">
+                                            <span class="truncate max-w-[100px] block" title="<?php echo htmlspecialchars($emp['position_name'] ?? '-'); ?>">
+                                                <?php echo htmlspecialchars($emp['position_name'] ?? '-'); ?>
+                                            </span>
                                         </td>
                                         
-                                        <!-- Access Meeting -->
+                                        <?php foreach($p_list as $p): ?>
                                         <td class="whitespace-nowrap px-3 py-4 text-center perm-cell">
-                                            <?php renderToggle($emp['id'], 'access_meeting', $eff_meeting, $src_meeting, $emp['role_meeting']); ?>
+                                            <?php renderToggle($emp['id'], $p['name'], $p['eff'], $p['src'], $p['role']); ?>
                                         </td>
-                                        
-                                        <!-- Access Permits -->
-                                        <td class="whitespace-nowrap px-3 py-4 text-center perm-cell">
-                                            <?php renderToggle($emp['id'], 'approve_permits', $eff_permits, $src_permits, $emp['role_permits']); ?>
-                                        </td>
-                                        
-                                        <!-- Access Tahfidz -->
-                                        <td class="whitespace-nowrap px-3 py-4 text-center perm-cell">
-                                            <?php renderToggle($emp['id'], 'access_tahfidz', $eff_tahfidz, $src_tahfidz, $emp['role_tahfidz']); ?>
-                                        </td>
-
-                                        <!-- Access Education -->
-                                        <td class="whitespace-nowrap px-3 py-4 text-center perm-cell">
-                                            <?php renderToggle($emp['id'], 'access_education', $eff_education, $src_education, $emp['role_education']); ?>
-                                        </td>
-
-                                        <!-- Manajemen Berita -->
-                                        <td class="whitespace-nowrap px-3 py-4 text-center perm-cell">
-                                            <?php renderToggle($emp['id'], 'manage_news', $eff_news, $src_news, $emp['role_news']); ?>
-                                        </td>
-
-                                        <!-- Akses Penugasan -->
-                                        <td class="whitespace-nowrap px-3 py-4 text-center perm-cell">
-                                            <?php renderToggle($emp['id'], 'manage_assignments', $eff_assignments, $src_assignments, $emp['role_assignments']); ?>
-                                        </td>
-                                        
-                                        <!-- Access Attendance -->
-                                        <td class="whitespace-nowrap px-3 py-4 text-center perm-cell">
-                                            <?php renderToggle($emp['id'], 'access_attendance', $eff_attendance, $src_attendance, 0); ?>
-                                        </td>
+                                        <?php endforeach; ?>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <tr>
-                                    <td colspan="9" class="py-10 text-center text-sm text-gray-500">Data karyawan tidak ditemukan.</td>
+                                    <td colspan="12" class="py-10 text-center text-sm text-slate-500 italic">Data karyawan tidak ditemukan.</td>
                                 </tr>
                             <?php endif; ?>
                         </tbody>
@@ -315,32 +315,32 @@ include '../layouts/header.php';
                 </div>
                 
                 <!-- Pagination -->
-                <div class="mt-4 flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 rounded-lg shadow-sm">
+                <div class="mt-4 flex items-center justify-between border-t border-slate-200 bg-white px-4 py-3 sm:px-6 rounded-lg shadow-sm">
                     <div class="flex flex-1 justify-between sm:hidden">
                         <?php if ($page > 1): ?>
-                            <a href="?page=<?php echo $page - 1; ?>&search=<?php echo urlencode($search); ?>" class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Previous</a>
+                            <a href="?page=<?php echo $page - 1; ?>&search=<?php echo urlencode($search); ?>" class="relative inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Previous</a>
                         <?php endif; ?>
                         <?php if ($page < $total_pages): ?>
-                            <a href="?page=<?php echo $page + 1; ?>&search=<?php echo urlencode($search); ?>" class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Next</a>
+                            <a href="?page=<?php echo $page + 1; ?>&search=<?php echo urlencode($search); ?>" class="relative ml-3 inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Next</a>
                         <?php endif; ?>
                     </div>
                     <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
                         <div>
-                            <p class="text-sm text-gray-700">
+                            <p class="text-sm text-slate-700">
                                 Menampilkan <span class="font-medium"><?php echo ($total_rows > 0) ? $offset + 1 : 0; ?></span> sampai <span class="font-medium"><?php echo min($offset + $limit, $total_rows); ?></span> dari <span class="font-medium"><?php echo $total_rows; ?></span> hasil
                             </p>
                         </div>
                         <div>
                             <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
                                 <?php if ($page > 1): ?>
-                                    <a href="?page=<?php echo $page - 1; ?>&search=<?php echo urlencode($search); ?>" class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                                    <a href="?page=<?php echo $page - 1; ?>&search=<?php echo urlencode($search); ?>" class="relative inline-flex items-center rounded-l-md px-2 py-2 text-slate-400 ring-1 ring-inset ring-slate-300 hover:bg-slate-50">
                                         <span class="sr-only">Previous</span>
                                         <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" /></svg>
                                     </a>
                                 <?php endif; ?>
                                 <span class="relative z-10 inline-flex items-center bg-cyan-600 px-4 py-2 text-sm font-semibold text-white"><?php echo $page; ?></span>
                                 <?php if ($page < $total_pages): ?>
-                                    <a href="?page=<?php echo $page + 1; ?>&search=<?php echo urlencode($search); ?>" class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                                    <a href="?page=<?php echo $page + 1; ?>&search=<?php echo urlencode($search); ?>" class="relative inline-flex items-center rounded-r-md px-2 py-2 text-slate-400 ring-1 ring-inset ring-slate-300 hover:bg-slate-50">
                                         <span class="sr-only">Next</span>
                                         <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" /></svg>
                                     </a>
@@ -465,7 +465,7 @@ function showNotification(type, message) {
         position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999;
         padding: 12px 24px; border-radius: 8px; font-family: 'Outfit', sans-serif; font-size: 14px;
         font-weight: 500; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        animation: slideDown 0.3s ease-out;
+        animation: slideDown 0.3s base-out;
     `;
     
     if (type === 'success') {

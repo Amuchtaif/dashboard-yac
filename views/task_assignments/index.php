@@ -497,20 +497,87 @@ function viewDetail(id) {
                 </div>
             </div>
 
-            <!-- Report if exists -->
-            ${t.report_notes ? `
-            <div class="p-4 bg-green-50/50 rounded-2xl border border-green-100/50">
-                <div class="flex items-center gap-2 mb-2">
-                    <div class="p-1 bg-green-100 rounded-md">
-                        <svg class="h-3 w-3 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            <!-- Pre-Check Attachment (Teacher Side) if exists -->
+            ${t.attachment || t.attachment_path ? `
+            <div class="space-y-2 border-t border-slate-100 pt-4">
+                <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Lampiran Tugas:</h4>
+                ${getFilePreviewElement(t.attachment || t.attachment_path)}
+            </div>` : ''}
+
+            <!-- Report results (Employee Side) -->
+            ${t.report_notes || t.report_attachment ? `
+            <div class="pt-2">
+                <div class="p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl border border-green-100/50 shadow-sm shadow-green-500/5">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-2">
+                            <div class="p-1.5 bg-green-200/50 rounded-lg text-green-700">
+                                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z"/></svg>
+                            </div>
+                            <h4 class="text-[10px] font-bold text-green-800 uppercase tracking-widest">Laporan Selesai</h4>
+                        </div>
                     </div>
-                    <h4 class="text-[10px] font-bold text-green-700 uppercase tracking-widest">Laporan Penyelesaian</h4>
+                    ${t.report_notes ? `<p class="text-[12px] text-green-900 font-medium leading-normal italic mb-4">"${t.report_notes}"</p>` : ''}
+                    ${t.report_attachment ? `
+                    <div class="space-y-2">
+                        <p class="text-[9px] font-bold text-green-700/60 uppercase tracking-widest pl-1">File Hasil:</p>
+                        ${getFilePreviewElement(t.report_attachment)}
+                    </div>` : ''}
                 </div>
-                <p class="text-[12px] text-green-800 font-medium leading-normal italic">"${t.report_notes}"</p>
             </div>` : ''}
         </div>`;
 
     showDetail();
+}
+
+function getFilePreviewElement(filename) {
+    if (!filename) return '';
+    const ext = filename.split('.').pop().toLowerCase();
+    const filePath = `../../uploads/assignments/${filename}`;
+    
+    // Images
+    if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
+        return `
+            <div class="relative group cursor-pointer overflow-hidden rounded-xl border border-slate-200 shadow-sm" onclick="window.open('${filePath}', '_blank')">
+                <img src="${filePath}" class="w-full h-auto max-h-48 object-cover transition-transform duration-500 group-hover:scale-105">
+                <div class="absolute inset-0 bg-slate-900/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <div class="bg-white/90 p-2 rounded-full shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-transform">
+                        <svg class="h-5 w-5 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6"/></svg>
+                    </div>
+                </div>
+            </div>`;
+    }
+    
+    // PDF
+    if (ext === 'pdf') {
+        return `
+            <a href="${filePath}" target="_blank" class="flex items-center justify-between p-3 bg-white border border-slate-100 rounded-xl hover:bg-slate-50 transition-all shadow-sm group">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-red-50 rounded-lg text-red-600 transition-transform">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m.75 12l3 3m0 0l3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-[11px] font-bold text-slate-700 truncate">${filename}</p>
+                        <p class="text-[9px] text-slate-400">Pusat Dokumen PDF</p>
+                    </div>
+                </div>
+                <svg class="h-3.5 w-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg>
+            </a>`;
+    }
+    
+    // Others (ZIP, doc, etc)
+    return `
+        <a href="${filePath}" target="_blank" class="flex items-center justify-between p-3 bg-white border border-slate-100 rounded-xl hover:bg-slate-50 transition-all shadow-sm group">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-blue-50 rounded-lg text-blue-600 transition-transform">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+                </div>
+                <div class="min-w-0">
+                    <p class="text-[11px] font-bold text-slate-700 truncate">${filename}</p>
+                    <p class="text-[9px] text-slate-400">${ext.toUpperCase()} File Archive</p>
+                </div>
+            </div>
+            <svg class="h-3.5 w-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+        </a>`;
 }
 
 function showDetail() {

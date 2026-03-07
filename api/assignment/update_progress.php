@@ -31,15 +31,13 @@ try {
 
     // Tentukan status otomatis berdasarkan progres
     $newStatus = $currentTask['status'];
-    if ($progress >= 100) {
-        $newStatus = 'Selesai';
-    } else if ($progress > 0) {
+    if ($progress > 0) {
         // Jika progres sudah jalan, status minimal "Sedang Dikerjakan"
         if ($currentTask['status'] === 'Belum Dimulai') {
             $newStatus = 'Sedang Dikerjakan';
         }
     } else if ($progress == 0) {
-        // Jika progres 0, status kembali ke "Belum Dimulai" (opsional)
+        // Jika progres 0, status kembali ke "Belum Dimulai"
         if ($currentTask['status'] !== 'Selesai') {
             $newStatus = 'Belum Dimulai';
         }

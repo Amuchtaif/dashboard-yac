@@ -64,9 +64,28 @@ try {
         // Table might already exist
     }
 
+    // Handle File Attachment Upload
+    $attachmentName = null;
+    if (isset($_FILES['attachment']) && $_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
+        $uploadFileDir = '../../uploads/assignments/';
+        if (!is_dir($uploadFileDir)) {
+            mkdir($uploadFileDir, 0755, true);
+        }
+
+        $fileExtension = strtolower(pathinfo($_FILES['attachment']['name'], PATHINFO_EXTENSION));
+        $allowed = ['pdf', 'zip', 'jpg', 'jpeg', 'png'];
+        if (in_array($fileExtension, $allowed)) {
+            $newFileName = time() . '_task_' . rand(1000, 9999) . '.' . $fileExtension;
+            $dest_path = $uploadFileDir . $newFileName;
+            if (move_uploaded_file($_FILES['attachment']['tmp_name'], $dest_path)) {
+                $attachmentName = $newFileName;
+            }
+        }
+    }
+
     // ========== 2. INSERT ASSIGNMENT ==========
-    $sql = "INSERT INTO assignments (title, description, special_instructions, priority, due_date, created_by, assigned_to) 
-            VALUES (:title, :description, :special_instructions, :priority, :due_date, :created_by, :assigned_to)";
+    $sql = "INSERT INTO assignments (title, description, special_instructions, priority, due_date, created_by, assigned_to, attachment_path) 
+            VALUES (:title, :description, :special_instructions, :priority, :due_date, :created_by, :assigned_to, :attachment_path)";
 
     $stmt = $db->prepare($sql);
     $params = [
@@ -76,7 +95,8 @@ try {
         ':priority' => $priority,
         ':due_date' => $due_date,
         ':created_by' => $created_by,
-        ':assigned_to' => $assigned_to
+        ':assigned_to' => $assigned_to,
+        ':attachment_path' => $attachmentName
     ];
 
     if ($stmt->execute($params)) {
@@ -101,7 +121,8 @@ try {
                 ':body' => $notifBody,
                 ':reference_id' => $assignment_id
             ]);
-            logAssignment("Notification saved to DB for user $assigned_to, assignment $assignment_id");
+            $db_notification_id = $db->lastInsertId();
+            logAssignment("Notification saved to DB for user $assigned_to, assignment $assignment_id, ID: $db_notification_id");
         } catch (Exception $e) {
             logAssignment("Failed to save notification to DB: " . $e->getMessage());
         }
@@ -195,6 +216,7 @@ try {
                                         'screen' => 'assignment',
                                         'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
                                         'task_id' => (string) $assignment_id,
+                                        'notification_id' => (string) $db_notification_id,
                                         'type' => 'assignment'
                                     ]
                                 ]

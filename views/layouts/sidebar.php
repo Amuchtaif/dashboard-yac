@@ -23,6 +23,7 @@ $can_manage_employees = hasPermission($user_id, 'manage_employees');
 $can_manage_academic = hasPermission($user_id, 'manage_academic');
 $can_manage_tahfidz = hasPermission($user_id, 'manage_tahfidz');
 $can_manage_news = hasPermission($user_id, 'manage_news');
+$can_access_kabid = hasPermission($user_id, 'can_access_kabid');
 
 // Check if user is Administrator (Position)
 $is_admin = false;
@@ -31,6 +32,7 @@ if (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Adminis
     $can_manage_academic = true;
     $can_manage_tahfidz = true;
     $can_manage_news = true;
+    $can_access_kabid = true;
     $is_admin = true;
 }
 ?>
