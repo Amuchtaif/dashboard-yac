@@ -126,15 +126,37 @@ try {
     $final_schedule_id = null;
 
     if ($empInfo) {
-        // Cek Prioritas 1: Personal Schedule
-        if (!empty($empInfo['schedule_id'])) {
-            $final_schedule_id = $empInfo['schedule_id'];
+        // --- LOGIKA TUKAR SHIFT (OPSI A) ---
+        $stmtSwap = $conn->prepare("SELECT requester_id, substitute_id FROM shift_exchanges WHERE (requester_id = ? OR substitute_id = ?) AND exchange_date = ? AND status = 'Disetujui' LIMIT 1");
+        $stmtSwap->execute([$user_id, $user_id, $today]);
+        $swap = $stmtSwap->fetch(PDO::FETCH_ASSOC);
+
+        $is_swapped = false;
+        if ($swap) {
+            $partner_id = ($swap['requester_id'] == $user_id) ? $swap['substitute_id'] : $swap['requester_id'];
+            $is_swapped = true;
+            
+            $stmtPartner = $conn->prepare("SELECT schedule_id, division_id, unit_id, full_name FROM employees WHERE id = ?");
+            $stmtPartner->execute([$partner_id]);
+            $partnerData = $stmtPartner->fetch(PDO::FETCH_ASSOC);
+            
+            if ($partnerData) {
+                $target_profile = $partnerData; 
+                $swap_partner_name = $partnerData['full_name'];
+            }
+        } else {
+            $target_profile = $empInfo;
         }
 
-        // Cek Prioritas 2: Unit Schedule (Ini yang hilang di kode lama Anda)
-        if (!$final_schedule_id && !empty($empInfo['unit_id'])) {
+        // Cek Prioritas 1: Personal Schedule
+        if (!empty($target_profile['schedule_id'])) {
+            $final_schedule_id = $target_profile['schedule_id'];
+        }
+
+        // Cek Prioritas 2: Unit Schedule
+        if (!$final_schedule_id && !empty($target_profile['unit_id'])) {
             $stmtUnit = $conn->prepare("SELECT schedule_id FROM units WHERE id = ?");
-            $stmtUnit->execute([$empInfo['unit_id']]);
+            $stmtUnit->execute([$target_profile['unit_id']]);
             $unitData = $stmtUnit->fetch(PDO::FETCH_ASSOC);
             if ($unitData && !empty($unitData['schedule_id'])) {
                 $final_schedule_id = $unitData['schedule_id'];
@@ -142,9 +164,9 @@ try {
         }
 
         // Cek Prioritas 3: Division Schedule
-        if (!$final_schedule_id && !empty($empInfo['division_id'])) {
+        if (!$final_schedule_id && !empty($target_profile['division_id'])) {
             $stmtDiv = $conn->prepare("SELECT schedule_id FROM divisions WHERE id = ?");
-            $stmtDiv->execute([$empInfo['division_id']]);
+            $stmtDiv->execute([$target_profile['division_id']]);
             $divData = $stmtDiv->fetch(PDO::FETCH_ASSOC);
             if ($divData && !empty($divData['schedule_id'])) {
                 $final_schedule_id = $divData['schedule_id'];
@@ -184,13 +206,28 @@ try {
     // BAGIAN 4: FINAL RESPONSE
     // =================================================================================
 
-    echo json_encode([
+    $output = json_encode([
         "success" => true,
         "status_absensi" => $currentStatus,
-        "today_schedule" => $scheduleString, // <-- Ini yang dipakai di Frontend
+        "today_schedule" => $scheduleString, 
+        "is_swapped" => $is_swapped ?? false,
+        "swap_partner_name" => $swap_partner_name ?? null,
         "data_hari_ini" => $todayData,
         "history" => $historyData
     ]);
+
+    // --- ETag / Cache Control Optimization ---
+    $etag = md5($output);
+    header("ETag: \"$etag\"");
+    header("Cache-Control: public, max-age=30"); // Jangan panggil server lagi dlm 30 detik
+    
+    $ifNoneMatch = isset($_SERVER['HTTP_IF_NONE_MATCH']) ? trim($_SERVER['HTTP_IF_NONE_MATCH'], '"') : false;
+    if ($ifNoneMatch === $etag) {
+        header("HTTP/1.1 304 Not Modified");
+        exit();
+    }
+
+    echo $output;
 
 } catch (PDOException $e) {
     echo json_encode(["success" => false, "message" => "Database Error: " . $e->getMessage()]);

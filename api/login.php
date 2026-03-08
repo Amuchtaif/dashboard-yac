@@ -43,6 +43,8 @@ try {
                 e.profile_photo,
                 e.address as alamat,
                 e.password, 
+                e.unit_id,
+                e.division_id,
                 u.name AS unit_name, 
                 d.name AS division_name,
                 p.level AS position_level,

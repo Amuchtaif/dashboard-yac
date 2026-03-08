@@ -129,7 +129,20 @@ try {
         return strtotime($b['created_at'] ?? '0') - strtotime($a['created_at'] ?? '0');
     });
 
-    echo json_encode(["success" => true, "data" => $notifications]);
+    // --- ETag / Cache Control Optimization ---
+    $output = json_encode(["success" => true, "data" => $notifications]);
+    $etag = md5($output);
+    
+    header("ETag: \"$etag\"");
+    header("Cache-Control: public, max-age=30"); // Client boleh tidak memanggil server selama 30 detik
+    
+    $ifNoneMatch = isset($_SERVER['HTTP_IF_NONE_MATCH']) ? trim($_SERVER['HTTP_IF_NONE_MATCH'], '"') : false;
+    if ($ifNoneMatch === $etag) {
+        header("HTTP/1.1 304 Not Modified");
+        exit();
+    }
+
+    echo $output;
 
 } catch (PDOException $e) {
     echo json_encode(["success" => false, "message" => $e->getMessage()]);

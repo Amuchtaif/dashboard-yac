@@ -32,11 +32,14 @@ $user_id = $_GET['user_id'];
 
 try {
     // 1. Calculate Attendance Points
-    // Hadir/Tepat Waktu = +10, Telat = -5
+    // Masuk: Hadir/Tepat Waktu = +10, Telat = -5
+    // Pulang: Pulang/Tepat Waktu = +10, Pulang Cepat = -5
     $queryAttendance = "SELECT 
                             status, 
+                            status_out,
                             date, 
-                            time_in 
+                            time_in,
+                            time_out
                         FROM attendances 
                         WHERE user_id = :uid";
     $stmtAtt = $conn->prepare($queryAttendance);
@@ -48,26 +51,52 @@ try {
     $activityHistory = [];
 
     foreach ($attendances as $row) {
-        $points = 0;
-        $title = "";
+        // --- POINTS FOR CHECK-IN ---
+        $pointsIn = 0;
+        $titleIn = "";
         
         if ($row['status'] == 'Hadir' || $row['status'] == 'Tepat Waktu') {
-            $points = 10;
-            $title = "Presensi Masuk Tepat Waktu";
+            $pointsIn = 10;
+            $titleIn = "Presensi Masuk Tepat Waktu";
         } elseif ($row['status'] == 'Telat') {
-            $points = -5;
-            $title = "Presensi Masuk Terlambat";
+            $pointsIn = -5;
+            $titleIn = "Presensi Masuk Terlambat";
         }
 
-        if ($points != 0) {
-            $totalPoints += $points;
+        if ($pointsIn != 0) {
+            $totalPoints += $pointsIn;
             $activityHistory[] = [
-                "title" => $title,
-                "points" => ($points > 0 ? "+" : "") . $points,
+                "title" => $titleIn,
+                "points" => ($pointsIn > 0 ? "+" : "") . $pointsIn,
                 "date" => $row['date'],
                 "time" => substr($row['time_in'], 0, 5),
                 "type" => "attendance"
             ];
+        }
+
+        // --- POINTS FOR CHECK-OUT ---
+        if (!empty($row['status_out']) && !empty($row['time_out'])) {
+            $pointsOut = 0;
+            $titleOut = "";
+            
+            if ($row['status_out'] == 'Pulang' || $row['status_out'] == 'Tepat Waktu') {
+                $pointsOut = 10;
+                $titleOut = "Presensi Pulang Sesuai Waktu";
+            } elseif ($row['status_out'] == 'Pulang Cepat') {
+                $pointsOut = -5;
+                $titleOut = "Presensi Pulang Sebelum Waktunya";
+            }
+
+            if ($pointsOut != 0) {
+                $totalPoints += $pointsOut;
+                $activityHistory[] = [
+                    "title" => $titleOut,
+                    "points" => ($pointsOut > 0 ? "+" : "") . $pointsOut,
+                    "date" => $row['date'],
+                    "time" => substr($row['time_out'], 0, 5),
+                    "type" => "attendance"
+                ];
+            }
         }
     }
 

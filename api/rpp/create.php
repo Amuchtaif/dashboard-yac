@@ -1,0 +1,100 @@
+<?php
+header("Access-Control-Allow-Origin: *");
+header("Content-Type: application/json; charset=UTF-8");
+header("Access-Control-Allow-Methods: POST");
+
+include_once '../../config/database.php';
+
+$database = new Database();
+$db = $database->getConnection();
+
+$data = json_decode(file_get_contents("php://input"), true);
+
+$employee_id = $data['employee_id'] ?? null;
+$academic_year_id = $data['academic_year_id'] ?? null;
+$semester = $data['semester'] ?? null;
+$education_unit_id = $data['education_unit_id'] ?? null;
+$grade_level_id = $data['grade_level_id'] ?? null;
+$subject_id = $data['subject_id'] ?? null;
+$session_no = $data['session_no'] ?? null;
+$allocation = $data['allocation'] ?? null;
+$title = $data['title'] ?? '';
+
+// Core content
+$content_sk = $data['content_sk'] ?? '';
+$content_kd = $data['content_kd'] ?? '';
+$content_indicator = $data['content_indicator'] ?? '';
+$learning_goal = $data['learning_goal'] ?? '';
+$teaching_material = $data['teaching_material'] ?? '';
+$teaching_method = $data['teaching_method'] ?? '';
+$content_steps = $data['content_steps'] ?? '';
+$content_summary = $data['content_summary'] ?? '';
+$assessment = $data['assessment'] ?? '';
+
+$is_draft = $data['is_draft'] ?? 0;
+
+if (!$employee_id || !$academic_year_id || !$semester || !$grade_level_id || !$subject_id || !$title) {
+    echo json_encode(["success" => false, "message" => "Missing required fields (Title, Grade, Subject, etc)"]);
+    exit;
+}
+
+try {
+    $sql = "INSERT INTO rpp (
+                employee_id, 
+                academic_year_id, 
+                semester, 
+                education_unit_id,
+                grade_level_id, 
+                subject_id, 
+                session_no,
+                allocation,
+                title, 
+                content_sk, 
+                content_kd, 
+                content_indicator, 
+                learning_goal,
+                teaching_material,
+                teaching_method,
+                content_steps, 
+                content_summary, 
+                assessment,
+                is_draft
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    
+    $stmt = $db->prepare($sql);
+    $res = $stmt->execute([
+        $employee_id, 
+        $academic_year_id, 
+        $semester, 
+        $education_unit_id,
+        $grade_level_id, 
+        $subject_id, 
+        $session_no,
+        $allocation,
+        $title, 
+        $content_sk, 
+        $content_kd, 
+        $content_indicator, 
+        $learning_goal,
+        $teaching_material,
+        $teaching_method,
+        $content_steps, 
+        $content_summary, 
+        $assessment,
+        $is_draft
+    ]);
+
+    if ($res) {
+        $message = $is_draft ? "RPP berhasil disimpan sebagai draft" : "RPP berhasil diterbitkan";
+        echo json_encode([
+            "success" => true,
+            "message" => $message,
+            "id" => $db->lastInsertId()
+        ]);
+    } else {
+        echo json_encode(["success" => false, "message" => "Failed to save RPP"]);
+    }
+} catch (PDOException $e) {
+    echo json_encode(["success" => false, "message" => "Database Error: " . $e->getMessage()]);
+}
+?>

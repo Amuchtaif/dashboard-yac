@@ -100,6 +100,28 @@ try {
         exit();
     }
 
+    // --- LOGIKA TUKAR SHIFT (OPSI A) ---
+    // Cek apakah ada permohonan tukar shift yang disetujui untuk user ini di tanggal $today
+    $stmtSwap = $conn->prepare("SELECT requester_id, substitute_id FROM shift_exchanges WHERE (requester_id = ? OR substitute_id = ?) AND exchange_date = ? AND status = 'Disetujui' LIMIT 1");
+    $stmtSwap->execute([$user_id, $user_id, $today]);
+    $swap = $stmtSwap->fetch(PDO::FETCH_ASSOC);
+
+    $is_swapped = false;
+    if ($swap) {
+        // Jika ada swap, User ini akan "meminjam" profil partner-nya untuk menentukan jadwal (Schedule ID)
+        $partner_id = ($swap['requester_id'] == $user_id) ? $swap['substitute_id'] : $swap['requester_id'];
+        $is_swapped = true;
+        
+        // Ambil data partner untuk mendapatkan hierarki jadwalnya
+        $stmtPartner = $conn->prepare("SELECT schedule_id, division_id, unit_id FROM employees WHERE id = ?");
+        $stmtPartner->execute([$partner_id]);
+        $partnerData = $stmtPartner->fetch(PDO::FETCH_ASSOC);
+        
+        if ($partnerData) {
+            $employee = $partnerData; // Gunakan profil partner untuk perhitungan jadwal di bawah
+        }
+    }
+
     // --- LOGIKA HIERARKI JADWAL ---
     // Prioritas: Personal > Unit > Division > Default (ID:1)
     $schedule_id = null;
@@ -141,29 +163,26 @@ try {
 
     // --- VALIDASI HARI KERJA (FIX BUG MINGGU) ---
 
-    // Validasi A: Jadwal tidak ditemukan di database sama sekali
     if (!$dailySched) {
         echo json_encode([
             'success' => false,
-            'message' => "Jadwal tidak ditemukan untuk hari $currentDayName. Absen ditolak."
+            'message' => "Jadwal tidak ditemukan untuk hari ini. Absen ditolak."
         ]);
         exit();
     }
 
-    // Validasi B: Hari Libur (is_day_off = 1)
     if ($dailySched['is_day_off'] == 1) {
         echo json_encode([
             'success' => false,
-            'message' => "Absen Ditolak: Hari ini ($currentDayName) adalah hari libur."
+            'message' => "Absen Ditolak: Hari ini adalah hari libur."
         ]);
         exit();
     }
 
-    // Validasi C: Jam Masuk Kosong / 00:00:00
     if (empty($dailySched['start_time']) || $dailySched['start_time'] == '00:00:00') {
         echo json_encode([
             'success' => false,
-            'message' => "Absen Ditolak: Jam kerja belum diatur untuk hari ini ($currentDayName)."
+            'message' => "Absen Ditolak: Jam kerja belum diatur untuk hari ini."
         ]);
         exit();
     }
@@ -204,9 +223,10 @@ try {
             $stmtInsert->bindParam(':long', $user_long);
 
             if ($stmtInsert->execute()) {
+                $swapMsg = $is_swapped ? " (Tukar Shift)" : "";
                 echo json_encode([
                     "success" => true,
-                    "message" => "Absen Masuk Berhasil ($status_in). Jarak: $distance m"
+                    "message" => "Absen Masuk Berhasil$swapMsg ($status_in). Jarak: $distance m"
                 ]);
             } else {
                 echo json_encode(["success" => false, "message" => "Gagal simpan database"]);
@@ -246,9 +266,10 @@ try {
             $stmtUpdate->bindParam(':id', $row['id']);
 
             if ($stmtUpdate->execute()) {
+                $swapMsg = $is_swapped ? " (Tukar Shift)" : "";
                 echo json_encode([
                     "success" => true,
-                    "message" => "Absen Pulang Berhasil ($status_out). Jarak: $distance m"
+                    "message" => "Absen Pulang Berhasil$swapMsg ($status_out). Jarak: $distance m"
                 ]);
             } else {
                 echo json_encode(["success" => false, "message" => "Gagal simpan pulang"]);

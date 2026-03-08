@@ -199,8 +199,101 @@
                     toggleDropdown(activeDropdownId);
                 }
             }
+            
+            // Close hybrid selects
+            if (!e.target.closest('.hybrid-select-container')) {
+                document.querySelectorAll('.hybrid-select-dropdown').forEach(d => d.classList.remove('active'));
+            }
         });
+
+        // Initialize Hybrid Selects
+        initHybridSelects();
     });
+
+    function initHybridSelects() {
+        document.querySelectorAll('select.hybrid-select').forEach(select => {
+            if (select.dataset.hybridInit) return;
+            
+            const container = document.createElement('div');
+            container.className = 'hybrid-select-container';
+            
+            const currentText = select.options[select.selectedIndex]?.text || 'Pilih...';
+            
+            container.innerHTML = `
+                <div class="relative">
+                    <input type="text" class="hybrid-search-input" placeholder="${currentText}" readonly>
+                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                        <svg class="h-4 w-4 text-slate-400 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
+                </div>
+                <div class="hybrid-select-dropdown">
+                    <div class="sticky top-0 bg-white p-2 border-b border-slate-100">
+                        <input type="text" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500" placeholder="Ketik untuk mencari...">
+                    </div>
+                    <div class="options-list"></div>
+                </div>
+            `;
+            
+            select.parentNode.insertBefore(container, select);
+            select.classList.add('hidden');
+            select.dataset.hybridInit = 'true';
+            
+            const mainInput = container.querySelector('.hybrid-search-input');
+            const dropdown = container.querySelector('.hybrid-select-dropdown');
+            const searchInput = dropdown.querySelector('input');
+            const optionsList = dropdown.querySelector('.options-list');
+            const arrow = container.querySelector('svg');
+            
+            const renderOptions = (filter = '') => {
+                optionsList.innerHTML = '';
+                Array.from(select.options).forEach(opt => {
+                    if (opt.text.toLowerCase().includes(filter.toLowerCase())) {
+                        const div = document.createElement('div');
+                        div.className = `hybrid-option ${opt.selected ? 'selected' : ''}`;
+                        div.textContent = opt.text;
+                        div.onclick = () => {
+                            select.value = opt.value;
+                            select.dispatchEvent(new Event('change'));
+                            mainInput.placeholder = opt.text;
+                            mainInput.value = '';
+                            dropdown.classList.remove('active');
+                            arrow.classList.remove('rotate-180');
+                            renderOptions();
+                        };
+                        optionsList.appendChild(div);
+                    }
+                });
+                if (optionsList.innerHTML === '') {
+                    optionsList.innerHTML = '<div class="p-4 text-center text-xs text-slate-400 italic">Tidak ditemukan</div>';
+                }
+            };
+            
+            mainInput.onclick = (e) => {
+                e.stopPropagation();
+                // Close others
+                document.querySelectorAll('.hybrid-select-dropdown').forEach(d => {
+                    if (d !== dropdown) d.classList.remove('active');
+                });
+                
+                dropdown.classList.toggle('active');
+                arrow.classList.toggle('rotate-180');
+                if (dropdown.classList.contains('active')) {
+                    searchInput.focus();
+                    renderOptions();
+                }
+            };
+            
+            searchInput.oninput = (e) => {
+                renderOptions(e.target.value);
+            };
+            
+            searchInput.onclick = (e) => e.stopPropagation();
+            
+            renderOptions();
+        });
+    }
 </script>
 
 <!-- Toast Container -->

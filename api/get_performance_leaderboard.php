@@ -36,11 +36,18 @@ try {
             LEFT JOIN (
                 SELECT 
                     user_id, 
-                    SUM(CASE 
-                        WHEN status = 'Hadir' OR status = 'Tepat Waktu' THEN 10 
-                        WHEN status = 'Telat' THEN -5 
-                        ELSE 0 
-                    END) as points 
+                    SUM(
+                        CASE 
+                            WHEN status = 'Hadir' OR status = 'Tepat Waktu' THEN 10 
+                            WHEN status = 'Telat' THEN -5 
+                            ELSE 0 
+                        END +
+                        CASE 
+                            WHEN status_out = 'Pulang' OR status_out = 'Tepat Waktu' THEN 10 
+                            WHEN status_out = 'Pulang Cepat' THEN -5 
+                            ELSE 0 
+                        END
+                    ) as points 
                 FROM attendances 
                 GROUP BY user_id
             ) att ON e.id = att.user_id

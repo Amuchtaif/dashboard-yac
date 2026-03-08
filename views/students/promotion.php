@@ -206,8 +206,8 @@ include '../layouts/header.php';
                     class="inline-flex items-center justify-between w-full rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-600 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-colors shadow-sm">
                     <span id="source-year-text" class="truncate">
                         <?php
+                        $yearLabel = "-- Tahun Ajaran --";
                         if (!empty($academic_years)) {
-                            // First, check if there's a match
                             foreach ($academic_years as $y) {
                                 if ($source_year_id == $y['id']) {
                                     $yearLabel = $y['name'] . ' - ' . $y['semester'];

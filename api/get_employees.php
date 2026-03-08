@@ -20,8 +20,19 @@ try {
             LEFT JOIN positions p ON e.position_id = p.id
             WHERE e.status = 'active'";
 
+    // Exclude restricted positions (Kepala Bidang, Admin)
+    $sql .= " AND (p.name IS NULL OR (p.name NOT LIKE '%Kepala Bidang%' AND p.name NOT LIKE '%Administrator%' AND p.name NOT LIKE '%Admin%'))";
+
     $params = [];
     $types = "";
+
+    // Exclude current user if provided
+    $current_user_id = $_GET['user_id'] ?? null;
+    if ($current_user_id) {
+        $sql .= " AND e.id != ?";
+        $params[] = (int)$current_user_id;
+        $types .= "i";
+    }
 
     // Search Filter (by Name)
     if (!empty($search)) {
@@ -31,17 +42,19 @@ try {
         $types .= "s";
     }
 
-    // Division Filter
-    if (!empty($division_id)) {
-        $sql .= " AND e.division_id = ?";
-        $params[] = $division_id;
-        $types .= "i";
-    }
-
-    // Unit Filter
-    if (!empty($unit_id)) {
+    // Division and Unit Filter: Use AND for stricter scoping as requested
+    if (!empty($division_id) && !empty($unit_id)) {
+        $sql .= " AND e.division_id = ? AND e.unit_id = ?";
+        $params[] = (int)$division_id;
+        $params[] = (int)$unit_id;
+        $types .= "ii";
+    } elseif (!empty($unit_id)) {
         $sql .= " AND e.unit_id = ?";
-        $params[] = $unit_id;
+        $params[] = (int)$unit_id;
+        $types .= "i";
+    } elseif (!empty($division_id)) {
+        $sql .= " AND e.division_id = ?";
+        $params[] = (int)$division_id;
         $types .= "i";
     }
 
