@@ -11,11 +11,11 @@ $db = new Database();
 $conn = $db->getConnection();
 
 // Fetch Education Units
-$units = $conn->query("SELECT id, name FROM education_units ORDER BY FIELD(name, 'Playgroup', 'TKIT', 'SDIT', 'MTs', 'MA', 'Ma''had Aly')")->fetchAll(PDO::FETCH_ASSOC);
+$units = $conn->query("SELECT id, name FROM education_units ORDER BY FIELD(name, 'Playgroup', 'TKIT', 'SDIT', 'MTs', 'Idad Lughoh', 'MA', 'Mahad Aly') ASC, name ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 // Fetch Employees (Teachers)
 // Assuming all employees can be teachers for now, or you can filter by position/division if needed.
-$teachers = $conn->query("SELECT id, full_name as name FROM employees ORDER BY full_name ASC")->fetchAll(PDO::FETCH_ASSOC);
+$teachers = $conn->query("SELECT id, full_name as name FROM employees WHERE status = 'active' ORDER BY full_name ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 include '../layouts/header.php';
 ?>

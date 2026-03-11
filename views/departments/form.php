@@ -16,7 +16,7 @@ $page_title = $is_edit ? "Edit Divisi" : "Tambah Divisi";
 $schedules = $conn->query("SELECT * FROM work_schedules ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 // Fetch all employees for manager dropdown
-$employees = $conn->query("SELECT id, full_name FROM employees ORDER BY full_name ASC")->fetchAll(PDO::FETCH_ASSOC);
+$employees = $conn->query("SELECT id, full_name FROM employees WHERE status = 'active' ORDER BY full_name ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 $department = [
     'name' => '',

@@ -41,11 +41,12 @@ try {
     $querySchedule = "SELECT 
                         s.name as subject_name,
                         lp.start_time,
-                        lp.end_time,
+                        COALESCE(lp_end.end_time, lp.end_time) as end_time,
                         e.full_name as teacher_name
                       FROM class_schedules cs
                       JOIN subjects s ON cs.subject_id = s.id
                       JOIN lesson_periods lp ON cs.lesson_period_id = lp.id
+                      LEFT JOIN lesson_periods lp_end ON cs.end_lesson_period_id = lp_end.id
                       LEFT JOIN employees e ON cs.employee_id = e.id
                       WHERE cs.grade_level_id = :id AND cs.day = :day
                       ORDER BY lp.start_time ASC";

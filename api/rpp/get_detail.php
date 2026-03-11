@@ -2,7 +2,9 @@
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Methods: GET");
-header("Cache-Control: public, max-age=30");
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
 
 include_once '../../config/database.php';
 
@@ -22,13 +24,16 @@ try {
             r.*, 
             s.name as subject_name, 
             gl.name as grade_name, 
+            gl.category as level_name,
+            eu.name as unit_name,
             ay.name as academic_year_name,
             e.full_name as teacher_name
         FROM rpp r
-        JOIN subjects s ON r.subject_id = s.id
-        JOIN grade_levels gl ON r.grade_level_id = gl.id
-        JOIN academic_years ay ON r.academic_year_id = ay.id
-        JOIN employees e ON r.employee_id = e.id
+        LEFT JOIN subjects s ON r.subject_id = s.id
+        LEFT JOIN grade_levels gl ON r.grade_level_id = gl.id
+        LEFT JOIN education_units eu ON r.education_unit_id = eu.id
+        LEFT JOIN academic_years ay ON r.academic_year_id = ay.id
+        LEFT JOIN employees e ON r.employee_id = e.id
         WHERE r.id = ?
     ";
 
@@ -46,6 +51,8 @@ try {
             "semester" => $row['semester'],
             "grade_level_id" => (int)$row['grade_level_id'],
             "grade_name" => $row['grade_name'],
+            "level_name" => $row['level_name'],
+            "unit_name" => $row['unit_name'],
             "subject_id" => (int)$row['subject_id'],
             "subject_name" => $row['subject_name'],
             "title" => $row['title'],
@@ -54,6 +61,12 @@ try {
             "content_indicator" => $row['content_indicator'],
             "content_steps" => $row['content_steps'],
             "content_summary" => $row['content_summary'],
+            "session_no" => $row['session_no'],
+            "allocation" => $row['allocation'],
+            "learning_goal" => $row['learning_goal'],
+            "teaching_material" => $row['teaching_material'],
+            "teaching_method" => $row['teaching_method'],
+            "assessment" => $row['assessment'],
             "is_draft" => (bool)$row['is_draft'],
             "created_at" => $row['created_at'],
             "updated_at" => $row['updated_at']

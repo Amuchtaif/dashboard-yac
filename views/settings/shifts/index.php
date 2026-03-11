@@ -31,7 +31,7 @@ $exchanges_query = "
 $exchanges = $conn->query($exchanges_query)->fetchAll(PDO::FETCH_ASSOC);
 
 // For adding exchange request
-$all_employees = $conn->query("SELECT id, full_name FROM employees ORDER BY full_name ASC")->fetchAll(PDO::FETCH_ASSOC);
+$all_employees = $conn->query("SELECT id, full_name FROM employees WHERE status = 'active' ORDER BY full_name ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 include '../../layouts/header.php';
 ?>

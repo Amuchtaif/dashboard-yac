@@ -37,7 +37,7 @@ try {
             s.name as subject_name,
             gl.name as class_name,
             lp.start_time,
-            lp.end_time,
+            COALESCE(lp_end.end_time, lp.end_time) as end_time,
             cs.day,
             (SELECT COUNT(*) FROM class_journals cj WHERE cj.class_schedule_id = cs.id AND cj.date = CURDATE() AND (cj.topic != '' AND cj.notes != '')) as is_journal_filled,
             (SELECT COUNT(*) FROM student_attendances sa 
@@ -47,6 +47,7 @@ try {
         JOIN subjects s ON cs.subject_id = s.id
         JOIN grade_levels gl ON cs.grade_level_id = gl.id
         LEFT JOIN lesson_periods lp ON cs.lesson_period_id = lp.id
+        LEFT JOIN lesson_periods lp_end ON cs.end_lesson_period_id = lp_end.id
         WHERE cs.employee_id = :employee_id AND cs.day = :day
         ORDER BY lp.start_time ASC
     ";

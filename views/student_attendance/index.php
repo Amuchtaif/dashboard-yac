@@ -23,7 +23,7 @@ $english_day = date('l', strtotime($date));
 $idn_day = $day_map[$english_day];
 
 // --- Data Master --
-$units = $conn->query("SELECT id, name FROM education_units ORDER BY FIELD(name, 'Playgroup', 'TKIT', 'SDIT', 'MTs', 'Idad Lughoh', 'MA', 'Mahad Aly') ASC")->fetchAll(PDO::FETCH_ASSOC);
+$units = $conn->query("SELECT id, name FROM education_units ORDER BY FIELD(name, 'Playgroup', 'TKIT', 'SDIT', 'MTs', 'Idad Lughoh', 'MA', 'Mahad Aly') ASC, name ASC")->fetchAll(PDO::FETCH_ASSOC);
 $grades = $conn->query("SELECT id, name, education_unit_id FROM grade_levels ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 // --- Fetch Schedules & Attendance ---
@@ -31,7 +31,7 @@ $sql = "
     SELECT 
         cs.id as schedule_id,
         lp.start_time,
-        lp.end_time,
+        COALESCE(lp_end.end_time, lp.end_time) as end_time,
         gl.name as class_name,
         s.name as subject_name,
         e.full_name as teacher_name,
@@ -47,6 +47,7 @@ $sql = "
     JOIN grade_levels gl ON cs.grade_level_id = gl.id
     JOIN subjects s ON cs.subject_id = s.id
     JOIN lesson_periods lp ON cs.lesson_period_id = lp.id
+    LEFT JOIN lesson_periods lp_end ON cs.end_lesson_period_id = lp_end.id
     JOIN employees e ON cs.employee_id = e.id
     LEFT JOIN class_journals cj ON cs.id = cj.class_schedule_id AND cj.date = :date
     WHERE cs.day = :day

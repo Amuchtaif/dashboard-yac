@@ -12,6 +12,7 @@ $db = $database->getConnection();
 
 $data = json_decode(file_get_contents("php://input"), true);
 
+$id = $data['id'] ?? null;
 $employee_id = $data['employee_id'] ?? null;
 $academic_year_id = $data['academic_year_id'] ?? null;
 $semester = $data['semester'] ?? null;
@@ -35,37 +36,35 @@ $assessment = $data['assessment'] ?? '';
 
 $is_draft = $data['is_draft'] ?? 0;
 
-if (!$employee_id || !$academic_year_id || !$semester || !$grade_level_id || !$subject_id || !$title) {
-    echo json_encode(["success" => false, "message" => "Missing required fields (Title, Grade, Subject, etc)"]);
+if (!$id || !$employee_id || !$academic_year_id || !$semester || !$grade_level_id || !$subject_id || !$title) {
+    echo json_encode(["success" => false, "message" => "Missing required fields (ID, Title, Grade, Subject, etc)"]);
     exit;
 }
 
 try {
-    $sql = "INSERT INTO rpp (
-                employee_id, 
-                academic_year_id, 
-                semester, 
-                education_unit_id,
-                grade_level_id, 
-                subject_id, 
-                session_no,
-                allocation,
-                title, 
-                content_sk, 
-                content_kd, 
-                content_indicator, 
-                learning_goal,
-                teaching_material,
-                teaching_method,
-                content_steps, 
-                content_summary, 
-                assessment,
-                is_draft
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    $sql = "UPDATE rpp SET
+                academic_year_id = ?, 
+                semester = ?, 
+                education_unit_id = ?,
+                grade_level_id = ?, 
+                subject_id = ?, 
+                session_no = ?,
+                allocation = ?,
+                title = ?, 
+                content_sk = ?, 
+                content_kd = ?, 
+                content_indicator = ?, 
+                learning_goal = ?,
+                teaching_material = ?,
+                teaching_method = ?,
+                content_steps = ?, 
+                content_summary = ?, 
+                assessment = ?,
+                is_draft = ?
+            WHERE id = ? AND employee_id = ?";
     
     $stmt = $db->prepare($sql);
     $res = $stmt->execute([
-        $employee_id, 
         $academic_year_id, 
         $semester, 
         $education_unit_id,
@@ -83,18 +82,19 @@ try {
         $content_steps, 
         $content_summary, 
         $assessment,
-        $is_draft
+        $is_draft,
+        $id,
+        $employee_id
     ]);
 
     if ($res) {
-        $message = $is_draft ? "RPP berhasil disimpan sebagai draft" : "RPP berhasil diterbitkan";
+        $message = $is_draft ? "Draft RPP berhasil diperbarui" : "RPP berhasil diterbitkan";
         echo json_encode([
             "success" => true,
-            "message" => $message,
-            "id" => $db->lastInsertId()
+            "message" => $message
         ]);
     } else {
-        echo json_encode(["success" => false, "message" => "Failed to save RPP"]);
+        echo json_encode(["success" => false, "message" => "Failed to update RPP"]);
     }
 } catch (PDOException $e) {
     echo json_encode(["success" => false, "message" => "Database Error: " . $e->getMessage()]);

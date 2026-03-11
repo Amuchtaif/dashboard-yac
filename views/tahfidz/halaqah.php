@@ -22,7 +22,7 @@ $groups_query = "
 $groups = $conn->query($groups_query)->fetchAll(PDO::FETCH_ASSOC);
 
 // 2. Fetch All Teachers (for group creation)
-$teachers_query = "SELECT id, full_name FROM employees ORDER BY full_name ASC";
+$teachers_query = "SELECT id, full_name FROM employees WHERE status = 'active' ORDER BY full_name ASC";
 $teachers = $conn->query($teachers_query)->fetchAll(PDO::FETCH_ASSOC);
 
 // 3. Fetch All Students (for member management)
@@ -124,7 +124,7 @@ include '../layouts/header.php';
         <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-visible shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-slate-200">
             <form action="../../logic/tahfidz/manage_halaqah.php" method="POST">
                 <input type="hidden" name="action" value="create_group">
-                <div class="bg-white px-8 pt-8 pb-6">
+                <div class="bg-white px-8 pt-8 pb-6 rounded-t-2xl">
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="text-xl font-bold text-slate-800">Tambah Kelompok Baru</h3>
                         <button type="button" onclick="closeModal('modal-add-group')" class="text-slate-400 hover:text-slate-600">
@@ -193,7 +193,7 @@ include '../layouts/header.php';
                         </div>
                     </div>
                 </div>
-                <div class="bg-slate-50 px-8 py-6 flex flex-row-reverse gap-3">
+                <div class="bg-slate-50 px-8 py-6 flex flex-row-reverse gap-3 rounded-b-2xl">
                     <button type="submit" class="inline-flex justify-center rounded-xl bg-cyan-600 px-6 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-cyan-700 focus:outline-none transition-all">
                         Simpan Kelompok
                     </button>

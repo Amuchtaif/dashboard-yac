@@ -12,7 +12,7 @@ $conn = $db->getConnection();
 
 // Fetch Education Units for Filter
 // Custom Order as requested previously
-$units = $conn->query("SELECT id, name FROM education_units ORDER BY FIELD(name, 'Playgroup', 'TKIT', 'SDIT', 'MTs', 'MA', 'Ma''had Aly')")->fetchAll(PDO::FETCH_ASSOC);
+$units = $conn->query("SELECT id, name FROM education_units ORDER BY FIELD(name, 'Playgroup', 'TKIT', 'SDIT', 'MTs', 'Idad Lughoh', 'MA', 'Mahad Aly') ASC, name ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 // Filter Inputs
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';

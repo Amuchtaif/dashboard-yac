@@ -270,36 +270,68 @@
             <div class="py-6 px-4 sm:px-6 lg:px-8">
                 <!-- Global Notifications -->
                 <?php if (isset($_GET['success'])): ?>
-                    <div
-                        class="alert-banner mb-6 rounded-md bg-green-50 p-4 border border-green-200 transition-opacity duration-500 flex items-center gap-3">
-                        <div class="flex-shrink-0">
-                            <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd"
-                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
-                                    clip-rule="evenodd" />
-                            </svg>
+                    <div id="alert-success" class="alert-banner mb-6 rounded-xl bg-emerald-600 shadow-lg px-4 py-3 border border-emerald-500 transition-all duration-500 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="flex-shrink-0 bg-emerald-500/50 p-1.5 rounded-lg flex items-center justify-center">
+                                <svg class="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-white"><?php echo htmlspecialchars($_GET['success']); ?></p>
+                            </div>
                         </div>
-                        <div class="ml-3">
-                            <p class="text-sm font-medium text-green-800"><?php echo htmlspecialchars($_GET['success']); ?>
-                            </p>
-                        </div>
+                        <button type="button" onclick="closeAlert('alert-success')" class="text-emerald-200 hover:text-white transition-colors focus:outline-none">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
                     </div>
                 <?php endif; ?>
 
                 <?php if (isset($_GET['error'])): ?>
-                    <div
-                        class="alert-banner mb-6 rounded-md bg-red-50 p-4 border border-red-200 transition-opacity duration-500 flex items-center gap-3">
-                        <div class="flex-shrink-0">
-                            <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd"
-                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
-                                    clip-rule="evenodd" />
-                            </svg>
+                    <div id="alert-error" class="alert-banner mb-6 rounded-xl bg-rose-600 shadow-lg px-4 py-3 border border-rose-500 transition-all duration-500 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="flex-shrink-0 bg-rose-500/50 p-1.5 rounded-lg flex items-center justify-center">
+                                <svg class="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-white"><?php echo htmlspecialchars($_GET['error']); ?></p>
+                            </div>
                         </div>
-                        <div class="ml-3">
-                            <p class="text-sm font-medium text-red-800"><?php echo htmlspecialchars($_GET['error']); ?></p>
-                        </div>
+                        <button type="button" onclick="closeAlert('alert-error')" class="text-rose-200 hover:text-white transition-colors focus:outline-none">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
                     </div>
                 <?php endif; ?>
+
+                <script>
+                    function closeAlert(id) {
+                        const alertEl = document.getElementById(id);
+                        if (alertEl) {
+                            alertEl.style.opacity = '0';
+                            alertEl.style.transform = 'translateY(-10px)';
+                            setTimeout(() => {
+                                alertEl.style.display = 'none';
+                            }, 500); // Wait for transition to finish
+                        }
+                    }
+
+                    // Auto hide alert banners after 3 seconds
+                    document.addEventListener('DOMContentLoaded', () => {
+                        const alerts = document.querySelectorAll('.alert-banner');
+                        if (alerts.length > 0) {
+                            setTimeout(() => {
+                                alerts.forEach(alert => {
+                                    alert.style.opacity = '0';
+                                    alert.style.transform = 'translateY(-10px)';
+                                    setTimeout(() => {
+                                        alert.style.display = 'none';
+                                    }, 500); // 500ms transition duration
+                                });
+                            }, 3000); // Hide after 3000ms (3 seconds)
+                        }
+                    });
+                </script>
 
                 <!-- Content Below -->

@@ -24,10 +24,10 @@ if (!$level) {
 }
 
 // Fetch Education Units
-$units = $conn->query("SELECT id, name FROM education_units ORDER BY FIELD(name, 'Playgroup', 'TKIT', 'SDIT', 'MTs', 'MA', 'Ma''had Aly')")->fetchAll(PDO::FETCH_ASSOC);
+$units = $conn->query("SELECT id, name FROM education_units ORDER BY FIELD(name, 'Playgroup', 'TKIT', 'SDIT', 'MTs', 'Idad Lughoh', 'MA', 'Mahad Aly') ASC, name ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 // Fetch Employees (Teachers)
-$teachers = $conn->query("SELECT id, full_name as name FROM employees ORDER BY full_name ASC")->fetchAll(PDO::FETCH_ASSOC);
+$teachers = $conn->query("SELECT id, full_name as name FROM employees WHERE status = 'active' ORDER BY full_name ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 $page_title = "Edit Class";
 

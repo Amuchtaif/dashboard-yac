@@ -23,13 +23,14 @@ try {
                     s.name as subject_name,
                     e.full_name as teacher_name,
                     lp.start_time,
-                    lp.end_time,
+                    COALESCE(lp_end.end_time, lp.end_time) as end_time,
                     (SELECT COUNT(*) FROM class_journals cj 
                      WHERE cj.class_schedule_id = cs.id AND cj.date = CURDATE()) as is_attended
                   FROM class_schedules cs
                   JOIN subjects s ON cs.subject_id = s.id
                   JOIN employees e ON cs.employee_id = e.id
                   LEFT JOIN lesson_periods lp ON cs.lesson_period_id = lp.id
+                  LEFT JOIN lesson_periods lp_end ON cs.end_lesson_period_id = lp_end.id
                   WHERE cs.grade_level_id = :class_id AND cs.day = :today
                   ORDER BY lp.start_time ASC";
         
@@ -83,7 +84,7 @@ try {
         // Note: Field values must match exact DB strings (including apostrophes)
         $query = "SELECT DISTINCT category as unit_name FROM grade_levels 
                   WHERE category IS NOT NULL AND category != '' 
-                  ORDER BY FIELD(category, 'Playgroup', 'TKIT', 'SDIT', 'MTs', 'MA', 'Ma\'had Aly'), category ASC";
+                  ORDER BY FIELD(category, 'Playgroup', 'TKIT', 'SDIT', 'MTs', 'Idad Lughoh', 'MA', 'Mahad Aly'), category ASC";
         $stmt = $db->prepare($query);
         $stmt->execute();
         

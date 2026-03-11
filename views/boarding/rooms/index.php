@@ -21,7 +21,7 @@ $rooms_query = "
 $rooms = $conn->query($rooms_query)->fetchAll(PDO::FETCH_ASSOC);
 
 // 2. Fetch All Supervisors (for room creation)
-$supervisors_query = "SELECT id, full_name FROM employees ORDER BY full_name ASC";
+$supervisors_query = "SELECT id, full_name FROM employees WHERE status = 'active' ORDER BY full_name ASC";
 $supervisors = $conn->query($supervisors_query)->fetchAll(PDO::FETCH_ASSOC);
 
 include '../../layouts/header.php';

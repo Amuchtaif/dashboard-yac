@@ -2,7 +2,9 @@
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Methods: GET");
-header("Cache-Control: public, max-age=30");
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
 
 include_once '../../config/database.php';
 
@@ -39,11 +41,14 @@ try {
             r.is_draft, 
             s.name as subject_name, 
             gl.name as grade_name, 
+            gl.category as level_name,
+            eu.name as unit_name,
             ay.name as academic_year_name
         FROM rpp r
-        JOIN subjects s ON r.subject_id = s.id
-        JOIN grade_levels gl ON r.grade_level_id = gl.id
-        JOIN academic_years ay ON r.academic_year_id = ay.id
+        LEFT JOIN subjects s ON r.subject_id = s.id
+        LEFT JOIN grade_levels gl ON r.grade_level_id = gl.id
+        LEFT JOIN education_units eu ON r.education_unit_id = eu.id
+        LEFT JOIN academic_years ay ON r.academic_year_id = ay.id
         WHERE $where
         ORDER BY r.created_at DESC
     ";
@@ -59,6 +64,8 @@ try {
             "title" => $row['title'],
             "subject_name" => $row['subject_name'],
             "grade_name" => $row['grade_name'],
+            "level_name" => $row['level_name'],
+            "unit_name" => $row['unit_name'],
             "semester" => $row['semester'],
             "academic_year" => $row['academic_year_name'],
             "is_draft" => (bool)$row['is_draft'],

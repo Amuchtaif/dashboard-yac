@@ -45,11 +45,20 @@ $query = "
             user_id,
             SUM(CASE WHEN status = 'Hadir' OR status = 'Tepat Waktu' THEN 1 ELSE 0 END) as hadir_count,
             SUM(CASE WHEN status = 'Telat' THEN 1 ELSE 0 END) as telat_count,
-            SUM(CASE 
-                WHEN status = 'Hadir' OR status = 'Tepat Waktu' THEN 10 
-                WHEN status = 'Telat' THEN -5 
-                ELSE 0 
-            END) as att_points 
+            SUM(CASE WHEN status_out = 'Pulang' OR status_out = 'Tepat Waktu' THEN 1 ELSE 0 END) as pulang_count,
+            SUM(CASE WHEN status_out = 'Pulang Cepat' THEN 1 ELSE 0 END) as cepat_count,
+            SUM(
+                CASE 
+                    WHEN status = 'Hadir' OR status = 'Tepat Waktu' THEN 10 
+                    WHEN status = 'Telat' THEN -5 
+                    ELSE 0 
+                END +
+                CASE 
+                    WHEN status_out = 'Pulang' OR status_out = 'Tepat Waktu' THEN 10 
+                    WHEN status_out = 'Pulang Cepat' THEN -5 
+                    ELSE 0 
+                END
+            ) as att_points 
         FROM attendances 
         GROUP BY user_id
     ) att ON e.id = att.user_id
@@ -153,16 +162,24 @@ include '../layouts/header.php';
             <p class="text-xs font-semibold text-cyan-100 uppercase tracking-wider mb-3">Logika Poin</p>
             <div class="space-y-1.5">
                 <div class="flex items-center justify-between">
-                    <span class="text-sm text-white/90">Absen Tepat Waktu</span>
-                    <span class="text-sm font-bold text-emerald-200">+10</span>
+                    <span class="text-xs text-white/90">Absen Tepat Waktu</span>
+                    <span class="text-xs font-bold text-emerald-200">+10</span>
                 </div>
                 <div class="flex items-center justify-between">
-                    <span class="text-sm text-white/90">Absen Terlambat</span>
-                    <span class="text-sm font-bold text-red-200">-5</span>
+                    <span class="text-xs text-white/90">Absen Terlambat</span>
+                    <span class="text-xs font-bold text-red-200">-5</span>
                 </div>
                 <div class="flex items-center justify-between">
-                    <span class="text-sm text-white/90">Hadir Rapat</span>
-                    <span class="text-sm font-bold text-emerald-200">+10</span>
+                    <span class="text-xs text-white/90">Pulang Tepat Waktu</span>
+                    <span class="text-xs font-bold text-emerald-200">+10</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-xs text-white/90">Pulang Cepat</span>
+                    <span class="text-xs font-bold text-red-200">-5</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-xs text-white/90">Hadir Rapat</span>
+                    <span class="text-xs font-bold text-emerald-200">+10</span>
                 </div>
             </div>
         </div>
@@ -326,6 +343,12 @@ include '../layouts/header.php';
                             <span class="text-red-500">Telat</span>
                         </th>
                         <th scope="col" class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">
+                            <span class="text-emerald-600">Pulang</span>
+                        </th>
+                        <th scope="col" class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">
+                            <span class="text-red-500">Cepat</span>
+                        </th>
+                        <th scope="col" class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">
                             <span class="text-blue-600">Rapat</span>
                         </th>
                         <th scope="col" class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">Total Poin</th>
@@ -381,6 +404,18 @@ include '../layouts/header.php';
                                     <span class="inline-flex items-center gap-1 text-sm font-medium text-red-500">
                                         <?php echo $emp['telat_count']; ?>
                                         <span class="text-xs text-red-400">(<?php echo $emp['telat_count'] > 0 ? '-' . ($emp['telat_count'] * 5) : '0'; ?>)</span>
+                                    </span>
+                                </td>
+                                <td class="whitespace-nowrap px-3 py-4 text-center">
+                                    <span class="inline-flex items-center gap-1 text-sm font-medium text-emerald-600">
+                                        <?php echo $emp['pulang_count'] ?? 0; ?>
+                                        <span class="text-xs text-emerald-400">(+<?php echo ($emp['pulang_count'] ?? 0) * 10; ?>)</span>
+                                    </span>
+                                </td>
+                                <td class="whitespace-nowrap px-3 py-4 text-center">
+                                    <span class="inline-flex items-center gap-1 text-sm font-medium text-red-500">
+                                        <?php echo $emp['cepat_count'] ?? 0; ?>
+                                        <span class="text-xs text-red-400">(<?php echo ($emp['cepat_count'] ?? 0) > 0 ? '-' . (($emp['cepat_count'] ?? 0) * 5) : '0'; ?>)</span>
                                     </span>
                                 </td>
                                 <td class="whitespace-nowrap px-3 py-4 text-center">

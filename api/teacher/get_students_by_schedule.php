@@ -18,11 +18,12 @@ try {
             cs.id, cs.grade_level_id, cs.subject_id, cs.employee_id, cs.day,
             gl.name as class_name,
             s.name as subject_name,
-            lp.start_time, lp.end_time
+            lp.start_time, COALESCE(lp_end.end_time, lp.end_time) as end_time
         FROM class_schedules cs
         JOIN grade_levels gl ON cs.grade_level_id = gl.id
         JOIN subjects s ON cs.subject_id = s.id
         LEFT JOIN lesson_periods lp ON cs.lesson_period_id = lp.id
+        LEFT JOIN lesson_periods lp_end ON cs.end_lesson_period_id = lp_end.id
         WHERE cs.id = ?
     ");
     $stmt->execute([$schedule_id]);

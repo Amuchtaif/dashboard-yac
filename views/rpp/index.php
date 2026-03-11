@@ -132,7 +132,13 @@ include '../layouts/header.php';
                                     <?php endif; ?>
                                 </td>
                                 <td class="px-6 py-4 text-right">
-                                    <div class="flex items-center justify-end gap-2">
+                                    <div class="flex items-center justify-end gap-1">
+                                        <button onclick="viewRPP(<?php echo $r['id']; ?>)" class="p-2 text-slate-400 hover:text-cyan-600 transition-colors" title="Lihat">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                        </button>
+                                        <a href="<?php url('views/rpp/print.php?id=' . $r['id']); ?>" target="_blank" class="p-2 text-indigo-500 hover:text-indigo-700 hover:bg-indigo-50 rounded-xl transition-all" title="Cetak RPP">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                                        </a>
                                         <a href="edit.php?id=<?php echo $r['id']; ?>" class="p-2 text-slate-400 hover:text-cyan-600 transition-colors" title="Ubah">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                                         </a>
@@ -168,5 +174,198 @@ include '../layouts/header.php';
         <?php endif; ?>
     </div>
 </div>
+
+<!-- Detail View Modal -->
+<div id="viewModal" class="fixed inset-0 z-50 invisible transition-all duration-300 pointer-events-none" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <!-- Overlay -->
+    <div id="viewModalOverlay" class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm opacity-0 transition-opacity duration-300" onclick="closeViewModal()"></div>
+    
+    <div class="flex items-center justify-center min-h-screen p-4 sm:p-6">
+        <!-- Modal Content -->
+        <div id="viewModalContent" class="relative bg-white rounded-[2rem] text-left shadow-2xl transform opacity-0 scale-95 transition-all duration-300 sm:max-w-4xl w-full border border-white/20 overflow-hidden">
+            <div class="bg-white">
+                <!-- Modal Head -->
+                <div class="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-cyan-600 flex items-center justify-center text-white shadow-lg shadow-cyan-600/20">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-black text-slate-800 leading-tight" id="modal-title-text">Detail RPP</h3>
+                            <p class="text-xs text-slate-500 mt-1 font-medium flex items-center gap-1.5" id="modal-subtitle-text"></p>
+                        </div>
+                    </div>
+                    <button onclick="closeViewModal()" class="group p-2 rounded-xl bg-slate-100 text-slate-400 hover:text-slate-600 hover:bg-slate-200 transition-all active:scale-90">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="px-8 py-8 max-h-[65vh] overflow-y-auto custom-scrollbar space-y-8" id="modal-content">
+                    <!-- Loading State -->
+                    <div class="flex flex-col items-center justify-center py-20 gap-4">
+                        <div class="relative w-12 h-12">
+                            <div class="absolute inset-0 rounded-full border-4 border-slate-100"></div>
+                            <div class="absolute inset-0 rounded-full border-4 border-cyan-600 border-t-transparent animate-spin"></div>
+                        </div>
+                        <p class="text-sm font-bold text-slate-400 animate-pulse">Mengambil data RPP...</p>
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="px-8 py-6 bg-slate-50 border-t border-slate-100 flex flex-wrap items-center justify-end gap-3">
+                    <button onclick="closeViewModal()" class="px-6 py-2.5 text-sm font-bold text-slate-500 hover:text-slate-700 transition-colors">Tutup</button>
+                    <a id="modal-print-btn" href="#" target="_blank" class="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-all active:scale-95">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                        </svg>
+                        Cetak Sekarang
+                    </a>
+                    <a id="modal-edit-btn" href="#" class="inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-cyan-600/20 hover:bg-cyan-700 transition-all active:scale-95">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                        Edit RPP
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
+</style>
+
+<script>
+async function viewRPP(id) {
+    const modal = document.getElementById('viewModal');
+    const overlay = document.getElementById('viewModalOverlay');
+    const modalContent = document.getElementById('viewModalContent');
+    const content = document.getElementById('modal-content');
+    const title = document.getElementById('modal-title-text');
+    const subtitle = document.getElementById('modal-subtitle-text');
+    
+    // Show modal with animation
+    modal.classList.remove('invisible', 'pointer-events-none');
+    setTimeout(() => {
+        overlay.classList.remove('opacity-0');
+        modalContent.classList.remove('opacity-0', 'scale-95');
+    }, 10);
+
+    // Initial loading HTML
+    content.innerHTML = `
+        <div class="flex flex-col items-center justify-center py-20 gap-4">
+            <div class="relative w-12 h-12">
+                <div class="absolute inset-0 rounded-full border-4 border-slate-100"></div>
+                <div class="absolute inset-0 rounded-full border-4 border-cyan-600 border-t-transparent animate-spin"></div>
+            </div>
+            <p class="text-sm font-bold text-slate-400 animate-pulse">Mengambil data RPP...</p>
+        </div>
+    `;
+
+    try {
+        const response = await fetch(`../../api/rpp/get_detail.php?rpp_id=${id}`);
+        const result = await response.json();
+
+        if (result.success) {
+            const data = result.data;
+            title.textContent = data.title;
+            subtitle.innerHTML = `
+                <svg class="h-3 w-3 text-cyan-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89l-.25-2.27c-.062-.562.175-1.103.627-1.432zM10 14.122l.391.151a7.024 7.024 0 002.219-.506V11.31l-3 1.286v1.526zm6.3-3.61c.453.33.69.87.628 1.432l-.25 2.27a1 1 0 01-.89.89 8.976 8.976 0 01-1.05.174V10.12l1.69-.723z" /></svg>
+                ${data.subject_name} <span class="text-slate-300 mx-1">•</span> Kelas ${data.grade_name} <span class="text-slate-300 mx-1">•</span> ${data.teacher_name}
+            `;
+            
+            document.getElementById('modal-print-btn').href = `<?php url('views/rpp/print.php?id='); ?>${id}`;
+            document.getElementById('modal-edit-btn').href = `<?php url('views/rpp/edit.php?id='); ?>${id}`;
+
+            content.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 p-6 bg-slate-50 rounded-2xl border border-slate-100 shadow-inner">
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-slate-400 border border-slate-100 shadow-sm">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                        </div>
+                        <div>
+                            <div class="text-[10px] font-bold text-slate-400 uppercase mb-0.5">Tahun Ajaran / Sem</div>
+                            <div class="text-sm font-black text-slate-800">${data.academic_year} (${data.semester})</div>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-slate-400 border border-slate-100 shadow-sm">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </div>
+                        <div>
+                            <div class="text-[10px] font-bold text-slate-400 uppercase mb-0.5">Alokasi Waktu</div>
+                            <div class="text-sm font-black text-slate-800">${data.allocation || '-' }</div>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-slate-400 border border-slate-100 shadow-sm">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16" /></svg>
+                        </div>
+                        <div>
+                            <div class="text-[10px] font-bold text-slate-400 uppercase mb-0.5">Pertemuan Ke-</div>
+                            <div class="text-sm font-black text-slate-800">${data.session_no || '-' }</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
+                    ${renderSection('A', 'Standar Kompetensi', data.content_sk, 'bg-cyan-50 text-cyan-600')}
+                    ${renderSection('B', 'Kompetensi Dasar', data.content_kd, 'bg-indigo-50 text-indigo-600')}
+                    ${renderSection('C', 'Indikator', data.content_indicator, 'bg-amber-50 text-amber-600')}
+                    ${renderSection('D', 'Tujuan Pembelajaran', data.learning_goal, 'bg-emerald-50 text-emerald-600')}
+                    ${renderSection('E', 'Materi Ajar', data.teaching_material, 'bg-rose-50 text-rose-600')}
+                    ${renderSection('F', 'Metode Pembelajaran', data.teaching_method, 'bg-violet-50 text-violet-600')}
+                    <div class="md:col-span-2">
+                        ${renderSection('G', 'Langkah-langkah Pembelajaran', data.content_steps, 'bg-slate-800 text-white', 'grid grid-cols-1')}
+                    </div>
+                    ${renderSection('H', 'Alat & Sumber', data.content_summary, 'bg-slate-100 text-slate-600')}
+                    ${renderSection('I', 'Penilaian', data.assessment, 'bg-green-50 text-green-600')}
+                </div>
+            `;
+        }
+    } catch (e) {
+        content.innerHTML = `<div class="text-center py-10 text-rose-500 font-bold">Terjadi Kesalahan Sistem.</div>`;
+    }
+}
+
+function renderSection(number, title, content, badgeStyle, gridClass = '') {
+    if(!content || content.trim() === '') return '';
+    return `
+        <section class="${gridClass}">
+            <div class="flex items-center gap-3 mb-3">
+                <span class="flex-shrink-0 w-6 h-6 rounded-lg ${badgeStyle} flex items-center justify-center text-[10px] font-black">${number}</span>
+                <h4 class="text-[11px] font-black text-slate-400 uppercase tracking-widest">${title}</h4>
+            </div>
+            <div class="text-sm text-slate-600 leading-relaxed pl-9 border-l-2 border-slate-50 whitespace-pre-line">${content}</div>
+        </section>
+    `;
+}
+
+function closeViewModal() {
+    const modal = document.getElementById('viewModal');
+    const overlay = document.getElementById('viewModalOverlay');
+    const modalContent = document.getElementById('viewModalContent');
+    
+    overlay.classList.add('opacity-0');
+    modalContent.classList.add('opacity-0', 'scale-95');
+    
+    setTimeout(() => {
+        modal.classList.add('invisible', 'pointer-events-none');
+    }, 300);
+}
+
+function openDeleteModal(url) {
+    if (confirm('Apakah Anda yakin ingin menghapus RPP ini?')) {
+        window.location.href = url;
+    }
+}
+</script>
 
 <?php include '../layouts/footer.php'; ?>

@@ -1,0 +1,30 @@
+[
+    {
+        "id": 3,
+        "name": "TKIT"
+    },
+    {
+        "id": 4,
+        "name": "SDIT"
+    },
+    {
+        "id": 5,
+        "name": "MTs"
+    },
+    {
+        "id": 6,
+        "name": "MA"
+    },
+    {
+        "id": 7,
+        "name": "Playgroup"
+    },
+    {
+        "id": 8,
+        "name": "Mahad Aly"
+    },
+    {
+        "id": 9,
+        "name": "Idad Lughoh"
+    }
+]

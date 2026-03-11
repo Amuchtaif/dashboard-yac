@@ -19,7 +19,7 @@ if ($id) {
 }
 
 // Fetch Education Units
-$units = $conn->query("SELECT id, name FROM education_units ORDER BY FIELD(name, 'Playgroup', 'TKIT', 'SDIT', 'MTs', 'MA', 'Ma''had Aly')")->fetchAll(PDO::FETCH_ASSOC);
+$units = $conn->query("SELECT id, name FROM education_units ORDER BY FIELD(name, 'Playgroup', 'TKIT', 'SDIT', 'MTs', 'Idad Lughoh', 'MA', 'Mahad Aly') ASC, name ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 include '../layouts/header.php';
 ?>
@@ -31,12 +31,24 @@ include '../layouts/header.php';
             <p class="mt-1 text-sm text-slate-500">Tentukan urutan jam dan rentang waktu per jenjang.</p>
         </div>
         <div class="mt-4 flex md:ml-4 md:mt-0">
-            <a href="index.php" class="inline-flex items-center px-4 py-2 border border-slate-300 rounded-lg shadow-sm text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors">Kembali</a>
+            <?php 
+            $backQuery = $_GET;
+            unset($backQuery['id'], $backQuery['success'], $backQuery['error']);
+            $backQueryString = http_build_query($backQuery);
+            $backUrl = 'index.php' . ($backQueryString ? '?' . $backQueryString : '');
+            ?>
+            <a href="<?php echo $backUrl; ?>" class="inline-flex items-center px-4 py-2 border border-slate-300 rounded-lg shadow-sm text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors">Kembali</a>
         </div>
     </div>
 
     <div class="max-w-2xl bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <form action="../../logic/lesson_periods/<?php echo $id ? 'update.php' : 'store.php'; ?>" method="POST" class="p-6 sm:p-8 space-y-6">
+        <?php 
+        $actionQuery = $_GET;
+        unset($actionQuery['id'], $actionQuery['success'], $actionQuery['error']);
+        $actionQueryString = http_build_query($actionQuery);
+        $actionUrl = '../../logic/lesson_periods/' . ($id ? 'update.php' : 'store.php') . ($actionQueryString ? '?' . $actionQueryString : '');
+        ?>
+        <form action="<?php echo $actionUrl; ?>" method="POST" class="p-6 sm:p-8 space-y-6">
             <?php if ($id): ?><input type="hidden" name="id" value="<?php echo $id; ?>"><?php endif; ?>
 
             <div class="space-y-6">

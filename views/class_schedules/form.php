@@ -12,6 +12,11 @@ $id = isset($_GET['id']) ? $_GET['id'] : null;
 $schedule = null;
 $page_title = $id ? "Edit Jadwal Pelajaran" : "Tambah Jadwal Pelajaran";
 
+// Capture filters
+$filter_params = $_GET;
+unset($filter_params['id'], $filter_params['success'], $filter_params['error']);
+$query_string = http_build_query($filter_params);
+
 if ($id) {
     $stmt = $conn->prepare("SELECT * FROM class_schedules WHERE id = ?");
     $stmt->execute([$id]);
@@ -20,9 +25,9 @@ if ($id) {
 
 // Fetch Master Data
 $academic_years = $conn->query("SELECT id, name, semester, is_active FROM academic_years ORDER BY name DESC, semester DESC")->fetchAll(PDO::FETCH_ASSOC);
-$education_units = $conn->query("SELECT id, name FROM education_units ORDER BY FIELD(name, 'Playgroup', 'TKIT', 'SDIT', 'MTs', 'Idad Lughoh', 'MA', \"Ma'had Aly\") ASC, name ASC")->fetchAll(PDO::FETCH_ASSOC);
+$education_units = $conn->query("SELECT id, name FROM education_units ORDER BY FIELD(name, 'Playgroup', 'TKIT', 'SDIT', 'MTs', 'Idad Lughoh', 'MA', 'Mahad Aly') ASC, name ASC")->fetchAll(PDO::FETCH_ASSOC);
 $grade_levels = $conn->query("SELECT id, name, education_unit_id FROM grade_levels ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
-$employees = $conn->query("SELECT id, full_name FROM employees ORDER BY full_name ASC")->fetchAll(PDO::FETCH_ASSOC);
+$employees = $conn->query("SELECT id, full_name FROM employees WHERE status = 'active' ORDER BY full_name ASC")->fetchAll(PDO::FETCH_ASSOC);
 $subjects = $conn->query("SELECT id, name, code FROM subjects ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
 $lesson_periods = $conn->query("SELECT id, period_number, start_time, end_time, education_unit_id FROM lesson_periods ORDER BY education_unit_id ASC, period_number ASC")->fetchAll(PDO::FETCH_ASSOC);
 
@@ -33,6 +38,29 @@ if ($schedule) {
         if ($gl['id'] == $schedule['grade_level_id']) {
             $current_unit_id = $gl['education_unit_id'];
             break;
+        }
+    }
+}
+
+$selected_lps = [];
+if ($schedule) {
+    $start_lp = $schedule['lesson_period_id'];
+    $end_lp = $schedule['end_lesson_period_id'] ?: $start_lp;
+    
+    // Find period_numbers for start and end
+    $start_num = -1;
+    $end_num = -1;
+    foreach ($lesson_periods as $lp) {
+        if ($lp['id'] == $start_lp) $start_num = $lp['period_number'];
+        if ($lp['id'] == $end_lp) $end_num = $lp['period_number'];
+    }
+    
+    if ($start_num != -1 && $end_num != -1) {
+        foreach ($lesson_periods as $lp) {
+            // Find all periods within same unit and between period numbers
+            if ($lp['education_unit_id'] == $current_unit_id && $lp['period_number'] >= min($start_num, $end_num) && $lp['period_number'] <= max($start_num, $end_num)) {
+                $selected_lps[] = $lp['id'];
+            }
         }
     }
 }
@@ -56,7 +84,7 @@ include '../layouts/header.php';
             <p class="mt-1 text-sm text-slate-500">Definisikan guru, kelas, mata pelajaran, dan waktu.</p>
         </div>
         <div class="mt-4 flex md:mt-0 md:ml-4">
-            <a href="index.php"
+            <a href="index.php?<?php echo $query_string; ?>"
                 class="inline-flex items-center px-4 py-2 border border-slate-300 rounded-lg shadow-sm text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors">Kembali</a>
         </div>
     </div>
@@ -65,6 +93,7 @@ include '../layouts/header.php';
         <form action="../../logic/class_schedules/<?php echo $id ? 'update.php' : 'store.php'; ?>" method="POST"
             class="p-6 sm:p-8 space-y-6">
             <?php if ($id): ?><input type="hidden" name="id" value="<?php echo $id; ?>"><?php endif; ?>
+            <input type="hidden" name="redirect_params" value="<?php echo htmlspecialchars($query_string); ?>">
 
             <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
 
@@ -368,48 +397,33 @@ include '../layouts/header.php';
                     </div>
                 </div>
 
-                <!-- Jam Pelajaran (Custom Dropdown) -->
+                <!-- Jam Pelajaran (Checkboxes) -->
                 <div class="sm:col-span-1">
-                    <label for="lesson_period_id" class="block text-sm font-semibold text-slate-700 mb-1">Jam Ke <span
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Jam Pelajaran <span
                             class="text-red-500">*</span></label>
-                    <div class="relative" id="container-lesson_period_id" style="z-index: 35;">
-                        <input type="hidden" name="lesson_period_id" id="input-lesson_period_id"
-                            value="<?php echo $schedule ? $schedule['lesson_period_id'] : ''; ?>">
-                        <button type="button" onclick="toggleFormDropdown('lesson_period_id')"
+                    <div class="relative" id="container-lesson_periods" style="z-index: 35;">
+                        <button type="button" onclick="toggleFormDropdown('lesson_periods')"
                             class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all">
-                            <span id="text-lesson_period_id" class="block truncate">
-                                <?php
-                                $lpName = "Pilih Jam...";
-                                if ($schedule && $schedule['lesson_period_id']) {
-                                    foreach ($lesson_periods as $lp) {
-                                        if ($lp['id'] == $schedule['lesson_period_id']) {
-                                            $lpName = "Jam ke-" . $lp['period_number'] . " (" . date('H:i', strtotime($lp['start_time'])) . " - " . date('H:i', strtotime($lp['end_time'])) . ")";
-                                            break;
-                                        }
-                                    }
-                                }
-                                echo htmlspecialchars($lpName);
-                                ?>
-                            </span>
+                            <span id="text-lesson_periods" class="block truncate">Pilih Jam...</span>
                             <svg class="h-4 w-4 text-slate-400 transition-transform duration-200"
-                                id="arrow-lesson_period_id" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                id="arrow-lesson_periods" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
-                        <div id="menu-lesson_period_id"
-                            class="hidden absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                            <ul class="py-1" id="list-lesson_period_id">
-                                <li onclick="selectFormOption('lesson_period_id', '', 'Pilih Jam...')"
-                                    class="cursor-pointer select-none py-2 pl-3 pr-9 text-slate-500 hover:bg-slate-50">
-                                    Pilih Jam...</li>
+                        <div id="menu-lesson_periods"
+                            class="hidden absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-slate-200">
+                            <ul class="py-1" id="list-lesson_periods">
                                 <?php foreach ($lesson_periods as $lp): ?>
-                                    <li onclick="selectFormOption('lesson_period_id', '<?php echo $lp['id']; ?>', '<?php echo htmlspecialchars("Jam ke-" . $lp['period_number'] . " (" . date('H:i', strtotime($lp['start_time'])) . " - " . date('H:i', strtotime($lp['end_time'])) . ")", ENT_QUOTES); ?>')"
-                                        data-unit="<?php echo $lp['education_unit_id']; ?>"
-                                        class="lp-option cursor-pointer select-none py-2 pl-3 pr-9 text-slate-900 hover:bg-cyan-50 hover:text-cyan-700"
+                                    <li data-unit="<?php echo $lp['education_unit_id']; ?>"
+                                        class="lp-option hover:bg-cyan-50 transition-colors"
                                         style="<?php echo ($current_unit_id && $lp['education_unit_id'] != $current_unit_id) ? 'display: none;' : ''; ?>">
-                                        Jam ke-<?php echo $lp['period_number']; ?> 
-                                        (<?php echo date('H:i', strtotime($lp['start_time'])); ?> - <?php echo date('H:i', strtotime($lp['end_time'])); ?>)
+                                        <label class="flex items-center cursor-pointer px-4 py-2.5 w-full">
+                                            <input type="checkbox" name="lesson_period_ids[]" value="<?php echo $lp['id']; ?>" 
+                                            class="rounded border-slate-300 text-cyan-600 shadow-sm focus:border-cyan-300 focus:ring focus:ring-cyan-200 focus:ring-opacity-50 lp-checkbox w-4 h-4 mr-3" 
+                                            onchange="updateLessonPeriodText()" <?php echo (in_array($lp['id'], $selected_lps)) ? 'checked' : ''; ?>>
+                                            <span class="text-slate-700 whitespace-nowrap">Jam ke-<?php echo $lp['period_number']; ?> <span class="text-slate-400 text-xs ml-1">(<?php echo date('H:i', strtotime($lp['start_time'])); ?> - <?php echo date('H:i', strtotime($lp['end_time'])); ?>)</span></span>
+                                        </label>
                                     </li>
                                 <?php endforeach; ?>
                             </ul>
@@ -457,26 +471,34 @@ include '../layouts/header.php';
         if (id === 'education_unit_id') {
             const classInput = document.getElementById('input-grade_level_id');
             const classText = document.getElementById('text-grade_level_id');
-            const classOptions = document.querySelectorAll('.grade-option');
-            const lpOptions = document.querySelectorAll('.lp-option');
-            const lpInput = document.getElementById('input-lesson_period_id');
-            const lpText = document.getElementById('text-lesson_period_id');
-
-            // Reset Kelas
             classInput.value = '';
             classText.innerText = 'Pilih Kelas...';
-            classOptions.forEach(opt => {
+            
+            const classOptions = document.querySelectorAll('.grade-option');
+            const lpOptions = document.querySelectorAll('.lp-option');
+            // Reset Jam Pelajaran Selection
+            const lpCheckboxes = document.querySelectorAll('.lp-checkbox');
+            lpCheckboxes.forEach(cb => cb.checked = false);
+            updateLessonPeriodText();
+            lpOptions.forEach(opt => {
                 opt.style.display = (value === '' || opt.getAttribute('data-unit') === value) ? 'block' : 'none';
             });
-
-            // Reset Jam Pelajaran
-            lpInput.value = '';
-            lpText.innerText = 'Pilih Jam...';
-            lpOptions.forEach(opt => {
+            classOptions.forEach(opt => {
                 opt.style.display = (value === '' || opt.getAttribute('data-unit') === value) ? 'block' : 'none';
             });
         }
     }
+
+    function updateLessonPeriodText() {
+        const checkboxes = document.querySelectorAll('.lp-checkbox:checked');
+        const textEl = document.getElementById('text-lesson_periods');
+        if (checkboxes.length === 0) {
+            textEl.innerText = 'Pilih Jam...';
+        } else {
+            textEl.innerText = checkboxes.length + ' Jam Terpilih';
+        }
+    }
+    document.addEventListener('DOMContentLoaded', updateLessonPeriodText);
 
     function filterDropdownSearch(id) {
         const input = document.getElementById('search-' + id);
@@ -489,7 +511,7 @@ include '../layouts/header.php';
             const txtValue = li[i].textContent || li[i].innerText;
             const matchesSearch = txtValue.toLowerCase().indexOf(filter) > -1;
 
-            if (id === 'grade_level_id' || id === 'lesson_period_id') {
+            if (id === 'grade_level_id' || id === 'lesson_periods') {
                 const itemUnit = li[i].getAttribute('data-unit');
                 const matchesUnit = (unitId === '' || itemUnit === unitId || !itemUnit);
                 li[i].style.display = (matchesSearch && matchesUnit) ? "" : "none";
