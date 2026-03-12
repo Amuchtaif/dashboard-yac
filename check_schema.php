@@ -2,12 +2,15 @@
 require_once 'config/database.php';
 $db = new Database();
 $conn = $db->getConnection();
-$tables = ['class_schedules', 'education_units', 'grade_levels', 'subjects'];
-foreach ($tables as $t) {
-    echo "--- $t ---\n";
-    try {
-        $res = $conn->query("DESCRIBE $t")->fetchAll(PDO::FETCH_ASSOC);
-        print_r($res);
-    } catch (Exception $e) { echo $e->getMessage()."\n"; }
-}
-?>
+
+echo "--- UNITS ---\n";
+$stmt = $conn->query("DESCRIBE units");
+print_r($stmt->fetchAll(PDO::FETCH_ASSOC));
+
+echo "\n--- EDUCATION_UNITS ---\n";
+$stmt = $conn->query("DESCRIBE education_units");
+print_r($stmt->fetchAll(PDO::FETCH_ASSOC));
+
+echo "\n--- DIVISIONS ---\n";
+$stmt = $conn->query("DESCRIBE divisions");
+print_r($stmt->fetchAll(PDO::FETCH_ASSOC));
