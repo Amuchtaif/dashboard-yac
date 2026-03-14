@@ -178,15 +178,17 @@
         const alertBanners = document.querySelectorAll('.alert-banner');
         alertBanners.forEach(banner => {
             setTimeout(() => {
-                banner.classList.add('opacity-0');
+                banner.classList.add('opacity-0', '-translate-y-4');
                 setTimeout(() => {
                     banner.remove();
 
-                    // Clean URL after banner is removed (optional but clean)
+                    // Clean URL after banner is removed
                     const url = new URL(window.location);
-                    url.searchParams.delete('success');
-                    url.searchParams.delete('error');
-                    window.history.replaceState({}, document.title, url);
+                    if (url.searchParams.has('success') || url.searchParams.has('error')) {
+                        url.searchParams.delete('success');
+                        url.searchParams.delete('error');
+                        window.history.replaceState({}, document.title, url);
+                    }
                 }, 500); // Wait for fade out animation
             }, 3000);
         });

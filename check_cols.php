@@ -2,5 +2,5 @@
 require_once 'config/database.php';
 $db = new Database();
 $conn = $db->getConnection();
-print_r($conn->query("DESCRIBE ramadan_overrides")->fetchAll(PDO::FETCH_ASSOC));
+print_r($conn->query("SHOW COLUMNS FROM ramadan_settings")->fetchAll(PDO::FETCH_ASSOC));
 ?>

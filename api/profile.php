@@ -96,12 +96,41 @@ try {
             'division_name' => $user['division_name'],
             'unit_name' => $user['unit_name'],
             'position_name' => $user['position_name'],
-            'today_schedule' => $today_shift ? [
-                'day' => date('l'),
-                'start_time' => $today_shift['start_time'],
-                'end_time' => $today_shift['end_time'],
-                'is_day_off' => (bool) $today_shift['is_day_off']
-            ] : null,
+            'today_schedule' => $today_shift ? (function($shift, $conn, $user) {
+                $start_time = $shift['start_time'];
+                $end_time = $shift['end_time'];
+                
+                // Logic Ramadan Override
+                $stmtRamadan = $conn->query("SELECT is_active FROM ramadan_settings WHERE id = 1 LIMIT 1");
+                $ramadan = $stmtRamadan->fetch(PDO::FETCH_ASSOC);
+                if ($ramadan && (int)$ramadan['is_active'] === 1) {
+                    if (!empty($user['unit_id'])) {
+                        $day_l = date('l');
+                        $stmtOverride = $conn->prepare("SELECT start_time, end_time FROM ramadan_overrides 
+                                                      WHERE FIND_IN_SET(?, days) 
+                                                      AND FIND_IN_SET(?, unit_ids)
+                                                      ORDER BY id DESC LIMIT 1");
+                        $stmtOverride->execute([$day_l, $user['unit_id']]);
+                        $override = $stmtOverride->fetch(PDO::FETCH_ASSOC);
+                        
+                        if ($override) {
+                            if (!empty($override['start_time'])) {
+                                $start_time = $override['start_time'];
+                            }
+                            if (!empty($override['end_time'])) {
+                                $end_time = $override['end_time'];
+                            }
+                        }
+                    }
+                }
+
+                return [
+                    'day' => date('l'),
+                    'start_time' => $start_time,
+                    'end_time' => $end_time,
+                    'is_day_off' => (bool) $shift['is_day_off']
+                ];
+            })($today_shift, $conn, $user) : null,
             'is_koordinator' => (stripos($user['position_name'], 'Koordinator Tahfidz') !== false) ? 1 : 0,
             'can_access_education' => hasPermission($user['id'], 'access_education') ? 1 : 0,
             'can_manage_news' => hasPermission($user['id'], 'manage_news') ? 1 : 0

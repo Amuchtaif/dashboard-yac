@@ -198,6 +198,28 @@ try {
             // Ubah format 08:00:00 menjadi 08:00 (Format Indonesia 24 jam)
             $start = date("H:i", strtotime($scheduleData['start_time']));
             $end = date("H:i", strtotime($scheduleData['end_time']));
+
+            // --- LOGIKA OVERRIDE RAMADAN ---
+            $stmtRmd = $conn->query("SELECT is_active FROM ramadan_settings WHERE id = 1 LIMIT 1");
+            $rmd = $stmtRmd->fetch(PDO::FETCH_ASSOC);
+            if ($rmd && (int)$rmd['is_active'] === 1 && !empty($target_profile['unit_id'])) {
+                $stmtOverride = $conn->prepare("SELECT start_time, end_time FROM ramadan_overrides 
+                                              WHERE FIND_IN_SET(?, days) 
+                                              AND FIND_IN_SET(?, unit_ids)
+                                              ORDER BY id DESC LIMIT 1");
+                $stmtOverride->execute([$dayName, $target_profile['unit_id']]);
+                $override = $stmtOverride->fetch(PDO::FETCH_ASSOC);
+                
+                if ($override) {
+                    if (!empty($override['start_time'])) {
+                        $start = date("H:i", strtotime($override['start_time']));
+                    }
+                    if (!empty($override['end_time'])) {
+                        $end = date("H:i", strtotime($override['end_time']));
+                    }
+                }
+            }
+
             $scheduleString = "$start - $end";
         }
     }
@@ -219,7 +241,7 @@ try {
     // --- ETag / Cache Control Optimization ---
     $etag = md5($output);
     header("ETag: \"$etag\"");
-    header("Cache-Control: public, max-age=30"); // Jangan panggil server lagi dlm 30 detik
+    header("Cache-Control: public, max-age=2"); // Cache sangat singkat agar perubahan setting cepat terlihat
     
     $ifNoneMatch = isset($_SERVER['HTTP_IF_NONE_MATCH']) ? trim($_SERVER['HTTP_IF_NONE_MATCH'], '"') : false;
     if ($ifNoneMatch === $etag) {

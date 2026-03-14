@@ -191,6 +191,32 @@ try {
     $jam_masuk_kantor = $dailySched['start_time'];
     $jam_pulang_kantor = $dailySched['end_time'];
 
+    // --- LOGIKA OVERRIDE RAMADAN ---
+    $stmtRamadan = $conn->query("SELECT is_active FROM ramadan_settings WHERE id = 1 LIMIT 1");
+    $ramadan = $stmtRamadan->fetch(PDO::FETCH_ASSOC);
+
+    if ($ramadan && (int)$ramadan['is_active'] === 1) {
+        if (!empty($employee['unit_id'])) {
+            // Find an override rule that covers this day ($currentDayName) and this specific unit ($employee['unit_id'])
+            $stmtOverride = $conn->prepare("SELECT start_time, end_time FROM ramadan_overrides 
+                                          WHERE FIND_IN_SET(?, days) 
+                                          AND FIND_IN_SET(?, unit_ids)
+                                          ORDER BY id DESC LIMIT 1");
+            $stmtOverride->execute([$currentDayName, $employee['unit_id']]);
+            $override = $stmtOverride->fetch(PDO::FETCH_ASSOC);
+
+            if ($override) {
+                if (!empty($override['start_time'])) {
+                    $jam_masuk_kantor = $override['start_time'];
+                }
+                if (!empty($override['end_time'])) {
+                    $jam_pulang_kantor = $override['end_time'];
+                }
+                $is_ramadan_override = true;
+            }
+        }
+    }
+
 
     // 6. PROSES INSERT / UPDATE DATABASE
 
