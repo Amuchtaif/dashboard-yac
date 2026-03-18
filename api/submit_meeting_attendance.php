@@ -51,14 +51,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
-// Database configuration - adjust these values
-$host = 'localhost';
-$db_name = 'attendance_db';
-$username = 'root';
-$password = '';
+include_once '../config/database.php';
 
 try {
-    $conn = new PDO("mysql:host=$host;dbname=$db_name;charset=utf8mb4", $username, $password);
+    $database = new Database();
+    $conn = $database->getConnection();
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
     http_response_code(500);

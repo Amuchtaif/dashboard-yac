@@ -5,17 +5,15 @@ header("Access-Control-Allow-Methods: GET");
 
 include_once '../../config/database.php';
 
-$database = new Database();
-$db = $database->getConnection();
-
-$employee_id = $_GET['employee_id'] ?? null;
-
-if (!$employee_id) {
-    echo json_encode(["status" => "error", "message" => "Employee ID is required"]);
-    exit;
-}
-
 try {
+    $employee_id = $_GET['employee_id'] ?? null;
+    if (!$employee_id) {
+        throw new Exception("Employee ID is required");
+    }
+
+    $database = new Database();
+    $db = $database->getConnection();
+
     // Get Units from schedules
     $q_units = "
         SELECT DISTINCT eu.id, eu.name 

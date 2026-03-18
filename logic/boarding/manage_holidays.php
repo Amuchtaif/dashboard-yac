@@ -9,11 +9,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$db = new Database();
-$conn = $db->getConnection();
-$action = $_POST['action'] ?? '';
-
 try {
+    $db = new Database();
+    $conn = $db->getConnection();
+    $action = $_POST['action'] ?? '';
     if ($action === 'create_holiday') {
         $name = $_POST['name'] ?? '';
         $start_date = $_POST['start_date'] ?? '';

@@ -5,13 +5,11 @@
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
 
-$host = "127.0.0.1";
-$db_name = "attendance_db";
-$username = "root";
-$password = "";
+include_once '../../config/database.php';
 
 try {
-    $conn = new PDO("mysql:host=$host;dbname=$db_name", $username, $password);
+    $database = new Database();
+    $conn = $database->getConnection();
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     // 1. Table for Tahfidz Students (if not using existing students table, 

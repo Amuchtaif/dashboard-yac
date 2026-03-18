@@ -5,10 +5,10 @@ header("Access-Control-Allow-Methods: GET");
 
 include_once '../../config/database.php';
 
-$database = new Database();
-$db = $database->getConnection();
-
 try {
+    $database = new Database();
+    $db = $database->getConnection();
+
     $query = "SELECT * FROM assessment_types ORDER BY name ASC";
     $stmt = $db->prepare($query);
     $stmt->execute();

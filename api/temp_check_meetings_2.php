@@ -2,16 +2,7 @@
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
 
-$host = "localhost";
-$username = "root";
-$password = "";
-$dbname = "attendance_db";
-
-$mysqli = new mysqli($host, $username, $password, $dbname);
-
-if ($mysqli->connect_error) {
-    die(json_encode(["success" => false, "message" => "Connection failed: " . $mysqli->connect_error]));
-}
+require_once '../config/db_mysqli.php';
 
 try {
     $tables = ['meetings', 'meeting_participants'];
