@@ -1,0 +1,11 @@
+--- boarding_rooms ---
+id (int(11))
+room_name (varchar(255))
+supervisor_id (int(11))
+created_at (timestamp)
+
+--- boarding_room_members ---
+id (int(11))
+room_id (int(11))
+student_id (int(11))
+created_at (timestamp)

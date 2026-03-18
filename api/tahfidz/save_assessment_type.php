@@ -1,40 +1,44 @@
 <?php
-header('Content-Type: application/json');
-require_once '../../config/app.php';
-require_once '../../config/database.php';
+header("Access-Control-Allow-Origin: *");
+header("Content-Type: application/json; charset=UTF-8");
+header("Access-Control-Allow-Methods: POST");
+header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
 
-if (!isset($_SESSION['user_id'])) {
-    echo json_encode(['success' => false, 'message' => 'Unauthorized']);
-    exit;
-}
+require_once '../config/database.php';
 
-$db = new Database();
-$conn = $db->getConnection();
+$database = new Database();
+$db = $database->getConnection();
 
-$data = json_decode(file_get_contents('php://input'), true);
+$data = json_decode(file_get_contents("php://input"));
 
-if (!$data || empty($data['name'])) {
-    echo json_encode(['success' => false, 'message' => 'Nama penilaian harus diisi.']);
-    exit;
-}
-
-$id = $data['id'] ?? null;
-$name = $data['name'];
-$description = $data['description'] ?? null;
-$is_active = isset($data['is_active']) ? (int)$data['is_active'] : 1;
-
-try {
-    if ($id) {
-        $stmt = $conn->prepare("UPDATE tahfidz_assessment_types SET name = ?, description = ?, is_active = ? WHERE id = ?");
-        $stmt->execute([$name, $description, $is_active, $id]);
-        $message = "Jenis penilaian berhasil diperbarui.";
-    } else {
-        $stmt = $conn->prepare("INSERT INTO tahfidz_assessment_types (name, description, is_active) VALUES (?, ?, ?)");
-        $stmt->execute([$name, $description, $is_active]);
-        $message = "Jenis penilaian baru berhasil ditambahkan.";
+if (!empty($data->name)) {
+    try {
+        if (!empty($data->id)) {
+            // Update
+            $query = "UPDATE tahfidz_assessment_types SET name = :name, is_active = :is_active WHERE id = :id";
+            $stmt = $db->prepare($query);
+            $stmt->bindParam(':id', $data->id);
+        } else {
+            // Insert
+            $query = "INSERT INTO tahfidz_assessment_types (name, is_active) VALUES (:name, :is_active)";
+            $stmt = $db->prepare($query);
+        }
+        
+        $stmt->bindParam(':name', $data->name);
+        $is_active = isset($data->is_active) ? $data->is_active : 1;
+        $stmt->bindParam(':is_active', $is_active);
+        
+        if ($stmt->execute()) {
+            echo json_encode(["success" => true, "message" => "Assessment type saved successfully."]);
+        } else {
+            echo json_encode(["success" => false, "message" => "Unable to save assessment type."]);
+        }
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode(["success" => false, "message" => "Error: " . $e->getMessage()]);
     }
-    
-    echo json_encode(['success' => true, 'message' => $message]);
-} catch (PDOException $e) {
-    echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
+} else {
+    http_response_code(400);
+    echo json_encode(["success" => false, "message" => "Incomplete data. Name is required."]);
 }
+?>

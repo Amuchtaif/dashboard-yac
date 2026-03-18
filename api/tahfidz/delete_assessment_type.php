@@ -1,32 +1,36 @@
 <?php
-header('Content-Type: application/json');
-require_once '../../config/app.php';
-require_once '../../config/database.php';
+header("Access-Control-Allow-Origin: *");
+header("Content-Type: application/json; charset=UTF-8");
+header("Access-Control-Allow-Methods: POST, DELETE");
+header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
 
-if (!isset($_SESSION['user_id'])) {
-    echo json_encode(['success' => false, 'message' => 'Unauthorized']);
-    exit;
+require_once '../config/database.php';
+
+$database = new Database();
+$db = $database->getConnection();
+
+$data = json_decode(file_get_contents("php://input"));
+
+if (!empty($data->id)) {
+    try {
+        // Soft delete or hard delete? Usually soft delete is safer.
+        // Let's do a soft delete by setting is_active = 0, or just hard delete if requested.
+        // The prompt says "delete", so let's do hard delete but often we just deactivate.
+        $query = "DELETE FROM tahfidz_assessment_types WHERE id = :id";
+        $stmt = $db->prepare($query);
+        $stmt->bindParam(':id', $data->id);
+        
+        if ($stmt->execute()) {
+            echo json_encode(["success" => true, "message" => "Assessment type deleted successfully."]);
+        } else {
+            echo json_encode(["success" => false, "message" => "Unable to delete assessment type."]);
+        }
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode(["success" => false, "message" => "Error: " . $e->getMessage()]);
+    }
+} else {
+    http_response_code(400);
+    echo json_encode(["success" => false, "message" => "Incomplete data. ID is required."]);
 }
-
-$db = new Database();
-$conn = $db->getConnection();
-
-$data = json_decode(file_get_contents('php://input'), true);
-
-if (!$data || empty($data['id'])) {
-    echo json_encode(['success' => false, 'message' => 'ID tidak ditemukan.']);
-    exit;
-}
-
-$id = $data['id'];
-
-try {
-    // Optional: Check if type is being used in tahfidz_assessments before deleting
-    // For now, allow deletion
-    $stmt = $conn->prepare("DELETE FROM tahfidz_assessment_types WHERE id = ?");
-    $stmt->execute([$id]);
-    
-    echo json_encode(['success' => true, 'message' => 'Jenis penilaian berhasil dihapus.']);
-} catch (PDOException $e) {
-    echo json_encode(['success' => false, 'message' => 'Gagal menghapus data: ' . $e->getMessage()]);
-}
+?>

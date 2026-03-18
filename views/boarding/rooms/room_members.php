@@ -39,10 +39,10 @@ $members = $members_stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Fetch students not in ANY room for adding
 $available_students_query = "
-    SELECT id, nama_siswa, nomor_induk, kelas
-    FROM students 
-    WHERE id NOT IN (SELECT student_id FROM boarding_room_members)
-    ORDER BY nama_siswa ASC
+    SELECT s.id, s.nama_siswa, s.nomor_induk, s.kelas
+    FROM students s
+    WHERE NOT EXISTS (SELECT 1 FROM boarding_room_members brm WHERE brm.student_id = s.id)
+    ORDER BY s.nama_siswa ASC
 ";
 $available_stmt = $conn->prepare($available_students_query);
 $available_stmt->execute();
@@ -135,7 +135,7 @@ include '../../layouts/header.php';
             <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm opacity-100"></div>
         </div>
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-        <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-xl sm:w-full border border-slate-200">
+        <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full border border-slate-200">
             <form action="../../../logic/boarding/manage_rooms.php" method="POST">
                 <input type="hidden" name="action" value="add_member">
                 <input type="hidden" name="room_id" value="<?php echo $room_id; ?>">

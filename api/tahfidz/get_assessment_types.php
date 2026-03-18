@@ -1,30 +1,29 @@
 <?php
-// api/tahfidz/get_assessment_types.php
-
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Methods: GET");
 
-include_once '../../config/db_mysqli.php';
+require_once '../config/database.php';
+
+$database = new Database();
+$db = $database->getConnection();
 
 try {
-    $types = [];
-    $query = "SELECT id, name, description FROM tahfidz_assessment_types WHERE is_active = 1 ORDER BY name ASC";
+    $query = "SELECT id, name, is_active FROM tahfidz_assessment_types WHERE is_active = 1 ORDER BY name ASC";
+    $stmt = $db->prepare($query);
+    $stmt->execute();
     
-    $result = $mysqli->query($query);
+    $types = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
-    while ($row = $result->fetch_assoc()) {
-        $types[] = $row;
-    }
-
     echo json_encode([
         "success" => true,
-        "count" => count($types),
         "data" => $types
     ]);
-
-} catch (Exception $e) {
+} catch (PDOException $e) {
     http_response_code(500);
-    echo json_encode(["success" => false, "message" => $e->getMessage()]);
+    echo json_encode([
+        "success" => false, 
+        "message" => "Error: " . $e->getMessage()
+    ]);
 }
 ?>

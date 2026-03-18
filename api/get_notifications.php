@@ -134,7 +134,7 @@ try {
     $etag = md5($output);
     
     header("ETag: \"$etag\"");
-    header("Cache-Control: public, max-age=30"); // Client boleh tidak memanggil server selama 30 detik
+    // header("Cache-Control: public, max-age=30"); // Client boleh tidak memanggil server selama 30 detik
     
     $ifNoneMatch = isset($_SERVER['HTTP_IF_NONE_MATCH']) ? trim($_SERVER['HTTP_IF_NONE_MATCH'], '"') : false;
     if ($ifNoneMatch === $etag) {
