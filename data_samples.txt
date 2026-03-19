@@ -1,0 +1,102 @@
+[
+    {
+        "gaji_bulan": "- THR Ramadhan 1447 ",
+        "tanggal": "2046-10-09",
+        "created_at": "2026-03-09 19:05:29"
+    },
+    {
+        "gaji_bulan": "- THR Ramadhan 1447 ",
+        "tanggal": "2046-10-09",
+        "created_at": "2026-03-09 19:05:29"
+    },
+    {
+        "gaji_bulan": "- THR Ramadhan 1447 ",
+        "tanggal": "2046-10-09",
+        "created_at": "2026-03-09 19:05:29"
+    },
+    {
+        "gaji_bulan": "- THR Ramadhan 1447 ",
+        "tanggal": "2046-10-09",
+        "created_at": "2026-03-09 19:05:29"
+    },
+    {
+        "gaji_bulan": "- THR Ramadhan 1447 ",
+        "tanggal": "2046-10-09",
+        "created_at": "2026-03-09 19:05:29"
+    },
+    {
+        "gaji_bulan": "- THR Ramadhan 1447 ",
+        "tanggal": "2046-10-09",
+        "created_at": "2026-03-09 19:05:29"
+    },
+    {
+        "gaji_bulan": "- THR Ramadhan 1447 ",
+        "tanggal": "2046-10-09",
+        "created_at": "2026-03-09 19:05:29"
+    },
+    {
+        "gaji_bulan": "- THR Ramadhan 1447 ",
+        "tanggal": "2046-10-09",
+        "created_at": "2026-03-09 19:05:29"
+    },
+    {
+        "gaji_bulan": "- THR Ramadhan 1447 ",
+        "tanggal": "2046-10-09",
+        "created_at": "2026-03-09 19:05:29"
+    },
+    {
+        "gaji_bulan": "- THR Ramadhan 1447 ",
+        "tanggal": "2026-03-28",
+        "created_at": "2026-03-09 18:50:42"
+    },
+    {
+        "gaji_bulan": "- THR Ramadhan 1447 ",
+        "tanggal": "2026-03-28",
+        "created_at": "2026-03-09 18:50:42"
+    },
+    {
+        "gaji_bulan": "- THR Ramadhan 1447 ",
+        "tanggal": "2026-03-28",
+        "created_at": "2026-03-09 18:50:42"
+    },
+    {
+        "gaji_bulan": "- THR Ramadhan 1447 ",
+        "tanggal": "2026-03-28",
+        "created_at": "2026-03-09 18:50:42"
+    },
+    {
+        "gaji_bulan": "- THR Ramadhan 1447 ",
+        "tanggal": "2026-03-28",
+        "created_at": "2026-03-09 18:50:42"
+    },
+    {
+        "gaji_bulan": "- THR Ramadhan 1447 ",
+        "tanggal": "2026-03-28",
+        "created_at": "2026-03-09 18:50:42"
+    },
+    {
+        "gaji_bulan": "- THR Ramadhan 1447 ",
+        "tanggal": "2026-03-28",
+        "created_at": "2026-03-09 18:50:42"
+    },
+    {
+        "gaji_bulan": "- THR Ramadhan 1447 ",
+        "tanggal": "2026-03-28",
+        "created_at": "2026-03-09 18:50:42"
+    },
+    {
+        "gaji_bulan": "- THR Ramadhan 1447 ",
+        "tanggal": "2026-03-28",
+        "created_at": "2026-03-09 18:50:42"
+    },
+    {
+        "gaji_bulan": "- THR Ramadhan 1447 ",
+        "tanggal": "2026-03-28",
+        "created_at": "2026-03-09 18:50:42"
+    },
+    {
+        "gaji_bulan": "- THR Ramadhan 1447 ",
+        "tanggal": "2026-03-28",
+        "created_at": "2026-03-09 18:50:42"
+    }
+]

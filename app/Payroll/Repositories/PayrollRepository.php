@@ -12,9 +12,19 @@ class PayrollRepository
         $this->db = $db;
     }
 
+
+    public function getLastIdByPeriod($period)
+    {
+        $query = "SELECT id_payroll FROM gaji WHERE id_payroll LIKE :period ORDER BY id_payroll DESC LIMIT 1";
+        $stmt = $this->db->prepare($query);
+        $stmt->execute(['period' => "PR-{$period}-%"]);
+        $result = $stmt->fetch();
+        return $result ? $result['id_payroll'] : null;
+    }
+
     public function create($data)
     {
-        $query = "INSERT INTO payrolls 
+        $query = "INSERT INTO gaji 
                   (id_payroll, tanggal, gaji_bulan, nik, nama, jabatan, 
                    gapok, tunjab, lembur, gaji_bruto, pph21, bpjs_kes, 
                    bpjs_tk, jumlah_potongan, gaji_netto) 
@@ -25,11 +35,18 @@ class PayrollRepository
 
         $stmt = $this->db->prepare($query);
         
+        $gaji_bulan = "";
+        if (isset($data['is_thr']) && $data['is_thr']) {
+            $gaji_bulan = "- THR " . $data['periode_tahun'];
+        } else {
+            $gaji_bulan = "- " . $this->getMonthName((int)$data['periode_bulan']) . " " . $data['periode_tahun'];
+        }
+
         // Map data from repository format to table format
         $mappedData = [
             'id_payroll' => $data['id_payroll'],
             'tanggal' => date('Y-m-d'),
-            'gaji_bulan' => "- " . $this->getMonthName((int)$data['periode_bulan']) . " " . $data['periode_tahun'],
+            'gaji_bulan' => $gaji_bulan,
             'nik' => $data['nik_snapshot'],
             'nama' => $data['name_snapshot'],
             'jabatan' => $data['position_snapshot'],
@@ -44,7 +61,10 @@ class PayrollRepository
             'gaji_netto' => $data['gaji_netto']
         ];
 
-        return $stmt->execute($mappedData);
+        if ($stmt->execute($mappedData)) {
+            return $this->db->lastInsertId();
+        }
+        return false;
     }
 
     private function getMonthName($month)
@@ -62,7 +82,7 @@ class PayrollRepository
         $limit = $filters['limit'] ?? 10;
         $offset = ($filters['page'] - 1) * $limit;
         
-        $query = "SELECT * FROM payrolls WHERE 1=1";
+        $query = "SELECT * FROM gaji WHERE 1=1";
         $params = [];
         
         if (isset($filters['nik']) && $filters['nik'] !== null) {
@@ -72,14 +92,18 @@ class PayrollRepository
         
         // Filter by Month and Year independently with priority for gaji_bulan
         if (isset($filters['bulan']) && $filters['bulan'] !== null && $filters['bulan'] !== '') {
-            $monthName = $this->getMonthName((int)$filters['bulan']);
-            $query .= " AND (gaji_bulan LIKE :m_name OR (gaji_bulan NOT REGEXP 'Januari|Februari|Maret|April|Mei|Juni|Juli|Agustus|September|Oktober|November|Desember' AND MONTH(tanggal) = :m_num))";
-            $params['m_name'] = "%$monthName%";
-            $params['m_num'] = (int)$filters['bulan'];
+            if ($filters['bulan'] === 'THR') {
+                $query .= " AND gaji_bulan LIKE '%THR%'";
+            } else {
+                $monthName = $this->getMonthName((int)$filters['bulan']);
+                $query .= " AND (gaji_bulan LIKE :m_name OR (gaji_bulan NOT REGEXP 'Januari|Februari|Maret|April|Mei|Juni|Juli|Agustus|September|Oktober|November|Desember' AND MONTH(tanggal) = :m_num))";
+                $params['m_name'] = "%$monthName%";
+                $params['m_num'] = (int)$filters['bulan'];
+            }
         }
         
         if (isset($filters['tahun']) && $filters['tahun'] !== null && $filters['tahun'] !== '') {
-            $query .= " AND (gaji_bulan LIKE :y_name OR (gaji_bulan NOT REGEXP '[0-9]{4}' AND YEAR(tanggal) = :y_num))";
+            $query .= " AND (gaji_bulan LIKE :y_name OR YEAR(tanggal) = :y_num)";
             $params['y_name'] = "%" . $filters['tahun'] . "%";
             $params['y_num'] = (int)$filters['tahun'];
         }
@@ -88,7 +112,7 @@ class PayrollRepository
 
         $stmt = $this->db->prepare($query);
         foreach ($params as $key => $val) {
-            if ($key === 'm' || $key === 'y') {
+            if (strpos($key, 'num') !== false) {
                 $stmt->bindValue(":$key", $val, PDO::PARAM_INT);
             } else {
                 $stmt->bindValue(":$key", $val);
@@ -108,8 +132,14 @@ class PayrollRepository
         $bulan = date('m', strtotime($row['tanggal']));
         $tahun = date('Y', strtotime($row['tanggal']));
 
-        // Try to extract from gaji_bulan (Format: "- September 2025")
-        if (preg_match('/(Januari|Februari|Maret|April|Mei|Juni|Juli|Agustus|September|Oktober|November|Desember)\s+(\d{4})/i', $row['gaji_bulan'], $matches)) {
+        $is_thr = false;
+        $bulan_asli = date('m', strtotime($row['tanggal']));
+        $bulan = $bulan_asli; // Revert to numeric for stability
+        // Try to extract from gaji_bulan (Format: "- September 2025" or "- THR Ramadhan 2025")
+        if (preg_match('/THR\s+(?:.*?\s+)?(\d{4})/i', $row['gaji_bulan'], $matches)) {
+            $is_thr = true;
+            $tahun = $matches[1];
+        } else if (preg_match('/(Januari|Februari|Maret|April|Mei|Juni|Juli|Agustus|September|Oktober|November|Desember)\s+(\d{4})/i', $row['gaji_bulan'], $matches)) {
             $monthMap = [
                 'Januari' => '01', 'Februari' => '02', 'Maret' => '03', 'April' => '04',
                 'Mei' => '05', 'Juni' => '06', 'Juli' => '07', 'Agustus' => '08',
@@ -120,11 +150,15 @@ class PayrollRepository
         }
 
         return [
+            'id' => (int)$row['id'],
             'id_payroll' => $row['id_payroll'],
             'tanggal' => $row['tanggal'],
             'gaji_bulan' => $row['gaji_bulan'],
             'periode_bulan' => $bulan,
+            'bulan_asli' => $bulan_asli,
+            'nama_bulan' => $is_thr ? 'THR' : $this->getMonthName((int)$bulan),
             'periode_tahun' => $tahun,
+            'is_thr' => $is_thr,
             'nik' => $row['nik'],
             'nama' => $row['nama'],
             'sta_peg' => $row['sta_peg'],
@@ -178,7 +212,7 @@ class PayrollRepository
 
     public function getById($id_payroll)
     {
-        $query = "SELECT * FROM payrolls WHERE id_payroll = :id LIMIT 1";
+        $query = "SELECT * FROM gaji WHERE id_payroll = :id LIMIT 1";
         $stmt = $this->db->prepare($query);
         $stmt->execute(['id' => $id_payroll]);
         $row = $stmt->fetch();

@@ -1,0 +1,8 @@
+[
+    {
+        "Tables_in_assunnah_db_bendahara": "gaji"
+    },
+    {
+        "Tables_in_assunnah_db_bendahara": "payrolls"
+    }
+]

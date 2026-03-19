@@ -46,8 +46,9 @@ try {
 
     foreach ($incoming as $row) {
         $key = "inc_" . $row['id'];
-        if (isset($dismissedSet[$key])) continue; // Skip dismissed
-        
+        if (isset($dismissedSet[$key]))
+            continue; // Skip dismissed
+
         $notifications[] = [
             'id' => $key,
             'title' => "Izin Masuk",
@@ -73,7 +74,8 @@ try {
 
     foreach ($updates as $row) {
         $key = "upd_" . $row['id'];
-        if (isset($dismissedSet[$key])) continue; // Skip dismissed
+        if (isset($dismissedSet[$key]))
+            continue; // Skip dismissed
 
         $msg = ($row['status'] == 'Approved')
             ? "Izin {$row['permit_type']} Anda telah disetujui."
@@ -106,7 +108,8 @@ try {
 
             foreach ($assignments as $row) {
                 $key = "asn_" . $row['id'];
-                if (isset($dismissedSet[$key])) continue; // Skip dismissed
+                if (isset($dismissedSet[$key]))
+                    continue; // Skip dismissed
 
                 $notifications[] = [
                     'id' => $key,
@@ -120,8 +123,9 @@ try {
                 ];
             }
         }
-    } catch (Exception $e) {
-        // Notifications table might not exist yet, skip silently
+    }
+    catch (Exception $e) {
+    // Notifications table might not exist yet, skip silently
     }
 
     // Sort by created_at descending
@@ -132,10 +136,10 @@ try {
     // --- ETag / Cache Control Optimization ---
     $output = json_encode(["success" => true, "data" => $notifications]);
     $etag = md5($output);
-    
+
     header("ETag: \"$etag\"");
     // header("Cache-Control: public, max-age=30"); // Client boleh tidak memanggil server selama 30 detik
-    
+
     $ifNoneMatch = isset($_SERVER['HTTP_IF_NONE_MATCH']) ? trim($_SERVER['HTTP_IF_NONE_MATCH'], '"') : false;
     if ($ifNoneMatch === $etag) {
         header("HTTP/1.1 304 Not Modified");
@@ -144,7 +148,8 @@ try {
 
     echo $output;
 
-} catch (PDOException $e) {
+}
+catch (PDOException $e) {
     echo json_encode(["success" => false, "message" => $e->getMessage()]);
 }
 ?>

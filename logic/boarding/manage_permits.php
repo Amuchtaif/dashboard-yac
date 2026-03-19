@@ -16,14 +16,15 @@ $action = $_POST['action'] ?? '';
 try {
     if ($action === 'create_permit') {
         $student_id = $_POST['student_id'] ?? '';
+        $category = $_POST['category'] ?? 'Izin';
         $reason = $_POST['reason'] ?? '';
         $start_date = $_POST['start_date'] ?? '';
         $end_date = $_POST['end_date'] ?? '';
 
         if (empty($student_id) || empty($reason) || empty($start_date) || empty($end_date)) throw new Exception("Semua data harus diisi.");
 
-        $stmt = $conn->prepare("INSERT INTO boarding_permits (student_id, reason, start_date, end_date) VALUES (?, ?, ?, ?)");
-        $stmt->execute([$student_id, $reason, $start_date, $end_date]);
+        $stmt = $conn->prepare("INSERT INTO boarding_permits (student_id, category, reason, start_date, end_date) VALUES (?, ?, ?, ?, ?)");
+        $stmt->execute([$student_id, $category, $reason, $start_date, $end_date]);
 
         $_SESSION['success'] = "Permohonan izin berhasil diajukan.";
     }

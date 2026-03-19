@@ -161,8 +161,34 @@
             background-color: #fff;
             ring: 2px;
             ring-color: #dbeafe;
+            ring-color: #dbeafe;
             outline: none;
         }
+
+        /* Modal Animations */
+        .modal-enter {
+            opacity: 0;
+            transform: scale(0.95) translateY(10px);
+        }
+        .modal-enter-active {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+        }
+        .modal-exit {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+        .modal-exit-active {
+            opacity: 0;
+            transform: scale(0.95) translateY(10px);
+            transition: opacity 0.2s ease-in, transform 0.2s ease-in;
+        }
+
+        .backdrop-enter { opacity: 0; }
+        .backdrop-enter-active { opacity: 1; transition: opacity 0.3s ease-out; }
+        .backdrop-exit { opacity: 1; }
+        .backdrop-exit-active { opacity: 0; transition: opacity 0.2s ease-in; }
     </style>
 </head>
 
@@ -269,7 +295,14 @@
         <main class="flex-1 overflow-y-auto focus:outline-none">
             <div class="py-6 px-4 sm:px-6 lg:px-8">
                 <!-- Global Notifications (Section Bar Style) -->
-                <?php if (isset($_GET['success'])): ?>
+                <?php 
+                $success_msg = $_GET['success'] ?? $_SESSION['success'] ?? null;
+                $error_msg = $_GET['error'] ?? $_SESSION['error'] ?? null;
+                if (isset($_SESSION['success'])) unset($_SESSION['success']);
+                if (isset($_SESSION['error'])) unset($_SESSION['error']);
+                ?>
+
+                <?php if ($success_msg): ?>
                     <div id="alert-success" class="alert-banner mb-6 rounded-xl bg-emerald-600 shadow-2xl px-5 py-4 border border-emerald-500/30 transition-all duration-500 flex items-center justify-between animate-bounce-in">
                         <div class="flex items-center gap-4">
                             <div class="flex-shrink-0 bg-white/20 p-2 rounded-xl flex items-center justify-center">
@@ -279,7 +312,7 @@
                             </div>
                             <div>
                                 <p class="text-[11px] font-black text-emerald-100 uppercase tracking-widest leading-none mb-1">Berhasil!</p>
-                                <p class="text-sm font-bold text-white"><?php echo htmlspecialchars($_GET['success']); ?></p>
+                                <p class="text-sm font-bold text-white"><?php echo htmlspecialchars($success_msg); ?></p>
                             </div>
                         </div>
                         <button type="button" onclick="closeAlert('alert-success')" class="text-emerald-100 hover:text-white transition-colors focus:outline-none p-2 hover:bg-white/10 rounded-lg">
@@ -288,7 +321,7 @@
                     </div>
                 <?php endif; ?>
 
-                <?php if (isset($_GET['error'])): ?>
+                <?php if ($error_msg): ?>
                     <div id="alert-error" class="alert-banner mb-6 rounded-xl bg-rose-600 shadow-2xl px-5 py-4 border border-rose-500/30 transition-all duration-500 flex items-center justify-between animate-bounce-in">
                         <div class="flex items-center gap-4">
                             <div class="flex-shrink-0 bg-white/20 p-2 rounded-xl flex items-center justify-center">
@@ -298,7 +331,7 @@
                             </div>
                             <div>
                                 <p class="text-[11px] font-black text-rose-100 uppercase tracking-widest leading-none mb-1">Error!</p>
-                                <p class="text-sm font-bold text-white"><?php echo htmlspecialchars($_GET['error']); ?></p>
+                                <p class="text-sm font-bold text-white"><?php echo htmlspecialchars($error_msg); ?></p>
                             </div>
                         </div>
                         <button type="button" onclick="closeAlert('alert-error')" class="text-rose-100 hover:text-white transition-colors focus:outline-none p-2 hover:bg-white/10 rounded-lg">

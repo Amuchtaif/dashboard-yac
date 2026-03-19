@@ -130,6 +130,14 @@ include '../../layouts/header.php';
                             </select>
                         </div>
                         <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Jenis Kepulangan</label>
+                            <select name="category" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="Izin">Izin Pulang (Urusan Keluarga, dll)</option>
+                                <option value="Sakit">Izin Sakit</option>
+                                <option value="Libur">Masa Libur</option>
+                            </select>
+                        </div>
+                        <div>
                             <label class="block text-sm font-semibold text-slate-700 mb-2">Alasan Izin</label>
                             <input type="text" name="reason" placeholder="Contoh: Sakit / Urusan Keluarga Penting" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:ring-indigo-500 focus:border-indigo-500">
                         </div>

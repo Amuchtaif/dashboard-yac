@@ -69,10 +69,16 @@ class PayrollService
             'bpjs_ketenagakerjaan' => $bpjs_ketenagakerjaan,
             'potongan_kehadiran' => $potongan_kehadiran,
             'jumlah_potongan' => $jumlah_potongan,
-            'gaji_netto' => $gaji_netto
+            'gaji_netto' => $gaji_netto,
+            'is_thr' => $data['is_thr'] ?? false
         ];
 
-        return $this->payrollRepo->create($finalData) ? $finalData : false;
+        $id = $this->payrollRepo->create($finalData);
+        if ($id) {
+            $finalData['id'] = (int)$id;
+            return $finalData;
+        }
+        return false;
     }
 
     public function getPayrollList($filters)

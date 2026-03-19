@@ -192,6 +192,18 @@ include '../../layouts/header.php';
                            </div>
                         </div>
                     </div>
+
+                    <!-- Selected Sticky Bar -->
+                    <div id="selection-sticky-bar" class="hidden sticky bottom-0 left-0 right-0 -mx-8 mt-4 bg-indigo-600 text-white px-8 py-4 flex items-center justify-between z-20 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.1)] translate-y-full transition-transform duration-300">
+                        <div class="flex items-center gap-3">
+                            <span id="selected-count" class="bg-white text-indigo-600 rounded-lg h-7 w-7 flex items-center justify-center font-bold text-sm shadow-sm">0</span>
+                            <div>
+                                <p class="text-xs font-bold leading-none uppercase tracking-wider mb-0.5">Santri Terpilih</p>
+                                <p class="text-[10px] text-indigo-100 font-medium">Siap untuk ditempatkan ke asrama ini.</p>
+                            </div>
+                        </div>
+                        <button type="button" onclick="clearSelection()" class="text-xs font-bold border border-white/30 rounded-lg px-3 py-1.5 hover:bg-white/10 transition-all active:scale-95">Batalkan Semua</button>
+                    </div>
                 </div>
                 <div class="bg-slate-50 px-8 py-6 flex flex-row-reverse gap-3">
                     <?php if (count($available_students) > 0): ?>
@@ -230,14 +242,6 @@ include '../../layouts/header.php';
         }, 300);
     }
 
-    // Select All Logic
-    const selectAllCheckbox = document.getElementById('select-all-available');
-    if (selectAllCheckbox) {
-        selectAllCheckbox.addEventListener('change', function() {
-            const visibleCheckboxes = document.querySelectorAll('.student-item:not([style*="display: none"]) .student-checkbox');
-            visibleCheckboxes.forEach(cb => cb.checked = this.checked);
-        });
-    }
 
     function filterStudents() {
         const query = document.getElementById('member-search').value.toLowerCase();
@@ -246,6 +250,54 @@ include '../../layouts/header.php';
             const name = item.getAttribute('data-name');
             const nik = item.getAttribute('data-nik');
             item.style.display = (name.includes(query) || nik.includes(query)) ? 'flex' : 'none';
+        });
+    }
+
+    // --- Selection Management ---
+    function updateSelectionUI() {
+        const checkboxes = document.querySelectorAll('.student-checkbox');
+        const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+        const stickyBar = document.getElementById('selection-sticky-bar');
+        const countBadge = document.getElementById('selected-count');
+        
+        countBadge.textContent = checkedCount;
+        
+        if (checkedCount > 0) {
+            stickyBar.classList.remove('hidden');
+            setTimeout(() => {
+                stickyBar.classList.remove('translate-y-full');
+            }, 10);
+        } else {
+            stickyBar.classList.add('translate-y-full');
+            setTimeout(() => {
+                if (Array.from(checkboxes).filter(cb => cb.checked).length === 0) {
+                    stickyBar.classList.add('hidden');
+                }
+            }, 300);
+        }
+    }
+
+    function clearSelection() {
+        document.querySelectorAll('.student-checkbox').forEach(cb => cb.checked = false);
+        const selectAll = document.getElementById('select-all-available');
+        if (selectAll) selectAll.checked = false;
+        updateSelectionUI();
+    }
+
+    // Event listeners for checkboxes
+    document.addEventListener('change', function(e) {
+        if (e.target.classList.contains('student-checkbox')) {
+            updateSelectionUI();
+        }
+    });
+
+    // Update select-all logic to call updateSelectionUI
+    const selectAllCheckbox = document.getElementById('select-all-available');
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function() {
+            const visibleCheckboxes = document.querySelectorAll('.student-item:not([style*="display: none"]) .student-checkbox');
+            visibleCheckboxes.forEach(cb => cb.checked = this.checked);
+            updateSelectionUI();
         });
     }
 

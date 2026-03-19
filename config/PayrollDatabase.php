@@ -2,7 +2,7 @@
 class PayrollDatabase
 {
     private $host = "localhost";
-    private $db_name = "assunnah_payroll";
+    private $db_name = "assunnah_db_bendahara";
     private $username = "root";
     private $password = "";
     public $conn;
@@ -15,7 +15,8 @@ class PayrollDatabase
             $this->conn->exec("set names utf8");
             $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $this->conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-        } catch (PDOException $exception) {
+        }
+        catch (PDOException $exception) {
             echo "Connection error: " . $exception->getMessage();
         }
         return $this->conn;

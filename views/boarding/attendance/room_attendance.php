@@ -27,7 +27,7 @@ if (!$room) {
 
 $page_title = "Absensi ASRAMA - " . $room['room_name'];
 
-$filter = $_GET['filter'] ?? 'marked';
+$filter = 'all'; // Default to show all students
 
 // Fetch members with their attendance status for the selected date
 $members_query = "
@@ -75,19 +75,15 @@ include '../../layouts/header.php';
                 <h1 class="text-2xl font-bold text-slate-800">Data Absensi Santri</h1>
                 <p class="text-slate-500 mt-1">Tanggal: <span class="font-bold text-slate-700"><?php echo date('d M Y', strtotime($date)); ?></span></p>
             </div>
-            <div class="mt-4 sm:mt-0 flex items-center gap-3">
-                 <div class="flex bg-slate-100 p-1 rounded-lg border border-slate-200">
-                    <a href="?room_id=<?php echo $room_id; ?>&date=<?php echo $date; ?>&filter=marked" 
-                       class="px-3 py-1.5 text-xs font-bold rounded-md transition-all <?php echo $filter === 'marked' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'; ?>">
-                        Sudah Absen
-                    </a>
-                    <a href="?room_id=<?php echo $room_id; ?>&date=<?php echo $date; ?>&filter=all" 
-                       class="px-3 py-1.5 text-xs font-bold rounded-md transition-all <?php echo $filter === 'all' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'; ?>">
-                        Semua Santri
-                    </a>
-                 </div>
-                 </div>
+            <div class="mt-4 sm:mt-0">
+                <div class="flex items-center gap-3 bg-white p-2 rounded-xl border border-slate-200">
+                    <label class="text-xs font-bold text-slate-400 uppercase ml-2">Tanggal:</label>
+                    <input type="date" value="<?php echo $date; ?>" 
+                        onchange="window.location.href='?room_id=<?php echo $room_id; ?>&date=' + this.value"
+                        class="border-none bg-transparent text-sm font-bold text-slate-700 focus:ring-0">
+                </div>
             </div>
+        </div>
         </div>
     </div>
 
@@ -116,7 +112,7 @@ include '../../layouts/header.php';
     </div>
 
     <!-- Attendance Data -->
-    <div id="attendance-view">
+    <div id="attendance-view" class="mt-8">
         <input type="hidden" name="room_id" value="<?php echo $room_id; ?>">
         <input type="hidden" name="date" value="<?php echo $date; ?>">
 

@@ -116,10 +116,10 @@ include '../../layouts/header.php';
             <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm opacity-100"></div>
         </div>
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-        <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-slate-200">
+        <div class="inline-block align-bottom bg-white rounded-2xl text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-slate-200">
             <form action="../../../logic/boarding/manage_rooms.php" method="POST">
                 <input type="hidden" name="action" value="create_room">
-                <div class="bg-white px-8 pt-8 pb-6">
+                <div class="bg-white px-8 pt-8 pb-6 rounded-t-2xl">
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="text-xl font-bold text-slate-800">Tambah Asrama Baru</h3>
                         <button type="button" onclick="closeModal('modal-add-room')" class="text-slate-400 hover:text-slate-600">
@@ -184,7 +184,7 @@ include '../../layouts/header.php';
                         </div>
                     </div>
                 </div>
-                <div class="bg-slate-50 px-8 py-6 flex flex-row-reverse gap-3">
+                <div class="bg-slate-50 px-8 py-6 flex flex-row-reverse gap-3 rounded-b-2xl">
                     <button type="submit" class="inline-flex justify-center rounded-xl bg-indigo-600 px-6 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-indigo-700 focus:outline-none transition-all">
                         Simpan Asrama
                     </button>
@@ -209,7 +209,7 @@ include '../../layouts/header.php';
                 <input type="hidden" name="action" value="delete_room">
                 <input type="hidden" name="room_id" id="delete_room_id">
                 
-                <div class="bg-white px-8 pt-8 pb-6">
+                <div class="bg-white px-8 pt-8 pb-6 rounded-t-2xl">
                     <div class="flex flex-col items-center text-center">
                         <div class="h-14 w-14 rounded-full bg-red-50 flex items-center justify-center text-red-500 mb-4">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -225,7 +225,7 @@ include '../../layouts/header.php';
                     </div>
                 </div>
                 
-                <div class="bg-slate-50 px-8 py-6 flex flex-row gap-3 justify-center">
+                <div class="bg-slate-50 px-8 py-6 flex flex-row gap-3 justify-center rounded-b-2xl">
                     <button type="button" onclick="closeModal('modal-delete-room')" 
                         class="w-full inline-flex justify-center rounded-xl bg-white border border-slate-200 px-6 py-2.5 text-sm font-bold text-slate-600 shadow-sm hover:bg-slate-50 focus:outline-none transition-all">
                         Batal

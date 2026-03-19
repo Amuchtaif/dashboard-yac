@@ -4,7 +4,7 @@ require_once '../../../config/database.php';
 
 check_permission('can_access_kesantrian');
 
-$page_title = "Kelola Libur";
+$page_title = "Kelola Liburan";
 $db = new Database();
 $conn = $db->getConnection();
 
@@ -19,7 +19,7 @@ include '../../layouts/header.php';
     <div class="sm:flex sm:items-center sm:justify-between">
         <div>
             <h1 class="text-2xl font-bold text-slate-800"><?php echo $page_title; ?></h1>
-            <p class="text-slate-500 mt-1">Jadwal libur santri dan masa kepulangan.</p>
+            <p class="text-slate-500 mt-1">Atur jadwal liburan santri yang akan terhubung ke sistem kepulangan mobile.</p>
         </div>
         <div class="mt-4 sm:mt-0">
             <button onclick="openModal('modal-add-holiday')" 
@@ -82,8 +82,8 @@ include '../../layouts/header.php';
 <!-- Modal Add Holiday -->
 <div id="modal-add-holiday" class="fixed inset-0 z-50 hidden overflow-y-auto">
     <div class="flex items-center justify-center min-h-screen px-4">
-        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeModal('modal-add-holiday')"></div>
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md z-10 overflow-hidden border border-slate-200">
+        <div id="modal-backdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity opacity-0" onclick="closeModal('modal-add-holiday')"></div>
+        <div id="modal-content" class="bg-white rounded-2xl shadow-xl w-full max-w-md z-10 overflow-hidden border border-slate-200 transition-all modal-enter">
             <form action="../../../logic/boarding/manage_holidays.php" method="POST">
                 <input type="hidden" name="action" value="create_holiday">
                 <div class="p-8">
@@ -115,8 +115,39 @@ include '../../layouts/header.php';
 </div>
 
 <script>
-    function openModal(id) { document.getElementById(id).classList.remove('hidden'); document.body.style.overflow = 'hidden'; }
-    function closeModal(id) { document.getElementById(id).classList.add('hidden'); document.body.style.overflow = 'auto'; }
+    function openModal(id) {
+        const modal = document.getElementById(id);
+        const backdrop = document.getElementById('modal-backdrop');
+        const content = document.getElementById('modal-content');
+        
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        
+        // Trigger animations
+        setTimeout(() => {
+            backdrop.classList.add('opacity-100');
+            content.classList.remove('modal-enter');
+            content.classList.add('modal-enter-active');
+        }, 10);
+    }
+
+    function closeModal(id) {
+        const modal = document.getElementById(id);
+        const backdrop = document.getElementById('modal-backdrop');
+        const content = document.getElementById('modal-content');
+        
+        backdrop.classList.remove('opacity-100');
+        content.classList.remove('modal-enter-active');
+        content.classList.add('modal-exit-active');
+        
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            content.classList.remove('modal-exit-active');
+            content.classList.add('modal-enter');
+            document.body.style.overflow = 'auto';
+        }, 300);
+    }
+
     function deleteHoliday(id) {
         if(confirm('Hapus jadwal libur ini?')) {
             const f = document.createElement('form'); f.method='POST'; f.action='../../../logic/boarding/manage_holidays.php';
