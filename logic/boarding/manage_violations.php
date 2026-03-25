@@ -5,7 +5,7 @@ require_once '../../config/database.php';
 check_login();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: ../../views/boarding/violations/index.php');
+        header('Location: ../../views/boarding/violations/index.php?success=Operasi+berhasil');
     exit;
 }
 
@@ -25,7 +25,7 @@ try {
         $stmt->execute([$name, $points, $category]);
 
         $_SESSION['success'] = "Jenis pelanggaran berhasil ditambahkan.";
-        header('Location: ../../views/boarding/violation_types/index.php');
+        header('Location: ../../views/boarding/violation_types/index.php?success=Operasi+berhasil');
         exit;
     }
     elseif ($action === 'delete_type') {
@@ -33,7 +33,7 @@ try {
         $stmt = $conn->prepare("DELETE FROM boarding_violation_types WHERE id = ?");
         $stmt->execute([$id]);
         $_SESSION['success'] = "Jenis pelanggaran berhasil dihapus.";
-        header('Location: ../../views/boarding/violation_types/index.php');
+        header('Location: ../../views/boarding/violation_types/index.php?success=Operasi+berhasil');
         exit;
     }
     elseif ($action === 'create_violation') {
@@ -49,11 +49,11 @@ try {
         $stmt->execute([$student_id, $type_id, $date, $description, $reporter_id]);
 
         $_SESSION['success'] = "Pelanggaran santri berhasil dicatat.";
-        header('Location: ../../views/boarding/violations/index.php');
+        header('Location: ../../views/boarding/violations/index.php?success=Operasi+berhasil');
         exit;
     }
 
-    header('Location: ../../views/boarding/violations/index.php');
+        header('Location: ../../views/boarding/violations/index.php?success=Operasi+berhasil');
 
 } catch (Exception $e) {
     $_SESSION['error'] = $e->getMessage();

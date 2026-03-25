@@ -20,8 +20,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Update Long
         $stmt->execute([':key' => 'office_long', ':value' => $long]);
 
-        header("Location: ../../views/settings/index.php?success=Settings Updated");
+        header("Location: ../../views/settings/index.php?success=Settings+Updated");
     } catch (PDOException $e) {
-        header("Location: ../../views/settings/index.php?error=Update Failed");
+        header("Location: ../../views/settings/index.php?error=Update+Failed");
     }
 }

@@ -39,15 +39,57 @@ try {
     $stmt->bindParam(':permit_id', $permit_id);
     
     if ($stmt->execute()) {
+        // Fetch permit details for notification
+        $stmtDetails = $conn->prepare("
+            SELECT bp.musrif_id, s.nama_siswa, bp.status
+            FROM boarding_permits bp
+            JOIN students s ON bp.student_id = s.id
+            WHERE bp.id = :pid LIMIT 1
+        ");
+        $stmtDetails->execute([':pid' => $permit_id]);
+        $pData = $stmtDetails->fetch(PDO::FETCH_ASSOC);
+
+        if ($pData && $pData['musrif_id'] && in_array($status, ['Disetujui', 'Ditolak'])) {
+            // Send FCM Notification to Musrif (only for decision statuses from Mudir)
+            try {
+                require_once __DIR__ . '/../../config/fcm_helper.php';
+                $fcm = new FcmHelper();
+
+                $stmtMusrif = $conn->prepare("SELECT fcm_token FROM employees WHERE id = :mid AND fcm_token IS NOT NULL AND fcm_token != ''");
+                $stmtMusrif->execute([':mid' => $pData['musrif_id']]);
+                $musrifToken = $stmtMusrif->fetchColumn();
+
+                if ($musrifToken) {
+                    $status_upper = strtoupper($status);
+                    $title = "Izin Santri " . $status;
+                    $body = "Izin untuk " . $pData['nama_siswa'] . " telah " . $status_upper . " oleh Mudir.";
+                    $notifData = [
+                        "screen" => "izin_santri",
+                        "id" => (string)$permit_id,
+                        "click_action" => "FLUTTER_NOTIFICATION_CLICK"
+                    ];
+                    $result = $fcm->sendNotification($musrifToken, $title, $body, $notifData);
+                    
+                    // Log to fcm_debug.log
+                    $logMsg = "[" . date('Y-m-d H:i:s') . "] STATUS_UPDATE: FCM sent to Musrif ID {$pData['musrif_id']} for permit {$permit_id}. Result: " . (isset($result['name']) ? "SUCCESS" : "FAILED") . "\n";
+                    file_put_contents(__DIR__ . '/../../api/fcm_debug.log', $logMsg, FILE_APPEND);
+                }
+            } catch (Exception $e) {
+                $errLog = "[" . date('Y-m-d H:i:s') . "] STATUS_UPDATE: Exception - " . $e->getMessage() . "\n";
+                file_put_contents(__DIR__ . '/../../api/fcm_debug.log', $errLog, FILE_APPEND);
+            }
+        }
+
         // 2. If status is 'Kembali', insert into boarding_returns
         if ($status === 'Kembali') {
-            // Fetch student_id first
-            $stmtFetch = $conn->prepare("SELECT student_id FROM boarding_permits WHERE id = :pid LIMIT 1");
-            $stmtFetch->execute([':pid' => $permit_id]);
-            $sData = $stmtFetch->fetch(PDO::FETCH_ASSOC);
-
-            if ($sData) {
-                $student_id = $sData['student_id'];
+            $student_id = $pData['student_id'] ?? null;
+            if (!$student_id) {
+                $stmtFetch = $conn->prepare("SELECT student_id FROM boarding_permits WHERE id = :pid LIMIT 1");
+                $stmtFetch->execute([':pid' => $permit_id]);
+                $student_id = $stmtFetch->fetchColumn();
+            }
+            
+            if ($student_id) {
                 $returnDate = date('Y-m-d');
                 $stmtReturn = $conn->prepare("INSERT INTO boarding_returns (student_id, return_date, status) VALUES (:sid, :rd, 'Sudah Kembali')");
                 $stmtReturn->execute([':sid' => $student_id, ':rd' => $returnDate]);

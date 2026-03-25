@@ -52,7 +52,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             $stmt->execute();
 
-            header("Location: ../../views/employees/index.php?success=Employee Updated");
+        header("Location: ../../views/employees/index.php?success=Employee+Updated");
         } catch (PDOException $e) {
             header("Location: ../../views/employees/edit.php?id=$id&error=Database Error: " . $e->getMessage());
         }

@@ -57,7 +57,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             ':id' => $id
         ]);
 
-        header("Location: ../../views/news/index.php?success=Berita berhasil diperbarui.");
+        header("Location: ../../views/news/index.php?success=Berita+berhasil+diperbarui.");
     } catch (PDOException $e) {
         header("Location: ../../views/news/form.php?id=$id&error=Database Error: " . $e->getMessage());
     }

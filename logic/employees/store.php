@@ -23,7 +23,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $check = $conn->prepare("SELECT id FROM employees WHERE email = ?");
         $check->execute([$email]);
         if ($check->rowCount() > 0) {
-            header("Location: ../../views/employees/create.php?error=Email already exists");
+        header("Location: ../../views/employees/create.php?error=Email+already+exists");
             exit;
         }
 
@@ -42,11 +42,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt->bindParam(':pos', $position_id);
             $stmt->execute();
 
-            header("Location: ../../views/employees/index.php?success=Employee Added");
+        header("Location: ../../views/employees/index.php?success=Employee+Added");
         } catch (PDOException $e) {
-            header("Location: ../../views/employees/create.php?error=Database Error");
+        header("Location: ../../views/employees/create.php?error=Database+Error");
         }
     } else {
-        header("Location: ../../views/employees/create.php?error=Required fields missing");
+        header("Location: ../../views/employees/create.php?error=Required+fields+missing");
     }
 }

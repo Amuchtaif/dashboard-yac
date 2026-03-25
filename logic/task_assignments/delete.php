@@ -24,5 +24,5 @@ if ($id) {
         header("Location: ../../views/task_assignments/index.php?error=" . urlencode("Error: " . $e->getMessage()));
     }
 } else {
-    header("Location: ../../views/task_assignments/index.php");
+        header("Location: ../../views/task_assignments/index.php?error=Operasi+gagal");
 }

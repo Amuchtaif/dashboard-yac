@@ -381,3 +381,249 @@
 [2026-03-19 13:48:31] SUKSES: Token berhasil diupdate untuk User ID 38.
 [2026-03-19 13:55:35] Request Masuk! User ID: '38' | Token: fzRjWowsSH2rPph...
 [2026-03-19 13:55:35] SUKSES: Token berhasil diupdate untuk User ID 38.
+[2026-03-19 16:27:34] Request Masuk! User ID: '38' | Token: fzRjWowsSH2rPph...
+[2026-03-19 16:27:34] SUKSES: Token berhasil diupdate untuk User ID 38.
+[2026-03-19 16:33:50] Request Masuk! User ID: '38' | Token: fzRjWowsSH2rPph...
+[2026-03-19 16:33:50] SUKSES: Token berhasil diupdate untuk User ID 38.
+[2026-03-22 17:02:17] Request Masuk! User ID: '38' | Token: fzRjWowsSH2rPph...
+[2026-03-22 17:02:17] SUKSES: Token berhasil diupdate untuk User ID 38.
+[2026-03-22 17:15:07] Request Masuk! User ID: '158' | Token: fzRjWowsSH2rPph...
+[2026-03-22 17:15:07] SUKSES: Token berhasil diupdate untuk User ID 158.
+[2026-03-22 19:06:10] Request Masuk! User ID: '38' | Token: fzRjWowsSH2rPph...
+[2026-03-22 19:06:10] SUKSES: Token berhasil diupdate untuk User ID 38.
+[2026-03-22 19:06:56] Request Masuk! User ID: '82' | Token: fzRjWowsSH2rPph...
+[2026-03-22 19:06:56] SUKSES: Token berhasil diupdate untuk User ID 82.
+[2026-03-22 19:44:08] Request Masuk! User ID: '38' | Token: c2bTp9UUTUW2Rj9...
+[2026-03-22 19:44:08] SUKSES: Token berhasil diupdate untuk User ID 38.
+[2026-03-22 19:44:57] Request Masuk! User ID: '158' | Token: c2bTp9UUTUW2Rj9...
+[2026-03-22 19:44:57] SUKSES: Token berhasil diupdate untuk User ID 158.
+[2026-03-22 20:39:21] Request Masuk! User ID: '38' | Token: c2bTp9UUTUW2Rj9...
+[2026-03-22 20:39:21] SUKSES: Token berhasil diupdate untuk User ID 38.
+[2026-03-22 21:01:10] Request Masuk! User ID: '38' | Token: c2bTp9UUTUW2Rj9...
+[2026-03-22 21:01:10] SUKSES: Token berhasil diupdate untuk User ID 38.
+[2026-03-22 21:01:54] FCM SUCCESS: {
+  "name": "projects/dashboard-yac/messages/0:1774188119683643%a6008fffa6008fff"
+}
+
+[2026-03-22 21:01:54] PERPULANGAN: FCM sent 1 notifications for permit 13
+[2026-03-22 22:17:33] FCM SUCCESS: {
+  "name": "projects/dashboard-yac/messages/0:1774192659266019%a6008fffa6008fff"
+}
+
+[2026-03-22 22:17:34] FCM SUCCESS: {
+  "name": "projects/dashboard-yac/messages/0:1774192660035934%a6008fffa6008fff"
+}
+
+[2026-03-22 22:17:34] PERPULANGAN: FCM sent 2 notifications for permit 14
+[2026-03-22 22:21:25] FCM SUCCESS: {
+  "name": "projects/dashboard-yac/messages/0:1774192890842390%a6008fffa6008fff"
+}
+
+[2026-03-22 22:21:26] FCM SUCCESS: {
+  "name": "projects/dashboard-yac/messages/0:1774192891600356%a6008fffa6008fff"
+}
+
+[2026-03-22 22:21:26] PERPULANGAN: FCM sent 2 notifications for permit 15
+[2026-03-22 22:26:00] FCM ERROR (HTTP 400): {
+  "error": {
+    "code": 400,
+    "message": "Invalid JSON payload received. Unknown name \"priority\" at 'message.android.notification': Cannot find field.",
+    "status": "INVALID_ARGUMENT",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.BadRequest",
+        "fieldViolations": [
+          {
+            "field": "message.android.notification",
+            "description": "Invalid JSON payload received. Unknown name \"priority\" at 'message.android.notification': Cannot find field."
+          }
+        ]
+      }
+    ]
+  }
+}
+
+[2026-03-22 22:26:01] FCM ERROR (HTTP 400): {
+  "error": {
+    "code": 400,
+    "message": "Invalid JSON payload received. Unknown name \"priority\" at 'message.android.notification': Cannot find field.",
+    "status": "INVALID_ARGUMENT",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.BadRequest",
+        "fieldViolations": [
+          {
+            "field": "message.android.notification",
+            "description": "Invalid JSON payload received. Unknown name \"priority\" at 'message.android.notification': Cannot find field."
+          }
+        ]
+      }
+    ]
+  }
+}
+
+[2026-03-22 22:26:01] PERPULANGAN: FCM sent 0 notifications for permit 16
+[2026-03-22 22:34:31] Request Masuk! User ID: '82' | Token: c2bTp9UUTUW2Rj9...
+[2026-03-22 22:34:31] SUKSES: Token berhasil diupdate untuk User ID 82.
+[2026-03-22 22:34:43] Request Masuk! User ID: '38' | Token: fzRjWowsSH2rPph...
+[2026-03-22 22:34:43] SUKSES: Token berhasil diupdate untuk User ID 38.
+[2026-03-22 22:35:02] FCM ERROR (HTTP 400): {
+  "error": {
+    "code": 400,
+    "message": "Invalid JSON payload received. Unknown name \"priority\" at 'message.android.notification': Cannot find field.",
+    "status": "INVALID_ARGUMENT",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.BadRequest",
+        "fieldViolations": [
+          {
+            "field": "message.android.notification",
+            "description": "Invalid JSON payload received. Unknown name \"priority\" at 'message.android.notification': Cannot find field."
+          }
+        ]
+      }
+    ]
+  }
+}
+
+[2026-03-22 22:35:03] FCM ERROR (HTTP 400): {
+  "error": {
+    "code": 400,
+    "message": "Invalid JSON payload received. Unknown name \"priority\" at 'message.android.notification': Cannot find field.",
+    "status": "INVALID_ARGUMENT",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.BadRequest",
+        "fieldViolations": [
+          {
+            "field": "message.android.notification",
+            "description": "Invalid JSON payload received. Unknown name \"priority\" at 'message.android.notification': Cannot find field."
+          }
+        ]
+      }
+    ]
+  }
+}
+
+[2026-03-22 22:35:03] PERPULANGAN: FCM sent 0 notifications for permit 17
+[2026-03-22 22:35:21] FCM ERROR (HTTP 400): {
+  "error": {
+    "code": 400,
+    "message": "Invalid JSON payload received. Unknown name \"priority\" at 'message.android.notification': Cannot find field.",
+    "status": "INVALID_ARGUMENT",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.BadRequest",
+        "fieldViolations": [
+          {
+            "field": "message.android.notification",
+            "description": "Invalid JSON payload received. Unknown name \"priority\" at 'message.android.notification': Cannot find field."
+          }
+        ]
+      }
+    ]
+  }
+}
+
+[2026-03-22 22:35:21] STATUS_UPDATE: FCM sent to Musrif ID 38 for permit 17. Result: FAILED
+[2026-03-23 20:56:25] Request Masuk! User ID: '38' | Token: fzRjWowsSH2rPph...
+[2026-03-23 20:56:25] SUKSES: Token berhasil diupdate untuk User ID 38.
+[2026-03-23 20:58:18] Request Masuk! User ID: '82' | Token: c2bTp9UUTUW2Rj9...
+[2026-03-23 20:58:18] SUKSES: Token berhasil diupdate untuk User ID 82.
+[2026-03-23 21:01:05] FCM ERROR (HTTP 400): {
+  "error": {
+    "code": 400,
+    "message": "Invalid JSON payload received. Unknown name \"priority\" at 'message.android.notification': Cannot find field.",
+    "status": "INVALID_ARGUMENT",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.BadRequest",
+        "fieldViolations": [
+          {
+            "field": "message.android.notification",
+            "description": "Invalid JSON payload received. Unknown name \"priority\" at 'message.android.notification': Cannot find field."
+          }
+        ]
+      }
+    ]
+  }
+}
+
+[2026-03-23 21:01:07] FCM ERROR (HTTP 400): {
+  "error": {
+    "code": 400,
+    "message": "Invalid JSON payload received. Unknown name \"priority\" at 'message.android.notification': Cannot find field.",
+    "status": "INVALID_ARGUMENT",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.BadRequest",
+        "fieldViolations": [
+          {
+            "field": "message.android.notification",
+            "description": "Invalid JSON payload received. Unknown name \"priority\" at 'message.android.notification': Cannot find field."
+          }
+        ]
+      }
+    ]
+  }
+}
+
+[2026-03-23 21:01:07] PERPULANGAN: FCM sent 0 notifications for permit 18
+[2026-03-23 21:05:28] FCM SUCCESS: {
+  "name": "projects/dashboard-yac/messages/0:1774274734718993%a6008fffa6008fff"
+}
+
+[2026-03-23 21:17:16] FCM SUCCESS: {
+  "name": "projects/dashboard-yac/messages/0:1774275442558450%a6008fffa6008fff"
+}
+
+[2026-03-23 21:17:17] FCM SUCCESS: {
+  "name": "projects/dashboard-yac/messages/0:1774275444088621%a6008fffa6008fff"
+}
+
+[2026-03-23 21:17:17] PERPULANGAN: FCM sent 2 notifications for permit 19
+[2026-03-23 21:18:00] FCM SUCCESS: {
+  "name": "projects/dashboard-yac/messages/0:1774275486255857%a6008fffa6008fff"
+}
+
+[2026-03-23 21:18:00] STATUS_UPDATE: FCM sent to Musrif ID 38 for permit 19. Result: SUCCESS
+[2026-03-23 21:18:08] FCM SUCCESS: {
+  "name": "projects/dashboard-yac/messages/0:1774275495147839%a6008fffa6008fff"
+}
+
+[2026-03-23 21:18:08] STATUS_UPDATE: FCM sent to Musrif ID 38 for permit 18. Result: SUCCESS
+[2026-03-24 20:50:19] Request Masuk! User ID: '38' | Token: fzRjWowsSH2rPph...
+[2026-03-24 20:50:19] SUKSES: Token berhasil diupdate untuk User ID 38.
+[2026-03-24 21:09:21] Request Masuk! User ID: '38' | Token: ewD4jkcaSQqlLol...
+[2026-03-24 21:09:21] SUKSES: Token berhasil diupdate untuk User ID 38.
+[2026-03-24 21:09:32] Request Masuk! User ID: '82' | Token: fzRjWowsSH2rPph...
+[2026-03-24 21:09:32] SUKSES: Token berhasil diupdate untuk User ID 82.
+[2026-03-24 21:10:00] FCM SUCCESS: {
+  "name": "projects/dashboard-yac/messages/0:1774361406563610%a6008fffa6008fff"
+}
+
+[2026-03-24 21:10:00] FCM SUCCESS: {
+  "name": "projects/dashboard-yac/messages/0:1774361407347260%a6008fffa6008fff"
+}
+
+[2026-03-24 21:10:00] PERPULANGAN: FCM sent 2 notifications for permit 20
+[2026-03-24 21:10:25] FCM SUCCESS: {
+  "name": "projects/dashboard-yac/messages/0:1774361431789266%a6008fffa6008fff"
+}
+
+[2026-03-24 21:10:25] STATUS_UPDATE: FCM sent to Musrif ID 38 for permit 20. Result: SUCCESS
+[2026-03-24 21:11:40] Request Masuk! User ID: '158' | Token: ewD4jkcaSQqlLol...
+[2026-03-24 21:11:40] SUKSES: Token berhasil diupdate untuk User ID 158.
+[2026-03-24 21:12:02] FCM SUCCESS: {
+  "name": "projects/dashboard-yac/messages/0:1774361528938909%a6008fffa6008fff"
+}
+
+[2026-03-24 21:12:03] FCM SUCCESS: {
+  "name": "projects/dashboard-yac/messages/0:1774361529768948%a6008fffa6008fff"
+}
+
+[2026-03-24 21:12:03] PERPULANGAN: FCM sent 2 notifications for permit 21
+[2026-03-25 13:54:15] Request Masuk! User ID: '82' | Token: fzRjWowsSH2rPph...
+[2026-03-25 13:54:15] SUKSES: Token berhasil diupdate untuk User ID 82.
+[2026-03-25 14:17:41] Request Masuk! User ID: '82' | Token: fzRjWowsSH2rPph...
+[2026-03-25 14:17:41] SUKSES: Token berhasil diupdate untuk User ID 82.

@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ':id' => $id
             ]);
 
-            header("Location: ../../views/departments/index.php?success=Department updated successfully");
+        header("Location: ../../views/departments/index.php?success=Department+updated+successfully");
             exit;
         } catch (PDOException $e) {
             header("Location: ../../views/departments/form.php?id=$id&error=Database Error: " . $e->getMessage());
@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 } else {
-    header("Location: ../../views/departments/index.php");
+        header("Location: ../../views/departments/index.php?error=Operasi+gagal");
     exit;
 }
 ?>

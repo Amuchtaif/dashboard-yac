@@ -27,6 +27,6 @@ if (isset($_GET['id'])) {
 }
 
 // Redirect back to employees list
-header("Location: ../../views/employees/index.php");
+        header("Location: ../../views/employees/index.php?success=Operasi+berhasil");
 exit();
 ?>

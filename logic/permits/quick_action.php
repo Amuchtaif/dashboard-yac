@@ -19,12 +19,12 @@ if (isset($_GET['id']) && isset($_GET['action'])) {
         if ($stmt->execute()) {
             header("Location: ../../views/permits/index.php?success=Permit " . strtolower($status) . " successfully");
         } else {
-            header("Location: ../../views/permits/index.php?error=Failed to update status");
+        header("Location: ../../views/permits/index.php?error=Failed+to+update+status");
         }
     } else {
-        header("Location: ../../views/permits/index.php?error=Invalid action");
+        header("Location: ../../views/permits/index.php?error=Invalid+action");
     }
 } else {
-    header("Location: ../../views/permits/index.php");
+        header("Location: ../../views/permits/index.php?error=Operasi+gagal");
 }
 exit;

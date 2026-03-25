@@ -108,60 +108,64 @@
             z-index: 50;
             background: white;
             border: 1px solid #e2e8f0;
-            border-radius: 0.75rem;
+            border-radius: 1.25rem;
             margin-top: 0.5rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
             max-height: 250px;
             overflow-y: auto;
             display: none;
+            overflow: hidden;
         }
 
         .hybrid-select-dropdown.active {
             display: block;
-            animation: dropdownFadeIn 0.2s ease-out;
+            animation: dropdownFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         @keyframes dropdownFadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
+            from { opacity: 0; transform: translateY(-8px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
         .hybrid-option {
-            padding: 0.75rem 1rem;
+            padding: 0.875rem 1.25rem;
             cursor: pointer;
             transition: all 0.2s;
             font-size: 0.875rem;
+            color: #475569;
+            font-weight: 500;
         }
 
         .hybrid-option:hover {
-            background-color: #f8fafc;
-            color: #3b82f6;
-            padding-left: 1.25rem;
+            background-color: #ecfeff;
+            color: #0891b2;
+            padding-left: 1.5rem;
         }
 
         .hybrid-option.selected {
-            background-color: #eff6ff;
-            color: #2563eb;
-            font-weight: 600;
+            background-color: #cffafe;
+            color: #0891b2;
+            font-weight: 700;
         }
 
         .hybrid-search-input {
             width: 100%;
-            border-radius: 0.75rem;
+            border-radius: 1rem;
             border: 1px solid #e2e8f0;
-            background-color: #f8fafc;
-            padding: 0.75rem 1rem;
+            background-color: #fff;
+            padding: 0.875rem 1.25rem;
             padding-right: 2.5rem;
             font-size: 0.875rem;
             transition: all 0.2s;
+            cursor: pointer;
+            font-weight: 600;
+            color: #1e293b;
         }
 
         .hybrid-search-input:focus {
-            border-color: #3b82f6;
+            border-color: #06b6d4;
             background-color: #fff;
-            ring: 2px;
-            ring-color: #dbeafe;
-            ring-color: #dbeafe;
+            box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.1);
             outline: none;
         }
 
@@ -295,6 +299,8 @@
         <main class="flex-1 overflow-y-auto focus:outline-none">
             <div class="py-6 px-4 sm:px-6 lg:px-8">
                 <!-- Global Notifications (Section Bar Style) -->
+                <div id="dynamic-alert-container"></div>
+                
                 <?php 
                 $success_msg = $_GET['success'] ?? $_SESSION['success'] ?? null;
                 $error_msg = $_GET['error'] ?? $_SESSION['error'] ?? null;

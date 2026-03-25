@@ -5,7 +5,7 @@ require_once '../../config/database.php';
 check_login();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    redirect('views/students/promotion.php');
+        redirect('views/students/promotion.php?success=Operasi+berhasil');
 }
 
 $db = new Database();

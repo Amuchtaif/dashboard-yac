@@ -22,7 +22,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     
     // Validation
     if (empty($academic_year_id)) {
-        header("Location: ../../views/students/create.php?error=Tahun Ajaran wajib dipilih");
+        header("Location: ../../views/students/create.php?error=Tahun+Ajaran+wajib+dipilih");
         exit();
     }
 
@@ -36,7 +36,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // 2. Validation
     if (empty($nama_siswa) || empty($nomor_induk)) {
-        header("Location: ../../views/students/create.php?error=Nama dan Nomor Induk wajib diisi");
+        header("Location: ../../views/students/create.php?error=Nama+dan+Nomor+Induk+wajib+diisi");
         exit();
     }
 
@@ -131,14 +131,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         $conn->commit();
 
-        header("Location: ../../views/students/index.php?success=Siswa Berhasil Ditambahkan");
+        header("Location: ../../views/students/index.php?success=Siswa+Berhasil+Ditambahkan");
         exit();
 
     } catch (PDOException $e) {
         $conn->rollBack();
         // Check for duplicate entry
         if ($e->errorInfo[1] == 1062) {
-            header("Location: ../../views/students/create.php?error=Nomor Induk sudah terdaftar");
+        header("Location: ../../views/students/create.php?error=Nomor+Induk+sudah+terdaftar");
         } else {
             // Log real error for dev: error_log($e->getMessage());
             header("Location: ../../views/students/create.php?error=Gagal menyimpan data: " . $e->getMessage());

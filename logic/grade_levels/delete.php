@@ -15,13 +15,13 @@ if (isset($_GET['id'])) {
         $stmt->bindParam(':id', $id);
 
         if ($stmt->execute()) {
-            redirect('views/grade_levels/index.php?success=Grade Level deleted successfully');
+        redirect('views/grade_levels/index.php?success=Grade+Level+deleted+successfully');
         } else {
-            redirect('views/grade_levels/index.php?error=Failed to delete Grade Level');
+        redirect('views/grade_levels/index.php?error=Failed+to+delete+Grade+Level');
         }
     } catch (PDOException $e) {
         if ($e->getCode() == '23000') {
-            redirect('views/grade_levels/index.php?error=Tidak dapat menghapus kelas karena masih ada riwayat siswa di dalamnya. Silakan hapus data siswa terkait terlebih dahulu.');
+        redirect('views/grade_levels/index.php?error=Tidak+dapat+menghapus+kelas+karena+masih+ada+riwayat+siswa+di+dalamnya.+Silakan+hapus+data+siswa+terkait+terlebih+dahulu.');
         } else {
             redirect('views/grade_levels/index.php?error=Database error: ' . $e->getMessage());
         }

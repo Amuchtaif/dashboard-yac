@@ -111,7 +111,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         $conn->commit();
 
-        header("Location: ../../views/students/index.php?success=Data Siswa Berhasil Diperbarui");
+        header("Location: ../../views/students/index.php?success=Data+Siswa+Berhasil+Diperbarui");
         exit();
 
     } catch (PDOException $e) {
@@ -120,7 +120,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit();
     }
 } else {
-    header("Location: ../../views/students/index.php");
+        header("Location: ../../views/students/index.php?error=Operasi+gagal");
     exit();
 }
 ?>

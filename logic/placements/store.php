@@ -11,7 +11,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $student_ids = isset($_POST['student_ids']) ? $_POST['student_ids'] : [];
 
     if (empty($academic_year_id) || empty($class_id) || empty($student_ids)) {
-        header("Location: ../../views/placements/index.php?error=Missing required data&academic_year_id=$academic_year_id");
+        header("Location: ../../views/placements/index.php?error=Missing+required+data%26academic_year_id%3D%24academic_year_id");
         exit;
     }
 
@@ -24,6 +24,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         header("Location: ../../views/placements/index.php?error=" . urlencode($result['message']) . "&academic_year_id=$academic_year_id");
     }
 } else {
-    header("Location: ../../views/placements/index.php");
+        header("Location: ../../views/placements/index.php?error=Operasi+gagal");
 }
 ?>

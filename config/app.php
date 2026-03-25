@@ -78,3 +78,39 @@ function url($path)
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
+
+/**
+ * --- INVENTORY HELPERS ---
+ */
+function shortenWord($word) {
+    if (!$word) return 'UNK';
+    $clean = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $word));
+    if (strlen($clean) <= 3) return $clean;
+    $noVowels = preg_replace('/[AEIOU]/i', '', $clean);
+    return strtoupper(substr(strlen($noVowels) >= 3 ? $noVowels : $clean, 0, 3));
+}
+
+function generateLocationCode($locName) {
+    if (!$locName) return 'UNK';
+    $words = explode(' ', trim($locName));
+    $parts = [];
+    foreach ($words as $w) {
+        $short = shortenWord($w);
+        if ($short !== '') $parts[] = $short;
+    }
+    return count($parts) > 0 ? implode('-', $parts) : 'UNK';
+}
+
+function generateItemCodeV2($conn, $location_id, $locName, $itemName, $id) {
+    $locCode = generateLocationCode($locName);
+    $namePrefix = substr(strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $itemName)), 0, 3);
+    
+    // Count items in this location to determine sequence
+    $countStmt = $conn->prepare("SELECT COUNT(*) FROM inventory_items WHERE location_id = ? AND id <= ?");
+    $countStmt->execute([$location_id, $id]);
+    $sequence = (int)$countStmt->fetchColumn();
+
+    $seqStr = str_pad($sequence, 3, '0', STR_PAD_LEFT);
+    return "$locCode-$namePrefix-$seqStr";
+}
+?>

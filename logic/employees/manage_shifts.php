@@ -5,7 +5,7 @@ require_once '../../config/database.php';
 check_login();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: ../../views/settings/shifts/index.php');
+        header('Location: ../../views/settings/shifts/index.php?success=Operasi+berhasil');
     exit;
 }
 
@@ -50,7 +50,7 @@ try {
         $_SESSION['success'] = "Data pertukaran berhasil dihapus.";
     }
 
-    header('Location: ../../views/settings/shifts/index.php');
+        header('Location: ../../views/settings/shifts/index.php?success=Operasi+berhasil');
 
 } catch (Exception $e) {
     $_SESSION['error'] = $e->getMessage();

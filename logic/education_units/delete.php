@@ -28,9 +28,9 @@ if (isset($_GET['id'])) {
     $stmt->bindParam(':id', $id);
 
     if ($stmt->execute()) {
-        redirect('views/education_units/index.php');
+        redirect('views/education_units/index.php?success=Unit+berhasil+dihapus');
     } else {
-        echo "Error deleting education unit.";
+        redirect('views/education_units/index.php?error=Gagal+menghapus+unit');
     }
 }
 ?>

@@ -18,18 +18,38 @@ try {
     $conn = $database->getConnection();
 
     $now = date('Y-m-d H:i:s');
+    $user_id = $_GET['user_id'] ?? $_GET['employee_id'] ?? $_GET['supervisor_id'] ?? $_GET['musrif_id'] ?? null;
+    $room_id = isset($_GET['room_id']) ? $_GET['room_id'] : null;
 
     // Total students currently at home and breakdown by category
+    // Filtered by Musrif/Supervisor if user_id or room_id is provided
     $query = "
-        SELECT category, COUNT(*) as count
-        FROM boarding_permits
-        WHERE status = 'Disetujui'
-        AND :now BETWEEN start_date AND end_date
-        GROUP BY category
+        SELECT bp.category, COUNT(*) as count
+        FROM boarding_permits bp
+        JOIN students s ON bp.student_id = s.id
+        LEFT JOIN boarding_room_members brm ON s.id = brm.student_id
+        LEFT JOIN boarding_rooms br ON brm.room_id = br.id
+        WHERE bp.status = 'Disetujui'
+        AND :now BETWEEN bp.start_date AND bp.end_date
     ";
+
+    if ($room_id) {
+        $query .= " AND br.id = :room_id";
+    } elseif ($user_id) {
+        $query .= " AND br.supervisor_id = :user_id";
+    }
+
+    $query .= " GROUP BY bp.category";
 
     $stmt = $conn->prepare($query);
     $stmt->bindParam(':now', $now);
+    
+    if ($room_id) {
+        $stmt->bindParam(':room_id', $room_id);
+    } elseif ($user_id) {
+        $stmt->bindParam(':user_id', $user_id);
+    }
+    
     $stmt->execute();
     $stats_by_category = $stmt->fetchAll(PDO::FETCH_ASSOC);
 

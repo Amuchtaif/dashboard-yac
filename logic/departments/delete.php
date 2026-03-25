@@ -14,8 +14,8 @@ if (isset($_GET['id'])) {
         $stmt = $conn->prepare("DELETE FROM divisions WHERE id = :id");
         $stmt->bindParam(':id', $id);
         $stmt->execute();
-        header("Location: ../../views/departments/index.php?success=Department Deleted");
+        header("Location: ../../views/departments/index.php?success=Department+Deleted");
     } catch (PDOException $e) {
-        header("Location: ../../views/departments/index.php?error=Error Deleting Department");
+        header("Location: ../../views/departments/index.php?error=Error+Deleting+Department");
     }
 }

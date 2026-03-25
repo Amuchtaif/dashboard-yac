@@ -30,13 +30,13 @@ if ($id) {
             $stmt = $conn->prepare("DELETE FROM news WHERE id = ?");
             $stmt->execute([$id]);
 
-            header("Location: ../../views/news/index.php?success=Berita berhasil dihapus.");
+        header("Location: ../../views/news/index.php?success=Berita+berhasil+dihapus.");
         } else {
-            header("Location: ../../views/news/index.php?error=Berita tidak ditemukan.");
+        header("Location: ../../views/news/index.php?error=Berita+tidak+ditemukan.");
         }
     } catch (PDOException $e) {
         header("Location: ../../views/news/index.php?error=Database Error: " . $e->getMessage());
     }
 } else {
-    header("Location: ../../views/news/index.php?error=ID tidak valid.");
+        header("Location: ../../views/news/index.php?error=ID+tidak+valid.");
 }

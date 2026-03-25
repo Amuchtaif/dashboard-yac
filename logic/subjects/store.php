@@ -18,7 +18,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $check = $conn->prepare("SELECT id FROM subjects WHERE code = ?");
         $check->execute([$kode]);
         if ($check->rowCount() > 0) {
-            header("Location: ../../views/subjects/form.php?error=Kode mata pelajaran sudah ada");
+        header("Location: ../../views/subjects/form.php?error=Kode+mata+pelajaran+sudah+ada");
             exit;
         }
 
@@ -30,12 +30,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt->bindParam(':kategori', $kategori);
             $stmt->execute();
 
-            header("Location: ../../views/subjects/index.php?success=Mata pelajaran berhasil ditambahkan");
+        header("Location: ../../views/subjects/index.php?success=Mata+pelajaran+berhasil+ditambahkan");
         } catch (PDOException $e) {
             header("Location: ../../views/subjects/form.php?error=Kesalahan Database: " . $e->getMessage());
         }
     } else {
-        header("Location: ../../views/subjects/form.php?error=Nama dan Kode wajib diisi");
+        header("Location: ../../views/subjects/form.php?error=Nama+dan+Kode+wajib+diisi");
     }
 }
 ?>

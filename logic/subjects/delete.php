@@ -13,16 +13,16 @@ if (isset($_GET['id'])) {
         $stmt = $conn->prepare("DELETE FROM subjects WHERE id = ?");
         $stmt->execute([$id]);
 
-        header("Location: ../../views/subjects/index.php?success=Mata pelajaran berhasil dihapus");
+        header("Location: ../../views/subjects/index.php?success=Mata+pelajaran+berhasil+dihapus");
     } catch (PDOException $e) {
         // Cek jika ada relasi (ON DELETE RESTRICT)
         if ($e->getCode() == "23000") {
-            header("Location: ../../views/subjects/index.php?error=Tidak dapat menghapus mata pelajaran karena masih digunakan dalam jadwal");
+        header("Location: ../../views/subjects/index.php?error=Tidak+dapat+menghapus+mata+pelajaran+karena+masih+digunakan+dalam+jadwal");
         } else {
             header("Location: ../../views/subjects/index.php?error=Kesalahan Database: " . $e->getMessage());
         }
     }
 } else {
-    header("Location: ../../views/subjects/index.php?error=ID tidak valid");
+        header("Location: ../../views/subjects/index.php?error=ID+tidak+valid");
 }
 ?>

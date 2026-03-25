@@ -40,5 +40,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header("Location: ../../views/assignments/index.php?error=" . urlencode("Error: " . $e->getMessage()));
     }
 } else {
-    header("Location: ../../views/assignments/index.php");
+        header("Location: ../../views/assignments/index.php?error=Operasi+gagal");
 }

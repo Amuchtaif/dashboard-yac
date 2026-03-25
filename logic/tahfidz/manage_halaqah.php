@@ -5,7 +5,7 @@ require_once '../../config/database.php';
 check_login();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: ../../views/tahfidz/halaqah.php');
+        header('Location: ../../views/tahfidz/halaqah.php?success=Operasi+berhasil');
     exit;
 }
 
@@ -82,7 +82,7 @@ try {
         exit;
     }
 
-    header('Location: ../../views/tahfidz/halaqah.php');
+        header('Location: ../../views/tahfidz/halaqah.php?success=Operasi+berhasil');
 
 } catch (Exception $e) {
     $_SESSION['error'] = $e->getMessage();

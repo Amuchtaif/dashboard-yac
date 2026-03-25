@@ -8,7 +8,8 @@ class FcmHelper
 
     public function __construct()
     {
-        $this->serviceAccountPath = __DIR__ . '/service-account.json';
+        // The service account is currently located in the api folder
+        $this->serviceAccountPath = __DIR__ . '/../api/service-account.json';
         if (!file_exists($this->serviceAccountPath)) {
             error_log("FCM Error: service-account.json not found in " . $this->serviceAccountPath);
             return;
@@ -29,6 +30,7 @@ class FcmHelper
         $now = time();
         $claims = json_encode([
             'iss' => $key['client_email'],
+            'sub' => $key['client_email'],
             'scope' => 'https://www.googleapis.com/auth/firebase.messaging',
             'aud' => 'https://oauth2.googleapis.com/token',
             'exp' => $now + 3600,
@@ -76,9 +78,9 @@ class FcmHelper
                 'token' => $token,
                 'notification' => [
                     'title' => $title,
-                    'body' => $body
+                    'body' => $body,
                 ],
-                'data' => $data // Data payload must be strings
+                'data' => $data
             ]
         ];
 
@@ -93,16 +95,32 @@ class FcmHelper
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($message));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HEADER, true); // Get headers to log status code
 
-        $result = curl_exec($ch);
-        if ($result === FALSE) {
-            error_log("FCM Curl Error: " . curl_error($ch));
+        $response = curl_exec($ch);
+        $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $body = substr($response, $headerSize);
+        
+        if ($response === FALSE) {
+            $err = "[" . date('Y-m-d H:i:s') . "] FCM CURL ERROR: " . curl_error($ch) . "\n";
+            file_put_contents(__DIR__ . '/../api/fcm_debug.log', $err, FILE_APPEND);
             curl_close($ch);
             return false;
         }
         curl_close($ch);
 
-        return json_decode($result, true);
+        $jsonResult = json_decode($body, true);
+        if ($httpCode !== 200) {
+            $err = "[" . date('Y-m-d H:i:s') . "] FCM ERROR (HTTP $httpCode): " . $body . "\n";
+            file_put_contents(__DIR__ . '/../api/fcm_debug.log', $err, FILE_APPEND);
+        } else {
+            // Optional: Log success for heavy debugging
+            $msg = "[" . date('Y-m-d H:i:s') . "] FCM SUCCESS: " . $body . "\n";
+            file_put_contents(__DIR__ . '/../api/fcm_debug.log', $msg, FILE_APPEND);
+        }
+
+        return $jsonResult;
     }
 }
 ?>

@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt = $conn->prepare($sql);
                 $stmt->execute($execute_params);
                 // Redirect with success
-                header("Location: ../../views/employees/index.php?success=Bulk update successful");
+        header("Location: ../../views/employees/index.php?success=Bulk+update+successful");
                 exit();
             } catch (PDOException $e) {
                 // Redirect with error
@@ -70,6 +70,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-header("Location: ../../views/employees/index.php");
+        header("Location: ../../views/employees/index.php?success=Operasi+berhasil");
 exit();
 ?>

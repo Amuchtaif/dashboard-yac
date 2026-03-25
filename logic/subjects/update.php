@@ -32,7 +32,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt->bindParam(':id', $id);
             $stmt->execute();
 
-            header("Location: ../../views/subjects/index.php?success=Mata pelajaran berhasil diperbarui");
+        header("Location: ../../views/subjects/index.php?success=Mata+pelajaran+berhasil+diperbarui");
         } catch (PDOException $e) {
             header("Location: ../../views/subjects/form.php?id=$id&error=Kesalahan Database: " . $e->getMessage());
         }

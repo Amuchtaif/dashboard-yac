@@ -6,7 +6,7 @@ if (!function_exists('isActive')) {
         global $current_page;
         // Check if current page contains the given path or if it's a boarding attendance subpage
         $is_boarding_attendance = (strpos($current_page, 'boarding/attendance') !== false && $path === 'boarding/attendance');
-        
+
         return (strpos($current_page, $path) !== false || $is_boarding_attendance)
             ? 'bg-cyan-50 text-cyan-700 font-semibold border-l-[6px] border-cyan-600 rounded-r-3xl'
             : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 border-l-[6px] border-transparent rounded-r-3xl';
@@ -82,8 +82,8 @@ if (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Adminis
 
             <!-- Employees -->
             <a href="<?php url('views/employees/index.php'); ?>"
-                class="<?php echo (strpos($current_page, 'employees') !== false && strpos($current_page, 'reset_password') === false) ? 'bg-cyan-50 text-cyan-700 font-semibold border-l-[6px] border-cyan-600 rounded-r-3xl' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 border-l-[6px] border-transparent rounded-r-3xl'; ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
-                <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo (strpos($current_page, 'employees') !== false && strpos($current_page, 'reset_password') === false) ? 'text-cyan-600' : 'text-slate-400 group-hover:text-slate-600'; ?> transition-colors"
+                class="<?php echo(strpos($current_page, 'employees') !== false && strpos($current_page, 'reset_password') === false) ? 'bg-cyan-50 text-cyan-700 font-semibold border-l-[6px] border-cyan-600 rounded-r-3xl' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 border-l-[6px] border-transparent rounded-r-3xl'; ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo(strpos($current_page, 'employees') !== false && strpos($current_page, 'reset_password') === false) ? 'text-cyan-600' : 'text-slate-400 group-hover:text-slate-600'; ?> transition-colors"
                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                         d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -241,7 +241,8 @@ if (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Adminis
                 </svg>
                 Manajemen Penugasan
             </a>
-            <?php endif; ?>
+            <?php
+endif; ?>
 
             <!-- Application Management Category -->
             <?php if ($is_admin): ?>
@@ -293,8 +294,10 @@ if (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Adminis
                 </svg>
                 Manajemen Berita
             </a>
-            <?php endif; ?>
-            <?php endif; ?>
+            <?php
+    endif; ?>
+            <?php
+endif; ?>
 
             <?php if ($can_manage_academic): ?>
             <div class="pt-4 pb-2">
@@ -324,8 +327,8 @@ if (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Adminis
 
             <!-- Students -->
             <a href="<?php url('views/students/index.php'); ?>"
-                class="<?php echo (strpos($current_page, 'students') !== false && strpos($current_page, 'promotion.php') === false) ? 'bg-cyan-50 text-cyan-700 font-semibold border-l-[6px] border-cyan-600 rounded-r-3xl' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 border-l-[6px] border-transparent rounded-r-3xl'; ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
-                <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo (strpos($current_page, 'students') !== false && strpos($current_page, 'promotion.php') === false) ? 'text-cyan-600' : 'text-slate-400 group-hover:text-slate-600'; ?> transition-colors"
+                class="<?php echo(strpos($current_page, 'students') !== false && strpos($current_page, 'promotion.php') === false) ? 'bg-cyan-50 text-cyan-700 font-semibold border-l-[6px] border-cyan-600 rounded-r-3xl' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 border-l-[6px] border-transparent rounded-r-3xl'; ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo(strpos($current_page, 'students') !== false && strpos($current_page, 'promotion.php') === false) ? 'text-cyan-600' : 'text-slate-400 group-hover:text-slate-600'; ?> transition-colors"
                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                         d="M12 14l9-5-9-5-9 5 9 5z" />
@@ -462,7 +465,8 @@ if (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Adminis
             </a>
 
             <!-- Class Placement -->
-            <?php endif; ?>
+            <?php
+endif; ?>
 
             <!-- Tahfidz Management -->
             <?php if ($can_manage_tahfidz): ?>
@@ -554,7 +558,8 @@ if (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Adminis
                 </svg>
                 Laporan Hafalan
             </a>
-            <?php endif; ?>
+            <?php
+endif; ?>
             
             <!-- Boarding Management (Kepengasuhan) -->
             <?php if ($can_access_kesantrian): ?>
@@ -650,20 +655,49 @@ if (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Adminis
                 </svg>
                 Kelola Izin Santri
             </a>
-            <?php endif; ?>
+            <?php
+endif; ?>
+
+            <!-- Manajemen Inventaris -->
+            <div class="pt-4 pb-2">
+                <p class="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Manajemen Inventaris</p>
+            </div>
+
+            <!-- Struktur Lokasi -->
+            <a href="<?php url('views/inventory/locations_tree.php'); ?>"
+                class="<?php echo isActive('inventory/locations_tree.php'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('inventory/locations_tree.php'); ?> transition-colors"
+                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5M9 11.25v1.5M12 9v3.75m3-6v6" />
+                </svg>
+                Kelola Lokasi
+            </a>
+
+            <!-- Kelola Inventaris -->
+            <a href="<?php url('views/inventory/items.php'); ?>"
+                class="<?php echo isActive('inventory/items.php'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('inventory/items.php'); ?> transition-colors"
+                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+                </svg>
+                Kelola Inventaris
+            </a>
+
         </nav>
     </div>
 
     <!-- Small Profile Section (Removed absolute, using flex-shrink-0) -->
     <div class="p-4 border-t border-slate-100 bg-white flex-shrink-0">
         <div class="flex items-center gap-3">
-            <?php 
-                $profile_name = $_SESSION['user_name'] ?? 'User';
-                $profile_photo = $_SESSION['user_photo'] ?? '';
-                $avatar_url = !empty($profile_photo) 
-                    ? BASE_URL . '/public/uploads/employees/' . $profile_photo 
-                    : "https://ui-avatars.com/api/?name=" . urlencode($profile_name) . "&background=random";
-            ?>
+            <?php
+$profile_name = $_SESSION['user_name'] ?? 'User';
+$profile_photo = $_SESSION['user_photo'] ?? '';
+$avatar_url = !empty($profile_photo)
+    ? BASE_URL . '/public/uploads/employees/' . $profile_photo
+    : "https://ui-avatars.com/api/?name=" . urlencode($profile_name) . "&background=random";
+?>
             <img class="h-8 w-8 rounded-full border border-slate-200 object-cover"
                 src="<?php echo $avatar_url; ?>" alt="User Profile">
             <div class="flex-1 min-w-0">

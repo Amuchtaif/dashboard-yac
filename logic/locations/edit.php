@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ]);
 
             if ($result) {
-                header("Location: ../../views/settings/locations.php?success=Lokasi berhasil diperbarui");
+        header("Location: ../../views/settings/locations.php?success=Lokasi+berhasil+diperbarui");
                 exit;
             }
         } catch (PDOException $e) {

@@ -5,7 +5,7 @@ require_once '../../config/database.php';
 check_login();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    redirect('views/academic_years/index.php');
+        redirect('views/academic_years/index.php?success=Operasi+berhasil');
 }
 
 $db = new Database();

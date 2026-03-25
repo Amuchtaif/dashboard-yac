@@ -73,56 +73,52 @@
 
     // --- Toast Notification Logic ---
     function showToast(message, type = 'success') {
-        const toastContainer = document.getElementById('toast-container');
+        const alertContainer = document.getElementById('dynamic-alert-container');
+        if (!alertContainer) return;
 
-        // Create Toast Element
+        // Create Alert Banner Element
         const toast = document.createElement('div');
-        toast.className = `flex items-center w-full max-w-xs p-4 mb-4 text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800 transition-all transform -translate-y-full opacity-0 duration-300 ease-out border-l-4 ${type === 'success' ? 'border-green-500' : 'border-red-500'}`;
+        // Match the exact PHP banner classes: w-full is implied by flex wrapping block context, but let's keep it safe.
+        toast.className = `alert-banner mb-6 rounded-xl shadow-2xl px-5 py-4 border transition-all duration-500 flex items-center justify-between opacity-0 translate-y-4 ${type === 'success' ? 'bg-emerald-600 border-emerald-500/30' : 'bg-rose-600 border-rose-500/30'}`;
         toast.role = 'alert';
 
-        // Icon
-        let iconHtml = '';
-        if (type === 'success') {
-            iconHtml = `<div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-green-500 bg-green-100 rounded-lg dark:bg-green-800 dark:text-green-200">
-                <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"/>
-                </svg>
-                <span class="sr-only">Check icon</span>
-            </div>`;
-        } else {
-            iconHtml = `<div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-red-500 bg-red-100 rounded-lg dark:bg-red-800 dark:text-red-200">
-                <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 11.793a1 1 0 1 1-1.414 1.414L10 11.414l-2.293 2.293a1 1 0 0 1-1.414-1.414L8.586 10 6.293 7.707a1 1 0 0 1 1.414-1.414L10 8.586l2.293-2.293a1 1 0 0 1 1.414 1.414L11.414 10l2.293 2.293Z"/>
-                </svg>
-                <span class="sr-only">Error icon</span>
-            </div>`;
-        }
+        let svgIcon = type === 'success' 
+            ? `<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />`
+            : `<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />`;
+            
+        let titleText = type === 'success' ? 'Berhasil!' : 'Error!';
+        let titleColor = type === 'success' ? 'text-emerald-100' : 'text-rose-100';
+        let btnColor = type === 'success' ? 'text-emerald-100' : 'text-rose-100';
 
         toast.innerHTML = `
-            ${iconHtml}
-            <div class="ml-3 text-sm font-normal">${message}</div>
-            <button type="button" class="ml-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex items-center justify-center h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700" aria-label="Close" onclick="this.parentElement.remove()">
-                <span class="sr-only">Tutup</span>
-                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
-                </svg>
+            <div class="flex items-center gap-4">
+                <div class="flex-shrink-0 bg-white/20 p-2 rounded-xl flex items-center justify-center">
+                    <svg class="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor">${svgIcon}</svg>
+                </div>
+                <div>
+                     <p class="text-[11px] font-black ${titleColor} uppercase tracking-widest leading-none mb-1">${titleText}</p>
+                     <p class="text-sm font-bold text-white">${message}</p>
+                </div>
+            </div>
+            <button type="button" onclick="this.closest('[role=alert]').remove()" class="${btnColor} hover:text-white transition-colors focus:outline-none p-2 hover:bg-white/10 rounded-lg">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
         `;
 
-        toastContainer.appendChild(toast);
+        alertContainer.appendChild(toast);
 
-        // Animate In
+        // Animate In (Fade in and slide up to its normal position)
         setTimeout(() => {
-            toast.classList.remove('-translate-y-full', 'opacity-0');
+            toast.classList.remove('opacity-0', 'translate-y-4');
         }, 10);
 
-        // Auto Remove
+        // Auto Remove after 3 seconds specifically requested
         setTimeout(() => {
-            toast.classList.add('opacity-0');
+            toast.classList.add('opacity-0', '-translate-y-4');
             setTimeout(() => {
                 toast.remove();
-            }, 300);
-        }, 5000);
+            }, 500);
+        }, 3000);
     }
 
     // --- Custom Dropdown Logic ---
@@ -216,6 +212,7 @@
         document.querySelectorAll('select.hybrid-select').forEach(select => {
             if (select.dataset.hybridInit) return;
             
+            const isSearchable = select.dataset.searchable !== 'false';
             const container = document.createElement('div');
             container.className = 'hybrid-select-container';
             
@@ -226,15 +223,16 @@
                     <input type="text" class="hybrid-search-input" placeholder="${currentText}" readonly>
                     <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                         <svg class="h-4 w-4 text-slate-400 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
                         </svg>
                     </div>
                 </div>
                 <div class="hybrid-select-dropdown">
-                    <div class="sticky top-0 bg-white p-2 border-b border-slate-100">
-                        <input type="text" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500" placeholder="Ketik untuk mencari...">
-                    </div>
-                    <div class="options-list"></div>
+                    ${isSearchable ? `
+                    <div class="sticky top-0 bg-white p-3 border-b border-slate-100">
+                        <input type="text" class="w-full px-4 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all" placeholder="Ketik untuk mencari...">
+                    </div>` : ''}
+                    <div class="options-list py-1"></div>
                 </div>
             `;
             
@@ -244,14 +242,15 @@
             
             const mainInput = container.querySelector('.hybrid-search-input');
             const dropdown = container.querySelector('.hybrid-select-dropdown');
-            const searchInput = dropdown.querySelector('input');
+            const searchInput = dropdown.querySelector('input[type="text"]');
             const optionsList = dropdown.querySelector('.options-list');
             const arrow = container.querySelector('svg');
             
             const renderOptions = (filter = '') => {
                 optionsList.innerHTML = '';
                 Array.from(select.options).forEach(opt => {
-                    if (opt.text.toLowerCase().includes(filter.toLowerCase())) {
+                    const matches = opt.text.toLowerCase().includes(filter.toLowerCase());
+                    if (matches) {
                         const div = document.createElement('div');
                         div.className = `hybrid-option ${opt.selected ? 'selected' : ''}`;
                         div.textContent = opt.text;
@@ -262,44 +261,71 @@
                             mainInput.value = '';
                             dropdown.classList.remove('active');
                             arrow.classList.remove('rotate-180');
-                            renderOptions();
                         };
                         optionsList.appendChild(div);
                     }
                 });
                 if (optionsList.innerHTML === '') {
-                    optionsList.innerHTML = '<div class="p-4 text-center text-xs text-slate-400 italic">Tidak ditemukan</div>';
+                    optionsList.innerHTML = '<div class="p-8 text-center text-xs text-slate-400 font-bold uppercase tracking-widest">Tidak ditemukan</div>';
                 }
             };
             
             mainInput.onclick = (e) => {
                 e.stopPropagation();
-                // Close others
-                document.querySelectorAll('.hybrid-select-dropdown').forEach(d => {
-                    if (d !== dropdown) d.classList.remove('active');
-                });
                 
-                dropdown.classList.toggle('active');
-                arrow.classList.toggle('rotate-180');
-                if (dropdown.classList.contains('active')) {
-                    searchInput.focus();
+                // Block if the underlying original select is disabled
+                if (select.disabled) return;
+                
+                const isActive = dropdown.classList.contains('active');
+                
+                // Close others
+                document.querySelectorAll('.hybrid-select-dropdown').forEach(d => d.classList.remove('active'));
+                document.querySelectorAll('.hybrid-select-container svg').forEach(s => s.classList.remove('rotate-180'));
+                
+                if (!isActive) {
+                    dropdown.classList.add('active');
+                    arrow.classList.add('rotate-180');
+                    if (isSearchable && searchInput) {
+                        searchInput.value = '';
+                        setTimeout(() => searchInput.focus(), 50);
+                    }
                     renderOptions();
                 }
             };
             
-            searchInput.oninput = (e) => {
-                renderOptions(e.target.value);
-            };
+            // Apply initial disabled state visually
+            if (select.disabled) {
+                mainInput.classList.add('bg-slate-100', 'cursor-not-allowed', 'opacity-70');
+            }
             
-            searchInput.onclick = (e) => e.stopPropagation();
+            // Watch for property changes using MutationObserver
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.attributeName === "disabled") {
+                        if (select.disabled) {
+                            mainInput.classList.add('bg-slate-100', 'cursor-not-allowed', 'opacity-70');
+                            dropdown.classList.remove('active');
+                            arrow.classList.remove('rotate-180');
+                        } else {
+                            mainInput.classList.remove('bg-slate-100', 'cursor-not-allowed', 'opacity-70');
+                        }
+                    }
+                });
+            });
+            observer.observe(select, { attributes: true });
+            
+            if (searchInput) {
+                searchInput.oninput = (e) => renderOptions(e.target.value);
+                searchInput.onclick = (e) => e.stopPropagation();
+            }
             
             renderOptions();
         });
     }
 </script>
 
-<!-- Toast Container -->
-<div id="toast-container" class="fixed top-5 left-1/2 transform -translate-x-1/2 z-50 flex flex-col gap-2"></div>
+<!-- Toast Container (Now acting as Alert Banner global dynamically triggered container) -->
+<div id="toast-container" class="fixed top-5 left-1/2 transform -translate-x-1/2 z-[100] flex flex-col gap-3 w-[95%] md:w-full max-w-2xl pointer-events-none *:pointer-events-auto"></div>
 
 </body>
 

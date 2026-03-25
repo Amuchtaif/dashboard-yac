@@ -20,11 +20,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 ':schedule_id' => $schedule_id,
                 ':manager_id' => $manager_id
             ]);
-            header("Location: ../../views/departments/index.php?success=Department Created");
+        header("Location: ../../views/departments/index.php?success=Department+Created");
         } catch (PDOException $e) {
             header("Location: ../../views/departments/index.php?error=Error Creating Department: " . $e->getMessage());
         }
     } else {
-        header("Location: ../../views/departments/index.php?error=Name Required");
+        header("Location: ../../views/departments/index.php?error=Name+Required");
     }
 }

@@ -38,9 +38,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->bindParam(':icon', $icon);
 
     if ($stmt->execute()) {
-        redirect('views/education_units/index.php?success=Unit added successfully');
+        redirect('views/education_units/index.php?success=Unit+added+successfully');
     } else {
-        redirect('views/education_units/create.php?error=Failed to add unit');
+        redirect('views/education_units/create.php?error=Failed+to+add+unit');
     }
 }
 ?>

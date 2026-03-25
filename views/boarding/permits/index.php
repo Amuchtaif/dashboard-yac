@@ -64,31 +64,31 @@ include '../../layouts/header.php';
                         <div class="flex items-center gap-3">
                             <?php 
                                 $statusClasses = [
-                                    'Menunggu' => 'bg-orange-50 text-orange-700 border-orange-100',
-                                    'Disetujui' => 'bg-emerald-50 text-emerald-700 border-emerald-100',
-                                    'Ditolak' => 'bg-rose-50 text-rose-700 border-rose-100',
-                                    'Kembali' => 'bg-indigo-50 text-indigo-700 border-indigo-100'
+                                    'Pending' => 'bg-amber-100 text-amber-700 border-amber-200',
+                                    'Disetujui' => 'bg-emerald-100 text-emerald-700 border-emerald-200',
+                                    'Ditolak' => 'bg-rose-100 text-rose-700 border-rose-200',
+                                    'Kembali' => 'bg-slate-100 text-slate-600 border-slate-200'
                                 ];
                                 $cls = $statusClasses[$p['status']] ?? 'bg-slate-50 text-slate-700 border-slate-100';
                             ?>
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border <?php echo $cls; ?>">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tight border <?php echo $cls; ?>">
                                 <?php echo $p['status']; ?>
                             </span>
 
                             <div class="flex items-center gap-1">
-                                <?php if ($p['status'] == 'Menunggu'): ?>
+                                <?php if ($p['status'] == 'Pending'): ?>
                                     <button onclick="updatePermitStatus(<?php echo $p['id']; ?>, 'Disetujui')" class="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Setujui">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
                                     </button>
                                     <button onclick="updatePermitStatus(<?php echo $p['id']; ?>, 'Ditolak')" class="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Tolak">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                                     </button>
                                 <?php elseif ($p['status'] == 'Disetujui'): ?>
-                                    <button onclick="updatePermitStatus(<?php echo $p['id']; ?>, 'Kembali')" class="px-3 py-1.5 bg-indigo-600 text-white text-[10px] font-bold rounded-lg hover:bg-indigo-700 shadow-sm" title="Konfirmasi Kembali">
-                                        Sudah Kembali
+                                    <button onclick="updatePermitStatus(<?php echo $p['id']; ?>, 'Kembali')" class="px-4 py-2 bg-slate-800 text-white text-[11px] font-bold rounded-xl hover:bg-slate-700 shadow-sm transition-all" title="Konfirmasi Kembali">
+                                        Konfirmasi Kembali
                                     </button>
                                 <?php endif; ?>
-                                <button onclick="deletePermit(<?php echo $p['id']; ?>)" class="p-2 text-slate-400 hover:text-red-600">
+                                <button onclick="deletePermit(<?php echo $p['id']; ?>)" class="p-2 text-slate-300 hover:text-red-600 transition-colors ml-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                 </button>
                             </div>
@@ -118,37 +118,51 @@ include '../../layouts/header.php';
             <form action="../../../logic/boarding/manage_permits.php" method="POST">
                 <input type="hidden" name="action" value="create_permit">
                 <div class="p-8">
-                    <h3 class="text-xl font-bold text-slate-800 mb-6">Buat Permohonan Izin</h3>
-                    <div class="space-y-4">
+                    <!-- Modal Header with Bar Kotak Style -->
+                    <div class="flex items-center gap-4 mb-8">
+                        <div class="h-12 w-2 bg-indigo-600 rounded-full"></div>
                         <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-2">Santri</label>
-                            <select name="student_id" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:ring-indigo-500 focus:border-indigo-500">
-                                <option value="">Pilih Santri...</option>
-                                <?php foreach ($all_students as $s): ?>
-                                    <option value="<?php echo $s['id']; ?>"><?php echo htmlspecialchars($s['nama_siswa']); ?> (<?php echo htmlspecialchars($s['kelas']); ?>)</option>
-                                <?php endforeach; ?>
-                            </select>
+                            <h3 class="text-xl font-bold text-slate-800">Buat Permohonan Izin</h3>
+                            <p class="text-xs text-slate-400 font-medium uppercase tracking-widest mt-0.5">Lengkapi formulir perizinan santri</p>
                         </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-2">Jenis Kepulangan</label>
-                            <select name="category" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:ring-indigo-500 focus:border-indigo-500">
-                                <option value="Izin">Izin Pulang (Urusan Keluarga, dll)</option>
-                                <option value="Sakit">Izin Sakit</option>
-                                <option value="Libur">Masa Libur</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-2">Alasan Izin</label>
-                            <input type="text" name="reason" placeholder="Contoh: Sakit / Urusan Keluarga Penting" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:ring-indigo-500 focus:border-indigo-500">
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
+                    </div>
+
+                    <div class="space-y-5">
+                        <div class="grid grid-cols-1 gap-5">
                             <div>
-                                <label class="block text-sm font-semibold text-slate-700 mb-2">Mulai</label>
-                                <input type="datetime-local" name="start_date" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:ring-indigo-500 focus:border-indigo-500">
+                                <label class="block text-[11px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">Santri</label>
+                                <select name="student_id" required class="hybrid-select w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3.5 text-sm focus:ring-indigo-500 focus:border-indigo-500 transition-all font-semibold">
+                                    <option value="">Pilih Santri...</option>
+                                    <?php foreach ($all_students as $s): ?>
+                                        <option value="<?php echo $s['id']; ?>"><?php echo htmlspecialchars($s['nama_siswa']); ?> (<?php echo htmlspecialchars($s['kelas']); ?>)</option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                                <label class="block text-[11px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">Jenis Kepulangan</label>
+                                <select name="category" required class="hybrid-select w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3.5 text-sm focus:ring-indigo-500 focus:border-indigo-500 transition-all font-semibold" data-searchable="false">
+                                    <option value="Izin">Izin Pulang (Urusan Keluarga, dll)</option>
+                                    <option value="Sakit">Izin Sakit</option>
+                                    <option value="Libur">Masa Libur</option>
+                                </select>
                             </div>
                             <div>
-                                <label class="block text-sm font-semibold text-slate-700 mb-2">Hingga</label>
-                                <input type="datetime-local" name="end_date" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:ring-indigo-500 focus:border-indigo-500">
+                                <label class="block text-[11px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">Alasan Izin</label>
+                                <input type="text" name="reason" placeholder="Ketik alasan izin..." required class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3.5 text-sm focus:ring-indigo-500 focus:border-indigo-500 transition-all placeholder:text-slate-300 font-semibold">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 p-5 bg-slate-50 rounded-2xl border border-slate-100">
+                            <div>
+                                <label class="block text-[10px] font-black uppercase tracking-tight text-slate-400 mb-2">Tanggal Mulai</label>
+                                <input type="datetime-local" name="start_date" required class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs focus:ring-indigo-500 focus:border-indigo-500 transition-all font-bold">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black uppercase tracking-tight text-slate-400 mb-2">Tanggal Selesai</label>
+                                <input type="datetime-local" name="end_date" required class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs focus:ring-indigo-500 focus:border-indigo-500 transition-all font-bold">
                             </div>
                         </div>
                     </div>

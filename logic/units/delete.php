@@ -9,11 +9,11 @@ if (isset($_GET['id'])) {
     $stmt->bindParam(':id', $_GET['id']);
 
     if ($stmt->execute()) {
-        header("Location: ../../views/units/index.php?success=Unit deleted successfully");
+        header("Location: ../../views/units/index.php?success=Unit+deleted+successfully");
     } else {
-        header("Location: ../../views/units/index.php?error=Failed to delete unit");
+        header("Location: ../../views/units/index.php?error=Failed+to+delete+unit");
     }
 } else {
-    header("Location: ../../views/units/index.php");
+        header("Location: ../../views/units/index.php?error=Operasi+gagal");
 }
 exit;

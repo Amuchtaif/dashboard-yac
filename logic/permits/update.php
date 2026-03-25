@@ -28,11 +28,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->bindParam(':id', $id);
 
     if ($stmt->execute()) {
-        header("Location: ../../views/permits/index.php?success=Permit updated successfully");
+        header("Location: ../../views/permits/index.php?success=Permit+updated+successfully");
     } else {
         header("Location: ../../views/permits/edit.php?id=$id&error=Failed to update permit");
     }
 } else {
-    header("Location: ../../views/permits/index.php");
+        header("Location: ../../views/permits/index.php?error=Operasi+gagal");
 }
 exit;

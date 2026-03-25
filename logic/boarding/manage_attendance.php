@@ -17,7 +17,7 @@ if ($action === 'submit_attendance') {
     $user_id = $_SESSION['user_id'] ?? null;
 
     if (!$room_id || !$date) {
-        header("Location: ../../views/boarding/attendance/index.php?error=Invalid data");
+        header("Location: ../../views/boarding/attendance/index.php?error=Invalid+data");
         exit;
     }
 
@@ -50,5 +50,5 @@ if ($action === 'submit_attendance') {
     }
 }
 
-header("Location: ../../views/boarding/attendance/index.php");
+        header("Location: ../../views/boarding/attendance/index.php?success=Operasi+berhasil");
 exit;

@@ -10,11 +10,11 @@ if (isset($_GET['id'])) {
     $stmt->bindParam(':id', $id);
 
     if ($stmt->execute()) {
-        header("Location: ../../views/permits/index.php?success=Permit deleted successfully");
+        header("Location: ../../views/permits/index.php?success=Permit+deleted+successfully");
     } else {
-        header("Location: ../../views/permits/index.php?error=Failed to delete permit");
+        header("Location: ../../views/permits/index.php?error=Failed+to+delete+permit");
     }
 } else {
-    header("Location: ../../views/permits/index.php");
+        header("Location: ../../views/permits/index.php?error=Operasi+gagal");
 }
 exit;

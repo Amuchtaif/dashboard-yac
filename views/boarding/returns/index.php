@@ -101,29 +101,42 @@ include '../../layouts/header.php';
             <form action="../../../logic/boarding/manage_returns.php" method="POST">
                 <input type="hidden" name="action" value="create_return">
                 <div class="p-8">
-                    <h3 class="text-xl font-bold text-slate-800 mb-6">Catat Jadwal Kepulangan</h3>
-                    <div class="space-y-4">
+                    <!-- Modal Header with Bar Kotak Style -->
+                    <div class="flex items-center gap-4 mb-8">
+                        <div class="h-12 w-2 bg-cyan-600 rounded-full"></div>
                         <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-2">Santri</label>
-                            <select name="student_id" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:ring-cyan-500 focus:border-cyan-500">
-                                <option value="">Pilih Santri...</option>
-                                <?php foreach ($all_students as $s): ?>
-                                    <option value="<?php echo $s['id']; ?>"><?php echo htmlspecialchars($s['nama_siswa']); ?> (<?php echo htmlspecialchars($s['kelas']); ?>)</option>
-                                <?php endforeach; ?>
-                            </select>
+                            <h3 class="text-xl font-bold text-slate-800">Catat Jadwal Kepulangan</h3>
+                            <p class="text-xs text-slate-400 font-medium uppercase tracking-widest mt-0.5">Pantau dan catat kepulangan santri</p>
                         </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-2">Wajib Kembali Tanggal</label>
-                            <input type="date" name="return_date" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:ring-cyan-500 focus:border-cyan-500">
+                    </div>
+
+                    <div class="space-y-5">
+                        <div class="grid grid-cols-1 gap-5">
+                            <div>
+                                <label class="block text-[11px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">Santri</label>
+                                <select name="student_id" required class="hybrid-select w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3.5 text-sm focus:ring-cyan-500 focus:border-cyan-500 transition-all font-semibold">
+                                    <option value="">Pilih Santri...</option>
+                                    <?php foreach ($all_students as $s): ?>
+                                        <option value="<?php echo $s['id']; ?>"><?php echo htmlspecialchars($s['nama_siswa']); ?> (<?php echo htmlspecialchars($s['kelas']); ?>)</option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-2">Keterangan</label>
-                            <textarea name="description" rows="2" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:ring-cyan-500 focus:border-cyan-500"></textarea>
+
+                        <div class="grid grid-cols-1 gap-5">
+                            <div>
+                                <label class="block text-[11px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">Wajib Kembali Tanggal</label>
+                                <input type="date" name="return_date" required class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3.5 text-sm focus:ring-cyan-500 focus:border-cyan-500 transition-all font-bold">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">Keterangan</label>
+                                <textarea name="description" rows="2" placeholder="Ketik keterangan tambahan jika ada..." class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3.5 text-sm focus:ring-cyan-500 focus:border-cyan-500 transition-all placeholder:text-slate-300 font-semibold"></textarea>
+                            </div>
                         </div>
                     </div>
                 </div>
                 <div class="bg-slate-50 p-6 flex flex-row-reverse gap-3">
-                    <button type="submit" class="bg-cyan-600 text-white font-bold px-8 py-2.5 rounded-xl hover:bg-cyan-700 transition-all font-bold">Catat</button>
+                    <button type="submit" class="bg-cyan-600 text-white font-bold px-8 py-2.5 rounded-xl hover:bg-cyan-700 transition-all font-bold shadow-lg transform active:scale-95">Catat</button>
                     <button type="button" onclick="closeModal('modal-add-return')" class="text-slate-600 font-bold px-6 py-2.5">Batal</button>
                 </div>
             </form>

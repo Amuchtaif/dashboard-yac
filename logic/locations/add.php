@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ]);
 
             if ($result) {
-                header("Location: ../../views/settings/locations.php?success=Lokasi berhasil ditambahkan");
+        header("Location: ../../views/settings/locations.php?success=Lokasi+berhasil+ditambahkan");
                 exit;
             }
         } catch (PDOException $e) {
@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
     } else {
-        header("Location: ../../views/settings/location_form.php?error=Harap isi semua bidang");
+        header("Location: ../../views/settings/location_form.php?error=Harap+isi+semua+bidang");
         exit;
     }
 }

@@ -12,7 +12,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $author_id = $_SESSION['user_id'];
 
     if (empty($title) || empty($category) || empty($content)) {
-        header("Location: ../../views/news/form.php?error=Semua kolom wajib diisi.");
+        header("Location: ../../views/news/form.php?error=Semua+kolom+wajib+diisi.");
         exit;
     }
 
@@ -48,7 +48,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             ':author_id' => $author_id
         ]);
 
-        header("Location: ../../views/news/index.php?success=Berita berhasil diterbitkan.");
+        header("Location: ../../views/news/index.php?success=Berita+berhasil+diterbitkan.");
     } catch (PDOException $e) {
         header("Location: ../../views/news/form.php?error=Database Error: " . $e->getMessage());
     }

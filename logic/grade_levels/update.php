@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->bindParam(':id', $id);
 
     if ($stmt->execute()) {
-        redirect('views/grade_levels/index.php?success=Class updated successfully');
+        redirect('views/grade_levels/index.php?success=Class+updated+successfully');
     } else {
         redirect('views/grade_levels/edit.php?id=' . $id . '&error=Failed to update Class');
     }

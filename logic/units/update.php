@@ -22,11 +22,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->bindParam(':id', $id);
 
     if ($stmt->execute()) {
-        header("Location: ../../views/units/index.php?success=Unit updated successfully");
+        header("Location: ../../views/units/index.php?success=Unit+updated+successfully");
     } else {
         header("Location: ../../views/units/edit.php?id=$id&error=Failed to update unit");
     }
 } else {
-    header("Location: ../../views/units/index.php");
+        header("Location: ../../views/units/index.php?error=Operasi+gagal");
 }
 exit;

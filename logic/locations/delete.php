@@ -15,7 +15,7 @@ if ($id) {
         $result = $stmt->execute([$id]);
 
         if ($result) {
-            header("Location: ../../views/settings/locations.php?success=Lokasi berhasil dihapus");
+        header("Location: ../../views/settings/locations.php?success=Lokasi+berhasil+dihapus");
             exit;
         }
     } catch (PDOException $e) {
@@ -23,6 +23,6 @@ if ($id) {
         exit;
     }
 } else {
-    header("Location: ../../views/settings/locations.php?error=ID tidak valid");
+        header("Location: ../../views/settings/locations.php?error=ID+tidak+valid");
     exit;
 }

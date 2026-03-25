@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Validation
     if (empty($employee_id) || empty($permit_type) || empty($start_date) || empty($end_date) || empty($reason)) {
-        header("Location: ../../views/permits/create.php?error=Semua kolom wajib diisi");
+        header("Location: ../../views/permits/create.php?error=Semua+kolom+wajib+diisi");
         exit;
     }
 
@@ -50,11 +50,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (move_uploaded_file($fileTmpPath, $dest_path)) {
                 $attachment = $newFileName;
             } else {
-                header("Location: ../../views/permits/create.php?error=Gagal mengupload file");
+        header("Location: ../../views/permits/create.php?error=Gagal+mengupload+file");
                 exit;
             }
         } else {
-            header("Location: ../../views/permits/create.php?error=Format file tidak valid. Gunakan: jpg, png, pdf");
+        header("Location: ../../views/permits/create.php?error=Format+file+tidak+valid.+Gunakan%3A+jpg%2C+png%2C+pdf");
             exit;
         }
     }
@@ -133,13 +133,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->bindParam(':approver_id', $approver_id);
 
     if ($stmt->execute()) {
-        header("Location: ../../views/permits/index.php?success=Pengajuan izin berhasil dikirim");
+        header("Location: ../../views/permits/index.php?success=Pengajuan+izin+berhasil+dikirim");
     } else {
-        header("Location: ../../views/permits/create.php?error=Gagal membuat izin");
+        header("Location: ../../views/permits/create.php?error=Gagal+membuat+izin");
     }
 
 } else {
-    header("Location: ../../views/permits/index.php");
+        header("Location: ../../views/permits/index.php?error=Operasi+gagal");
 }
 exit;
 ?>
