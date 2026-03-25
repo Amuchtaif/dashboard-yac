@@ -90,7 +90,7 @@ try {
         $sql .= " WHERE " . implode(" AND ", $whereClauses);
     }
 
-    $sql .= " ORDER BY i.name ASC";
+    $sql .= " ORDER BY i.id DESC"; // Sort by newest first
     
     $stmt = $conn->prepare($sql);
     $stmt->execute($params);

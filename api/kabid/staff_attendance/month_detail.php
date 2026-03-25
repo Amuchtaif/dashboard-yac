@@ -1,0 +1,90 @@
+<?php
+// api/kabid/staff_attendance/month_detail.php
+header("Access-Control-Allow-Origin: *");
+header("Content-Type: application/json; charset=UTF-8");
+header("Access-Control-Allow-Methods: GET");
+date_default_timezone_set('Asia/Jakarta');
+
+require_once __DIR__ . '/../../../config/database.php';
+
+try {
+    $db = new Database();
+    $conn = $db->getConnection();
+
+    $kabid_id = $_GET['user_id'] ?? null;
+    $month_label = $_GET['month'] ?? null; // e.g. "February 2026"
+
+    if (!$kabid_id || !$month_label) {
+        echo json_encode(["success" => false, "message" => "Parameter user_id dan month wajib diisi."]);
+        exit;
+    }
+
+    // Parse month label
+    $dateObj = DateTime::createFromFormat('F Y', $month_label);
+    if (!$dateObj) {
+        echo json_encode(["success" => false, "message" => "Format bulan tidak valid. Gunakan 'Month Year' (e.g. February 2026)."]);
+        exit;
+    }
+    $month = $dateObj->format('m');
+    $year = $dateObj->format('Y');
+
+    // 1. Ambil Divisi Kabid
+    $stmtKabid = $conn->prepare("SELECT division_id FROM employees WHERE id = ?");
+    $stmtKabid->execute([$kabid_id]);
+    $kabid = $stmtKabid->fetch(PDO::FETCH_ASSOC);
+
+    if (!$kabid || !$kabid['division_id']) {
+        echo json_encode(["success" => false, "message" => "User bukan Kabid atau tidak memiliki divisi."]);
+        exit;
+    }
+
+    $division_id = $kabid['division_id'];
+
+    // 2. Ambil List Staff di Divisi Tersebut
+    $queryStaff = "SELECT id, full_name, profile_photo FROM employees WHERE division_id = ? AND id != ? AND status = 'active'";
+    $stmtStaff = $conn->prepare($queryStaff);
+    $stmtStaff->execute([$division_id, $kabid_id]);
+    $staffList = $stmtStaff->fetchAll(PDO::FETCH_ASSOC);
+
+    $results = [];
+    foreach ($staffList as $staff) {
+        // Hitung Hadir & Telat
+        $stmtA = $conn->prepare("
+            SELECT 
+                SUM(CASE WHEN status = 'Hadir' OR status = 'Tepat Waktu' THEN 1 ELSE 0 END) as hadir,
+                SUM(CASE WHEN status = 'Telat' THEN 1 ELSE 0 END) as telat
+            FROM attendances 
+            WHERE user_id = ? AND MONTH(date) = ? AND YEAR(date) = ?
+        ");
+        $stmtA->execute([$staff['id'], $month, $year]);
+        $stats = $stmtA->fetch(PDO::FETCH_ASSOC);
+
+        // Hitung Izin/Sakit
+        $stmtP = $conn->prepare("
+            SELECT COUNT(*) FROM permits 
+            WHERE employee_id = ? AND status = 'approved' 
+            AND (MONTH(start_date) = ? AND YEAR(start_date) = ?)
+        ");
+        $stmtP->execute([$staff['id'], $month, $year]);
+        $permits = (int)$stmtP->fetchColumn();
+
+        $results[] = [
+            "id" => $staff['id'],
+            "name" => $staff['full_name'],
+            "hadir" => (int)($stats['hadir'] ?? 0),
+            "telat" => (int)($stats['telat'] ?? 0),
+            "absent" => $permits, // Per UI naming convention
+            "photo" => $staff['profile_photo']
+        ];
+    }
+
+    echo json_encode([
+        "success" => true,
+        "month" => $month_label,
+        "data" => $results
+    ]);
+
+} catch (PDOException $e) {
+    echo json_encode(["success" => false, "message" => "Database error: " . $e->getMessage()]);
+}
+?>
