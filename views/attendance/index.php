@@ -244,9 +244,9 @@ include '../layouts/header.php';
                                                 <?php echo htmlspecialchars($log['location_name'] ?? '-'); ?>
                                             </div>
                                             <div class="text-[10px] text-gray-400 mt-1">
-                                                In: <?php echo number_format($log['lat_in'], 4); ?>, <?php echo number_format($log['long_in'], 4); ?>
-                                                <?php if($log['lat_out']): ?>
-                                                    <br>Out: <?php echo number_format($log['lat_out'], 4); ?>, <?php echo number_format($log['long_out'], 4); ?>
+                                                In: <?php echo number_format((float)($log['lat_in'] ?? 0), 4); ?>, <?php echo number_format((float)($log['long_in'] ?? 0), 4); ?>
+                                                <?php if(!empty($log['lat_out'])): ?>
+                                                    <br>Out: <?php echo number_format((float)($log['lat_out'] ?? 0), 4); ?>, <?php echo number_format((float)($log['long_out'] ?? 0), 4); ?>
                                                 <?php endif; ?>
                                             </div>
                                         </td>

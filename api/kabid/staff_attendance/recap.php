@@ -8,6 +8,7 @@ date_default_timezone_set('Asia/Jakarta');
 require_once __DIR__ . '/../../../config/database.php';
 
 try {
+    /** @var Database $db */
     $db = new Database();
     $conn = $db->getConnection();
 
@@ -29,8 +30,16 @@ try {
 
     $division_id = $kabid['division_id'];
 
-    // Hitung jumlah staff aktif di divisi ini (kecuali kabid)
-    $stmtStaffCount = $conn->prepare("SELECT COUNT(*) FROM employees WHERE division_id = ? AND id != ? AND status = 'active'");
+    // Hitung jumlah staff aktif di divisi ini dengan kriteria:
+    // - Level 3
+    // - Level 4 ke bawah TANPA Unit (unit_id IS NULL or 0)
+    $stmtStaffCount = $conn->prepare("
+        SELECT COUNT(*) 
+        FROM employees e
+        INNER JOIN positions p ON e.position_id = p.id
+        WHERE e.division_id = ? AND e.id != ? AND e.status = 'active'
+        AND (p.level = 3 OR (p.level >= 4 AND (e.unit_id IS NULL OR e.unit_id = 0)))
+    ");
     $stmtStaffCount->execute([$division_id, $kabid_id]);
     $totalStaff = (int)$stmtStaffCount->fetchColumn();
 
@@ -48,7 +57,9 @@ try {
             SUM(CASE WHEN a.status = 'Telat' THEN 1 ELSE 0 END) as late_count
         FROM attendances a
         JOIN employees e ON a.user_id = e.id
+        INNER JOIN positions p ON e.position_id = p.id
         WHERE e.division_id = :div_id AND e.id != :kabid_id
+        AND (p.level = 3 OR (p.level >= 4 AND (e.unit_id IS NULL OR e.unit_id = 0)))
         AND MONTH(a.date) = :month AND YEAR(a.date) = :year
     ";
     $stmtStats = $conn->prepare($queryStats);
@@ -60,7 +71,9 @@ try {
         SELECT COUNT(*) 
         FROM permits p
         JOIN employees e ON p.employee_id = e.id
+        INNER JOIN positions p2 ON e.position_id = p2.id
         WHERE e.division_id = ? AND e.id != ?
+        AND (p2.level = 3 OR (p2.level >= 4 AND (e.unit_id IS NULL OR e.unit_id = 0)))
         AND MONTH(p.start_date) = ? AND YEAR(p.start_date) = ?
         AND p.status = 'approved'
     ";
@@ -105,7 +118,9 @@ try {
         $stmtH = $conn->prepare("
             SELECT COUNT(*) FROM attendances a
             JOIN employees e ON a.user_id = e.id
+            INNER JOIN positions pos ON e.position_id = pos.id
             WHERE e.division_id = ? AND e.id != ?
+            AND (pos.level = 3 OR (pos.level >= 4 AND (e.unit_id IS NULL OR e.unit_id = 0)))
             AND MONTH(a.date) = ? AND YEAR(a.date) = ?
         ");
         $stmtH->execute([$division_id, $kabid_id, $m, $y]);
@@ -128,16 +143,36 @@ try {
         ];
     }
 
+    // Helper function for Indonesian Month Mapping
+    function getIndoMonth($label) {
+        $months = [
+            'January' => 'Januari', 'February' => 'Februari', 'March' => 'Maret',
+            'April' => 'April', 'May' => 'Mei', 'June' => 'Juni',
+            'July' => 'Juli', 'August' => 'Agustus', 'September' => 'September',
+            'October' => 'Oktober', 'November' => 'November', 'December' => 'Desember'
+        ];
+        foreach ($months as $en => $id) {
+            if (strpos($label, $en) !== false) {
+                return str_replace($en, $id, $label);
+            }
+        }
+        return $label;
+    }
+
     echo json_encode([
         "success" => true,
         "summary" => [
             "average_percentage" => round($avgAttendance, 1) . "%",
-            "current_month_label" => "Bulan $monthName",
+            "current_month_label" => "Bulan " . getIndoMonth($monthName),
             "exact_count" => (int)($stats['exact_count'] ?? 0),
             "late_count" => (int)($stats['late_count'] ?? 0),
             "permit_count" => $permitCount
         ],
-        "history" => $history
+        "history" => array_map(function($h) {
+            global $months; // Not needed if we use getIndoMonth inside mapping
+            $h['month'] = getIndoMonth($h['month']);
+            return $h;
+        }, $history)
     ]);
 
 } catch (PDOException $e) {

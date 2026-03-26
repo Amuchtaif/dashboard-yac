@@ -8,19 +8,35 @@ date_default_timezone_set('Asia/Jakarta');
 require_once __DIR__ . '/../../../config/database.php';
 
 try {
+    /** @var Database $db */
     $db = new Database();
     $conn = $db->getConnection();
 
     $kabid_id = $_GET['user_id'] ?? null;
-    $month_label = $_GET['month'] ?? null; // e.g. "February 2026"
+    $month_label = $_GET['month'] ?? null; // e.g. "Februari 2026"
 
     if (!$kabid_id || !$month_label) {
         echo json_encode(["success" => false, "message" => "Parameter user_id dan month wajib diisi."]);
         exit;
     }
 
-    // Parse month label
-    $dateObj = DateTime::createFromFormat('F Y', $month_label);
+    // Map Indo to Eng for parsing
+    $indoToEng = [
+        'Januari' => 'January', 'Februari' => 'February', 'Maret' => 'March',
+        'April' => 'April', 'Mei' => 'May', 'Juni' => 'June',
+        'Juli' => 'July', 'Agustus' => 'August', 'September' => 'September',
+        'Oktober' => 'October', 'November' => 'November', 'Desember' => 'December'
+    ];
+    $engLabel = $month_label;
+    foreach ($indoToEng as $id => $en) {
+        if (strpos($month_label, $id) !== false) {
+            $engLabel = str_replace($id, $en, $month_label);
+            break;
+        }
+    }
+
+    // Parse English label
+    $dateObj = DateTime::createFromFormat('F Y', $engLabel);
     if (!$dateObj) {
         echo json_encode(["success" => false, "message" => "Format bulan tidak valid. Gunakan 'Month Year' (e.g. February 2026)."]);
         exit;
@@ -40,8 +56,17 @@ try {
 
     $division_id = $kabid['division_id'];
 
-    // 2. Ambil List Staff di Divisi Tersebut
-    $queryStaff = "SELECT id, full_name, profile_photo FROM employees WHERE division_id = ? AND id != ? AND status = 'active'";
+    // 2. Ambil List Staff di Divisi Tersebut (Filter Level)
+    // - Level 3
+    // - Level 4 ke bawah TANPA Unit (unit_id IS NULL or 0)
+    $queryStaff = "
+        SELECT e.id, e.full_name, e.profile_photo 
+        FROM employees e
+        INNER JOIN positions p ON e.position_id = p.id
+        WHERE e.division_id = ? AND e.id != ? AND e.status = 'active'
+        AND (p.level = 3 OR (p.level >= 4 AND (e.unit_id IS NULL OR e.unit_id = 0)))
+        ORDER BY e.full_name ASC
+    ";
     $stmtStaff = $conn->prepare($queryStaff);
     $stmtStaff->execute([$division_id, $kabid_id]);
     $staffList = $stmtStaff->fetchAll(PDO::FETCH_ASSOC);

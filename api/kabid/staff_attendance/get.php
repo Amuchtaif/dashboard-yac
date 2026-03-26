@@ -31,8 +31,9 @@ try {
 
     $division_id = $kabid['division_id'];
 
-    // 2. Ambil List Staff di Divisi Tersebut (Kecuali Kabid Sendiri)
-    // Kita Join dengan Attendance dan Permits untuk tanggal tersebut
+    // 2. Ambil List Staff di Divisi Tersebut (Filter Level)
+    // - Level 3
+    // - Level 4 ke bawah TANPA Unit (unit_id IS NULL or 0)
     $query = "
         SELECT 
             e.id, 
@@ -48,11 +49,12 @@ try {
              AND :target_date BETWEEN start_date AND end_date 
              LIMIT 1) as permit_type
         FROM employees e
-        LEFT JOIN positions p ON e.position_id = p.id
+        INNER JOIN positions p ON e.position_id = p.id
         LEFT JOIN attendances a ON e.id = a.user_id AND a.date = :target_date
         WHERE e.division_id = :division_id 
         AND e.id != :kabid_id
         AND e.status = 'active'
+        AND (p.level = 3 OR (p.level >= 4 AND (e.unit_id IS NULL OR e.unit_id = 0)))
         ORDER BY e.full_name ASC
     ";
 

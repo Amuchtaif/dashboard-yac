@@ -655,6 +655,17 @@ endif; ?>
                 </svg>
                 Kelola Izin Santri
             </a>
+
+            <!-- Monitoring Absensi Makan -->
+            <a href="<?php url('views/meal_attendance/monitor.php'); ?>"
+                class="<?php echo isActive('meal_attendance/monitor.php'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('meal_attendance/monitor.php'); ?> transition-colors"
+                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8.25v-1.5m0 1.5c-1.355 0-2.697.056-4.024.166C6.845 8.51 6 9.473 6 10.608v2.513m6-4.871c1.355 0 2.697.056 4.024.166C17.155 8.51 18 9.473 18 10.608v2.513M15 8.25v-1.5m-6 1.5v-1.5m12 9.75l-1.5.75a3.354 3.354 0 01-3 0 3.354 3.354 0 00-3 0 3.354 3.354 0 01-3 0 3.354 3.354 0 00-3 0 3.354 3.354 0 01-3 0L3 16.5m15-3.375a33.75 33.75 0 00-12 0m12 0v1.5m0-1.5a3.354 3.354 0 013 0 3.354 3.354 0 003 0m-18 0a3.354 3.354 0 00-3 0 3.354 3.354 0 01-3 0m3 0v1.5m0-1.5a3.354 3.354 0 013 0 3.354 3.354 0 003 0m0 0a3.354 3.354 0 013 0 3.354 3.354 0 003 0z" />
+                </svg>
+                Monitoring Makan
+            </a>
             <?php
 endif; ?>
 
