@@ -90,10 +90,10 @@ require_once __DIR__ . '/../layouts/header.php';
                 <input type="date" id="filter-date" value="<?php echo date('Y-m-d'); ?>" onchange="fetchData()" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-4 focus:ring-cyan-500/10 focus:border-cyan-500 text-sm font-semibold outline-none bg-slate-50 transition-all">
             </div>
 
-            <!-- Meal Type -->
+            <!-- Meal Type Filter -->
             <div>
                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Waktu Makan</label>
-                <select id="filter-meal-type" onchange="fetchData()" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-4 focus:ring-cyan-500/10 focus:border-cyan-500 text-sm font-semibold outline-none bg-slate-50 transition-all appearance-none cursor-pointer">
+                <select id="filter-meal-type" onchange="fetchData()" class="hybrid-select" data-searchable="false">
                     <option value="Pagi">Makan Pagi</option>
                     <option value="Siang" selected>Makan Siang</option>
                     <option value="Malam">Makan Malam</option>
@@ -103,7 +103,7 @@ require_once __DIR__ . '/../layouts/header.php';
             <!-- Class Filter -->
             <div>
                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Filter Per Kelas</label>
-                <select id="filter-grade" onchange="resetOtherFilter('room')" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-4 focus:ring-cyan-500/10 focus:border-cyan-500 text-sm font-semibold outline-none bg-slate-50 transition-all appearance-none cursor-pointer">
+                <select id="filter-grade" onchange="resetOtherFilter('room'); fetchData()" class="hybrid-select">
                     <option value="">Semua Kelas</option>
                     <?php foreach($grades as $g): ?>
                         <option value="<?php echo $g['id']; ?>"><?php echo htmlspecialchars($g['name']); ?></option>
@@ -114,9 +114,7 @@ require_once __DIR__ . '/../layouts/header.php';
             <!-- Room Filter -->
             <div>
                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Filter Per Asrama</label>
-                <select id="filter-room" onchange="resetOtherFilter('grade')" 
-                    class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-4 focus:ring-cyan-500/10 focus:border-cyan-500 text-sm font-semibold outline-none bg-slate-50 transition-all appearance-none cursor-pointer disabled:bg-slate-100 disabled:text-slate-400"
-                    <?php echo $is_musyrif ? 'disabled' : ''; ?>>
+                <select id="filter-room" onchange="resetOtherFilter('grade'); fetchData()" class="hybrid-select" <?php echo $is_musyrif ? 'disabled' : ''; ?>>
                     <option value="">Semua Asrama</option>
                     <?php foreach($rooms as $r): ?>
                         <option value="<?php echo $r['id']; ?>" <?php echo ($is_musyrif && $supervised_room == $r['id']) ? 'selected' : ''; ?>>
@@ -127,33 +125,29 @@ require_once __DIR__ . '/../layouts/header.php';
             </div>
         </div>
 
-        <div class="mt-6">
-            <button onclick="fetchData()" class="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-cyan-600/20 hover:shadow-cyan-600/40 flex items-center justify-center gap-2 active:scale-[0.98]">
-                <svg class="w-5 h-5 font-bold" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                Tampilkan Daftar Santri
-            </button>
+            <!-- Show List button removed as per request to use automatic AJAX refresh -->
         </div>
-    </div>
 
-    <!-- Attendance Roster -->
-    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden min-h-[400px]">
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-slate-50 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                        <th class="px-6 py-4 w-12 text-center">No.</th>
-                        <th class="px-6 py-4">Santri & Identitas</th>
-                        <th class="px-6 py-4">Kelas / Kamar</th>
-                        <th class="px-6 py-4 text-center">Status Jatah</th>
-                        <th class="px-6 py-4 text-right">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody id="roster-body" class="divide-y divide-slate-100 text-sm">
-                    <tr>
-                        <td colspan="5" class="px-6 py-20 text-center text-slate-400 italic">Silakan pilih filter dan klik "Tampilkan Daftar Santri"</td>
-                    </tr>
-                </tbody>
-            </table>
+    <!-- Attendance Roster Card -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 min-h-[400px]">
+        <div class="overflow-hidden border border-slate-100 rounded-xl">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                            <th class="px-6 py-4 w-12 text-center">No.</th>
+                            <th class="px-6 py-4">Santri & Identitas</th>
+                            <th class="px-6 py-4">Kelas / Kamar</th>
+                            <th class="px-6 py-4 text-center">Status Jatah</th>
+                        </tr>
+                    </thead>
+                    <tbody id="roster-body" class="divide-y divide-slate-100 text-sm">
+                        <tr>
+                            <td colspan="4" class="px-6 py-20 text-center text-slate-400 italic">Memuat data santri...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -164,13 +158,23 @@ require_once __DIR__ . '/../layouts/header.php';
         
         if(isMusyrif && supervisedRoom) {
             document.getElementById('filter-room').value = supervisedRoom;
-            fetchData(); // Auto fetch for musyrif
         }
+        
+        fetchData(); // Auto fetch everything on load
     };
 
     function resetOtherFilter(type) {
-        if(type === 'room') document.getElementById('filter-room').value = '';
-        if(type === 'grade') document.getElementById('filter-grade').value = '';
+        const select = document.getElementById(`filter-${type}`);
+        if(!select) return;
+        
+        select.value = '';
+        
+        // Sync hybrid-select UI (placeholder)
+        const container = select.previousElementSibling;
+        if(container && container.classList.contains('hybrid-select-container')) {
+            const input = container.querySelector('.hybrid-search-input');
+            if(input) input.placeholder = (type === 'room') ? 'Semua Asrama' : 'Semua Kelas';
+        }
     }
 
     async function fetchData() {
@@ -180,7 +184,7 @@ require_once __DIR__ . '/../layouts/header.php';
         const room_id = document.getElementById('filter-room').value;
 
         const rosterBody = document.getElementById('roster-body');
-        rosterBody.innerHTML = '<tr><td colspan="5" class="px-6 py-20 text-center text-cyan-600 font-bold animate-pulse">Memuat data santri...</td></tr>';
+        rosterBody.innerHTML = '<tr><td colspan="4" class="px-6 py-20 text-center text-cyan-600 font-bold animate-pulse">Memuat data santri...</td></tr>';
 
         try {
             const url = `../../api/meal_attendance/get_students_list.php?date=${date}&meal_type=${meal_type}&grade_id=${grade_id}&room_id=${room_id}`;
@@ -188,18 +192,22 @@ require_once __DIR__ . '/../layouts/header.php';
             const json = await res.json();
             
             if(json.success) {
-                renderRoster(json.data, meal_type);
-                updateStats(json.data);
+                const students = json.data || [];
+                renderRoster(students, meal_type);
+                updateStats(students);
             } else {
+                rosterBody.innerHTML = `<tr><td colspan="4" class="px-6 py-20 text-center text-red-500 font-bold">${json.message}</td></tr>`;
                 showToast(json.message, "error");
             }
         } catch (e) {
             console.error(e);
+            rosterBody.innerHTML = '<tr><td colspan="4" class="px-6 py-20 text-center text-red-500 font-bold">Terjadi kesalahan teknis.</td></tr>';
             showToast("Gagal mengambil data.", "error");
         }
     }
 
     function updateStats(data) {
+        data = data || [];
         const total = data.length;
         const eaten = data.filter(s => s.attendance_id).length;
         const remaining = total - eaten;
@@ -210,25 +218,21 @@ require_once __DIR__ . '/../layouts/header.php';
     }
 
     function renderRoster(data, mealType) {
+        data = data || [];
         const tbody = document.getElementById('roster-body');
-        tbody.innerHTML = '';
-
+        
         if(data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-20 text-center text-slate-400 italic">Tidak ada data santri ditemukan.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-20 text-center text-slate-400 italic">Tidak ada data santri ditemukan.</td></tr>';
             return;
         }
 
-        data.forEach((s, index) => {
+        const rows = data.map((s, index) => {
             const hasEaten = !!s.attendance_id;
             const statusBadge = hasEaten 
-                ? `<span class="inline-flex px-3 py-1 text-[10px] font-bold rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100">SUDAH MAKAN (${s.check_time.substring(0, 5)})</span>`
+                ? `<span class="inline-flex px-3 py-1 text-[10px] font-bold rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100">SUDAH MAKAN (${(s.check_time || '00:00').substring(0, 5)})</span>`
                 : `<span class="inline-flex px-3 py-1 text-[10px] font-bold rounded-full bg-slate-100 text-slate-400 border border-slate-200">BELUM AMBIL</span>`;
 
-            const actionBtn = hasEaten
-                ? `<button onclick="unmarkMeal(${s.attendance_id})" class="text-xs font-bold text-red-500 hover:text-red-700 px-3 py-2 rounded-lg hover:bg-red-50 transition-all">Batal Makan</button>`
-                : `<button onclick="markMeal(${s.id}, '${mealType}')" class="bg-cyan-50 text-cyan-700 hover:bg-cyan-600 hover:text-white px-4 py-2 rounded-lg text-xs font-bold border border-cyan-100 transition-all">Ambil Jatah</button>`;
-
-            tbody.innerHTML += `
+            return `
                 <tr class="hover:bg-slate-50/50 transition-colors group">
                     <td class="px-6 py-4 text-slate-400 font-medium text-center">${index + 1}.</td>
                     <td class="px-6 py-4">
@@ -249,12 +253,11 @@ require_once __DIR__ . '/../layouts/header.php';
                     <td class="px-6 py-4 text-center">
                         ${statusBadge}
                     </td>
-                    <td class="px-6 py-4 text-right">
-                        ${actionBtn}
-                    </td>
                 </tr>
             `;
         });
+
+        tbody.innerHTML = rows.join('');
     }
 
     async function markMeal(studentId, type) {

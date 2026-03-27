@@ -50,8 +50,19 @@ try {
     ];
 
     if ($grade_id) {
-        $sql .= " AND (gl.id = :grade_id OR s.kelas = (SELECT name FROM grade_levels WHERE id = :grade_id))";
-        $params[':grade_id'] = $grade_id;
+        // Resolve grade name first to avoid slow subqueries in WHERE clause
+        $g_stmt = $conn->prepare("SELECT name FROM grade_levels WHERE id = ?");
+        $g_stmt->execute([$grade_id]);
+        $grade_name = $g_stmt->fetchColumn();
+
+        if ($grade_name) {
+            $sql .= " AND (gl.id = :grade_id OR s.kelas = :grade_name)";
+            $params[':grade_id'] = $grade_id;
+            $params[':grade_name'] = $grade_name;
+        } else {
+            $sql .= " AND gl.id = :grade_id";
+            $params[':grade_id'] = $grade_id;
+        }
     }
 
     if ($room_id) {

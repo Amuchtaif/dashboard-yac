@@ -11,38 +11,68 @@ try {
     $db = new Database();
     $conn = $db->getConnection();
 
-    $type = $_GET['meal_type'] ?? 'Siang'; // Default Siang
-    $today = date('Y-m-d');
+    $type = $_GET['meal_type'] ?? 'Siang';
+    $date = $_GET['date'] ?? date('Y-m-d');
+    $musyrif_id = $_GET['musyrif_id'] ?? null;
+    $room_id = $_GET['room_id'] ?? null;
 
-    // 1. Hitung Total Santri (Jatah)
-    $stmtTotal = $conn->query("SELECT COUNT(*) FROM students");
+    // Detect room if musyrif_id is provided
+    if ($musyrif_id && !$room_id) {
+        $r_stmt = $conn->prepare("SELECT id FROM boarding_rooms WHERE supervisor_id = ? LIMIT 1");
+        $r_stmt->execute([$musyrif_id]);
+        $room_id = $r_stmt->fetchColumn();
+    }
+
+    // 1. Total students in scope (Global or Room-specific)
+    if ($room_id) {
+        $qTotal = "SELECT COUNT(student_id) FROM boarding_room_members WHERE room_id = ?";
+        $stmtTotal = $conn->prepare($qTotal);
+        $stmtTotal->execute([$room_id]);
+    } else {
+        $qTotal = "SELECT COUNT(*) FROM students";
+        $stmtTotal = $conn->prepare($qTotal);
+        $stmtTotal->execute();
+    }
     $totalStudents = (int)$stmtTotal->fetchColumn();
 
-    // 2. Hitung Sudah Makan
-    $stmtEaten = $conn->prepare("SELECT COUNT(*) FROM meal_attendances WHERE meal_type = ? AND date = ?");
-    $stmtEaten->execute([$type, $today]);
+    // 2. Count who already ate in scope
+    if ($room_id) {
+        $qEaten = "SELECT COUNT(ma.id) 
+                   FROM meal_attendances ma
+                   JOIN boarding_room_members brm ON ma.student_id = brm.student_id
+                   WHERE ma.meal_type = ? AND ma.date = ? AND brm.room_id = ?";
+        $stmtEaten = $conn->prepare($qEaten);
+        $stmtEaten->execute([$type, $date, $room_id]);
+    } else {
+        $qEaten = "SELECT COUNT(*) FROM meal_attendances WHERE meal_type = ? AND date = ?";
+        $stmtEaten = $conn->prepare($qEaten);
+        $stmtEaten->execute([$type, $date]);
+    }
     $eatenCount = (int)$stmtEaten->fetchColumn();
 
     $remainingQuota = $totalStudents - $eatenCount;
     if ($remainingQuota < 0) $remainingQuota = 0;
 
-    // 3. Antrian Terakhir (Top 10)
-    $stmtQueue = $conn->prepare("
-        SELECT 
-            ma.id, 
-            ma.check_time, 
-            s.nama_siswa 
-        FROM meal_attendances ma
-        JOIN students s ON ma.student_id = s.id
-        WHERE ma.meal_type = ? AND ma.date = ?
-        ORDER BY ma.id DESC
-        LIMIT 10
-    ");
-    $stmtQueue->execute([$type, $today]);
+    // 3. Recent Queue (Top 10) - Optional but good for compatibility if needed elsewhere
+    $qQueue = "SELECT ma.id, ma.check_time, s.nama_siswa 
+               FROM meal_attendances ma
+               JOIN students s ON ma.student_id = s.id";
+    if ($room_id) {
+        $qQueue .= " JOIN boarding_room_members brm ON s.id = brm.student_id 
+                     WHERE ma.meal_type = ? AND ma.date = ? AND brm.room_id = ?";
+        $pQueue = [$type, $date, $room_id];
+    } else {
+        $qQueue .= " WHERE ma.meal_type = ? AND ma.date = ?";
+        $pQueue = [$type, $date];
+    }
+    $qQueue .= " ORDER BY ma.id DESC LIMIT 10";
+    
+    $stmtQueue = $conn->prepare($qQueue);
+    $stmtQueue->execute($pQueue);
     $recentQueue = [];
     while ($row = $stmtQueue->fetch(PDO::FETCH_ASSOC)) {
         $recentQueue[] = [
-            "id" => $row['id'],
+            "id" => (int)$row['id'],
             "name" => $row['nama_siswa'],
             "time" => substr($row['check_time'] ?: '', 0, 5)
         ];
@@ -50,12 +80,23 @@ try {
 
     echo json_encode([
         "success" => true,
-        "summary" => [
-            "eaten_count" => $eatenCount,
-            "remaining_quota" => $remainingQuota,
-            "total_quota" => $totalStudents
+        "data" => [
+            "total_served" => $eatenCount,
+            "total_quota" => $totalStudents,
+            "remaining_quota" => $remainingQuota
         ],
-        "recent_queue" => $recentQueue
+        "summary" => [ // Keep for backward compatibility if any
+            "eaten_count" => $eatenCount,
+            "total_quota" => $totalStudents,
+            "remaining_quota" => $remainingQuota
+        ],
+        "recent_queue" => $recentQueue,
+        "debug_info" => [
+            "room_id" => $room_id,
+            "musyrif_id" => $musyrif_id,
+            "meal_type" => $type,
+            "date" => $date
+        ]
     ]);
 
 } catch (PDOException $e) {
