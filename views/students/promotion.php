@@ -334,20 +334,16 @@ include '../layouts/header.php';
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
-                                <tr>
-                                    <th scope="col"
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-10">
+                                <tr class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                                    <th scope="col" class="px-6 py-3 text-left w-10">
                                         <input type="checkbox" id="select-all" checked
                                             class="h-4 w-4 rounded border-gray-300 text-cyan-600 focus:ring-cyan-500 cursor-pointer">
                                     </th>
-                                    <th scope="col"
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <th scope="col" class="px-6 py-3 text-left min-w-[250px]">
                                         Nama Siswa</th>
-                                    <th scope="col"
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <th scope="col" class="px-6 py-3 text-left min-w-[150px]">
                                         NISN</th>
-                                    <th scope="col"
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <th scope="col" class="px-6 py-3 text-left min-w-[150px]">
                                         Status Saat Ini</th>
                                 </tr>
                             </thead>

@@ -16,22 +16,11 @@ if (empty($user_id)) {
 }
 
 try {
-    // Delete assignment notifications from notifications table
-    $checkTable = $conn->query("SHOW TABLES LIKE 'notifications'");
-    if ($checkTable->rowCount() > 0) {
-        $stmt = $conn->prepare("DELETE FROM notifications WHERE user_id = :uid");
-        $stmt->execute([':uid' => $user_id]);
-    }
+    // --- Notification cleanup ---
+    $stmt = $conn->prepare("DELETE FROM notifications WHERE user_id = :uid");
+    $stmt->execute([':uid' => $user_id]);
 
-    // Mark dismissed notifications in a dismissed_notifications table
-    // Create table if not exists
-    $conn->exec("CREATE TABLE IF NOT EXISTS dismissed_notifications (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        user_id INT NOT NULL,
-        notification_key VARCHAR(100) NOT NULL,
-        dismissed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE KEY unique_dismiss (user_id, notification_key)
-    )");
+    // --- Dismissed markings ---
 
     // Dismiss all current permit notifications for this user
     // Incoming permits (approver)

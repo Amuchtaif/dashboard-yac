@@ -44,12 +44,12 @@ include '../../layouts/header.php';
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
-                    <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                        <th class="px-6 py-4">Santri</th>
-                        <th class="px-6 py-4">Jadwal Kembali</th>
-                        <th class="px-6 py-4">Status</th>
-                        <th class="px-6 py-4">Keterangan</th>
-                        <th class="px-6 py-4 text-right">Aksi</th>
+                    <tr class="bg-slate-50 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                        <th class="px-6 py-4 min-w-[200px]">Santri</th>
+                        <th class="px-6 py-4 min-w-[150px]">Jadwal Kembali</th>
+                        <th class="px-6 py-4 min-w-[120px]">Status</th>
+                        <th class="px-6 py-4 min-w-[200px]">Keterangan</th>
+                        <th class="px-6 py-4 text-right min-w-[150px]">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-sm">

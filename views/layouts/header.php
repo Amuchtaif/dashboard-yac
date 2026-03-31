@@ -204,13 +204,19 @@
     <div class="flex flex-col flex-1 w-0 md:pl-64 overflow-hidden">
 
         <!-- Top Header Bar -->
-        <header class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-8 z-10">
-            <!-- Page Title -->
-            <h1 class="text-xl font-bold text-slate-800">
-            </h1>
+        <header class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-4 md:px-8 z-30 sticky top-0">
+            <!-- Left Side: Hamburger (Mobile) / Page Title (Desktop) -->
+            <div class="flex items-center gap-4">
+                <button type="button" onclick="toggleSidebar()" class="md:hidden text-slate-500 hover:text-slate-700 p-2 rounded-lg hover:bg-slate-50 transition-colors">
+                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+                <!-- Page title removed from header to avoid redundancy with body content -->
+            </div>
 
             <!-- Right Actions: Search + Icons -->
-            <div class="flex items-center gap-6">
+            <div class="flex items-center gap-3 md:gap-6">
                 <!-- Search -->
                 <div class="relative hidden lg:block">
                     <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -221,26 +227,26 @@
                         </svg>
                     </span>
                     <input type="text"
-                        class="bg-slate-50 border border-slate-200 text-slate-600 sm:text-sm rounded-full pl-10 pr-4 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all placeholder:text-slate-400"
+                        class="bg-slate-50 border border-slate-200 text-slate-600 sm:text-sm rounded-full pl-10 pr-4 py-2 w-48 xl:w-64 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all placeholder:text-slate-400"
                         placeholder="Cari pegawai, data...">
                 </div>
 
                 <!-- Notification Icon -->
-                <div class="flex items-center gap-4 text-slate-500">
-                    <button class="relative hover:text-cyan-600 transition-colors">
+                <div class="flex items-center gap-3 md:gap-4 text-slate-500">
+                    <button class="relative hover:text-cyan-600 transition-colors p-1">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
                             <path fill-rule="evenodd"
                                 d="M5.25 9a6.75 6.75 0 0113.5 0v.75c0 2.123.8 4.057 2.118 5.52a.75.75 0 01-.297 1.206c-1.544.57-3.16.99-4.831 1.243a3.75 3.75 0 11-7.48 0 24.585 24.585 0 01-4.831-1.244.75.75 0 01-.298-1.205A8.217 8.217 0 005.25 9.75V9zm4.502 8.9a2.25 2.25 0 104.496 0 25.057 25.057 0 01-4.496 0z"
                                 clip-rule="evenodd" />
                         </svg>
                         <span
-                            class="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"></span>
+                            class="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"></span>
                     </button>
 
-                        <!-- Profile Dropdown -->
-                    <div class="relative ml-2" id="profile-dropdown-container">
+                    <!-- Profile Dropdown -->
+                    <div class="relative ml-1" id="profile-dropdown-container">
                         <button type="button" onclick="toggleProfileDropdown()"
-                            class="flex items-center gap-2 focus:outline-none">
+                            class="flex items-center focus:outline-none transition-transform hover:scale-105 active:scale-95">
                             <?php 
                                 $profile_name = $_SESSION['user_name'] ?? 'User';
                                 $profile_photo = $_SESSION['user_photo'] ?? '';
@@ -248,53 +254,47 @@
                                     ? BASE_URL . '/public/uploads/employees/' . $profile_photo 
                                     : "https://ui-avatars.com/api/?name=" . urlencode($profile_name) . "&background=random";
                             ?>
-                            <img class="h-8 w-8 rounded-full border border-slate-200 object-cover"
+                            <img class="h-8 w-8 rounded-full border border-slate-200 object-cover shadow-sm"
                                 src="<?php echo $avatar_url; ?>" alt="User Profile">
-                            <span class="hidden md:block text-sm font-medium text-slate-700"><?php echo htmlspecialchars($profile_name); ?></span>
-                            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 9l-7 7-7-7"></path>
-                            </svg>
+                            <span class="hidden md:block ml-2 text-sm font-semibold text-slate-700"><?php echo htmlspecialchars($profile_name); ?></span>
                         </button>
 
                         <!-- Dropdown Menu -->
                         <div id="profile-menu"
-                            class="hidden absolute right-0 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
-                            <a href="#" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Pengaturan</a>
+                            class="hidden absolute right-0 mt-3 w-48 origin-top-right rounded-xl bg-white py-2 shadow-xl ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                            <a href="#" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 font-medium">Pengaturan</a>
+                            <div class="border-t border-slate-100 my-1"></div>
                             <a href="<?php url('logic/auth/logout.php'); ?>"
-                                class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Keluar</a>
+                                class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-semibold">Keluar</a>
                         </div>
                     </div>
                 </div>
-
-                <script>
-                    function toggleProfileDropdown() {
-                        const menu = document.getElementById('profile-menu');
-                        menu.classList.toggle('hidden');
-                    }
-
-                    // Close when clicking outside
-                    document.addEventListener('click', function (e) {
-                        const container = document.getElementById('profile-dropdown-container');
-                        const menu = document.getElementById('profile-menu');
-                        if (container && !container.contains(e.target)) {
-                            menu.classList.add('hidden');
-                        }
-                    });
-                </script>
             </div>
         </header>
 
-        <!-- Mobile Menu Toggle (Hidden on Desktop) -->
-        <div class="md:hidden flex items-center justify-between bg-white border-b border-slate-200 px-4 py-2">
-            <span class="font-bold text-slate-700">AttendSys</span>
-            <button type="button" class="text-slate-500 hover:text-slate-700">
-                <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-            </button>
-        </div>
+        <!-- Sidebar Backdrop (Mobile Only) -->
+        <div id="sidebar-backdrop" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/60 z-40 hidden md:hidden transition-opacity duration-300 opacity-0 backdrop-blur-sm"></div>
+
+        <script>
+            function toggleSidebar() {
+                const sidebar = document.getElementById('main-sidebar');
+                const backdrop = document.getElementById('sidebar-backdrop');
+                
+                if (sidebar.classList.contains('-translate-x-full')) {
+                    // Open
+                    sidebar.classList.remove('-translate-x-full');
+                    sidebar.classList.add('translate-x-0');
+                    backdrop.classList.remove('hidden');
+                    setTimeout(() => backdrop.classList.add('opacity-100'), 10);
+                } else {
+                    // Close
+                    sidebar.classList.add('-translate-x-full');
+                    sidebar.classList.remove('translate-x-0');
+                    backdrop.classList.remove('opacity-100');
+                    setTimeout(() => backdrop.classList.add('hidden'), 300);
+                }
+            }
+        </script>
 
         <main class="flex-1 overflow-y-auto focus:outline-none">
             <div class="py-6 px-4 sm:px-6 lg:px-8">

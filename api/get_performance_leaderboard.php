@@ -25,11 +25,13 @@ try {
     $query = "
         SELECT 
             id,
+            nik,
             full_name,
             total_points
         FROM (
             SELECT 
                 e.id,
+                e.nik,
                 e.full_name,
                 COALESCE(att.points, 0) + COALESCE(meet.points, 0) as total_points
             FROM employees e
@@ -83,6 +85,7 @@ try {
 
         $item = [
             "id" => intval($row['id']),
+            "nik" => $row['nik'] ?? '-',
             "full_name" => $row['full_name'],
             "total_points" => intval($row['total_points']),
             "rank" => $display_rank,

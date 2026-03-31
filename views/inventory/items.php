@@ -75,20 +75,20 @@ require_once __DIR__ . '/../layouts/header.php';
     </div>
 
     <div class="flex flex-col">
-        <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-            <table class="min-w-full divide-y divide-gray-200 table-fixed">
+        <div class="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+            <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
                         <th scope="col" class="relative py-3.5 pl-4 pr-3 sm:pl-6 w-10 text-center">
                             <input type="checkbox" id="selectAll" onclick="toggleAllCheckboxes(this)" class="custom-checkbox">
                         </th>
-                        <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 sm:pl-6 w-12 text-center">No</th>
-                        <th scope="col" class="py-3.5 px-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 w-20">Foto</th>
-                        <th scope="col" class="py-3.5 px-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Barang & Kode</th>
-                        <th scope="col" class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Lokasi</th>
-                        <th scope="col" class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">Jumlah</th>
-                        <th scope="col" class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">Kondisi</th>
-                        <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">Aksi</th>
+                        <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-xs font-bold uppercase tracking-wider text-gray-500 sm:pl-6 w-12 text-center">No</th>
+                        <th scope="col" class="py-3.5 px-3 text-left text-xs font-bold uppercase tracking-wider text-gray-500 w-20">Foto</th>
+                        <th scope="col" class="py-3.5 px-3 text-left text-xs font-bold uppercase tracking-wider text-gray-500 min-w-[200px]">Barang & Kode</th>
+                        <th scope="col" class="px-3 py-3.5 text-left text-xs font-bold uppercase tracking-wider text-gray-500 min-w-[200px]">Lokasi</th>
+                        <th scope="col" class="px-3 py-3.5 text-center text-xs font-bold uppercase tracking-wider text-gray-500 min-w-[80px]">Jumlah</th>
+                        <th scope="col" class="px-3 py-3.5 text-center text-xs font-bold uppercase tracking-wider text-gray-500 min-w-[120px]">Kondisi</th>
+                        <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6 text-right text-xs font-bold uppercase tracking-wider text-gray-500 min-w-[100px]">Aksi</th>
                     </tr>
                 </thead>
                 <tbody id="items-table-body" class="divide-y divide-gray-200 bg-white">
@@ -101,20 +101,27 @@ require_once __DIR__ . '/../layouts/header.php';
     </div>
 
     <!-- Dynamic Pagination -->
-    <div class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 md:rounded-b-lg">
-        <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+    <div class="flex flex-col sm:flex-row items-center justify-between border-t border-gray-200 bg-white px-4 py-4 sm:py-3 sm:px-6 md:rounded-b-lg gap-4">
+        <!-- Mobile Pagination Controls -->
+        <div class="flex sm:hidden w-full justify-between items-center bg-slate-50 p-2 rounded-lg">
+             <button onclick="changePage(currentPage - 1)" class="rounded-lg border border-slate-300 px-4 py-2 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 shadow-sm transition-all" id="prev-btn-mobile">Prev</button>
+             <span class="text-xs font-bold text-slate-500 uppercase tracking-tighter" id="pagination-info-mobile">Page 1 of 1</span>
+             <button onclick="changePage(currentPage + 1)" class="rounded-lg border border-slate-300 px-4 py-2 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 shadow-sm transition-all" id="next-btn-mobile">Next</button>
+        </div>
+
+        <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between w-full">
             <div class="flex items-center gap-4">
-                <select id="rowsPerPage" onchange="changeRowsPerPage()" class="block rounded-md border-0 py-1.5 pl-3 pr-8 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-cyan-600 sm:text-xs sm:leading-6">
+                <select id="rowsPerPage" onchange="changeRowsPerPage()" class="block rounded-xl border-slate-200 py-1.5 pl-3 pr-8 text-slate-700 text-xs font-bold bg-slate-50 focus:ring-4 focus:ring-cyan-500/10 focus:border-cyan-500 transition-all appearance-none cursor-pointer">
                     <option value="10">Tampilkan 10</option>
                     <option value="50">Tampilkan 50</option>
                     <option value="100">Tampilkan 100</option>
                     <option value="all">Semua</option>
                 </select>
-                <p class="text-sm text-gray-700" id="pagination-info">Menampilkan 0 hasil</p>
+                <p class="text-sm text-slate-600 font-medium" id="pagination-info">Menampilkan 0 hasil</p>
             </div>
             
             <div>
-                <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination" id="pagination-controls">
+                <nav class="isolate inline-flex -space-x-px rounded-xl shadow-sm border border-slate-200 overflow-hidden" aria-label="Pagination" id="pagination-controls">
                     <!-- Rendered by JS -->
                 </nav>
             </div>
@@ -330,9 +337,15 @@ require_once __DIR__ . '/../layouts/header.php';
         const totalPages = Math.ceil(totalItems / rowsPerPage);
         const controls = document.getElementById('pagination-controls');
         const info = document.getElementById('pagination-info');
+        
+        // Mobile elements
+        const infoMobile = document.getElementById('pagination-info-mobile');
+        const prevBtnMobile = document.getElementById('prev-btn-mobile');
+        const nextBtnMobile = document.getElementById('next-btn-mobile');
 
         if (totalItems === 0) {
             info.innerHTML = "Menampilkan 0 hasil";
+            if(infoMobile) infoMobile.innerHTML = "Page 0 of 0";
             controls.innerHTML = '';
             return;
         }
@@ -341,61 +354,54 @@ require_once __DIR__ . '/../layouts/header.php';
         const endIdx = Math.min(currentPage * rowsPerPage, totalItems);
         info.innerHTML = `Menampilkan <span class="font-medium">${startIdx}</span> sampai <span class="font-medium">${endIdx}</span> dari <span class="font-medium">${totalItems}</span> hasil`;
 
+        if(infoMobile) infoMobile.innerHTML = `Page ${currentPage} of ${totalPages}`;
+        if(prevBtnMobile) {
+            prevBtnMobile.disabled = currentPage === 1;
+            prevBtnMobile.classList.toggle('opacity-50', currentPage === 1);
+            prevBtnMobile.classList.toggle('cursor-not-allowed', currentPage === 1);
+        }
+        if(nextBtnMobile) {
+            nextBtnMobile.disabled = currentPage === totalPages;
+            nextBtnMobile.classList.toggle('opacity-50', currentPage === totalPages);
+            nextBtnMobile.classList.toggle('cursor-not-allowed', currentPage === totalPages);
+        }
+
         let html = '';
 
+        // Desktop Pagination Links
         if (currentPage > 1) {
             html += `
-                <a href="javascript:void(0)" onclick="changePage(${currentPage - 1})" class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
-                    <span class="sr-only">Previous</span>
+                <a href="javascript:void(0)" onclick="changePage(${currentPage - 1})" class="relative inline-flex items-center px-3 py-2 text-slate-400 hover:bg-slate-50 focus:z-20 transition-colors">
                     <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                         <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
                     </svg>
                 </a>
             `;
-        } else {
-            html += `
-                <span class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-300 ring-1 ring-inset ring-gray-200 cursor-not-allowed">
-                    <span class="sr-only">Previous</span>
-                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
-                    </svg>
-                </span>
-            `;
         }
 
-        const range = 2; // Number of pages around current page
+        const range = 2;
         const initial_num = currentPage - range;
         const condition_limit_num = (currentPage + range) + 1;
 
         for (let i = 1; i <= totalPages; i++) {
             if (i === 1 || i === totalPages || (i >= initial_num && i < condition_limit_num)) {
                 if (i === currentPage) {
-                    html += `<a href="javascript:void(0)" class="relative inline-flex items-center px-4 py-2 text-sm font-semibold bg-cyan-600 text-white focus-visible:outline-cyan-600 focus:z-20 focus:outline-offset-0">${i}</a>`;
+                    html += `<a href="javascript:void(0)" class="relative inline-flex items-center px-4 py-2 text-sm font-bold bg-cyan-600 text-white transition-colors">${i}</a>`;
                 } else {
-                    html += `<a href="javascript:void(0)" onclick="changePage(${i})" class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">${i}</a>`;
+                    html += `<a href="javascript:void(0)" onclick="changePage(${i})" class="relative inline-flex items-center px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 border-x border-slate-100 transition-colors">${i}</a>`;
                 }
             } else if (i === initial_num - 1 || i === condition_limit_num) {
-                html += `<span class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 focus:outline-offset-0">...</span>`;
+                html += `<span class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-slate-400 bg-slate-50/50">...</span>`;
             }
         }
 
         if (currentPage < totalPages) {
             html += `
-                <a href="javascript:void(0)" onclick="changePage(${currentPage + 1})" class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
-                    <span class="sr-only">Next</span>
+                <a href="javascript:void(0)" onclick="changePage(${currentPage + 1})" class="relative inline-flex items-center px-3 py-2 text-slate-400 hover:bg-slate-50 focus:z-20 transition-colors">
                     <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                         <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
                     </svg>
                 </a>
-            `;
-        } else {
-             html += `
-                <span class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-300 ring-1 ring-inset ring-gray-200 cursor-not-allowed">
-                    <span class="sr-only">Next</span>
-                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
-                    </svg>
-                </span>
             `;
         }
 

@@ -161,7 +161,7 @@ require_once __DIR__ . '/../layouts/header.php';
         `;
         
         const actionArea = document.createElement('div');
-        actionArea.className = "flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity";
+        actionArea.className = "flex items-center gap-2 transition-opacity";
         
         // Buttons
         const btnAdd = document.createElement('button');

@@ -13,8 +13,13 @@ if (!$room_id) {
 $db = new Database();
 $conn = $db->getConnection();
 
-// Fetch room info
-$room_stmt = $conn->prepare("SELECT br.*, e.full_name as supervisor_name FROM boarding_rooms br JOIN employees e ON br.supervisor_id = e.id WHERE br.id = ?");
+// Fetch room info with multiple supervisors
+$room_stmt = $conn->prepare("
+    SELECT br.*, 
+    (SELECT GROUP_CONCAT(e.full_name SEPARATOR ', ') FROM boarding_room_supervisors brs JOIN employees e ON brs.supervisor_id = e.id WHERE brs.room_id = br.id) as supervisor_name 
+    FROM boarding_rooms br 
+    WHERE br.id = ?
+");
 $room_stmt->execute([$room_id]);
 $room = $room_stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -81,12 +86,12 @@ include '../../layouts/header.php';
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
-                    <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                        <th class="px-6 py-4">No.</th>
-                        <th class="px-6 py-4">Nama Santri</th>
-                        <th class="px-6 py-4">Nomor Induk</th>
-                        <th class="px-6 py-4">Kelas</th>
-                        <th class="px-6 py-4 text-right">Aksi</th>
+                    <tr class="bg-slate-50 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                        <th class="px-6 py-4 w-16">No.</th>
+                        <th class="px-6 py-4 min-w-[200px]">Nama Santri</th>
+                        <th class="px-6 py-4 min-w-[150px]">Nomor Induk</th>
+                        <th class="px-6 py-4 min-w-[120px]">Kelas</th>
+                        <th class="px-6 py-4 text-right min-w-[100px]">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-sm">

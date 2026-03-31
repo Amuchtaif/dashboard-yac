@@ -89,25 +89,13 @@ include '../layouts/header.php';
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-slate-200">
                 <thead class="bg-slate-50">
-                    <tr>
-                        <th scope="col"
-                            class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                            Title / Division</th>
-                        <th scope="col"
-                            class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                            Creator</th>
-                        <th scope="col"
-                            class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                            Date & Time</th>
-                        <th scope="col"
-                            class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                            Type</th>
-                        <th scope="col"
-                            class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                            Location</th>
-                        <th scope="col"
-                            class="px-6 py-4 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                            Actions</th>
+                    <tr class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                        <th scope="col" class="px-6 py-4 text-left min-w-[250px]">Judul / Divisi</th>
+                        <th scope="col" class="px-6 py-4 text-left min-w-[180px]">Dibuat Oleh</th>
+                        <th scope="col" class="px-6 py-4 text-left min-w-[180px]">Tanggal & Waktu</th>
+                        <th scope="col" class="px-6 py-4 text-left min-w-[100px]">Tipe</th>
+                        <th scope="col" class="px-6 py-4 text-left min-w-[200px]">Lokasi</th>
+                        <th scope="col" class="px-6 py-4 text-center w-32 border-none">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-slate-200">

@@ -46,23 +46,7 @@ try {
         exit();
     }
 
-    // ========== 1. AUTO-MIGRATION: Ensure notifications table exists ==========
-    try {
-        $db->exec("CREATE TABLE IF NOT EXISTS `notifications` (
-            `id` INT AUTO_INCREMENT PRIMARY KEY,
-            `user_id` INT NOT NULL,
-            `title` VARCHAR(255) NOT NULL,
-            `body` TEXT,
-            `type` VARCHAR(50) DEFAULT 'general',
-            `reference_id` INT DEFAULT NULL,
-            `is_read` TINYINT(1) DEFAULT 0,
-            `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            INDEX `idx_user` (`user_id`),
-            INDEX `idx_type` (`type`)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-    } catch (Exception $e) {
-        // Table might already exist
-    }
+    // --- Auto-migration removed for performance ---
 
     // Handle File Attachment Upload
     $attachmentName = null;

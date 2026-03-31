@@ -129,14 +129,15 @@ include '../layouts/header.php';
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
-                    <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                <thead>
+                    <tr class="bg-slate-50 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                         <th class="px-6 py-4 w-16 text-center">No</th>
-                        <th class="px-6 py-4">Tanggal</th>
-                        <th class="px-6 py-4">Nama Santri</th>
-                        <th class="px-6 py-4 text-center">Kelas</th>
-                        <th class="px-6 py-4 text-center">Halaqoh</th>
-                        <th class="px-6 py-4 text-center">Status</th>
-                        <th class="px-6 py-4">Pengampu</th>
+                        <th class="px-6 py-4 min-w-[120px]">Tanggal</th>
+                        <th class="px-6 py-4 min-w-[200px]">Nama Santri</th>
+                        <th class="px-6 py-4 text-center min-w-[150px]">Kelas</th>
+                        <th class="px-6 py-4 text-center min-w-[120px]">Halaqoh</th>
+                        <th class="px-6 py-4 text-center min-w-[100px]">Status</th>
+                        <th class="px-6 py-4 min-w-[200px]">Pengampu</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-sm">

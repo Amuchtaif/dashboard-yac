@@ -15,8 +15,13 @@ if (!$room_id) {
 $db = new Database();
 $conn = $db->getConnection();
 
-// Fetch room info
-$room_stmt = $conn->prepare("SELECT br.*, e.full_name as supervisor_name FROM boarding_rooms br JOIN employees e ON br.supervisor_id = e.id WHERE br.id = ?");
+// Fetch room info with multiple supervisors
+$room_stmt = $conn->prepare("
+    SELECT br.*, 
+    (SELECT GROUP_CONCAT(e.full_name SEPARATOR ', ') FROM boarding_room_supervisors brs JOIN employees e ON brs.supervisor_id = e.id WHERE brs.room_id = br.id) as supervisor_name 
+    FROM boarding_rooms br 
+    WHERE br.id = ?
+");
 $room_stmt->execute([$room_id]);
 $room = $room_stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -122,9 +127,9 @@ include '../../layouts/header.php';
                     <thead>
                         <tr class="bg-slate-50 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                             <th class="px-6 py-4 w-12 text-center">No.</th>
-                            <th class="px-6 py-4">Santri</th>
-                            <th class="px-6 py-4 text-center">Status Kehadiran</th>
-                            <th class="px-6 py-4">Keterangan / Catatan</th>
+                            <th class="px-6 py-4 min-w-[200px]">Santri</th>
+                            <th class="px-6 py-4 text-center min-w-[150px]">Status Kehadiran</th>
+                            <th class="px-6 py-4 min-w-[200px] border-none">Keterangan / Catatan</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 text-sm">

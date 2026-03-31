@@ -171,24 +171,24 @@ include '../layouts/header.php';
                                 <th colspan="2" class="group-header border-l border-slate-200 bg-cyan-50/30 text-cyan-700">Fitur Operasional</th>
                                 <th colspan="2" class="group-header border-l border-slate-200 bg-indigo-50/30 text-indigo-700">Manajemen Konten</th>
                             </tr>
-                            <tr class="bg-slate-50/80 backdrop-blur-sm">
-                                <th scope="col" class="sticky-col py-3.5 pl-4 pr-3 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500 sm:pl-6 w-12 border-b border-slate-200">No.</th>
-                                <th scope="col" class="sticky-col py-3.5 pl-4 pr-3 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500 sm:pl-6 min-w-[180px] border-b border-slate-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">Jabatan</th>
-                                <th scope="col" class="px-3 py-3.5 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">Level</th>
+                            <tr class="bg-slate-50/80 backdrop-blur-sm text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                                <th scope="col" class="sticky-col py-3.5 pl-4 pr-3 text-left sm:pl-6 w-12 border-b border-slate-200">No.</th>
+                                <th scope="col" class="sticky-col py-3.5 pl-4 pr-3 text-left sm:pl-6 min-w-[180px] border-b border-slate-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">Jabatan</th>
+                                <th scope="col" class="px-3 py-3.5 text-left border-b border-slate-200">Level</th>
                                 
                                 <!-- Akses Utama -->
-                                <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200 border-l border-slate-100">Kepala Bidang</th>
-                                <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">Kesantrian</th>
-                                <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">Tahfidz</th>
-                                <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">Pendidikan</th>
+                                <th scope="col" class="px-3 py-3.5 text-center border-b border-slate-200 border-l border-slate-100 min-w-[100px]">Kepala Bidang</th>
+                                <th scope="col" class="px-3 py-3.5 text-center border-b border-slate-200 min-w-[100px]">Kesantrian</th>
+                                <th scope="col" class="px-3 py-3.5 text-center border-b border-slate-200 min-w-[100px]">Tahfidz</th>
+                                <th scope="col" class="px-3 py-3.5 text-center border-b border-slate-200 min-w-[100px]">Pendidikan</th>
                                 
                                 <!-- Operasional -->
-                                <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200 border-l border-slate-100">Buat Rapat</th>
-                                <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">Izin Pegawai</th>
+                                <th scope="col" class="px-3 py-3.5 text-center border-b border-slate-200 border-l border-slate-100 min-w-[100px]">Buat Rapat</th>
+                                <th scope="col" class="px-3 py-3.5 text-center border-b border-slate-200 min-w-[100px]">Izin Pegawai</th>
                                 
                                 <!-- Manajemen -->
-                                <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200 border-l border-slate-100">Berita</th>
-                                <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">Penugasan</th>
+                                <th scope="col" class="px-3 py-3.5 text-center border-b border-slate-200 border-l border-slate-100 min-w-[100px]">Berita</th>
+                                <th scope="col" class="px-3 py-3.5 text-center border-b border-slate-200 min-w-[100px] border-none">Penugasan</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 bg-white">

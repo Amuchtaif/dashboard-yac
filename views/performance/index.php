@@ -330,29 +330,19 @@ include '../layouts/header.php';
             </h3>
         </div>
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
+            <table class="min-w-full divide-y divide-slate-200">
                 <thead class="bg-slate-50">
-                    <tr>
-                        <th scope="col" class="py-3.5 pl-6 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 w-16">Rank</th>
-                        <th scope="col" class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Pegawai</th>
-                        <th scope="col" class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Bidang</th>
-                        <th scope="col" class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">
-                            <span class="text-emerald-600">Hadir</span>
-                        </th>
-                        <th scope="col" class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">
-                            <span class="text-red-500">Telat</span>
-                        </th>
-                        <th scope="col" class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">
-                            <span class="text-emerald-600">Pulang</span>
-                        </th>
-                        <th scope="col" class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">
-                            <span class="text-red-500">Cepat</span>
-                        </th>
-                        <th scope="col" class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">
-                            <span class="text-blue-600">Rapat</span>
-                        </th>
-                        <th scope="col" class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">Total Poin</th>
-                        <th scope="col" class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">Status</th>
+                    <tr class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                        <th scope="col" class="py-3.5 pl-6 pr-3 text-left w-16">Rank</th>
+                        <th scope="col" class="px-3 py-3.5 text-left min-w-[220px]">Pegawai</th>
+                        <th scope="col" class="px-3 py-3.5 text-left min-w-[180px]">Bidang</th>
+                        <th scope="col" class="px-3 py-3.5 text-center min-w-[100px] text-emerald-600">Hadir</th>
+                        <th scope="col" class="px-3 py-3.5 text-center min-w-[100px] text-rose-500">Telat</th>
+                        <th scope="col" class="px-3 py-3.5 text-center min-w-[100px] text-emerald-600">Pulang</th>
+                        <th scope="col" class="px-3 py-3.5 text-center min-w-[100px] text-rose-500">Cepat</th>
+                        <th scope="col" class="px-3 py-3.5 text-center min-w-[100px] text-blue-600">Rapat</th>
+                        <th scope="col" class="px-3 py-3.5 text-center min-w-[120px]">Total Poin</th>
+                        <th scope="col" class="px-3 py-3.5 text-center min-w-[150px]">Status</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100 bg-white">

@@ -78,26 +78,26 @@ include '../layouts/header.php';
     </div>
 
     <!-- Members Table -->
-    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                        <th class="px-6 py-4">No.</th>
-                        <th class="px-6 py-4">Nama Santri</th>
-                        <th class="px-6 py-4">Nomor Induk</th>
-                        <th class="px-6 py-4">Kelas</th>
-                        <th class="px-6 py-4 text-right">Aksi</th>
+    <div class="mt-8 flex flex-col">
+        <div class="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 md:rounded-xl bg-white">
+            <table class="min-w-full divide-y divide-slate-200">
+                <thead class="bg-slate-50">
+                    <tr class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                        <th scope="col" class="px-6 py-4 text-left w-16">No.</th>
+                        <th scope="col" class="px-6 py-4 text-left min-w-[200px]">Nama Santri</th>
+                        <th scope="col" class="px-6 py-4 text-left min-w-[150px]">Nomor Induk</th>
+                        <th scope="col" class="px-6 py-4 text-left min-w-[120px]">Kelas</th>
+                        <th scope="col" class="relative px-6 py-4 text-right w-24 border-none">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 text-sm">
+                <tbody class="divide-y divide-slate-100 bg-white">
                     <?php if (count($members) > 0): ?>
                         <?php foreach ($members as $index => $m): ?>
-                            <tr class="hover:bg-slate-50/50 transition-colors">
-                                <td class="px-6 py-4 text-slate-400 font-medium"><?php echo $index + 1; ?>.</td>
-                                <td class="px-6 py-4">
+                            <tr class="hover:bg-slate-50/50 transition-colors group">
+                                <td class="px-6 py-4 whitespace-nowrap text-slate-400 font-medium"><?php echo $index + 1; ?>.</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center">
-                                        <div class="h-9 w-9 rounded-full bg-cyan-50 flex items-center justify-center text-cyan-600 font-bold border border-white ring-2 ring-cyan-50">
+                                        <div class="h-9 w-9 rounded-full bg-cyan-50 flex items-center justify-center text-cyan-600 font-bold border border-white ring-2 ring-cyan-50 shadow-sm">
                                             <?php echo substr($m['nama_siswa'], 0, 1); ?>
                                         </div>
                                         <div class="ml-3">
@@ -105,12 +105,16 @@ include '../layouts/header.php';
                                         </div>
                                     </div>
                                 </td>
-                                <td class="px-6 py-4 text-slate-500 font-mono text-xs italic"><?php echo htmlspecialchars($m['student_nik'] ?? '-'); ?></td>
-                                <td class="px-6 py-4">
-                                    <span class="text-xs font-medium text-slate-500"><?php echo htmlspecialchars($m['class_name'] ?? '-'); ?></span>
+                                <td class="px-6 py-4 whitespace-nowrap text-slate-500 font-mono text-xs italic tracking-tighter">
+                                    <?php echo htmlspecialchars($m['student_nik'] ?? '-'); ?>
                                 </td>
-                                <td class="px-6 py-4 text-right">
-                                    <button onclick="removeMember(<?php echo $m['id']; ?>)" class="text-slate-400 hover:text-red-600 transition-colors p-2" title="Hapus dari kelompok">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center rounded-lg bg-slate-50 px-2.5 py-1 text-[11px] font-bold text-slate-600 ring-1 ring-inset ring-slate-500/10 uppercase">
+                                        <?php echo htmlspecialchars($m['class_name'] ?? '-'); ?>
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right">
+                                    <button onclick="removeMember(<?php echo $m['id']; ?>)" class="p-2 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all" title="Hapus dari kelompok">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                         </svg>
@@ -120,7 +124,14 @@ include '../layouts/header.php';
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="5" class="px-6 py-20 text-center text-slate-400 italic">Belum ada santri di kelompok ini.</td>
+                            <td colspan="5" class="px-6 py-20 text-center">
+                                <div class="flex flex-col items-center">
+                                    <svg class="h-10 w-10 text-slate-200 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                    </svg>
+                                    <p class="text-sm text-slate-400 font-medium italic">Belum ada santri di kelompok ini.</p>
+                                </div>
+                            </td>
                         </tr>
                     <?php endif; ?>
                 </tbody>

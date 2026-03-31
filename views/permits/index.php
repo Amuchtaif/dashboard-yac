@@ -237,16 +237,15 @@ include '../layouts/header.php';
 
         <!-- Table -->
         <div class="overflow-x-auto">
-            <table class="min-w-full text-left text-sm whitespace-nowrap">
-                <thead
-                    class="bg-gray-50 text-slate-500 border-b border-slate-100 uppercase tracking-wider text-xs font-semibold">
-                    <tr>
-                        <th scope="col" class="px-6 py-4">Pegawai</th>
-                        <th scope="col" class="px-6 py-4">Jenis</th>
-                        <th scope="col" class="px-6 py-4">Periode</th>
-                        <th scope="col" class="px-6 py-4">Alasan</th>
-                        <th scope="col" class="px-6 py-4">Status</th>
-                        <th scope="col" class="px-6 py-4 text-right">Aksi</th>
+            <table class="min-w-full text-left text-sm">
+                <thead class="bg-gray-50 border-b border-slate-100">
+                    <tr class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                        <th scope="col" class="px-6 py-4 min-w-[200px]">Pegawai</th>
+                        <th scope="col" class="px-6 py-4 min-w-[120px]">Jenis</th>
+                        <th scope="col" class="px-6 py-4 min-w-[150px]">Periode</th>
+                        <th scope="col" class="px-6 py-4 min-w-[200px]">Alasan</th>
+                        <th scope="col" class="px-6 py-4 min-w-[120px]">Status</th>
+                        <th scope="col" class="px-6 py-4 text-right min-w-[100px]">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 bg-white">
@@ -384,59 +383,61 @@ include '../layouts/header.php';
         </div>
 
         <!-- Pagination -->
-        <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
+        <div class="px-6 py-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <!-- Mobile Pagination Info -->
+            <div class="flex sm:hidden flex-col items-center gap-2 w-full">
+                <p class="text-xs text-slate-500">
+                    Menampilkan <span class="font-bold text-slate-900"><?php echo ($total_rows > 0) ? $offset + 1 : 0; ?></span> - <span class="font-bold text-slate-900"><?php echo min($offset + $limit, $total_rows); ?></span> dari <span class="font-bold text-slate-900"><?php echo $total_rows; ?></span>
+                </p>
+                <div class="flex gap-2">
+                    <?php if ($page > 1): ?>
+                        <a href="?page=<?php echo $page - 1; ?>&tab=<?php echo $tab; ?>&type=<?php echo $permit_type; ?>" class="rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 transition-all">Prev</a>
+                    <?php endif; ?>
+                    <?php if ($page < $total_pages): ?>
+                        <a href="?page=<?php echo $page + 1; ?>&tab=<?php echo $tab; ?>&type=<?php echo $permit_type; ?>" class="rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 transition-all">Next</a>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <!-- Desktop Pagination Info -->
             <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                 <div>
-                    <p class="text-sm text-gray-700">
-                        Menampilkan
-                        <span class="font-medium"><?php echo ($offset + 1); ?></span>
-                        sampai
-                        <span class="font-medium"><?php echo min($offset + $limit, $total_rows); ?></span>
-                        dari
-                        <span class="font-medium"><?php echo $total_rows; ?></span>
-                        hasil
+                    <p class="text-sm text-slate-600 font-medium">
+                        Menampilkan <span class="text-slate-900 font-bold"><?php echo ($total_rows > 0) ? $offset + 1 : 0; ?></span> sampai <span class="text-slate-900 font-bold"><?php echo min($offset + $limit, $total_rows); ?></span> dari <span class="text-slate-900 font-bold"><?php echo $total_rows; ?></span> hasil
                     </p>
                 </div>
                 <div>
-                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                    <nav class="isolate inline-flex -space-x-px rounded-xl shadow-sm border border-slate-200 overflow-hidden" aria-label="Pagination">
                         <!-- Previous -->
                         <?php if ($page > 1): ?>
                             <a href="?page=<?php echo $page - 1; ?>&tab=<?php echo $tab; ?>&type=<?php echo $permit_type; ?>"
-                                class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                class="relative inline-flex items-center px-3 py-2 text-slate-400 hover:bg-slate-50 focus:z-20 transition-colors">
                                 <span class="sr-only">Previous</span>
-                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
-                                    fill="currentColor" aria-hidden="true">
-                                    <path fill-rule="evenodd"
-                                        d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
-                                        clip-rule="evenodd" />
+                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                    <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
                                 </svg>
                             </a>
                         <?php endif; ?>
 
                         <!-- Numbers -->
                         <?php for ($i = 1; $i <= $total_pages; $i++): ?>
-                            <!-- Show valid pages: first, last, current, and surrounding -->
                             <?php if ($i == 1 || $i == $total_pages || ($i >= $page - 2 && $i <= $page + 2)): ?>
                                 <a href="?page=<?php echo $i; ?>&tab=<?php echo $tab; ?>&type=<?php echo $permit_type; ?>"
-                                    class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium <?php echo $i === $page ? 'bg-cyan-50 text-cyan-600 z-10' : 'bg-white text-gray-500 hover:bg-gray-50'; ?>">
+                                    class="relative inline-flex items-center px-4 py-2 text-sm font-bold <?php echo $i === $page ? 'bg-cyan-600 text-white' : 'text-slate-700 hover:bg-slate-50'; ?> border-x border-slate-100 transition-colors">
                                     <?php echo $i; ?>
                                 </a>
                             <?php elseif ($i == $page - 3 || $i == $page + 3): ?>
-                                <span
-                                    class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">...</span>
+                                <span class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-slate-400 bg-slate-50/50">...</span>
                             <?php endif; ?>
                         <?php endfor; ?>
 
                         <!-- Next -->
                         <?php if ($page < $total_pages): ?>
                             <a href="?page=<?php echo $page + 1; ?>&tab=<?php echo $tab; ?>&type=<?php echo $permit_type; ?>"
-                                class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                class="relative inline-flex items-center px-3 py-2 text-slate-400 hover:bg-slate-50 focus:z-20 transition-colors">
                                 <span class="sr-only">Next</span>
-                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
-                                    fill="currentColor" aria-hidden="true">
-                                    <path fill-rule="evenodd"
-                                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                                        clip-rule="evenodd" />
+                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
                                 </svg>
                             </a>
                         <?php endif; ?>

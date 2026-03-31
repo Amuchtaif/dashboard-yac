@@ -10,12 +10,13 @@ $db = new Database();
 $conn = $db->getConnection();
 
 // --- Fetch Data ---
-// 1. Fetch Boarding Rooms with Supervisors
+// 1. Fetch Boarding Rooms with multiple Supervisors
 $rooms_query = "
-    SELECT br.*, e.full_name as supervisor_name,
+    SELECT br.*, 
+    (SELECT GROUP_CONCAT(e.full_name SEPARATOR ', ') FROM boarding_room_supervisors brs JOIN employees e ON brs.supervisor_id = e.id WHERE brs.room_id = br.id) as supervisor_name,
+    (SELECT GROUP_CONCAT(e.id) FROM boarding_room_supervisors brs JOIN employees e ON brs.supervisor_id = e.id WHERE brs.room_id = br.id) as supervisor_ids,
     (SELECT COUNT(*) FROM boarding_room_members WHERE room_id = br.id) as member_count
     FROM boarding_rooms br
-    JOIN employees e ON br.supervisor_id = e.id
     ORDER BY br.room_name ASC
 ";
 $rooms = $conn->query($rooms_query)->fetchAll(PDO::FETCH_ASSOC);
@@ -63,7 +64,12 @@ include '../../layouts/header.php';
                                     <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Kamar/Gedung Asrama</p>
                                 </div>
                             </div>
-                            <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div class="flex gap-1 transition-opacity">
+                                <button onclick="editRoom(<?php echo htmlspecialchars(json_encode($room)); ?>)" class="p-2 text-slate-400 hover:text-cyan-600 transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                </button>
                                 <button onclick="deleteRoom(<?php echo $room['id']; ?>)" class="p-2 text-slate-400 hover:text-red-600 transition-colors">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -118,10 +124,11 @@ include '../../layouts/header.php';
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
         <div class="inline-block align-bottom bg-white rounded-2xl text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-slate-200">
             <form action="../../../logic/boarding/manage_rooms.php" method="POST">
-                <input type="hidden" name="action" value="create_room">
+                <input type="hidden" name="action" value="create_room" id="room-form-action">
+                <input type="hidden" name="room_id" id="room-form-id">
                 <div class="bg-white px-8 pt-8 pb-6 rounded-t-2xl">
                     <div class="flex justify-between items-center mb-6">
-                        <h3 class="text-xl font-bold text-slate-800">Tambah Asrama Baru</h3>
+                        <h3 class="text-xl font-bold text-slate-800" id="room-modal-title">Tambah Asrama Baru</h3>
                         <button type="button" onclick="closeModal('modal-add-room')" class="text-slate-400 hover:text-slate-600">
                             <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                         </button>
@@ -130,12 +137,12 @@ include '../../layouts/header.php';
                     <div class="space-y-5">
                         <div>
                             <label class="block text-sm font-semibold text-slate-700 mb-2">Nama Asrama / Kamar</label>
-                            <input type="text" name="room_name" required placeholder="Contoh: Asrama Abu Bakar - Kamar 01"
+                            <input type="text" name="room_name" id="room-name-input" required placeholder="Contoh: Asrama Abu Bakar - Kamar 01"
                                 class="block w-full rounded-xl border-slate-200 bg-slate-50 border px-4 py-3 text-sm focus:border-indigo-500 focus:ring-indigo-500 transition-all">
                         </div>
                         <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-2">Pilih Musyrif / Pembina</label>
-                            <input type="hidden" name="supervisor_id" id="supervisor-id-input" required>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Pilih Musyrif / Pembina (Bisa pilih lebih dari satu)</label>
+                            <div id="supervisor-ids-container"></div>
                             <div class="relative" id="supervisor-dropdown">
                                 <!-- Trigger Button -->
                                 <button type="button" id="supervisor-dropdown-btn"
@@ -241,13 +248,48 @@ include '../../layouts/header.php';
 </div>
 
 <script>
+    let selectedSupervisors = new Map();
+
     function openModal(id) {
+        if (id === 'modal-add-room') {
+            document.getElementById('room-form-action').value = 'create_room';
+            document.getElementById('room-form-id').value = '';
+            document.getElementById('room-name-input').value = '';
+            document.getElementById('room-modal-title').innerText = 'Tambah Asrama Baru';
+            
+            selectedSupervisors.clear();
+            updateSupervisorUI();
+            document.querySelectorAll('.supervisor-option').forEach(opt => {
+                opt.classList.remove('bg-indigo-50', 'text-indigo-700', 'font-semibold');
+            });
+        }
+
         const modal = document.getElementById(id);
         modal.classList.remove('hidden');
         void modal.offsetWidth; 
         modal.classList.remove('opacity-0');
         modal.classList.add('opacity-100');
         document.body.style.overflow = 'hidden';
+    }
+
+    function editRoom(room) {
+        openModal('modal-add-room');
+        document.getElementById('room-form-action').value = 'update_room';
+        document.getElementById('room-form-id').value = room.id;
+        document.getElementById('room-name-input').value = room.room_name;
+        document.getElementById('room-modal-title').innerText = 'Ubah Asrama';
+
+        selectedSupervisors.clear();
+        const ids = room.supervisor_ids ? room.supervisor_ids.split(',') : [];
+        const names = room.supervisor_name ? room.supervisor_name.split(', ') : [];
+        
+        ids.forEach((id, index) => {
+            selectedSupervisors.set(id, names[index]);
+            const opt = document.querySelector(`.supervisor-option[data-value="${id}"]`);
+            if (opt) opt.classList.add('bg-indigo-50', 'text-indigo-700', 'font-semibold');
+        });
+        
+        updateSupervisorUI();
     }
 
     function closeModal(id) {
@@ -297,18 +339,45 @@ include '../../layouts/header.php';
     }
 
     function selectSupervisor(el) {
-        const value = el.getAttribute('data-value');
+        const id = el.getAttribute('data-value');
         const name = el.getAttribute('data-name');
-        document.getElementById('supervisor-id-input').value = value;
+        
+        if (selectedSupervisors.has(id)) {
+            selectedSupervisors.delete(id);
+            el.classList.remove('bg-indigo-50', 'text-indigo-700', 'font-semibold');
+        } else {
+            selectedSupervisors.set(id, name);
+            el.classList.add('bg-indigo-50', 'text-indigo-700', 'font-semibold');
+        }
+        
+        updateSupervisorUI();
+    }
+
+    function updateSupervisorUI() {
+        const container = document.getElementById('supervisor-ids-container');
         const textEl = document.getElementById('supervisor-dropdown-text');
-        textEl.textContent = name;
-        textEl.classList.remove('text-slate-400');
-        textEl.classList.add('text-slate-800', 'font-medium');
-        document.querySelectorAll('.supervisor-option').forEach(opt => {
-            opt.classList.remove('bg-indigo-50', 'text-indigo-700', 'font-semibold');
+        
+        container.innerHTML = '';
+        let names = [];
+        
+        selectedSupervisors.forEach((name, id) => {
+            names.push(name);
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'supervisor_ids[]';
+            input.value = id;
+            container.appendChild(input);
         });
-        el.classList.add('bg-indigo-50', 'text-indigo-700', 'font-semibold');
-        closeSupervisorDropdown();
+        
+        if (names.length > 0) {
+            textEl.textContent = names.join(', ');
+            textEl.classList.remove('text-slate-400');
+            textEl.classList.add('text-slate-800', 'font-medium');
+        } else {
+            textEl.textContent = 'Pilih Musyrif...';
+            textEl.classList.remove('text-slate-800', 'font-medium');
+            textEl.classList.add('text-slate-400');
+        }
     }
 
     document.getElementById('supervisor-search-input').addEventListener('input', function() {

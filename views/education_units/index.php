@@ -15,9 +15,11 @@ $query = "
     SELECT 
         u.*,
         (
-            SELECT COUNT(*) 
-            FROM students s 
-            WHERE FIND_IN_SET(s.tingkat, u.grade_levels) > 0
+            SELECT COUNT(DISTINCT sch.student_id) 
+            FROM student_class_history sch
+            JOIN grade_levels gl ON sch.class_id = gl.id
+            WHERE gl.education_unit_id = u.id
+            AND sch.academic_year_id = (SELECT id FROM academic_years WHERE is_active = 1 LIMIT 1)
         ) as student_count,
         (
             SELECT COUNT(*) 

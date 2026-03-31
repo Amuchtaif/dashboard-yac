@@ -36,16 +36,17 @@ try {
 
     // 1. Get raw content and clean it
     $content = file_get_contents($file);
-    
+
     // Remove UTF-8 BOM if present
-    $bom = pack('H*','EFBBBF');
+    $bom = pack('H*', 'EFBBBF');
     $content = preg_replace("/^$bom/", '', $content);
-    
+
     // 2. Normalize and split into lines
     $content = str_replace("\r\n", "\n", $content);
     $content = str_replace("\r", "\n", $content);
     $lines = explode("\n", $content);
-    $lines = array_filter($lines, function($l) { return trim($l) !== ''; });
+    $lines = array_filter($lines, function ($l) {
+        return trim($l) !== ''; });
 
     if (empty($lines)) {
         throw new Exception("File kosong atau tidak terbaca.");
@@ -56,13 +57,13 @@ try {
     // If entire line is wrapped in quotes like "A,B,C,D", unwrap it first for detection
     if (str_starts_with($headerLine, '"') && str_ends_with($headerLine, '"')) {
         $headerLine = substr($headerLine, 1, -1);
-        $headerLine = str_replace('""', '"', $headerLine); 
+        $headerLine = str_replace('""', '"', $headerLine);
     }
 
     $delimiters = [',', ';', "\t"];
     $delimiter = ',';
     $maxCount = -1;
-    
+
     foreach ($delimiters as $d) {
         $count = substr_count($headerLine, $d);
         if ($count > $maxCount) {
@@ -76,7 +77,8 @@ try {
     for ($i = $startIndex; $i < count($lines); $i++) {
         $rowNumber = $i + 1;
         $line = trim($lines[$i]);
-        if (empty($line)) continue;
+        if (empty($line))
+            continue;
 
         // CRITICAL FIX: If Excel wrapped the whole line in quotes: "Day,Unit,Grade..."
         if (str_starts_with($line, '"') && str_ends_with($line, '"')) {
@@ -166,7 +168,7 @@ try {
         $stmt = $conn->prepare("SELECT id FROM lesson_periods WHERE education_unit_id = ? AND period_number = ? LIMIT 1");
         $stmt->execute([$unit_id, $start_period]);
         $lp_id = $stmt->fetchColumn();
-        
+
         $stmt->execute([$unit_id, $end_period]);
         $lp_end_id = $stmt->fetchColumn();
 
@@ -178,8 +180,13 @@ try {
 
         // --- NEW: Calculate day_of_week ---
         $day_map = [
-            'Monday' => 1, 'Tuesday' => 2, 'Wednesday' => 3, 'Thursday' => 4,
-            'Friday' => 5, 'Saturday' => 6, 'Sunday' => 7
+            'Monday' => 1,
+            'Tuesday' => 2,
+            'Wednesday' => 3,
+            'Thursday' => 4,
+            'Friday' => 5,
+            'Saturday' => 6,
+            'Sunday' => 7
         ];
         $day_of_week = $day_map[$day] ?? 0;
 

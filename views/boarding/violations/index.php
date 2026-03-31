@@ -102,11 +102,11 @@ require_once '../../layouts/header.php';
                 <thead>
                     <tr class="bg-slate-50 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                         <th class="px-6 py-4 w-12 text-center">No.</th>
-                        <th class="px-6 py-4">Santri</th>
-                        <th class="px-6 py-4">Pelanggaran</th>
-                        <th class="px-6 py-4">Tanggal & Lokasi</th>
-                        <th class="px-6 py-4 text-center">Status</th>
-                        <th class="px-6 py-4 text-center">Tindakan</th>
+                        <th class="px-6 py-4 min-w-[200px]">Santri</th>
+                        <th class="px-6 py-4 min-w-[300px]">Pelanggaran</th>
+                        <th class="px-6 py-4 min-w-[200px]">Tanggal & Lokasi</th>
+                        <th class="px-6 py-4 text-center min-w-[120px]">Status</th>
+                        <th class="px-6 py-4 text-center min-w-[150px] border-none">Tindakan</th>
                     </tr>
                 </thead>
                 <tbody id="violation-list" class="divide-y divide-slate-100 text-sm">

@@ -133,7 +133,9 @@ try {
             })($today_shift, $conn, $user) : null,
             'is_koordinator' => (stripos($user['position_name'], 'Koordinator Tahfidz') !== false) ? 1 : 0,
             'can_access_education' => hasPermission($user['id'], 'access_education') ? 1 : 0,
-            'can_manage_news' => hasPermission($user['id'], 'manage_news') ? 1 : 0
+            'can_manage_news' => hasPermission($user['id'], 'manage_news') ? 1 : 0,
+            'can_access_kesantrian' => hasPermission($user['id'], 'can_access_kesantrian') ? 1 : 0,
+            'can_access_kabid' => hasPermission($user['id'], 'can_access_kabid') ? 1 : 0
         ];
 
         echo json_encode([

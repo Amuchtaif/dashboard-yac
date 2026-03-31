@@ -177,19 +177,19 @@ include '../layouts/header.php';
     </script>
 
     <!-- Table -->
-    <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+    <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
         <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
+            <thead class="bg-gray-50 uppercase tracking-widest text-[10px] font-bold text-slate-500">
                 <tr>
-                    <th class="py-3.5 pl-4 pr-3 text-left w-12 sm:pl-6">
+                    <th class="py-3.5 pl-4 pr-3 text-left w-12 sm:pl-6 text-center">
                         <input type="checkbox" id="selectAll" onclick="toggleAllCheckboxes(this)" class="custom-checkbox">
                     </th>
-                    <th class="py-3.5 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 w-12 text-center">No.</th>
-                    <th class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Jenjang</th>
-                    <th class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Jam Ke</th>
-                    <th class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Waktu Mulai</th>
-                    <th class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Waktu Selesai</th>
-                    <th class="relative py-3.5 pl-3 pr-4 sm:pr-6 text-right font-semibold text-xs uppercase tracking-wide text-gray-500">Aksi</th>
+                    <th class="py-3.5 pl-4 pr-3 text-left w-12 text-center border-none">No.</th>
+                    <th class="px-3 py-3.5 text-left min-w-[150px] border-none">Jenjang</th>
+                    <th class="px-3 py-3.5 text-left min-w-[120px] border-none">Jam Ke</th>
+                    <th class="px-3 py-3.5 text-left min-w-[120px] border-none">Waktu Mulai</th>
+                    <th class="px-3 py-3.5 text-left min-w-[120px] border-none">Waktu Selesai</th>
+                    <th class="relative py-3.5 pl-3 pr-4 sm:pr-6 text-right w-32 border-none">Aksi</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-200 bg-white">

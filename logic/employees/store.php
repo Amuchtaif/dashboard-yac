@@ -5,6 +5,7 @@ require_once '../../config/app.php';
 check_login();
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $nik = trim($_POST['nik']);
     $full_name = trim($_POST['full_name']);
     $email = trim($_POST['email']);
     $phone = trim($_POST['phone_number']); // Capture Phone
@@ -15,7 +16,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $position_id = $_POST['position_id'] ?: null;
     $schedule_id = !empty($_POST['schedule_id']) ? $_POST['schedule_id'] : null;
 
-    if (!empty($full_name) && !empty($email) && !empty($password) && !empty($phone) && !empty($address)) {
+    if (!empty($full_name) && !empty($email) && !empty($password) && !empty($phone) && !empty($address) && !empty($nik)) {
         $db = new Database();
         $conn = $db->getConnection();
 
@@ -30,7 +31,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
         try {
-            $stmt = $conn->prepare("INSERT INTO employees (full_name, email, phone_number, address, password, division_id, unit_id, schedule_id, position_id) VALUES (:name, :email, :phone, :address, :pass, :div, :unit, :sched, :pos)");
+            $stmt = $conn->prepare("INSERT INTO employees (nik, full_name, email, phone_number, address, password, division_id, unit_id, schedule_id, position_id) VALUES (:nik, :name, :email, :phone, :address, :pass, :div, :unit, :sched, :pos)");
+            $stmt->bindParam(':nik', $nik);
             $stmt->bindParam(':name', $full_name);
             $stmt->bindParam(':email', $email);
             $stmt->bindParam(':phone', $phone);

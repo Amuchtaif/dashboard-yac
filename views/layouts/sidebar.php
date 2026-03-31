@@ -45,10 +45,10 @@ if (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Adminis
 }
 ?>
 <!-- Sidebar Container -->
-<aside class="w-64 bg-white border-r border-slate-200 hidden md:flex flex-col shadow-sm z-20 h-full fixed left-0 top-0">
+<aside id="main-sidebar" class="w-64 bg-white border-r border-slate-200 flex flex-col shadow-xl md:shadow-sm z-50 md:z-20 h-full fixed left-0 top-0 transition-transform duration-300 transform md:translate-x-0 -translate-x-full">
 
     <!-- Fixed Header inside Sidebar -->
-    <div class="h-16 flex items-center px-6 border-b border-slate-100 flex-shrink-0">
+    <div class="h-16 flex items-center justify-between px-6 border-b border-slate-100 flex-shrink-0">
         <div class="flex items-center gap-3">
             <div class="h-8 w-8 flex items-center justify-center">
                 <img src="<?php echo url('public/images/logo.png'); ?>" alt="Logo" class="w-8 h-8">
@@ -58,6 +58,13 @@ if (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Adminis
                 <span class="text-[12px] text-slate-400 font-medium tracking-wide">Admin Portal</span>
             </div>
         </div>
+        
+        <!-- Mobile Close Button -->
+        <button type="button" onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-slate-600 p-1">
+            <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
     </div>
 
     <!-- Scrollable Navigation (Removed pt-20, using flex-1 for auto height) -->

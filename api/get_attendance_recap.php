@@ -84,7 +84,7 @@ try {
         // Note: Field values must match exact DB strings (including apostrophes)
         $query = "SELECT DISTINCT category as unit_name FROM grade_levels 
                   WHERE category IS NOT NULL AND category != '' 
-                  ORDER BY FIELD(category, 'Playgroup', 'TKIT', 'SDIT', 'MTs', 'Idad Lughoh', 'MA', 'Mahad Aly'), category ASC";
+                  ORDER BY FIELD(category, 'Mahad Aly', 'MA', 'Idad Lughoh', 'MTs', 'SDIT', 'TKIT', 'Playgroup'), category ASC";
         $stmt = $db->prepare($query);
         $stmt->execute();
         

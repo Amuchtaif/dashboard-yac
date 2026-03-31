@@ -373,34 +373,21 @@ include '../layouts/header.php';
     </form>
 
     <!-- Students Table -->
-    <div class="bg-white shadow-sm ring-1 ring-gray-200 rounded-xl overflow-hidden">
-        <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-slate-50">
-                <tr>
-                    <th scope="col"
-                        class="pl-6 py-3.5 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 sm:pl-6 w-12">
-                        No.</th>
-                    <th scope="col"
-                        class="pl-4 py-3.5 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 sm:pl-4">
-                        Nama Siswa</th>
-                    <th scope="col"
-                        class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                        Jenjang</th>
-                    <th scope="col"
-                        class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                        Tahun Ajaran</th>
-                    <th scope="col"
-                        class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                        Kelas</th>
-                    <th scope="col"
-                        class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                        Status</th>
-                    <th scope="col"
-                        class="relative py-3.5 pl-3 pr-4 sm:pr-6 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">
-                        Aksi</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200 bg-white">
+    <div class="mt-8 flex flex-col">
+        <div class="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 md:rounded-xl bg-white">
+            <table class="min-w-full divide-y divide-slate-200">
+                <thead class="bg-slate-50">
+                    <tr class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                        <th scope="col" class="pl-6 py-3.5 pr-3 text-left w-16 sm:pl-6 text-center">No.</th>
+                        <th scope="col" class="px-3 py-3.5 text-left min-w-[220px]">Nama Siswa</th>
+                        <th scope="col" class="px-3 py-3.5 text-left min-w-[150px]">Jenjang</th>
+                        <th scope="col" class="px-3 py-3.5 text-left min-w-[120px]">Thn Ajaran</th>
+                        <th scope="col" class="px-3 py-3.5 text-left min-w-[140px]">Kelas</th>
+                        <th scope="col" class="px-3 py-3.5 text-left w-28 text-center">Status</th>
+                        <th scope="col" class="relative py-3.5 pl-3 pr-6 text-right w-32 border-none">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 bg-white">
                 <?php if (count($students) > 0): ?>
                     <?php foreach ($students as $index => $student): ?>
                         <?php
@@ -425,21 +412,21 @@ include '../layouts/header.php';
                         // Logic Email (Optional)
                         $email = '-'; // Default logic if no email column
                         ?>
-                        <tr class="hover:bg-slate-50 transition-colors">
-                            <td class="whitespace-nowrap py-4 pl-6 pr-3 text-sm text-gray-500 sm:pl-6">
+                        <tr class="hover:bg-slate-50 transition-colors group">
+                            <td class="whitespace-nowrap py-4 pl-6 pr-3 text-sm text-slate-500 font-medium">
                                 <?php echo $offset + $index + 1; ?>.
                             </td>
-                            <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-0">
+                            <td class="whitespace-nowrap px-3 py-4">
                                 <div class="flex items-center">
                                     <div class="h-10 w-10 flex-shrink-0">
-                                        <img class="h-10 w-10 rounded-full object-cover border border-slate-200"
+                                        <img class="h-10 w-10 rounded-full object-cover border-2 border-slate-100 shadow-sm"
                                             src="<?php echo htmlspecialchars($avatarPath); ?>" alt="">
                                     </div>
                                     <div class="ml-4">
-                                        <div class="font-bold text-slate-900">
+                                        <div class="font-bold text-slate-900 text-sm">
                                             <?php echo htmlspecialchars(ucwords(strtolower($student['nama_siswa']))); ?>
                                         </div>
-                                        <div class="text-xs text-slate-500 mt-0.5">
+                                        <div class="text-[11px] text-slate-400 font-medium uppercase tracking-tight">
                                             NIS: <?php echo htmlspecialchars($student['nomor_induk'] ?? '-'); ?>
                                         </div>
                                     </div>
@@ -466,27 +453,28 @@ include '../layouts/header.php';
                                 </div>
                                 <!-- <div class="text-xs text-slate-400"><?php // echo htmlspecialchars($student['kelas']); ?></div> -->
                             </td>
-                            <td class="whitespace-nowrap px-3 py-4 text-sm text-slate-500">
+                            <td class="whitespace-nowrap px-3 py-4">
                                 <span
-                                    class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset <?php echo $statusColor; ?>">
+                                    class="inline-flex items-center rounded-lg px-2.5 py-0.5 text-[10px] font-bold ring-1 ring-inset <?php echo $statusColor; ?> uppercase">
                                     <span class="mr-1.5 h-1.5 w-1.5 rounded-full bg-current"></span>
                                     <?php echo htmlspecialchars($status); ?>
                                 </span>
                             </td>
-                            <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                                <div class="flex justify-end gap-3 text-gray-400">
-
-                                    <a href="<?php url('views/students/edit.php?id=' . $student['id']); ?>" class="hover:text-cyan-600 transition-colors" title="Edit">
+                            <td class="relative whitespace-nowrap py-4 pl-3 pr-6 text-right text-sm font-medium">
+                                <div class="flex justify-end gap-2 transition-opacity">
+                                    <a href="<?php url('views/students/edit.php?id=' . $student['id']); ?>" 
+                                       class="p-2 text-slate-400 hover:text-cyan-500 hover:bg-cyan-50 rounded-lg transition-all" title="Edit">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                            stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                            stroke-width="2" stroke="currentColor" class="w-4 h-4">
                                             <path stroke-linecap="round" stroke-linejoin="round"
                                                 d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
                                         </svg>
                                     </a>
                                     <a href="<?php url('logic/students/delete.php?id=' . $student['id']); ?>"
-                                        onclick="return confirm('Are you sure?')" class="hover:text-red-600 transition-colors">
+                                        onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?')" 
+                                        class="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all" title="Hapus">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                            stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                            stroke-width="2" stroke="currentColor" class="w-4 h-4">
                                             <path stroke-linecap="round" stroke-linejoin="round"
                                                 d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
                                         </svg>
@@ -513,68 +501,61 @@ include '../layouts/header.php';
         </table>
 
         <!-- Pagination -->
-        <div class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
+        <div class="flex flex-col sm:flex-row items-center justify-between border-t border-slate-200 bg-white px-4 py-4 md:py-3 sm:px-6 gap-4">
+            <!-- Mobile Pagination Info -->
+            <div class="flex sm:hidden flex-col items-center gap-2">
+                <p class="text-xs text-slate-500">
+                    Menampilkan <span class="font-bold text-slate-900"><?php echo $offset + 1; ?></span> - <span class="font-bold text-slate-900"><?php echo min($offset + $limit, $total_students); ?></span> dari <span class="font-bold text-slate-900"><?php echo $total_students; ?></span>
+                </p>
+                <div class="flex gap-2">
+                    <?php if ($page > 1): ?>
+                        <a href="?page=<?php echo $page - 1; ?>&limit=<?php echo $limit; ?>&search=<?php echo urlencode($search); ?>&unit_id=<?php echo urlencode($unit_id); ?>&class_id=<?php echo urlencode($class_id); ?>&status=<?php echo urlencode($status); ?>" class="rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50">Prev</a>
+                    <?php endif; ?>
+                    <?php if ($page < $total_pages): ?>
+                        <a href="?page=<?php echo $page + 1; ?>&limit=<?php echo $limit; ?>&search=<?php echo urlencode($search); ?>&unit_id=<?php echo urlencode($unit_id); ?>&class_id=<?php echo urlencode($class_id); ?>&status=<?php echo urlencode($status); ?>" class="rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50">Next</a>
+                    <?php endif; ?>
+                </div>
+            </div>
+
             <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
                 <div>
-                    <p class="text-sm text-gray-700">
+                    <p class="text-sm text-slate-700">
                         Menampilkan
                         <?php if ($total_students > 0): ?>
-                            <span class="font-medium"><?php echo $offset + 1; ?></span>
-                            sampai
-                            <span class="font-medium"><?php echo min($offset + $limit, $total_students); ?></span>
-                            dari
-                            <span class="font-medium"><?php echo $total_students; ?></span>
-                            data
+                            <span class="font-bold text-slate-900"><?php echo $offset + 1; ?></span> - <span class="font-bold text-slate-900"><?php echo min($offset + $limit, $total_students); ?></span> dari <span class="font-bold text-slate-900"><?php echo $total_students; ?></span> data
                         <?php else: ?>
-                            <span class="font-medium">0</span> data
+                            <span class="font-bold text-slate-900">0</span> data
                         <?php endif; ?>
                     </p>
                 </div>
                 <div>
-                    <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                    <nav class="isolate inline-flex -space-x-px rounded-xl shadow-sm border border-slate-200 overflow-hidden" aria-label="Pagination">
                         <!-- Prev -->
                         <?php if ($page > 1): ?>
                             <a href="?page=<?php echo $page - 1; ?>&limit=<?php echo $limit; ?>&search=<?php echo urlencode($search); ?>&unit_id=<?php echo urlencode($unit_id); ?>&class_id=<?php echo urlencode($class_id); ?>&status=<?php echo urlencode($status); ?>"
-                                class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
-                                <span class="sr-only">Previous</span>
-                                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                    <path fill-rule="evenodd"
-                                        d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
-                                        clip-rule="evenodd" />
-                                </svg>
+                                class="relative inline-flex items-center px-3 py-2 text-slate-400 hover:bg-slate-50 transition-colors">
+                                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" /></svg>
                             </a>
                         <?php endif; ?>
 
                         <?php
-                        // Pagination Logic: Show partial pages if too many
-                        $show_max_pages = 5;
-                        $start_page = max(1, $page - 2);
-                        $end_page = min($total_pages, $page + 2);
-
-                        if ($start_page > 1)
-                            echo '<span class="px-2 py-2 text-gray-400">...</span>';
-
-                        for ($i = $start_page; $i <= $end_page; $i++): ?>
-                            <a href="?page=<?php echo $i; ?>&limit=<?php echo $limit; ?>&search=<?php echo urlencode($search); ?>&unit_id=<?php echo urlencode($unit_id); ?>&class_id=<?php echo urlencode($class_id); ?>&status=<?php echo urlencode($status); ?>"
-                                class="relative inline-flex items-center px-4 py-2 text-sm font-semibold <?php echo ($i == $page) ? 'bg-cyan-600 text-white focus-visible:outline-cyan-600' : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50'; ?> focus:z-20 focus:outline-offset-0">
-                                <?php echo $i; ?>
-                            </a>
-                        <?php endfor;
-
-                        if ($end_page < $total_pages)
-                            echo '<span class="px-2 py-2 text-gray-400">...</span>';
-                        ?>
+                        $range = 1;
+                        for ($i = 1; $i <= $total_pages; $i++): 
+                            if ($i == 1 || $i == $total_pages || ($i >= $page - $range && $i <= $page + $range)): ?>
+                                <a href="?page=<?php echo $i; ?>&limit=<?php echo $limit; ?>&search=<?php echo urlencode($search); ?>&unit_id=<?php echo urlencode($unit_id); ?>&class_id=<?php echo urlencode($class_id); ?>&status=<?php echo urlencode($status); ?>"
+                                    class="relative inline-flex items-center px-4 py-2 text-sm font-semibold <?php echo ($i == $page) ? 'bg-cyan-600 text-white' : 'text-slate-900 hover:bg-slate-50'; ?> border-x border-slate-100 transition-colors">
+                                    <?php echo $i; ?>
+                                </a>
+                            <?php elseif ($i == 2 || $i == $total_pages - 1): ?>
+                                <span class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-slate-400">...</span>
+                            <?php endif;
+                        endfor; ?>
 
                         <!-- Next -->
                         <?php if ($page < $total_pages): ?>
                             <a href="?page=<?php echo $page + 1; ?>&limit=<?php echo $limit; ?>&search=<?php echo urlencode($search); ?>&unit_id=<?php echo urlencode($unit_id); ?>&class_id=<?php echo urlencode($class_id); ?>&status=<?php echo urlencode($status); ?>"
-                                class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
-                                <span class="sr-only">Next</span>
-                                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                    <path fill-rule="evenodd"
-                                        d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
-                                        clip-rule="evenodd" />
-                                </svg>
+                                class="relative inline-flex items-center px-3 py-2 text-slate-400 hover:bg-slate-50 transition-colors">
+                                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" /></svg>
                             </a>
                         <?php endif; ?>
                     </nav>

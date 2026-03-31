@@ -6,6 +6,7 @@ check_login();
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $id = $_POST['id'];
+    $nik = trim($_POST['nik']);
     $full_name = trim($_POST['full_name']);
     $email = trim($_POST['email']);
     $phone = trim($_POST['phone_number']);
@@ -16,7 +17,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $position_id = $_POST['position_id'] ?: null;
     $schedule_id = !empty($_POST['schedule_id']) ? $_POST['schedule_id'] : null;
 
-    if (!empty($full_name) && !empty($email) && !empty($id)) {
+    if (!empty($full_name) && !empty($email) && !empty($id) && !empty($nik)) {
         $db = new Database();
         $conn = $db->getConnection();
 
@@ -32,14 +33,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // Build Query dynamically based on password presence
             if (!empty($password)) {
                 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-                $sql = "UPDATE employees SET full_name = :name, email = :email, phone_number = :phone, address = :address, password = :pass, division_id = :div, unit_id = :unit, position_id = :pos, schedule_id = :sched WHERE id = :id";
+                $sql = "UPDATE employees SET nik = :nik, full_name = :name, email = :email, phone_number = :phone, address = :address, password = :pass, division_id = :div, unit_id = :unit, position_id = :pos, schedule_id = :sched WHERE id = :id";
                 $stmt = $conn->prepare($sql);
                 $stmt->bindParam(':pass', $hashed_password);
             } else {
-                $sql = "UPDATE employees SET full_name = :name, email = :email, phone_number = :phone, address = :address, division_id = :div, unit_id = :unit, position_id = :pos, schedule_id = :sched WHERE id = :id";
+                $sql = "UPDATE employees SET nik = :nik, full_name = :name, email = :email, phone_number = :phone, address = :address, division_id = :div, unit_id = :unit, position_id = :pos, schedule_id = :sched WHERE id = :id";
                 $stmt = $conn->prepare($sql);
             }
 
+            $stmt->bindParam(':nik', $nik);
             $stmt->bindParam(':name', $full_name);
             $stmt->bindParam(':email', $email);
             $stmt->bindParam(':phone', $phone);

@@ -56,21 +56,25 @@ try {
     $stmt->execute($params);
     $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') ? "https" : "http");
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+    $basePath = str_replace('/api/assignment/get_list.php', '', $scriptName);
+    $baseUrl = $protocol . "://" . $host . $basePath . "/";
+
     // Format for easier consumption
     foreach ($tasks as &$task) {
-        // Base URL for uploads
-        $baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]/dashboard-yac/";
         
         // Author avatar
         if (!empty($task['author_photo'])) {
-            $task['author_avatar'] = $baseUrl . "uploads/profiles/" . $task['author_photo'];
+            $task['author_avatar'] = $baseUrl . "uploads/profile_photos/" . $task['author_photo'];
         } else {
             $task['author_avatar'] = "https://ui-avatars.com/api/?name=" . urlencode($task['author_name'] ?? 'U') . "&background=random";
         }
 
         // Assignee avatar
         if (!empty($task['assignee_photo'])) {
-            $task['assignee_avatar'] = $baseUrl . "uploads/profiles/" . $task['assignee_photo'];
+            $task['assignee_avatar'] = $baseUrl . "uploads/profile_photos/" . $task['assignee_photo'];
         } else {
             $task['assignee_avatar'] = "https://ui-avatars.com/api/?name=" . urlencode($task['assignee_name'] ?? 'U') . "&background=random";
         }

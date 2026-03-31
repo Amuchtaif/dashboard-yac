@@ -18,14 +18,7 @@ if (empty($user_id)) {
 try {
     $notifications = [];
 
-    // Ensure dismissed_notifications table exists
-    $conn->exec("CREATE TABLE IF NOT EXISTS dismissed_notifications (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        user_id INT NOT NULL,
-        notification_key VARCHAR(100) NOT NULL,
-        dismissed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE KEY unique_dismiss (user_id, notification_key)
-    )");
+    // --- Dismissed checks ---
 
     // Load dismissed notification keys for this user
     $stmtDismissed = $conn->prepare("SELECT notification_key FROM dismissed_notifications WHERE user_id = :uid");

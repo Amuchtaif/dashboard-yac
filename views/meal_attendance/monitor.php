@@ -136,9 +136,9 @@ require_once __DIR__ . '/../layouts/header.php';
                     <thead>
                         <tr class="bg-slate-50 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                             <th class="px-6 py-4 w-12 text-center">No.</th>
-                            <th class="px-6 py-4">Santri & Identitas</th>
-                            <th class="px-6 py-4">Kelas / Kamar</th>
-                            <th class="px-6 py-4 text-center">Status Jatah</th>
+                            <th class="px-6 py-4 min-w-[200px]">Santri & Identitas</th>
+                            <th class="px-6 py-4 min-w-[150px]">Kelas / Kamar</th>
+                            <th class="px-6 py-4 text-center min-w-[150px]">Status Jatah</th>
                         </tr>
                     </thead>
                     <tbody id="roster-body" class="divide-y divide-slate-100 text-sm">

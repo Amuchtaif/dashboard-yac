@@ -33,18 +33,22 @@ try {
     if (!$task) {
         echo json_encode(["status" => "error", "message" => "Tugas tidak ditemukan."]);
     } else {
-        $baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]/dashboard-yac/";
+        $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') ? "https" : "http");
+        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+        $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+        $basePath = str_replace('/api/assignment/get_detail.php', '', $scriptName);
+        $baseUrl = $protocol . "://" . $host . $basePath . "/";
 
         // Creator Avatar
         if (!empty($task['creator_photo'])) {
-            $task['creator_avatar'] = $baseUrl . "uploads/profiles/" . $task['creator_photo'];
+            $task['creator_avatar'] = $baseUrl . "uploads/profile_photos/" . $task['creator_photo'];
         } else {
             $task['creator_avatar'] = "https://ui-avatars.com/api/?name=" . urlencode($task['creator_name']) . "&background=random";
         }
 
         // Assignee Avatar
         if (!empty($task['assignee_photo'])) {
-            $task['assignee_avatar'] = $baseUrl . "uploads/profiles/" . $task['assignee_photo'];
+            $task['assignee_avatar'] = $baseUrl . "uploads/profile_photos/" . $task['assignee_photo'];
         } else {
             $task['assignee_avatar'] = "https://ui-avatars.com/api/?name=" . urlencode($task['assignee_name']) . "&background=random";
         }

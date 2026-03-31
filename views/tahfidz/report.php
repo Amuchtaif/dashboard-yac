@@ -185,15 +185,15 @@ include '../layouts/header.php';
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
-                    <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                    <tr class="bg-slate-50 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                         <th class="px-6 py-3 w-16 text-center">No</th>
-                        <th class="px-6 py-3">Tanggal Waktu</th>
-                        <th class="px-6 py-3">Nama Santri</th>
-                        <th class="px-6 py-3">Unit / Kelas</th>
-                        <th class="px-6 py-3">Capaian Hafalan</th>
-                        <th class="px-6 py-3 text-center">Juz</th>
-                        <th class="px-6 py-3">Status</th>
-                        <th class="px-6 py-3">Pengampu</th>
+                        <th class="px-6 py-3 min-w-[150px]">Tanggal Waktu</th>
+                        <th class="px-6 py-3 min-w-[200px]">Nama Santri</th>
+                        <th class="px-6 py-3 min-w-[150px]">Unit / Kelas</th>
+                        <th class="px-6 py-3 min-w-[250px]">Capaian Hafalan</th>
+                        <th class="px-6 py-3 text-center min-w-[80px]">Juz</th>
+                        <th class="px-6 py-3 min-w-[120px]">Status</th>
+                        <th class="px-6 py-3 min-w-[180px]">Pengampu</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-sm">

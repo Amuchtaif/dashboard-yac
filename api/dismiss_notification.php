@@ -17,14 +17,7 @@ if (empty($user_id) || empty($notification_key)) {
 }
 
 try {
-    // Ensure table exists
-    $conn->exec("CREATE TABLE IF NOT EXISTS dismissed_notifications (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        user_id INT NOT NULL,
-        notification_key VARCHAR(100) NOT NULL,
-        dismissed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE KEY unique_dismiss (user_id, notification_key)
-    )");
+    // --- Database check removed ---
 
     $stmt = $conn->prepare("INSERT IGNORE INTO dismissed_notifications (user_id, notification_key) VALUES (:uid, :key)");
     $stmt->execute([':uid' => $user_id, ':key' => $notification_key]);

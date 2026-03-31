@@ -23,20 +23,7 @@ if(!empty($data->news_id) && !empty($data->user_id)){
     $user_id = $data->user_id;
 
     try {
-        // 1. Ensure news_likes table exists
-        $db->exec("CREATE TABLE IF NOT EXISTS news_likes (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            news_id INT NOT NULL,
-            user_id INT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            UNIQUE KEY unique_like (news_id, user_id)
-        )");
-
-        // 2. Ensure views_count column exists in news table
-        $checkColumn = $db->query("SHOW COLUMNS FROM news LIKE 'views_count'");
-        if (!$checkColumn->fetch()) {
-            $db->exec("ALTER TABLE news ADD COLUMN views_count INT DEFAULT 0 AFTER likes_count");
-        }
+        // --- Database checks removed for performance ---
 
         // 3. Toggle Like logic
         $checkLike = $db->prepare("SELECT id FROM news_likes WHERE news_id = ? AND user_id = ?");

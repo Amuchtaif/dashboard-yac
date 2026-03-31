@@ -15,14 +15,13 @@ $rooms_query = "
     SELECT 
         br.id, 
         br.room_name, 
-        e.full_name as supervisor_name,
+        (SELECT GROUP_CONCAT(e.full_name SEPARATOR ', ') FROM boarding_room_supervisors brs JOIN employees e ON brs.supervisor_id = e.id WHERE brs.room_id = br.id) as supervisor_name,
         COUNT(DISTINCT brm.student_id) as total_students,
         COUNT(DISTINCT ba.id) as total_attendance_count
     FROM boarding_rooms br
-    LEFT JOIN employees e ON br.supervisor_id = e.id
     LEFT JOIN boarding_room_members brm ON brm.room_id = br.id
     LEFT JOIN boarding_attendances ba ON ba.room_id = br.id AND ba.date = ?
-    GROUP BY br.id, br.room_name, e.full_name
+    GROUP BY br.id, br.room_name
     ORDER BY br.room_name ASC
 ";
 $stmt = $conn->prepare($rooms_query);

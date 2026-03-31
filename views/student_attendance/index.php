@@ -207,16 +207,16 @@ include '../layouts/header.php';
 
     <!-- Table -->
     <div class="mt-8 flex flex-col">
-        <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+        <div class="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
-                    <tr>
-                        <th class="py-3.5 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 sm:pl-6 w-24">Waktu</th>
-                        <th class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 w-32">Kelas</th>
-                        <th class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Mata Pelajaran</th>
-                        <th class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Guru</th>
-                        <th class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 w-24">Status</th>
-                        <th class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">Kehadiran</th>
+                    <tr class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                        <th class="py-3.5 pl-4 pr-3 text-left min-w-[120px] sm:pl-6">Waktu</th>
+                        <th class="px-3 py-3.5 text-left min-w-[150px]">Kelas</th>
+                        <th class="px-3 py-3.5 text-left min-w-[200px]">Mata Pelajaran</th>
+                        <th class="px-3 py-3.5 text-left min-w-[200px]">Guru</th>
+                        <th class="px-3 py-3.5 text-center min-w-[100px]">Status</th>
+                        <th class="px-3 py-3.5 text-center min-w-[150px]">Kehadiran</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200 bg-white">

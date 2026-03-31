@@ -168,20 +168,21 @@ include '../layouts/header.php';
     </form>
 
     <!-- Table -->
-    <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 rounded-xl">
-        <table class="min-w-full divide-y divide-slate-200">
-            <thead class="bg-slate-50">
-                <tr>
-                    <th class="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">No</th>
-                    <th class="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Tugas</th>
-                    <th class="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Pemberi</th>
-                    <th class="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Penerima</th>
-                    <th class="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Prioritas</th>
-                    <th class="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Status</th>
-                    <th class="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Deadline</th>
-                    <th class="px-4 py-3.5 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">Aksi</th>
-                </tr>
-            </thead>
+    <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-slate-200">
+                <thead class="bg-slate-50">
+                    <tr class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                        <th class="px-4 py-3.5 text-left w-12">No</th>
+                        <th class="px-4 py-3.5 text-left min-w-[250px]">Tugas</th>
+                        <th class="px-4 py-3.5 text-left min-w-[180px]">Pemberi</th>
+                        <th class="px-4 py-3.5 text-left min-w-[180px]">Penerima</th>
+                        <th class="px-4 py-3.5 text-left min-w-[120px]">Prioritas</th>
+                        <th class="px-4 py-3.5 text-left min-w-[150px]">Status</th>
+                        <th class="px-4 py-3.5 text-left min-w-[120px]">Deadline</th>
+                        <th class="px-4 py-3.5 text-right min-w-[100px]">Aksi</th>
+                    </tr>
+                </thead>
             <tbody class="divide-y divide-slate-200 bg-white">
                 <?php if (empty($tasks)): ?>
                 <tr><td colspan="8" class="px-6 py-10 text-center text-sm text-slate-500">Belum ada data penugasan.</td></tr>
@@ -251,34 +252,44 @@ include '../layouts/header.php';
                 <?php endforeach; ?>
             </tbody>
         </table>
-
-        <!-- Pagination -->
-        <div class="flex items-center justify-between border-t border-slate-200 bg-white px-4 py-3 sm:px-6">
-            <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-                <div class="flex items-center gap-4">
-                    <select onchange="window.location.href='?page=1&limit='+this.value+'&<?php echo http_build_query(array_diff_key($_GET, ['page'=>'','limit'=>''])); ?>'"
-                        class="block rounded-md border-0 py-1.5 pl-3 pr-8 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-cyan-600 sm:text-xs">
-                        <?php foreach ([10,20,50,100] as $v): ?>
-                        <option value="<?php echo $v; ?>" <?php echo $limit==$v?'selected':''; ?>>Tampilkan <?php echo $v; ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <p class="text-sm text-gray-700">
-                        Menampilkan <span class="font-medium"><?php echo min($offset+1, $total_rows); ?></span> - <span class="font-medium"><?php echo min($offset+$limit, $total_rows); ?></span> dari <span class="font-medium"><?php echo $total_rows; ?></span>
-                    </p>
-                </div>
-                <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm">
-                    <?php if ($page > 1): ?>
-                    <a href="?page=<?php echo $page-1; ?>&limit=<?php echo $limit; ?>&<?php echo http_build_query(array_diff_key($_GET, ['page'=>'','limit'=>''])); ?>" class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50"><svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd"/></svg></a>
-                    <?php endif; ?>
-                    <?php for ($pg = max(1,$page-2); $pg <= min($total_pages,$page+2); $pg++): ?>
-                    <a href="?page=<?php echo $pg; ?>&limit=<?php echo $limit; ?>&<?php echo http_build_query(array_diff_key($_GET, ['page'=>'','limit'=>''])); ?>" class="relative inline-flex items-center px-4 py-2 text-sm font-semibold <?php echo $pg==$page ? 'bg-cyan-600 text-white' : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50'; ?>"><?php echo $pg; ?></a>
-                    <?php endfor; ?>
-                    <?php if ($page < $total_pages): ?>
-                    <a href="?page=<?php echo $page+1; ?>&limit=<?php echo $limit; ?>&<?php echo http_build_query(array_diff_key($_GET, ['page'=>'','limit'=>''])); ?>" class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50"><svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd"/></svg></a>
-                    <?php endif; ?>
-                </nav>
+    </div>
+</div>
+<?php if ($total_pages > 1): ?>
+    <div class="mt-4 flex items-center justify-between border-t border-slate-200 bg-white px-4 py-3 sm:px-6 rounded-xl border border-slate-200 shadow-sm">
+        <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+            <div class="flex items-center gap-4">
+                <select onchange="window.location.href='?page=1&limit='+this.value+'&<?php echo http_build_query(array_diff_key($_GET, ['page'=>'','limit'=>''])); ?>'"
+                    class="block rounded-lg border-slate-200 py-1.5 pl-3 pr-8 text-slate-900 ring-1 ring-inset ring-slate-100 focus:ring-2 focus:ring-cyan-600 sm:text-xs">
+                    <?php foreach ([10,20,50,100] as $v): ?>
+                    <option value="<?php echo $v; ?>" <?php echo $limit==$v?'selected':''; ?>>Tampilkan <?php echo $v; ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <p class="text-sm text-slate-500">
+                    Menampilkan <span class="font-bold text-slate-900"><?php echo min($offset+1, $total_rows); ?></span> - <span class="font-bold text-slate-900"><?php echo min($offset+$limit, $total_rows); ?></span> dari <span class="font-bold text-slate-900"><?php echo $total_rows; ?></span>
+                </p>
             </div>
+            <nav class="isolate inline-flex -space-x-px rounded-xl border border-slate-200 overflow-hidden shadow-sm" aria-label="Pagination">
+                <?php if ($page > 1): ?>
+                <a href="?page=<?php echo $page-1; ?>&limit=<?php echo $limit; ?>&<?php echo http_build_query(array_diff_key($_GET, ['page'=>'','limit'=>''])); ?>" class="relative inline-flex items-center px-4 py-2 text-slate-400 hover:bg-slate-50 transition-colors"><svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd"/></svg></a>
+                <?php endif; ?>
+                
+                <?php for ($pg = max(1,$page-2); $pg <= min($total_pages,$page+2); $pg++): ?>
+                <a href="?page=<?php echo $pg; ?>&limit=<?php echo $limit; ?>&<?php echo http_build_query(array_diff_key($_GET, ['page'=>'','limit'=>''])); ?>" class="relative inline-flex items-center px-4 py-2 text-sm font-semibold <?php echo $pg==$page ? 'bg-cyan-600 text-white' : 'text-slate-900 hover:bg-slate-50'; ?> border-x border-slate-100 transition-colors"><?php echo $pg; ?></a>
+                <?php endfor; ?>
+
+                <?php if ($page < $total_pages): ?>
+                <a href="?page=<?php echo $page+1; ?>&limit=<?php echo $limit; ?>&<?php echo http_build_query(array_diff_key($_GET, ['page'=>'','limit'=>''])); ?>" class="relative inline-flex items-center px-4 py-2 text-slate-400 hover:bg-slate-50 transition-colors"><svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd"/></svg></a>
+                <?php endif; ?>
+            </nav>
         </div>
+        
+        <!-- Mobile Pagination Controls -->
+        <div class="flex flex-1 items-center justify-between sm:hidden w-full">
+            <a href="?page=<?php echo max(1, $page-1); ?>&limit=<?php echo $limit; ?>&<?php echo http_build_query(array_diff_key($_GET, ['page'=>'','limit'=>''])); ?>" class="relative inline-flex items-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors <?php echo $page <= 1 ? 'pointer-events-none opacity-50' : ''; ?>">Previous</a>
+            <a href="?page=<?php echo min($total_pages, $page+1); ?>&limit=<?php echo $limit; ?>&<?php echo http_build_query(array_diff_key($_GET, ['page'=>'','limit'=>''])); ?>" class="relative ml-3 inline-flex items-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors <?php echo $page >= $total_pages ? 'pointer-events-none opacity-50' : ''; ?>">Next</a>
+        </div>
+    </div>
+<?php endif; ?>
     </div>
 </div>
 

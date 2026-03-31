@@ -172,78 +172,69 @@ include '../layouts/header.php';
 
     <!-- Table Container -->
     <div class="mt-8 flex flex-col">
-        <div class="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
-            <div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
-                <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-                    <table class="min-w-full divide-y divide-gray-300">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th scope="col"
-                                    class="py-3.5 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 sm:pl-6 w-12">
-                                    #</th>
-                                <th scope="col"
-                                    class="py-3.5 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                    Pegawai</th>
-                                <th scope="col"
-                                    class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                    Tanggal</th>
-                                <th scope="col"
-                                    class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                    Masuk</th>
-                                <th scope="col"
-                                    class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                    Pulang</th>
-                                <th scope="col"
-                                    class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                    Lokasi Kantor</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200 bg-white">
+        <div class="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 md:rounded-xl bg-white">
+            <table class="min-w-full divide-y divide-slate-200">
+                <thead class="bg-slate-50">
+                    <tr class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                        <th scope="col" class="py-3.5 pl-6 pr-3 text-left w-16">No.</th>
+                        <th scope="col" class="px-3 py-3.5 text-left min-w-[200px]">Pegawai</th>
+                        <th scope="col" class="px-3 py-3.5 text-left min-w-[150px]">Tanggal</th>
+                        <th scope="col" class="px-3 py-3.5 text-left min-w-[120px]">Masuk</th>
+                        <th scope="col" class="px-3 py-3.5 text-left min-w-[120px]">Pulang</th>
+                        <th scope="col" class="px-3 py-3.5 text-left min-w-[150px]">Lokasi Kantor</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 bg-white">
                             <?php if (count($logs) > 0): ?>
                                 <?php
                                 $days = ['Sunday' => 'Minggu', 'Monday' => 'Senin', 'Tuesday' => 'Selasa', 'Wednesday' => 'Rabu', 'Thursday' => 'Kamis', 'Friday' => 'Jumat', 'Saturday' => 'Sabtu'];
                                 foreach ($logs as $index => $log):
                                     ?>
-                                    <tr>
-                                        <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-500 sm:pl-6">
-                                            <?php echo $offset + $index + 1; ?>
+                                    <tr class="hover:bg-slate-50/50 transition-colors">
+                                        <td class="whitespace-nowrap py-4 pl-6 pr-3 text-sm text-slate-500">
+                                            <?php echo $offset + $index + 1; ?>.
                                         </td>
-                                        <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900">
-                                            <?php echo htmlspecialchars($log['full_name']); ?>
+                                        <td class="whitespace-nowrap px-3 py-4">
+                                            <div class="text-sm font-bold text-slate-800 tracking-tight">
+                                                <?php echo htmlspecialchars($log['full_name']); ?>
+                                            </div>
+                                            <div class="text-[11px] text-slate-400 font-medium">
+                                                <?php echo htmlspecialchars($log['email']); ?>
+                                            </div>
                                         </td>
-                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-slate-500 font-medium">
                                             <?php
                                             $dayName = date('l', strtotime($log['date']));
                                             echo ($days[$dayName] ?? $dayName) . ', ' . date('d M Y', strtotime($log['date']));
                                             ?>
                                         </td>
                                         <td class="whitespace-nowrap px-3 py-4 text-sm">
-                                            <div class="font-medium text-gray-900">
+                                            <div class="font-bold text-slate-700">
                                                 <?php echo date('H:i', strtotime($log['time_in'])); ?>
                                             </div>
-                                            <span
-                                                class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium <?php echo ($log['status'] === 'Hadir') ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'; ?>">
+                                            <span class="inline-flex items-center rounded-lg px-2 py-0.5 text-[10px] font-bold <?php echo ($log['status'] === 'Hadir') ? 'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20' : 'bg-rose-50 text-rose-700 ring-1 ring-inset ring-rose-600/20'; ?>">
                                                 <?php echo htmlspecialchars($log['status']); ?>
                                             </span>
                                         </td>
                                         <td class="whitespace-nowrap px-3 py-4 text-sm">
                                             <?php if ($log['time_out']): ?>
-                                                <div class="font-medium text-gray-900">
+                                                <div class="font-bold text-slate-700">
                                                     <?php echo date('H:i', strtotime($log['time_out'])); ?>
                                                 </div>
-                                                <span
-                                                    class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium <?php echo ($log['status_out'] === 'Pulang') ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'; ?>">
+                                                <span class="inline-flex items-center rounded-lg px-2 py-0.5 text-[10px] font-bold <?php echo ($log['status_out'] === 'Pulang') ? 'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20' : 'bg-rose-50 text-rose-700 ring-1 ring-inset ring-rose-600/20'; ?>">
                                                     <?php echo htmlspecialchars($log['status_out'] ?? 'Pulang'); ?>
                                                 </span>
                                             <?php else: ?>
-                                                <span class="text-gray-400 italic">Aktif</span>
+                                                <span class="inline-flex items-center rounded-lg bg-cyan-50 px-2.5 py-1 text-[10px] font-bold text-cyan-600 ring-1 ring-inset ring-cyan-500/20 animate-pulse">
+                                                    AKTIF
+                                                </span>
                                             <?php endif; ?>
                                         </td>
-                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                            <div class="font-medium text-gray-900">
+                                        <td class="whitespace-nowrap px-3 py-4 text-sm">
+                                            <div class="font-bold text-slate-700">
                                                 <?php echo htmlspecialchars($log['location_name'] ?? '-'); ?>
                                             </div>
-                                            <div class="text-[10px] text-gray-400 mt-1">
+                                            <div class="text-[10px] text-slate-400 font-mono mt-1 leading-tight">
                                                 In: <?php echo number_format((float)($log['lat_in'] ?? 0), 4); ?>, <?php echo number_format((float)($log['long_in'] ?? 0), 4); ?>
                                                 <?php if(!empty($log['lat_out'])): ?>
                                                     <br>Out: <?php echo number_format((float)($log['lat_out'] ?? 0), 4); ?>, <?php echo number_format((float)($log['long_out'] ?? 0), 4); ?>
@@ -272,45 +263,51 @@ include '../layouts/header.php';
                     }
                     ?>
                     <div class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
+                        <!-- Mobile Pagination Info -->
+                        <div class="flex sm:hidden flex-col items-center gap-2">
+                            <p class="text-xs text-slate-500">
+                                Menampilkan <span class="font-bold text-slate-900"><?php echo ($total_rows > 0) ? $offset + 1 : 0; ?></span> - <span class="font-bold text-slate-900"><?php echo min($offset + $limit, $total_rows); ?></span> dari <span class="font-bold text-slate-900"><?php echo $total_rows; ?></span>
+                            </p>
+                            <div class="flex gap-2">
+                                <?php if ($page > 1): ?>
+                                    <a href="<?php echo buildUrl($page - 1, $limit, $division_id, $start_date, $end_date); ?>" class="rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 transition-all">Prev</a>
+                                <?php endif; ?>
+                                <?php if ($page < $total_pages): ?>
+                                    <a href="<?php echo buildUrl($page + 1, $limit, $division_id, $start_date, $end_date); ?>" class="rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 transition-all">Next</a>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+
+                        <!-- Desktop/Tablet Pagination Info -->
                         <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
                             <div class="flex items-center gap-4">
-                                <select onchange="window.location.href='<?php echo buildUrl(1, '', $division_id, $start_date, $end_date); ?>'.replace('limit=', 'limit='+this.value)"
-                                    class="block rounded-md border-0 py-1.5 pl-3 pr-8 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-cyan-600 sm:text-xs sm:leading-6">
-                                    <?php foreach ([10, 20, 50, 100] as $val): ?>
-                                        <option value="<?php echo $val; ?>" <?php echo $limit == $val ? 'selected' : ''; ?>>
-                                            Tampil
-                                            <?php echo $val; ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                                <p class="text-sm text-gray-700">
-                                    Menampilkan
-                                    <span class="font-medium">
-                                        <?php echo ($total_rows > 0) ? $offset + 1 : 0; ?>
-                                    </span>
-                                    sampai
-                                    <span class="font-medium">
-                                        <?php echo min($offset + $limit, $total_rows); ?>
-                                    </span>
-                                    dari
-                                    <span class="font-medium">
-                                        <?php echo $total_rows; ?>
-                                    </span>
-                                    hasil
+                                <div class="relative group">
+                                    <select onchange="window.location.href='<?php echo buildUrl(1, '', $division_id, $start_date, $end_date); ?>'.replace('limit=', 'limit='+this.value)"
+                                        class="block rounded-xl border-slate-200 py-1.5 pl-3 pr-8 text-slate-700 text-xs font-bold bg-slate-50 group-hover:bg-white focus:ring-4 focus:ring-cyan-500/10 focus:border-cyan-500 transition-all appearance-none cursor-pointer">
+                                        <?php foreach ([10, 20, 50, 100] as $val): ?>
+                                            <option value="<?php echo $val; ?>" <?php echo $limit == $val ? 'selected' : ''; ?>>
+                                                Tampil <?php echo $val; ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none text-slate-400">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3 h-3">
+                                            <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 011.06 0L10 11.94l3.72-3.72a.75.75 0 111.06 1.06l-4.25 4.25a.75.75 0 01-1.06 0L5.22 9.28a.75.75 0 010-1.06z" clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-slate-600 font-medium">
+                                    Menampilkan <span class="text-slate-900 font-bold"><?php echo ($total_rows > 0) ? $offset + 1 : 0; ?></span> sampai <span class="text-slate-900 font-bold"><?php echo min($offset + $limit, $total_rows); ?></span> dari <span class="text-slate-900 font-bold"><?php echo $total_rows; ?></span> hasil
                                 </p>
                             </div>
                             <div>
-                                <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm"
-                                    aria-label="Pagination">
+                                <nav class="isolate inline-flex -space-x-px rounded-xl shadow-sm border border-slate-200 overflow-hidden" aria-label="Pagination">
                                     <!-- Prev -->
                                     <?php if ($page > 1): ?>
                                         <a href="<?php echo buildUrl($page - 1, $limit, $division_id, $start_date, $end_date); ?>"
-                                            class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
-                                            <span class="sr-only">Sebelumnya</span>
+                                            class="relative inline-flex items-center px-3 py-2 text-slate-400 hover:bg-slate-50 focus:z-20 transition-colors">
                                             <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                                <path fill-rule="evenodd"
-                                                    d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
-                                                    clip-rule="evenodd" />
+                                                <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
                                             </svg>
                                         </a>
                                     <?php endif; ?>
@@ -324,14 +321,13 @@ include '../layouts/header.php';
                                         if ($i == 1 || $i == $total_pages || ($i >= $initial_num && $i < $condition_limit_num)) {
                                             ?>
                                             <a href="<?php echo buildUrl($i, $limit, $division_id, $start_date, $end_date); ?>"
-                                                class="relative inline-flex items-center px-4 py-2 text-sm font-semibold <?php echo ($i == $page) ? 'bg-cyan-600 text-white focus-visible:outline-cyan-600' : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50'; ?> focus:z-20 focus:outline-offset-0">
+                                                class="relative inline-flex items-center px-4 py-2 text-sm font-bold <?php echo ($i == $page) ? 'bg-cyan-600 text-white' : 'text-slate-700 hover:bg-slate-50'; ?> border-x border-slate-100 transition-colors">
                                                 <?php echo $i; ?>
                                             </a>
                                             <?php
                                         } elseif ($i == $initial_num - 1 || $i == $condition_limit_num) {
                                             ?>
-                                            <span
-                                                class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 focus:outline-offset-0">...</span>
+                                            <span class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-slate-400 bg-slate-50/50">...</span>
                                             <?php
                                         }
                                     }
@@ -340,12 +336,9 @@ include '../layouts/header.php';
                                     <!-- Next -->
                                     <?php if ($page < $total_pages): ?>
                                         <a href="<?php echo buildUrl($page + 1, $limit, $division_id, $start_date, $end_date); ?>"
-                                            class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
-                                            <span class="sr-only">Selanjutnya</span>
+                                            class="relative inline-flex items-center px-3 py-2 text-slate-400 hover:bg-slate-50 focus:z-20 transition-colors">
                                             <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                                <path fill-rule="evenodd"
-                                                    d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
-                                                    clip-rule="evenodd" />
+                                                <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
                                             </svg>
                                         </a>
                                     <?php endif; ?>

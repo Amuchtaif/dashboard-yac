@@ -97,24 +97,16 @@ include '../layouts/header.php';
 
     <!-- Table -->
     <div class="mt-8 flex flex-col">
-        <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-            <table class="min-w-full divide-y divide-gray-200 table-fixed">
+        <div class="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+            <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
-                    <tr>
-                        <th
-                            class="py-3.5 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 sm:pl-6 w-12">
-                            No.</th>
-                        <th class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                            Kode</th>
-                        <th class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                            Nama Mata Pelajaran</th>
-                        <th class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                            Kategori</th>
-                        <th class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                            Deskripsi</th>
-                        <th
-                            class="relative py-3.5 pl-3 pr-4 sm:pr-6 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">
-                            Aksi</th>
+                    <tr class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                        <th class="py-3.5 pl-4 pr-3 text-left w-12 sm:pl-6 text-center">No.</th>
+                        <th class="px-3 py-3.5 text-left min-w-[100px]">Kode</th>
+                        <th class="px-3 py-3.5 text-left min-w-[200px]">Nama Mata Pelajaran</th>
+                        <th class="px-3 py-3.5 text-left min-w-[120px]">Kategori</th>
+                        <th class="px-3 py-3.5 text-left min-w-[200px]">Deskripsi</th>
+                        <th class="relative py-3.5 pl-3 pr-4 sm:pr-6 text-right w-28 border-none">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200 bg-white">

@@ -16,17 +16,54 @@ $action = $_POST['action'] ?? '';
 try {
     if ($action === 'create_room') {
         $room_name = $_POST['room_name'] ?? '';
-        $supervisor_id = $_POST['supervisor_id'] ?? '';
+        $supervisor_ids = $_POST['supervisor_ids'] ?? [];
 
-        if (empty($room_name) || empty($supervisor_id)) {
+        if (empty($room_name) || empty($supervisor_ids)) {
             throw new Exception("Nama asrama dan musyrif harus diisi.");
         }
 
+        $conn->beginTransaction();
+
         $stmt = $conn->prepare("INSERT INTO boarding_rooms (room_name, supervisor_id) VALUES (?, ?)");
-        $stmt->execute([$room_name, $supervisor_id]);
+        // We still keep supervisor_id in boarding_rooms for backward compatibility if needed, 
+        // but we'll primarily use boarding_room_supervisors mapping.
+        // We'll set the first one as primary in supervisor_id
+        $stmt->execute([$room_name, $supervisor_ids[0]]);
+        $room_id = $conn->lastInsertId();
+
+        $stmtSup = $conn->prepare("INSERT INTO boarding_room_supervisors (room_id, supervisor_id) VALUES (?, ?)");
+        foreach ($supervisor_ids as $sid) {
+            $stmtSup->execute([$room_id, $sid]);
+        }
+
+        $conn->commit();
 
         $_SESSION['success'] = "Data asrama berhasil ditambahkan.";
     } 
+    elseif ($action === 'update_room') {
+        $room_id = $_POST['room_id'] ?? '';
+        $room_name = $_POST['room_name'] ?? '';
+        $supervisor_ids = $_POST['supervisor_ids'] ?? [];
+
+        if (empty($room_id) || empty($room_name) || empty($supervisor_ids)) {
+            throw new Exception("Semua data harus diisi.");
+        }
+
+        $conn->beginTransaction();
+
+        $stmt = $conn->prepare("UPDATE boarding_rooms SET room_name = ?, supervisor_id = ? WHERE id = ?");
+        $stmt->execute([$room_name, $supervisor_ids[0], $room_id]);
+
+        // Refresh mapping
+        $conn->prepare("DELETE FROM boarding_room_supervisors WHERE room_id = ?")->execute([$room_id]);
+        $stmtSup = $conn->prepare("INSERT INTO boarding_room_supervisors (room_id, supervisor_id) VALUES (?, ?)");
+        foreach ($supervisor_ids as $sid) {
+            $stmtSup->execute([$room_id, $sid]);
+        }
+
+        $conn->commit();
+        $_SESSION['success'] = "Data asrama berhasil diperbarui.";
+    }
     elseif ($action === 'delete_room') {
         $room_id = $_POST['room_id'] ?? '';
 
