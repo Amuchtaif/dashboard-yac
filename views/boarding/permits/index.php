@@ -18,8 +18,8 @@ $permits_query = "
 ";
 $permits = $conn->query($permits_query)->fetchAll(PDO::FETCH_ASSOC);
 
-// For adding permit
-$all_students = $conn->query("SELECT id, nama_siswa, kelas FROM students ORDER BY nama_siswa ASC")->fetchAll(PDO::FETCH_ASSOC);
+// For adding permit (filtered by status Aktif)
+$all_students = $conn->query("SELECT id, nama_siswa, kelas FROM students WHERE status = 'Aktif' ORDER BY nama_siswa ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 include '../../layouts/header.php';
 ?>

@@ -171,8 +171,6 @@ try {
                         if (curl_errno($ch)) {
                             logAssignment("Curl JWT Error: " . curl_error($ch));
                         }
-                        curl_close($ch);
-
                         $tokenData = json_decode($response, true);
                         if (isset($tokenData['access_token'])) {
                             $accessToken = $tokenData['access_token'];
@@ -217,8 +215,6 @@ try {
                             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
                             $fcmResult = curl_exec($ch);
                             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-                            curl_close($ch);
-
                             if ($httpCode === 200) {
                                 $fcmSent = true;
                                 logAssignment("FCM sent successfully to user $assigned_to");

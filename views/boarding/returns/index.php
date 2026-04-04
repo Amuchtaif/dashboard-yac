@@ -17,8 +17,8 @@ $returns_query = "
 ";
 $returns = $conn->query($returns_query)->fetchAll(PDO::FETCH_ASSOC);
 
-// For adding return tracking
-$all_students = $conn->query("SELECT id, nama_siswa, kelas FROM students ORDER BY nama_siswa ASC")->fetchAll(PDO::FETCH_ASSOC);
+// For adding return tracking (filtered by status Aktif)
+$all_students = $conn->query("SELECT id, nama_siswa, kelas FROM students WHERE status = 'Aktif' ORDER BY nama_siswa ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 include '../../layouts/header.php';
 ?>

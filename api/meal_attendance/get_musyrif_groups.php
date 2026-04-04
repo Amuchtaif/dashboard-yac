@@ -13,18 +13,17 @@ try {
 
     // Query to get Musyrifs and their supervised students
     $sql = "
-        SELECT 
+        SELECT DISTINCT
             e.id as musyrif_id,
             e.full_name as musyrif_name,
             br.id as room_id,
             br.room_name,
-            COUNT(brm.student_id) as total_students
+            (SELECT COUNT(*) FROM boarding_room_members brm2 WHERE brm2.room_id = br.id) as total_students
         FROM employees e
         JOIN positions p ON e.position_id = p.id
-        JOIN boarding_rooms br ON br.supervisor_id = e.id
-        LEFT JOIN boarding_room_members brm ON br.id = brm.room_id
-        WHERE p.name LIKE '%Musyrif%'
-        GROUP BY e.id, e.full_name, br.id, br.room_name
+        LEFT JOIN boarding_room_supervisors brs ON e.id = brs.supervisor_id
+        LEFT JOIN boarding_rooms br ON (br.id = brs.room_id OR br.supervisor_id = e.id)
+        WHERE p.name LIKE '%Musyrif%' AND br.id IS NOT NULL
         ORDER BY br.room_name ASC
     ";
 

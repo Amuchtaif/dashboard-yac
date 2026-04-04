@@ -31,7 +31,7 @@ try {
         FROM boarding_room_members brm
         JOIN students s ON brm.student_id = s.id
         JOIN boarding_rooms br ON brm.room_id = br.id
-        WHERE s.status = 'Aktiv' AND brm.room_id = :room_id
+        WHERE s.status = 'Aktif' AND brm.room_id = :room_id
         ORDER BY s.nama_siswa ASC
     ";
 

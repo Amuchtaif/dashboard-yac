@@ -101,7 +101,7 @@ include '../layouts/header.php';
                                             <?php echo substr($m['nama_siswa'], 0, 1); ?>
                                         </div>
                                         <div class="ml-3">
-                                            <p class="font-bold text-slate-800 text-sm"><?php echo htmlspecialchars($m['nama_siswa']); ?></p>
+                                            <p class="font-bold text-slate-800 text-sm capitalize"><?php echo htmlspecialchars($m['nama_siswa']); ?></p>
                                         </div>
                                     </div>
                                 </td>
@@ -191,7 +191,7 @@ include '../layouts/header.php';
                                               data-nik="<?php echo strtolower(htmlspecialchars($s['nomor_induk'] ?? '')); ?>">
                                            <input type="checkbox" name="student_ids[]" value="<?php echo $s['id']; ?>" class="student-checkbox h-4 w-4 text-cyan-600 border-slate-300 rounded focus:ring-cyan-500">
                                            <div class="ml-4">
-                                               <p class="text-sm font-bold text-slate-700 group-hover:text-cyan-700"><?php echo htmlspecialchars($s['nama_siswa']); ?></p>
+                                               <p class="text-sm font-bold text-slate-700 group-hover:text-cyan-700 capitalize"><?php echo htmlspecialchars($s['nama_siswa']); ?></p>
                                                <p class="text-xs text-slate-400"><?php echo htmlspecialchars($s['nomor_induk'] ?? '-'); ?> • <?php echo htmlspecialchars($s['kelas'] ?? ''); ?></p>
                                            </div>
                                        </label>

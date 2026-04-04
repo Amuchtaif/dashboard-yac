@@ -116,7 +116,6 @@ try {
                         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payloadData));
                         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
                         curl_exec($ch);
-                        curl_close($ch);
                     }
                 }
             }

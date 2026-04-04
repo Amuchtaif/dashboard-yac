@@ -13,7 +13,7 @@ $conn = $db->getConnection();
 $emp_count = $conn->query("SELECT COUNT(*) FROM employees")->fetchColumn();
 $dept_count = $conn->query("SELECT COUNT(*) FROM divisions")->fetchColumn();
 $unit_count = $conn->query("SELECT COUNT(*) FROM units")->fetchColumn();
-$student_count = $conn->query("SELECT COUNT(*) FROM students")->fetchColumn();
+$student_count = $conn->query("SELECT COUNT(*) FROM students WHERE status = 'Aktif'")->fetchColumn();
 
 // --- Attendance Stats (Today) ---
 $today = date('Y-m-d');

@@ -98,8 +98,6 @@ try {
                         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
                         $fcmResultString = curl_exec($ch);
                         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-                        curl_close($ch);
-                        
                         $notificationsSent = ($httpCode === 200);
                         
                         // Debug log

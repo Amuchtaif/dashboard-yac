@@ -5,7 +5,7 @@ require_once '../../config/database.php';
 check_login();
 check_permission('manage_academic');
 
-$page_title = "Manajemen Siswa";
+$page_title = "Data Siswa (Non-Aktif)";
 
 $db = new Database();
 $conn = $db->getConnection();
@@ -69,14 +69,14 @@ if ($class_id) {
 
 if ($status) {
     if ($status === 'Semua') {
-        // No status filter applied
+        $where_clauses[] = "s.status != 'Aktif'";
     } else {
         $where_clauses[] = "s.status = :status";
         $params[':status'] = $status;
     }
 } else {
-    // Default to Aktif if no filter is provided
-    $where_clauses[] = "s.status = 'Aktif'";
+    // Default to everything EXCEPT Aktif
+    $where_clauses[] = "s.status != 'Aktif'";
 }
 
 $where_sql = implode(" AND ", $where_clauses);
@@ -182,7 +182,7 @@ include '../layouts/header.php';
     <!-- Header Section -->
     <div class="md:flex md:items-center md:justify-between mb-6">
         <div class="min-w-0 flex-1">
-            <h2 class="text-3xl font-bold leading-7 text-slate-900 sm:truncate sm:tracking-tight">Data Siswa</h2>
+            <h2 class="text-3xl font-bold leading-7 text-slate-900 sm:truncate sm:tracking-tight">Data Siswa (Non-Aktif)</h2>
             <p class="mt-2 text-sm text-slate-500 max-w-2xl">Kelola data siswa, perbarui profil, dan atur kelas untuk
                 tahun ajaran aktif.</p>
         </div>
@@ -317,9 +317,9 @@ include '../layouts/header.php';
                     class="inline-flex items-center justify-between gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-colors w-32">
                     <span id="filter-status-text" class="truncate">
                         <?php 
-                        if ($status === 'Semua') echo "Semua Status";
+                        if ($status === 'Semua') echo "Semua Non-Aktif";
                         elseif ($status) echo str_replace('_', ' ', $status);
-                        else echo "Status: Aktif"; 
+                        else echo "Semua Non-Aktif"; 
                         ?>
                     </span>
                     <svg class="h-4 w-4 text-slate-400 transition-transform duration-200" id="filter-status-arrow"
@@ -330,10 +330,10 @@ include '../layouts/header.php';
                 <div id="filter-status-menu"
                     class="hidden absolute top-full left-0 mt-1 w-32 origin-top-left rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
                     <ul class="py-1">
-                        <li onclick="selectFilterOption('status', 'Semua', 'Semua Status')"
+                        <li onclick="selectFilterOption('status', 'Semua', 'Semua Non-Aktif')"
                             class="cursor-pointer px-4 py-2 text-xs text-slate-500 hover:bg-slate-50 hover:text-cyan-700">
                             Semua</li>
-                        <?php foreach (['Aktif', 'Non_aktif', 'Lulus', 'Pindah', 'Dikeluarkan'] as $s): ?>
+                        <?php foreach (['Non_aktif', 'Lulus', 'Pindah', 'Dikeluarkan'] as $s): ?>
                             <li onclick="selectFilterOption('status', '<?php echo $s; ?>', '<?php echo str_replace('_', ' ', $s); ?>')"
                                 class="cursor-pointer px-4 py-2 text-xs text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
                                 <?php echo str_replace('_', ' ', $s); ?>
@@ -409,13 +409,11 @@ include '../layouts/header.php';
                             }
 
                             // Logic Status Color
-                            $status = $student['status'] ?? 'Aktif';
+                            $status = $student['status'] ?? 'Non_aktif';
                             $statusLabel = str_replace('_', ' ', $status);
-                            $statusColor = 'bg-green-50 text-green-700 ring-green-600/20'; // Default Aktif
+                            $statusColor = 'bg-red-50 text-red-700 ring-red-600/20'; // Default Nonaktif
                     
-                            if ($status == 'Non_aktif') {
-                                $statusColor = 'bg-red-50 text-red-700 ring-red-600/20';
-                            } elseif ($status == 'Lulus') {
+                            if ($status == 'Lulus') {
                                 $statusColor = 'bg-blue-50 text-blue-700 ring-blue-700/10';
                             } elseif ($status == 'Pindah') {
                                 $statusColor = 'bg-amber-50 text-amber-700 ring-amber-600/20';
@@ -476,16 +474,14 @@ include '../layouts/header.php';
                                 </td>
                                 <td class="relative whitespace-nowrap py-4 pl-3 pr-6 text-right text-sm font-medium">
                                     <div class="flex justify-end gap-2 transition-opacity">
-                                        <?php if ($status === 'Aktif'): ?>
-                                            <button type="button" 
-                                                onclick="openStatusModal(<?php echo $student['id']; ?>, '<?php echo addslashes(htmlspecialchars(ucwords(strtolower($student['nama_siswa'])))); ?>')"
-                                                class="p-2 text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-all"
-                                                title="Nonaktifkan">
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-                                                </svg>
-                                            </button>
-                                        <?php endif; ?>
+                                        <button type="button" 
+                                            onclick="openStatusModal(<?php echo $student['id']; ?>, '<?php echo addslashes(htmlspecialchars(ucwords(strtolower($student['nama_siswa'])))); ?>', 'Aktif')"
+                                            class="p-2 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 rounded-lg transition-all"
+                                            title="Aktifkan">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </button>
                                         <a href="<?php url('views/students/edit.php?id=' . $student['id']); ?>"
                                             class="p-2 text-slate-400 hover:text-cyan-500 hover:bg-cyan-50 rounded-lg transition-all"
                                             title="Edit">
@@ -618,40 +614,30 @@ include '../layouts/header.php';
             <div id="statusModalPanel" class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all duration-300 opacity-0 scale-95 sm:my-8 sm:w-full sm:max-w-lg border border-slate-100">
                 <form action="<?php url('logic/students/update_status.php'); ?>" method="POST">
                     <input type="hidden" name="student_id" id="modal_student_id">
+                    <input type="hidden" name="status" id="modal_status">
                     
                     <div class="bg-white px-8 pb-6 pt-10 sm:p-10 sm:pb-8">
                         <div class="sm:flex sm:items-start">
-                            <div class="mx-auto flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-3xl bg-amber-50 sm:mx-0 sm:h-12 sm:w-12 border border-amber-100">
-                                <svg class="h-6 w-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                            <div class="mx-auto flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-3xl bg-emerald-50 sm:mx-0 sm:h-12 sm:w-12 border border-emerald-100">
+                                <svg class="h-6 w-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                             </div>
-                            <div class="mt-4 text-center sm:ml-6 sm:mt-0 sm:text-left w-full">
-                                <h3 class="text-xl font-black leading-6 text-slate-800 uppercase tracking-tight" id="modal-title">Perbarui Status</h3>
+                            <div class="mt-4 text-center sm:ml-6 sm:mt-0 sm:text-left">
+                                <h3 class="text-xl font-black leading-6 text-slate-800 uppercase tracking-tight" id="modal-title">Konfirmasi Status</h3>
                                 <div class="mt-3">
-                                    <p class="text-sm text-slate-500 font-medium leading-relaxed">
-                                        Anda akan memperbarui status <span id="modal_student_name" class="font-black text-slate-900 border-b-2 border-amber-300"></span>.
+                                    <p class="text-sm text-slate-500 font-medium">
+                                        Anda akan mengaktifkan kembali <span id="modal_student_name" class="font-bold text-slate-900 border-b-2 border-emerald-200"></span>. 
+                                        Siswa akan kembali muncul di daftar utama dan formulir input data.
                                     </p>
-                                    
-                                    <div class="mt-6 p-5 bg-slate-50 rounded-2xl border border-slate-100">
-                                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2.5 ml-1">Pilih Status Akhir</label>
-                                        <select name="status" id="modal_status_select" class="block w-full rounded-xl border-slate-200 border-2 bg-white px-4 py-3.5 text-sm font-bold text-slate-800 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all outline-none shadow-sm">
-                                            <option value="Non_aktif">Non-aktif (Umum)</option>
-                                            <option value="Lulus">Lulus (Tamat Pendidikan)</option>
-                                            <option value="Pindah">Pindah (Sekolah Lain)</option>
-                                            <option value="Dikeluarkan">Dikeluarkan</option>
-                                        </select>
-                                        <p class="mt-3 text-[11px] text-slate-400 font-medium leading-tight">Siswa dengan status ini tidak akan muncul di daftar aktif utama.</p>
-                                    </div>
-                                    
-                                    <p class="mt-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] italic text-center sm:text-left">Konfirmasi perubahan ini?</p>
+                                    <p class="mt-4 text-xs font-bold text-slate-400 uppercase tracking-widest italic">Lanjutkan tindakan ini?</p>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="bg-slate-50/50 px-8 py-6 sm:flex sm:flex-row-reverse sm:px-10 gap-3 border-t border-slate-100">
-                        <button type="submit" class="inline-flex w-full justify-center rounded-xl bg-slate-900 px-8 py-3.5 text-sm font-black text-white hover:bg-slate-800 sm:w-auto transition-all transform active:scale-95 uppercase tracking-widest shadow-lg shadow-slate-200">
-                            Ya, Simpan Perubahan
+                        <button type="submit" class="inline-flex w-full justify-center rounded-xl bg-emerald-600 px-8 py-3 text-sm font-bold text-white hover:bg-emerald-700 sm:w-auto transition-all transform active:scale-95">
+                            Ya, Aktifkan Kembali
                         </button>
                         <button type="button" onclick="closeStatusModal()" class="mt-3 inline-flex w-full justify-center rounded-xl bg-white px-6 py-3 text-sm font-bold text-slate-500 shadow-sm ring-1 ring-inset ring-slate-200 hover:bg-slate-50 sm:mt-0 sm:w-auto transition-all transform active:scale-95">
                             Batal
@@ -677,9 +663,10 @@ include '../layouts/header.php';
         }
 
         // --- Status Modal Logic ---
-        function openStatusModal(id, name) {
+        function openStatusModal(id, name, status) {
             document.getElementById('modal_student_id').value = id;
             document.getElementById('modal_student_name').innerText = name;
+            document.getElementById('modal_status').value = status;
             
             const modal = document.getElementById('statusModal');
             const backdrop = document.getElementById('statusModalBackdrop');

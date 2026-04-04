@@ -1,7 +1,27 @@
 <?php
 date_default_timezone_set('Asia/Jakarta');
-// Base URL configuration
-define('BASE_URL', 'http://localhost/dashboard-yac');
+// Base URL configuration (AUTO-DETECTED)
+if (!defined('BASE_URL')) {
+    $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') ? "https" : "http";
+    $host = $_SERVER['HTTP_HOST'];
+    
+    // Normalize path separators for both Windows and Linux
+    $docRoot = rtrim(str_replace('\\', '/', $_SERVER['DOCUMENT_ROOT']), '/');
+    $projectRoot = rtrim(str_replace('\\', '/', dirname(__DIR__)), '/');
+    
+    // Find the relative path from DocumentRoot to project root
+    $relativePath = '';
+    // On Windows, drive letters might be different cases, so we case-normalize for path comparison
+    if (stripos($projectRoot, $docRoot) === 0) {
+        $relativePath = substr($projectRoot, strlen($docRoot));
+    }
+    
+    // Ensure relativePath starts with / and ends without /
+    $relativePath = '/' . ltrim(str_replace('\\', '/', $relativePath), '/');
+    $relativePath = rtrim($relativePath, '/');
+    
+    define('BASE_URL', $protocol . "://" . $host . $relativePath);
+}
 
 // App Name
 define('APP_NAME', 'Dashboard YAC');

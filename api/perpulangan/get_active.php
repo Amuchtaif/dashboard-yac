@@ -45,8 +45,9 @@ try {
         $params[':room_id'] = $room_id;
     } elseif ($user_id && $user_id != '0') {
         // Only filter by supervisor if user_id is provided and valid
-        $query .= " AND br.supervisor_id = :user_id";
+        $query .= " AND (br.supervisor_id = :user_id OR EXISTS (SELECT 1 FROM boarding_room_supervisors brs WHERE brs.room_id = br.id AND brs.supervisor_id = :user_id_mapping))";
         $params[':user_id'] = $user_id;
+        $params[':user_id_mapping'] = $user_id;
     }
 
     $query .= " GROUP BY bp.id";

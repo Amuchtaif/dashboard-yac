@@ -89,8 +89,8 @@ $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 // Fetch types for filter
 $assessment_types = $conn->query("SELECT id, name FROM tahfidz_assessment_types WHERE is_active = 1 ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
 
-// Fetch students for "Add New" form (limited for performance, better use searchable dropdown)
-$students = $conn->query("SELECT id, nama_siswa, nomor_induk as nis, kelas FROM students ORDER BY nama_siswa ASC")->fetchAll(PDO::FETCH_ASSOC);
+// Fetch students for "Add New" form (filtered by status Aktif)
+$students = $conn->query("SELECT id, nama_siswa, nomor_induk as nis, kelas FROM students WHERE status = 'Aktif' ORDER BY nama_siswa ASC")->fetchAll(PDO::FETCH_ASSOC);
 $teachers = $conn->query("SELECT id, full_name FROM employees WHERE status = 'active' ORDER BY full_name ASC LIMIT 100")->fetchAll(PDO::FETCH_ASSOC);
 
 include '../layouts/header.php';

@@ -43,14 +43,32 @@ $members_stmt->execute([$room_id]);
 $members = $members_stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Fetch students not in ANY room for adding
+// Exclude TKIT, SDIT, and Playgroup units
+$active_year_query = "SELECT id FROM academic_years WHERE is_active = 1 LIMIT 1";
+$active_year_id = $conn->query($active_year_query)->fetchColumn();
+
 $available_students_query = "
     SELECT s.id, s.nama_siswa, s.nomor_induk, s.kelas
     FROM students s
-    WHERE NOT EXISTS (SELECT 1 FROM boarding_room_members brm WHERE brm.student_id = s.id)
+    LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = :yid
+    LEFT JOIN grade_levels gl ON sch.class_id = gl.id
+    LEFT JOIN education_units eu ON gl.education_unit_id = eu.id
+    WHERE s.status = 'Aktif'
+    AND NOT EXISTS (SELECT 1 FROM boarding_room_members brm WHERE brm.student_id = s.id)
+    AND (
+        eu.name IS NULL 
+        OR (
+            eu.name NOT LIKE '%TK%' 
+            AND eu.name NOT LIKE '%SD%' 
+            AND eu.name NOT LIKE '%Playgroup%' 
+            AND eu.name NOT LIKE '%PG%'
+        )
+    )
+    GROUP BY s.id
     ORDER BY s.nama_siswa ASC
 ";
 $available_stmt = $conn->prepare($available_students_query);
-$available_stmt->execute();
+$available_stmt->execute([':yid' => $active_year_id]);
 $available_students = $available_stmt->fetchAll(PDO::FETCH_ASSOC);
 
 include '../../layouts/header.php';
@@ -105,7 +123,7 @@ include '../../layouts/header.php';
                                             <?php echo substr($m['nama_siswa'], 0, 1); ?>
                                         </div>
                                         <div class="ml-3">
-                                            <p class="font-bold text-slate-800 text-sm"><?php echo htmlspecialchars($m['nama_siswa']); ?></p>
+                                            <p class="font-bold text-slate-800 text-sm capitalize"><?php echo htmlspecialchars($m['nama_siswa']); ?></p>
                                         </div>
                                     </div>
                                 </td>
@@ -184,7 +202,7 @@ include '../../layouts/header.php';
                                               data-nik="<?php echo strtolower(htmlspecialchars($s['nomor_induk'] ?? '')); ?>">
                                            <input type="checkbox" name="student_ids[]" value="<?php echo $s['id']; ?>" class="student-checkbox h-4 w-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500">
                                            <div class="ml-4">
-                                               <p class="text-sm font-bold text-slate-700 group-hover:text-indigo-700"><?php echo htmlspecialchars($s['nama_siswa']); ?></p>
+                                               <p class="text-sm font-bold text-slate-700 group-hover:text-indigo-700 capitalize"><?php echo htmlspecialchars($s['nama_siswa']); ?></p>
                                                <p class="text-xs text-slate-400"><?php echo htmlspecialchars($s['nomor_induk'] ?? '-'); ?> • <?php echo htmlspecialchars($s['kelas'] ?? ''); ?></p>
                                            </div>
                                        </label>

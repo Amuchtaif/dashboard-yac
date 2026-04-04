@@ -252,7 +252,7 @@ require_once '../../layouts/header.php';
                 <td class="px-6 py-4 text-center font-mono text-slate-400">${i + 1}</td>
                 <td class="px-6 py-4">
                     <div class="flex flex-col">
-                        <span class="font-bold text-slate-800">${v.nama_siswa}</span>
+                        <span class="font-bold text-slate-800 capitalize">${v.nama_siswa}</span>
                         <span class="text-[10px] text-slate-400 uppercase tracking-tighter">Reported by: ${v.pelapor_name}</span>
                     </div>
                 </td>

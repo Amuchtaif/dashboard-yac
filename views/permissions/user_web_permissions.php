@@ -49,10 +49,14 @@ $query = "
         COALESCE(p.can_manage_employees, 0) as role_manage_employees,
         COALESCE(p.can_manage_academic, 0) as role_manage_academic,
         COALESCE(p.can_manage_tahfidz, 0) as role_manage_tahfidz,
+        COALESCE(p.can_manage_boarding, 0) as role_manage_boarding,
+        COALESCE(p.can_manage_inventory, 0) as role_manage_inventory,
         -- User-specific overrides (NULL = no override)
         up_emp.is_allowed as override_manage_employees,
         up_aca.is_allowed as override_manage_academic,
-        up_tah.is_allowed as override_manage_tahfidz
+        up_tah.is_allowed as override_manage_tahfidz,
+        up_boa.is_allowed as override_manage_boarding,
+        up_inv.is_allowed as override_manage_inventory
     FROM employees e
     LEFT JOIN positions p ON e.position_id = p.id
     LEFT JOIN user_permissions up_emp 
@@ -61,6 +65,10 @@ $query = "
         ON e.id = up_aca.employee_id AND up_aca.permission_name = 'manage_academic'
     LEFT JOIN user_permissions up_tah 
         ON e.id = up_tah.employee_id AND up_tah.permission_name = 'manage_tahfidz'
+    LEFT JOIN user_permissions up_boa 
+        ON e.id = up_boa.employee_id AND up_boa.permission_name = 'manage_boarding'
+    LEFT JOIN user_permissions up_inv 
+        ON e.id = up_inv.employee_id AND up_inv.permission_name = 'manage_inventory'
     WHERE $where_sql
     ORDER BY e.full_name ASC
     LIMIT :limit OFFSET :offset
@@ -186,7 +194,7 @@ include '../layouts/header.php';
                             <!-- Category Row -->
                             <tr>
                                 <th colspan="3" class="bg-slate-50 border-b border-slate-200 sticky-col z-20"></th>
-                                <th colspan="3" class="group-header border-l border-slate-200 bg-indigo-50/30 text-indigo-700">Manajemen Dashboard (Override)</th>
+                                <th colspan="5" class="group-header border-l border-slate-200 bg-indigo-50/30 text-indigo-700">Manajemen Dashboard (Override)</th>
                             </tr>
                             <tr class="bg-slate-50/80 backdrop-blur-sm">
                                 <th scope="col" class="sticky-col py-3.5 pl-4 pr-3 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500 sm:pl-6 border-b border-slate-200">No.</th>
@@ -195,6 +203,8 @@ include '../layouts/header.php';
                                 <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200 border-l border-slate-100">Manajemen Pegawai</th>
                                 <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">Manajemen Akademik</th>
                                 <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">Manajemen Tahfidz</th>
+                                <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">Kepengasuhan</th>
+                                <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">Manajemen Inventaris</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 bg-white">
@@ -203,7 +213,9 @@ include '../layouts/header.php';
                                     $p_list = [
                                         ['name' => 'manage_employees', 'eff' => ($emp['override_manage_employees'] !== null ? (int)$emp['override_manage_employees'] : (int)$emp['role_manage_employees']), 'src' => ($emp['override_manage_employees'] !== null && (int)$emp['override_manage_employees'] !== (int)$emp['role_manage_employees'] ? 'override' : 'role'), 'role' => (int)$emp['role_manage_employees']],
                                         ['name' => 'manage_academic',  'eff' => ($emp['override_manage_academic'] !== null ? (int)$emp['override_manage_academic'] : (int)$emp['role_manage_academic']), 'src' => ($emp['override_manage_academic'] !== null && (int)$emp['override_manage_academic'] !== (int)$emp['role_manage_academic'] ? 'override' : 'role'), 'role' => (int)$emp['role_manage_academic']],
-                                        ['name' => 'manage_tahfidz',   'eff' => ($emp['override_manage_tahfidz'] !== null ? (int)$emp['override_manage_tahfidz'] : (int)$emp['role_manage_tahfidz']), 'src' => ($emp['override_manage_tahfidz'] !== null && (int)$emp['override_manage_tahfidz'] !== (int)$emp['role_manage_tahfidz'] ? 'override' : 'role'), 'role' => (int)$emp['role_manage_tahfidz']]
+                                        ['name' => 'manage_tahfidz',   'eff' => ($emp['override_manage_tahfidz'] !== null ? (int)$emp['override_manage_tahfidz'] : (int)$emp['role_manage_tahfidz']), 'src' => ($emp['override_manage_tahfidz'] !== null && (int)$emp['override_manage_tahfidz'] !== (int)$emp['role_manage_tahfidz'] ? 'override' : 'role'), 'role' => (int)$emp['role_manage_tahfidz']],
+                                        ['name' => 'manage_boarding',  'eff' => ($emp['override_manage_boarding'] !== null ? (int)$emp['override_manage_boarding'] : (int)$emp['role_manage_boarding']), 'src' => ($emp['override_manage_boarding'] !== null && (int)$emp['override_manage_boarding'] !== (int)$emp['role_manage_boarding'] ? 'override' : 'role'), 'role' => (int)$emp['role_manage_boarding']],
+                                        ['name' => 'manage_inventory', 'eff' => ($emp['override_manage_inventory'] !== null ? (int)$emp['override_manage_inventory'] : (int)$emp['role_manage_inventory']), 'src' => ($emp['override_manage_inventory'] !== null && (int)$emp['override_manage_inventory'] !== (int)$emp['role_manage_inventory'] ? 'override' : 'role'), 'role' => (int)$emp['role_manage_inventory']]
                                     ];
                                 ?>
                                     <tr class="hover:bg-slate-50 transition-colors group">

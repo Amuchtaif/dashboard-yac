@@ -15,8 +15,8 @@ $end_date = isset($_GET['end_date']) ? $_GET['end_date'] : date('Y-m-d');
 $unit_filter = isset($_GET['unit']) ? $_GET['unit'] : '';
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 
-// --- Fetch Units for Filter ---
-$units = $conn->query("SELECT DISTINCT tingkat FROM students WHERE tingkat IS NOT NULL AND tingkat != '' ORDER BY tingkat")->fetchAll(PDO::FETCH_COLUMN);
+// --- Fetch Units for Filter (filtered by status Aktif)
+$units = $conn->query("SELECT DISTINCT tingkat FROM students WHERE status = 'Aktif' AND tingkat IS NOT NULL AND tingkat != '' ORDER BY tingkat")->fetchAll(PDO::FETCH_COLUMN);
 
 // --- Build Query ---
 $query = "

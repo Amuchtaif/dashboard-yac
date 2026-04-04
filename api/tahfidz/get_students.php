@@ -26,8 +26,13 @@ try {
         $activeYear = $yearRow['name'];
     }
 
-    // 2. Fetch all students (removed strict academic year filtering to show all data)
-    $query = "SELECT * FROM students ORDER BY nama_siswa ASC";
+    // 2. Fetch all students (filtered by status Aktif and excluding specific units)
+    $exclude = ["'TKIT'", "'SDIT'", "'PLAY GROUP'"];
+    $exclude_str = implode(',', $exclude);
+    $query = "SELECT * FROM students 
+              WHERE status = 'Aktif' 
+              AND (tingkat NOT IN ($exclude_str) OR tingkat IS NULL)
+              ORDER BY nama_siswa ASC";
     $result = $mysqli->query($query);
     
     if ($result) {

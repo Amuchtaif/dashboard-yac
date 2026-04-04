@@ -27,7 +27,6 @@ function get_public_holidays($year) {
         curl_setopt($ch, CURLOPT_TIMEOUT, 10);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         $json = curl_exec($ch);
-        curl_close($ch);
     }
 
     if ($json) {

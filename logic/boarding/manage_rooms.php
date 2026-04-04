@@ -86,13 +86,39 @@ try {
 
         $added_count = 0;
         $stmt = $conn->prepare("INSERT INTO boarding_room_members (room_id, student_id) VALUES (?, ?)");
+        $active_year_query = "SELECT id FROM academic_years WHERE is_active = 1 LIMIT 1";
+        $active_year_id = $conn->query($active_year_query)->fetchColumn();
 
         foreach ($student_ids as $sid) {
-            // Check if already a member in ANY room (one student per room)
+            // 1. Check if already a member in ANY room (one student per room)
             $check = $conn->prepare("SELECT id FROM boarding_room_members WHERE student_id = ?");
             $check->execute([$sid]);
             if ($check->fetch()) {
                 continue; // Skip if already placed
+            }
+
+            // 2. Validate Unit (Exclude TKIT, SDIT, Playgroup)
+            $unit_check = $conn->prepare("
+                SELECT eu.name 
+                FROM student_class_history sch 
+                JOIN grade_levels gl ON sch.class_id = gl.id 
+                JOIN education_units eu ON gl.education_unit_id = eu.id 
+                WHERE sch.student_id = ? AND sch.academic_year_id = ?
+            ");
+            $unit_check->execute([$sid, $active_year_id]);
+            $unit_name = $unit_check->fetchColumn();
+
+            if ($unit_name) {
+                // We use keyword matching to cover unit names like 'Playgroup' etc.
+                $forbidden_keywords = ['TK', 'SD', 'Playgroup', 'PG'];
+                $is_forbidden = false;
+                foreach ($forbidden_keywords as $keyword) {
+                    if (stripos($unit_name, $keyword) !== false) {
+                        $is_forbidden = true;
+                        break;
+                    }
+                }
+                if ($is_forbidden) continue;
             }
 
             $stmt->execute([$room_id, $sid]);

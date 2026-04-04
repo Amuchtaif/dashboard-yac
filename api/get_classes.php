@@ -17,7 +17,7 @@ try {
                 gl.name as class_name, 
                 gl.category as unit_name,
                 e.full_name as teacher_name,
-                (SELECT COUNT(*) FROM students s WHERE s.kelas = gl.name) as student_count
+                (SELECT COUNT(*) FROM students s WHERE s.kelas = gl.name AND s.status = 'Aktif') as student_count
               FROM grade_levels gl
               LEFT JOIN employees e ON gl.teacher_id = e.id
               WHERE gl.name LIKE :search OR gl.category LIKE :search

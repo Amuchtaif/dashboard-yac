@@ -36,7 +36,7 @@ try {
     if ($room_id) {
         $query .= " AND br.id = :room_id";
     } elseif ($user_id) {
-        $query .= " AND br.supervisor_id = :user_id";
+        $query .= " AND (br.supervisor_id = :user_id OR EXISTS (SELECT 1 FROM boarding_room_supervisors brs WHERE brs.room_id = br.id AND brs.supervisor_id = :user_id_mapping))";
     }
 
     $query .= " GROUP BY bp.category";
@@ -48,6 +48,7 @@ try {
         $stmt->bindParam(':room_id', $room_id);
     } elseif ($user_id) {
         $stmt->bindParam(':user_id', $user_id);
+        $stmt->bindParam(':user_id_mapping', $user_id);
     }
     
     $stmt->execute();

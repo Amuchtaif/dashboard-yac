@@ -9,7 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-include_once '../../config/database.php';
+require_once __DIR__ . '/../../config/database.php';
 
 try {
     $database = new Database();
@@ -18,18 +18,22 @@ try {
     $room_id = isset($_GET['room_id']) ? $_GET['room_id'] : null;
     $date = isset($_GET['date']) ? $_GET['date'] : date('Y-m-d');
 
-    if (!$room_id) {
-        echo json_encode(["status" => false, "message" => "room_id is required"]);
+    if (!$room_id || $room_id == 0) {
+        echo json_encode(["success" => false, "message" => "ID Asrama tidak valid (room_id is required)"]);
         exit;
     }
 
     $query = "
         SELECT s.id as student_id, s.nama_siswa, s.nomor_induk, s.kelas,
-               ba.status, ba.notes as keterangan
+               (SELECT status FROM boarding_attendances ba 
+                WHERE ba.student_id = s.id AND ba.room_id = brm.room_id AND ba.date = :date 
+                LIMIT 1) as status,
+               (SELECT notes FROM boarding_attendances ba 
+                WHERE ba.student_id = s.id AND ba.room_id = brm.room_id AND ba.date = :date 
+                LIMIT 1) as keterangan
         FROM boarding_room_members brm
         JOIN students s ON brm.student_id = s.id
-        LEFT JOIN boarding_attendances ba ON ba.student_id = s.id AND ba.room_id = brm.room_id AND ba.date = :date
-        WHERE brm.room_id = :room_id
+        WHERE brm.room_id = :room_id AND s.status = 'Aktif'
         ORDER BY s.nama_siswa ASC
     ";
 
@@ -39,9 +43,32 @@ try {
     $stmt->execute();
     $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    // Check if room is filled for this date
+    $check_filled_stmt = $conn->prepare("
+        SELECT ba.created_by, (SELECT full_name FROM employees WHERE id = ba.created_by) as creator_name
+        FROM boarding_attendances ba
+        WHERE ba.room_id = ? AND ba.date = ? AND ba.created_by IS NOT NULL
+        LIMIT 1
+    ");
+    $check_filled_stmt->execute([$room_id, $date]);
+    $filled_res = $check_filled_stmt->fetch(PDO::FETCH_ASSOC);
+    
+    $is_filled = (bool)$filled_res;
+    $filled_by_name = $filled_res['creator_name'] ?? null;
+    $filled_by_id = $filled_res['created_by'] ?? null;
+    $current_supervisor_id = isset($_GET['supervisor_id']) ? $_GET['supervisor_id'] : null;
+
+    // Locked if filled by someone else
+    $is_locked = ($is_filled && $current_supervisor_id && $filled_by_id != $current_supervisor_id);
+    // If no supervisor_id passed but it IS filled, we can't be sure, but let's just say it's filled.
+    // If current_supervisor_id is NOT passed, we might just warn the user.
+    
     echo json_encode([
         "success" => true,
         "count" => count($students),
+        "is_filled" => (int)$is_filled,
+        "is_locked" => (int)$is_locked,
+        "filled_by_name" => $filled_by_name,
         "data" => $students
     ]);
 

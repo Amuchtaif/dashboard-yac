@@ -170,7 +170,6 @@ try {
                             ]));
                             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
                             $response = curl_exec($ch);
-                            curl_close($ch);
 
                             $tokenResponse = json_decode($response, true);
 
@@ -204,7 +203,6 @@ try {
                                 curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payloadData));
                                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
                                 curl_exec($ch); // Send and forget
-                                curl_close($ch);
                             }
                         }
                     } catch (Exception $e) {

@@ -12,8 +12,8 @@ try {
     $exclude = ["'TKIT'", "'SDIT'", "'PLAY GROUP'"];
     $exclude_str = implode(',', $exclude);
     $stmt = $conn->query("SELECT id, nama_siswa, kelas FROM students 
-                          WHERE tingkat NOT IN ($exclude_str) 
-                          OR tingkat IS NULL
+                          WHERE status = 'Aktif' AND (tingkat NOT IN ($exclude_str) 
+                          OR tingkat IS NULL)
                           ORDER BY nama_siswa ASC");
     $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
 

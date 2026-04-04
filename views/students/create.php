@@ -81,8 +81,9 @@ include '../layouts/header.php';
                         <label for="nama_siswa" class="block text-sm font-semibold text-slate-700 mb-1">Nama Lengkap
                             Siswa</label>
                         <input type="text" name="nama_siswa" id="nama_siswa" required
-                            class="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all placeholder:text-slate-400"
-                            placeholder="Contoh: Andi Wijaya">
+                            class="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all placeholder:text-slate-400 capitalize"
+                            placeholder="Contoh: Andi Wijaya"
+                            oninput="this.value = this.value.replace(/\b\w/g, c => c.toUpperCase())">
                     </div>
                     <div>
                         <label for="nomor_induk" class="block text-sm font-semibold text-slate-700 mb-1">Nomor Induk
@@ -160,9 +161,10 @@ include '../layouts/header.php';
                         <select name="status" id="status"
                             class="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all bg-white text-slate-700">
                             <option value="Aktif">Aktif</option>
-                            <option value="Izin">Izin (Cuti)</option>
-                            <option value="Nonaktif">Nonaktif</option>
+                            <option value="Non_aktif">Non-aktif</option>
                             <option value="Lulus">Lulus</option>
+                            <option value="Pindah">Pindah</option>
+                            <option value="Dikeluarkan">Dikeluarkan</option>
                         </select>
                     </div>
                 </div>

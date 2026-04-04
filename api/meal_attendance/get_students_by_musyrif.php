@@ -20,15 +20,53 @@ try {
         exit();
     }
 
-    // 1. Detect which room is supervised by this musyrif_id
-    $room_stmt = $conn->prepare("SELECT id, room_name FROM boarding_rooms WHERE supervisor_id = ? LIMIT 1");
-    $room_stmt->execute([$musyrif_id]);
+    // 1. Detect which rooms are supervised by this musyrif_id (Mapping table or Legacy column)
+    $room_stmt = $conn->prepare("
+        SELECT br.id, br.room_name 
+        FROM boarding_rooms br
+        LEFT JOIN boarding_room_supervisors brs ON br.id = brs.room_id
+        WHERE brs.supervisor_id = ? OR br.supervisor_id = ?
+        LIMIT 1
+    ");
+    $room_stmt->execute([$musyrif_id, $musyrif_id]);
     $room = $room_stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$room) {
         echo json_encode(["success" => false, "message" => "Musyrif belum ditetapkan ke asrama manapun."]);
         exit();
     }
+
+    // 1b. Check if this room has already been filled by anyone for this date and meal_type
+    $check_filled_stmt = $conn->prepare("
+        SELECT ma.created_by, (SELECT full_name FROM employees WHERE id = ma.created_by) as creator_name
+        FROM meal_attendances ma
+        JOIN boarding_room_members brm ON ma.student_id = brm.student_id
+        WHERE brm.room_id = ? AND ma.date = ? AND ma.meal_type = ?
+        LIMIT 1
+    ");
+    $check_filled_stmt->execute([$room['id'], $date, $meal_type]);
+    $filled_res = $check_filled_stmt->fetch(PDO::FETCH_ASSOC);
+    
+    $is_locked = (bool)$filled_res;
+    $filled_by_name = $filled_res['creator_name'] ?? null;
+    $filled_by_id = $filled_res['created_by'] ?? null;
+
+    // Additional: If filled by same musyrif, maybe don't lock it?
+    // User requested: "batasi jika asrama sudah diabsen oleh musrif 1 musrif yg lain di asrama itu tidak boleh menginput absen lgi"
+    // This implies that if Musyrif 1 already did it, Musyrif 2 is blocked.
+    // So if current musyrif is NOT the creator, lock it. 
+    // Wait, if it IS the creator, they might want to EDIT. 
+    // Let's use the USER's wording: "tidak boleh menginput absen lgi cukup tampilkan data absen yg sudah dilakukan musrif 1"
+    // This sounds like even Musyrif 1 shouldn't input again once saved.
+    // But normally we allow editing if it's the same person.
+    
+    // For now, let's keep is_locked as true if ANY creator exists and it's not the current musyrif.
+    if ($is_locked && $filled_by_id != $musyrif_id) {
+        $lock_status = true;
+    } else {
+        $lock_status = false; 
+    }
+    // Actually, let's just use the boolean is_locked for now as a general flag.
 
     // 2. Get students in this room and their meal attendance status
     $sql = "
@@ -76,6 +114,8 @@ try {
         "room_info" => $room,
         "date" => $date,
         "meal_type" => $meal_type,
+        "is_locked" => $lock_status,
+        "filled_by_name" => $filled_by_name,
         "data" => $students
     ]);
 

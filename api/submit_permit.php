@@ -228,8 +228,6 @@ try {
                         if (curl_errno($ch)) {
                             logFCM("Curl JWT Error: " . curl_error($ch));
                         }
-                        curl_close($ch);
-
                         $tokenData = json_decode($response, true);
                         if (isset($tokenData['access_token'])) {
                             $accessToken = $tokenData['access_token'];
@@ -286,7 +284,6 @@ try {
                             } else {
                                 logFCM("FCM Response: " . $fcmResult);
                             }
-                            curl_close($ch);
                         } else {
                             logFCM("Failed to get Access Token. Response: " . $response);
                         }

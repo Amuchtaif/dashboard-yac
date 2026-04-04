@@ -51,6 +51,7 @@ try {
         }
 
         $nama_siswa = trim($data[0]);
+        $nama_siswa = ucwords(strtolower($nama_siswa));
         $nisn = trim($data[1]);
         $kelas_nama = trim($data[2]);
 

@@ -474,7 +474,7 @@ include '../layouts/header.php';
                                     </div>
                                     <div class="ml-4">
                                         <div class="font-bold text-slate-900 text-sm">
-                                            <?php echo htmlspecialchars($emp['full_name']); ?>
+                                            <?php echo htmlspecialchars($emp['full_name'] ?? ''); ?>
                                         </div>
                                         <div class="text-[11px] text-slate-400 font-medium uppercase tracking-tight">
                                             NIK: <?php echo htmlspecialchars($emp['nik'] ?? '-'); ?>
@@ -485,7 +485,7 @@ include '../layouts/header.php';
                             <td class="px-3 py-4">
                                 <div class="text-sm text-slate-600 font-medium truncate max-w-[160px]"
                                     title="<?php echo htmlspecialchars($emp['email']); ?>">
-                                    <?php echo htmlspecialchars($emp['email']); ?>
+                                    <?php echo htmlspecialchars($emp['email'] ?? ''); ?>
                                 </div>
                                 <div class="text-xs text-slate-400 mt-1 flex items-center gap-1">
                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>

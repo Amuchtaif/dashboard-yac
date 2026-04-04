@@ -9,7 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-include_once '../../config/database.php';
+require_once __DIR__ . '/../../config/database.php';
 
 try {
     $database = new Database();
@@ -27,6 +27,27 @@ try {
     $date = $data['date'];
     $attendance_list = $data['attendance'];
     $created_by = (isset($data['created_by']) && $data['created_by'] !== '') ? $data['created_by'] : null;
+
+    // 1. Check if ANY attendance has already been filled for this room and date by someone else
+    if ($created_by) {
+        $check_sql = "
+            SELECT created_by, (SELECT full_name FROM employees WHERE id = boarding_attendances.created_by) as creator_name
+            FROM boarding_attendances 
+            WHERE room_id = ? AND date = ? AND created_by IS NOT NULL AND created_by != ?
+            LIMIT 1
+        ";
+        $check_stmt = $conn->prepare($check_sql);
+        $check_stmt->execute([$room_id, $date, $created_by]);
+        $existing = $check_stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($existing) {
+            echo json_encode([
+                "success" => false, 
+                "message" => "Asrama ini sudah diabsen oleh Musyrif " . ($existing['creator_name'] ?? 'lain') . ". Anda tidak diperbolehkan menginput absen lagi."
+            ]);
+            exit;
+        }
+    }
 
     // Define valid statuses to match the ENUM in DB
     $valid_statuses = ['Hadir', 'Sakit', 'Izin', 'Alpha'];

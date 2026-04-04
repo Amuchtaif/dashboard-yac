@@ -26,10 +26,11 @@ try {
         `group_id` INT(11) NOT NULL,
         `student_id` INT(11) NOT NULL,
         PRIMARY KEY (`id`),
+        UNIQUE KEY `unique_group_student` (`group_id`, `student_id`),
         KEY `group_id` (`group_id`),
         KEY `student_id` (`student_id`),
         CONSTRAINT `fk_halaqah_group` FOREIGN KEY (`group_id`) REFERENCES `halaqah_groups` (`id`) ON DELETE CASCADE,
-        CONSTRAINT `fk_halaqah_student` FOREIGN KEY (`student_id`) REFERENCES `employees` (`id`) ON DELETE CASCADE
+        CONSTRAINT `fk_halaqah_student` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
     
     $conn->exec($sql2);

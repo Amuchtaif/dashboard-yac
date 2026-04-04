@@ -120,7 +120,8 @@ include '../layouts/header.php';
                             Siswa</label>
                         <input type="text" name="nama_siswa" id="nama_siswa" required
                             value="<?php echo htmlspecialchars($student['nama_siswa']); ?>"
-                            class="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all placeholder:text-slate-400">
+                            class="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all placeholder:text-slate-400 capitalize"
+                            oninput="this.value = this.value.replace(/\b\w/g, c => c.toUpperCase())">
                     </div>
                     <div>
                         <label for="nomor_induk" class="block text-sm font-semibold text-slate-700 mb-1">Nomor Induk
@@ -182,9 +183,9 @@ include '../layouts/header.php';
                         <label for="status" class="block text-sm font-semibold text-slate-700 mb-1">Status</label>
                         <select name="status" id="status"
                             class="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all bg-white text-slate-700">
-                            <?php foreach(['Aktif', 'Izin', 'Nonaktif', 'Lulus'] as $st): ?>
+                            <?php foreach(['Aktif', 'Non_aktif', 'Lulus', 'Pindah', 'Dikeluarkan'] as $st): ?>
                                 <option value="<?php echo $st; ?>" <?php echo ($student['status'] == $st) ? 'selected' : ''; ?>>
-                                    <?php echo $st; ?>
+                                    <?php echo str_replace('_', ' ', $st); ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>

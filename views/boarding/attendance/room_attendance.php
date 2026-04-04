@@ -162,7 +162,7 @@ include '../../layouts/header.php';
                                                 <?php echo strtoupper(substr($m['nama_siswa'], 0, 1)); ?>
                                             </div>
                                             <div class="ml-4">
-                                                <p class="font-bold text-slate-700 group-hover:text-indigo-600 transition-colors"><?php echo htmlspecialchars($m['nama_siswa']); ?></p>
+                                                <p class="font-bold text-slate-700 group-hover:text-indigo-600 transition-colors"><?php echo htmlspecialchars(ucwords(strtolower($m['nama_siswa']))); ?></p>
                                                 <p class="text-[11px] text-slate-400 font-medium tracking-tight"><?php echo htmlspecialchars($m['nomor_induk'] ?? '-'); ?> • Kelas <?php echo htmlspecialchars($m['kelas'] ?? '-'); ?></p>
                                             </div>
                                         </div>

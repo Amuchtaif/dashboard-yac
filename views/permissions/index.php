@@ -325,17 +325,7 @@ function updatePermission(id, permissionType, isChecked) {
         statusText.innerText = 'Menyimpan...';
     }
 
-    // Detect base URL from current location
-    const pathParts = window.location.pathname.split('/');
-    let baseUrl = window.location.origin;
-    for (let i = 0; i < pathParts.length; i++) {
-        if (pathParts[i] === 'dashboard-yac') {
-            baseUrl += '/' + pathParts.slice(1, i + 1).join('/') + '/';
-            break;
-        }
-    }
-    
-    const apiUrl = baseUrl + 'logic/permissions/update_role_permission.php';
+    const apiUrl = '../../logic/permissions/update_role_permission.php';
     console.log('Calling API:', apiUrl, 'Data:', { id, permissionType, value: isChecked ? 1 : 0 });
     
     fetch(apiUrl, {

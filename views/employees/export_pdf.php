@@ -118,12 +118,12 @@ $employees = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <div class="mb-6 text-xs text-slate-500 flex gap-4">
         <?php if ($division_id): ?>
             <span class="bg-slate-100 px-2 py-1 rounded">Div ID:
-                <?php echo htmlspecialchars($division_id); ?>
+                <?php echo htmlspecialchars($division_id ?? ''); ?>
             </span>
         <?php endif; ?>
         <?php if ($status): ?>
             <span class="bg-slate-100 px-2 py-1 rounded">Status:
-                <?php echo htmlspecialchars(ucfirst($status)); ?>
+                <?php echo htmlspecialchars(ucfirst($status ?? '')); ?>
             </span>
         <?php endif; ?>
         <span class="bg-slate-100 px-2 py-1 rounded">Total Records:
@@ -151,22 +151,22 @@ $employees = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <?php echo $emp['id']; ?>
                         </td>
                         <td class="py-3 pr-4 font-bold text-slate-800">
-                            <?php echo htmlspecialchars($emp['full_name']); ?>
+                            <?php echo htmlspecialchars($emp['full_name'] ?? ''); ?>
                         </td>
                         <td class="py-3 pr-4 text-slate-600">
                             <?php echo htmlspecialchars($emp['position_name'] ?? '-'); ?>
                         </td>
                         <td class="py-3 pr-4 text-slate-600">
-                            <?php echo htmlspecialchars($emp['division_name']); ?>
+                            <?php echo htmlspecialchars($emp['division_name'] ?? ''); ?>
                             <?php if ($emp['unit_name'])
-                                echo " / " . htmlspecialchars($emp['unit_name']); ?>
+                                echo " / " . htmlspecialchars($emp['unit_name'] ?? ''); ?>
                         </td>
                         <td class="py-3 pr-4 text-slate-600">
                             <div>
-                                <?php echo htmlspecialchars($emp['email']); ?>
+                                <?php echo htmlspecialchars($emp['email'] ?? ''); ?>
                             </div>
                             <div class="text-slate-400 text-[10px]">
-                                <?php echo htmlspecialchars($emp['phone_number']); ?>
+                                <?php echo htmlspecialchars($emp['phone_number'] ?? ''); ?>
                             </div>
                         </td>
                         <td class="py-3">

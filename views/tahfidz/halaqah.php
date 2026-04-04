@@ -25,8 +25,8 @@ $groups = $conn->query($groups_query)->fetchAll(PDO::FETCH_ASSOC);
 $teachers_query = "SELECT id, full_name FROM employees WHERE status = 'active' ORDER BY full_name ASC";
 $teachers = $conn->query($teachers_query)->fetchAll(PDO::FETCH_ASSOC);
 
-// 3. Fetch All Students (for member management)
-$students_query = "SELECT id, nama_siswa as full_name FROM students ORDER BY nama_siswa ASC";
+// 3. Fetch All Students (for member management, filtered by status Aktif)
+$students_query = "SELECT id, nama_siswa as full_name FROM students WHERE status = 'Aktif' ORDER BY nama_siswa ASC";
 $all_students = $conn->query($students_query)->fetchAll(PDO::FETCH_ASSOC);
 
 include '../layouts/header.php';

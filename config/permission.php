@@ -55,6 +55,8 @@ if (!function_exists('hasPermission')) {
                 'manage_employees' => 'can_manage_employees',
                 'manage_academic' => 'can_manage_academic',
                 'manage_tahfidz' => 'can_manage_tahfidz',
+                'manage_boarding' => 'can_manage_boarding',
+                'manage_inventory' => 'can_manage_inventory',
                 'manage_news' => 'can_manage_news',
                 'manage_assignments' => 'can_manage_assignments',
                 'can_access_kabid' => 'can_access_kabid',
