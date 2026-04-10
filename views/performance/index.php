@@ -17,7 +17,7 @@ $search = isset($_GET['search']) && $_GET['search'] !== '' ? $_GET['search'] : n
 $divisions = $conn->query("SELECT id, name FROM divisions ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 // --- Build Leaderboard Query ---
-$whereClause = " WHERE e.status = 'active' ";
+$whereClause = " WHERE (e.status = 'active' OR e.status IS NULL) ";
 $params = [];
 
 if ($division_id) {

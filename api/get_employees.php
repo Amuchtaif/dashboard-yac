@@ -13,15 +13,20 @@ $unit_id = isset($_GET['unit_id']) ? $_GET['unit_id'] : '';
 try {
     // Base Query
     // Base Query
-    $sql = "SELECT e.id, e.full_name, e.division_id, d.name as division_name, u.name as unit_name, p.name as position_name
+    $sql = "SELECT e.id, e.full_name, e.division_id, d.name as division_name, u.name as unit_name, p.name as position_name, p.level as position_level
             FROM employees e
             LEFT JOIN divisions d ON e.division_id = d.id
             LEFT JOIN units u ON e.unit_id = u.id
             LEFT JOIN positions p ON e.position_id = p.id
             WHERE e.status = 'active'";
 
-    // Exclude restricted positions (Kepala Bidang, Admin)
-    $sql .= " AND (p.name IS NULL OR (p.name NOT LIKE '%Kepala Bidang%' AND p.name NOT LIKE '%Administrator%' AND p.name NOT LIKE '%Admin%'))";
+    // Special handling for Pengurus Inti (Mudir & para kepala bidang)
+    if ($division_id === 'pengurus_inti') {
+        $sql .= " AND p.level IN (1, 2)";
+    } else {
+        // Exclude restricted positions (Kepala Bidang, Admin)
+        $sql .= " AND (p.name IS NULL OR (p.name NOT LIKE '%Kepala Bidang%' AND p.name NOT LIKE '%Administrator%' AND p.name NOT LIKE '%Admin%'))";
+    }
 
     $params = [];
     $types = "";
@@ -53,9 +58,11 @@ try {
         $params[] = (int)$unit_id;
         $types .= "i";
     } elseif (!empty($division_id)) {
-        $sql .= " AND e.division_id = ?";
-        $params[] = (int)$division_id;
-        $types .= "i";
+        if ($division_id !== 'pengurus_inti') {
+            $sql .= " AND e.division_id = ?";
+            $params[] = (int)$division_id;
+            $types .= "i";
+        }
     }
 
     $sql .= " ORDER BY e.full_name ASC";

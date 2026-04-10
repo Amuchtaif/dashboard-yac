@@ -20,6 +20,21 @@ $status = isset($input['status']) ? $input['status'] : 'Lancar'; // Lancar, Kura
 $notes = isset($input['notes']) ? $input['notes'] : '';
 $teacher_id = isset($input['teacher_id']) ? $input['teacher_id'] : null;
 
+// Auto-detect Juz from Quran API if not provided or to ensure accuracy
+if ($surah_start && $ayat_start) {
+    // Only attempt if surah_start is numeric (Surah ID)
+    if (is_numeric($surah_start)) {
+        $url = "https://api.alquran.cloud/v1/ayah/{$surah_start}:{$ayat_start}";
+        $api_res = @file_get_contents($url);
+        if ($api_res) {
+            $api_data = json_decode($api_res, true);
+            if (isset($api_data['data']['juz'])) {
+                $juz = $api_data['data']['juz'];
+            }
+        }
+    }
+}
+
 if (!$student_id) {
     http_response_code(400);
     echo json_encode(["success" => false, "message" => "Student ID is required"]);

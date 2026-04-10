@@ -80,16 +80,20 @@ $sudah_percent = $total_for_pie > 0 ? round(($sudah_absen / $total_for_pie) * 10
 $tidak_percent = $total_for_pie > 0 ? round(($tidak_absen / $total_for_pie) * 100) : 0;
 $belum_percent = $total_for_pie > 0 ? round(($belum_absen / $total_for_pie) * 100) : 0;
 
-// --- Recent Permits (5 entries) ---
+// --- Recent Permits (5 entries, current month only) ---
+$current_month_str = date('Y-m');
 $recent_permits_query = "
     SELECT p.*, e.full_name, pos.name as position_name
     FROM permits p
     JOIN employees e ON p.employee_id = e.id
     LEFT JOIN positions pos ON e.position_id = pos.id
+    WHERE DATE_FORMAT(p.created_at, '%Y-%m') = :current_month
     ORDER BY p.created_at DESC
     LIMIT 5
 ";
-$recent_permits = $conn->query($recent_permits_query)->fetchAll(PDO::FETCH_ASSOC);
+$stmt_permits = $conn->prepare($recent_permits_query);
+$stmt_permits->execute([':current_month' => $current_month_str]);
+$recent_permits = $stmt_permits->fetchAll(PDO::FETCH_ASSOC);
 
 // Map status to Indonesian labels
 $statusTextMap = [

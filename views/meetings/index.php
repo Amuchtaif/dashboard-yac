@@ -18,18 +18,41 @@ if (!empty($division_id)) {
     $types .= "i";
 }
 
-// 1. Fetch Meetings
+// --- Pagination Logic ---
+$limit = isset($_GET['limit']) && in_array((int) $_GET['limit'], [10, 20, 50, 100]) ? (int) $_GET['limit'] : 10;
+$page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int) $_GET['page'] : 1;
+if ($page < 1)
+    $page = 1;
+$offset = ($page - 1) * $limit;
+
+// Total Count for Pagination
+$count_sql = "SELECT COUNT(*) FROM meetings m $whereClause";
+$count_stmt = $mysqli->prepare($count_sql);
+if (!empty($params)) {
+    $count_stmt->bind_param($types, ...$params);
+}
+$count_stmt->execute();
+$total_rows = $count_stmt->get_result()->fetch_row()[0];
+$total_pages = ceil($total_rows / $limit);
+
+// 1. Fetch Meetings with Pagination
 $sql = "SELECT m.*, d.name as division_name, e.full_name as creator_name 
         FROM meetings m 
         LEFT JOIN divisions d ON m.division_id = d.id 
         LEFT JOIN employees e ON m.created_by = e.id
         $whereClause 
-        ORDER BY m.meeting_date DESC, m.start_time ASC";
+        ORDER BY m.meeting_date DESC, m.start_time ASC
+        LIMIT ? OFFSET ?";
 
 $stmt = $mysqli->prepare($sql);
 if (!empty($params)) {
-    $stmt->bind_param($types, ...$params);
+    $p_types = $types . "ii";
+    $p_params = array_merge($params, [$limit, $offset]);
+    $stmt->bind_param($p_types, ...$p_params);
+} else {
+    $stmt->bind_param("ii", $limit, $offset);
 }
+
 $stmt->execute();
 $result = $stmt->get_result();
 $meetings = [];
@@ -90,6 +113,7 @@ include '../layouts/header.php';
             <table class="min-w-full divide-y divide-slate-200">
                 <thead class="bg-slate-50">
                     <tr class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                        <th scope="col" class="px-6 py-4 text-left w-12">No.</th>
                         <th scope="col" class="px-6 py-4 text-left min-w-[250px]">Judul / Divisi</th>
                         <th scope="col" class="px-6 py-4 text-left min-w-[180px]">Dibuat Oleh</th>
                         <th scope="col" class="px-6 py-4 text-left min-w-[180px]">Tanggal & Waktu</th>
@@ -101,14 +125,17 @@ include '../layouts/header.php';
                 <tbody class="bg-white divide-y divide-slate-200">
                     <?php if (count($meetings) === 0): ?>
                         <tr>
-                            <td colspan="5" class="px-6 py-10 text-center text-slate-400">
+                            <td colspan="7" class="px-6 py-10 text-center text-slate-400">
                                 Tidak ada jadwal rapat ditemukan.
                             </td>
                         </tr>
                     <?php endif; ?>
 
-                    <?php foreach ($meetings as $m): ?>
+                    <?php foreach ($meetings as $index => $m): ?>
                         <tr class="hover:bg-slate-50 transition-colors duration-150">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500 font-medium">
+                                <?= $offset + $index + 1 ?>.
+                            </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex flex-col">
                                     <span class="text-sm font-semibold text-slate-900">
@@ -158,8 +185,10 @@ include '../layouts/header.php';
                                         class="p-2 text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
                                         title="Lihat Detail">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                         </svg>
                                     </a>
                                     <!-- Edit Button -->
@@ -167,15 +196,18 @@ include '../layouts/header.php';
                                         class="p-2 text-amber-600 hover:text-amber-900 bg-amber-50 hover:bg-amber-100 rounded-lg transition-colors"
                                         title="Edit Rapat">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                         </svg>
                                     </a>
                                     <!-- Delete Button -->
-                                    <button onclick="confirmDelete(<?= $m['id'] ?>, '<?= htmlspecialchars(addslashes($m['title'])) ?>')"
+                                    <button
+                                        onclick="confirmDelete(<?= $m['id'] ?>, '<?= htmlspecialchars(addslashes($m['title'])) ?>')"
                                         class="p-2 text-rose-600 hover:text-rose-900 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors"
                                         title="Hapus Rapat">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                         </svg>
                                     </button>
                                 </div>
@@ -185,6 +217,93 @@ include '../layouts/header.php';
                 </tbody>
             </table>
         </div>
+
+        <!-- Pagination -->
+        <div
+            class="flex flex-col sm:flex-row items-center justify-between border-t border-slate-200 bg-white px-4 py-4 md:py-3 sm:px-6 gap-4">
+            <!-- Mobile Pagination Info -->
+            <div class="flex sm:hidden flex-col items-center gap-2">
+                <p class="text-xs text-slate-500">
+                    Menampilkan <span
+                        class="font-bold text-slate-900"><?php echo ($total_rows > 0) ? $offset + 1 : 0; ?></span> -
+                    <span class="font-bold text-slate-900"><?php echo min($offset + $limit, $total_rows); ?></span> dari
+                    <span class="font-bold text-slate-900"><?php echo $total_rows; ?></span>
+                </p>
+                <div class="flex gap-2">
+                    <?php if ($page > 1): ?>
+                        <a href="?page=<?php echo $page - 1; ?>&limit=<?php echo $limit; ?>&division_id=<?php echo $division_id; ?>"
+                            class="rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50">Prev</a>
+                    <?php endif; ?>
+                    <?php if ($page < $total_pages): ?>
+                        <a href="?page=<?php echo $page + 1; ?>&limit=<?php echo $limit; ?>&division_id=<?php echo $division_id; ?>"
+                            class="rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50">Next</a>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                <div class="flex items-center gap-4">
+                    <select
+                        onchange="window.location.href='?page=1&division_id=<?php echo $division_id; ?>&limit='+this.value"
+                        class="block rounded-lg border-slate-300 py-1.5 pl-3 pr-8 text-slate-900 ring-1 ring-inset ring-slate-100 focus:ring-2 focus:ring-indigo-600 sm:text-xs">
+                        <?php foreach ([10, 20, 50, 100] as $val): ?>
+                            <option value="<?php echo $val; ?>" <?php echo $limit == $val ? 'selected' : ''; ?>>
+                                <?php echo $val; ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <p class="text-xs text-slate-500">
+                        Menampilkan <span
+                            class="font-bold text-slate-900"><?php echo ($total_rows > 0) ? $offset + 1 : 0; ?></span>
+                        sampai <span
+                            class="font-bold text-slate-900"><?php echo min($offset + $limit, $total_rows); ?></span>
+                        dari <span class="font-bold text-slate-900"><?php echo $total_rows; ?></span> hasil
+                    </p>
+                </div>
+                <div>
+                    <nav class="isolate inline-flex -space-x-px rounded-xl shadow-sm border border-slate-200 overflow-hidden"
+                        aria-label="Pagination">
+                        <!-- Prev -->
+                        <?php if ($page > 1): ?>
+                            <a href="?page=<?php echo $page - 1; ?>&limit=<?php echo $limit; ?>&division_id=<?php echo $division_id; ?>"
+                                class="relative inline-flex items-center px-3 py-2 text-slate-400 hover:bg-slate-50 transition-colors">
+                                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd"
+                                        d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                            </a>
+                        <?php endif; ?>
+
+                        <?php
+                        $range = 2;
+                        for ($i = 1; $i <= $total_pages; $i++):
+                            if ($i == 1 || $i == $total_pages || ($i >= $page - $range && $i <= $page + $range)): ?>
+                                <a href="?page=<?php echo $i; ?>&limit=<?php echo $limit; ?>&division_id=<?php echo $division_id; ?>"
+                                    class="relative inline-flex items-center px-4 py-2 text-sm font-semibold <?php echo ($i == $page) ? 'bg-indigo-600 text-white' : 'text-slate-900 hover:bg-slate-50'; ?> border-x border-slate-100 transition-colors">
+                                    <?php echo $i; ?>
+                                </a>
+                            <?php elseif ($i == 2 || $i == $total_pages - 1): ?>
+                                <span
+                                    class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-slate-400">...</span>
+                            <?php endif;
+                        endfor; ?>
+
+                        <!-- Next -->
+                        <?php if ($page < $total_pages): ?>
+                            <a href="?page=<?php echo $page + 1; ?>&limit=<?php echo $limit; ?>&division_id=<?php echo $division_id; ?>"
+                                class="relative inline-flex items-center px-3 py-2 text-slate-400 hover:bg-slate-50 transition-colors">
+                                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd"
+                                        d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                            </a>
+                        <?php endif; ?>
+                    </nav>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -193,7 +312,7 @@ include '../layouts/header.php';
         // Set the meeting info in the modal
         document.getElementById('meetingDeleteName').textContent = '"' + title + '"';
         document.getElementById('meetingConfirmDeleteBtn').setAttribute('data-id', id);
-        
+
         // Open modal
         const modal = document.getElementById('meetingDeleteModal');
         const backdrop = document.getElementById('meetingDeleteBackdrop');
@@ -223,7 +342,7 @@ include '../layouts/header.php';
         const id = btn.getAttribute('data-id');
         const spinner = document.getElementById('meetingDeleteSpinner');
         const btnText = document.getElementById('meetingDeleteBtnText');
-        
+
         // Show loading state
         btn.disabled = true;
         spinner.classList.remove('hidden');
@@ -260,18 +379,24 @@ include '../layouts/header.php';
 </script>
 
 <!-- Custom Delete Modal for Meetings -->
-<div id="meetingDeleteModal" class="fixed inset-0 z-[60] hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+<div id="meetingDeleteModal" class="fixed inset-0 z-[60] hidden overflow-y-auto" aria-labelledby="modal-title"
+    role="dialog" aria-modal="true">
     <!-- Backdrop -->
-    <div id="meetingDeleteBackdrop" onclick="closeMeetingDeleteModal()" class="fixed inset-0 bg-slate-900/50 transition-opacity duration-300 opacity-0 backdrop-blur-sm"></div>
+    <div id="meetingDeleteBackdrop" onclick="closeMeetingDeleteModal()"
+        class="fixed inset-0 bg-slate-900/50 transition-opacity duration-300 opacity-0 backdrop-blur-sm"></div>
 
     <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
         <!-- Modal Panel -->
-        <div id="meetingDeletePanel" class="relative transform overflow-hidden rounded-xl bg-white text-left shadow-2xl transition-all duration-300 opacity-0 scale-95 sm:my-8 sm:w-full sm:max-w-lg">
+        <div id="meetingDeletePanel"
+            class="relative transform overflow-hidden rounded-xl bg-white text-left shadow-2xl transition-all duration-300 opacity-0 scale-95 sm:my-8 sm:w-full sm:max-w-lg">
             <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
                 <div class="sm:flex sm:items-start">
-                    <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-                        <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                    <div
+                        class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                        <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
                         </svg>
                     </div>
                     <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
@@ -287,9 +412,13 @@ include '../layouts/header.php';
             <div class="bg-slate-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 gap-2">
                 <button type="button" id="meetingConfirmDeleteBtn" onclick="executeMeetingDelete()"
                     class="inline-flex w-full justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:w-auto transition-all transform active:scale-95">
-                    <svg class="w-4 h-4 mr-2 hidden animate-spin" id="meetingDeleteSpinner" viewBox="0 0 24 24" fill="none">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <svg class="w-4 h-4 mr-2 hidden animate-spin" id="meetingDeleteSpinner" viewBox="0 0 24 24"
+                        fill="none">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                        </circle>
+                        <path class="opacity-75" fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                        </path>
                     </svg>
                     <span id="meetingDeleteBtnText">Ya, Hapus</span>
                 </button>

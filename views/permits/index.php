@@ -239,13 +239,13 @@ include '../layouts/header.php';
         <div class="overflow-x-auto">
             <table class="min-w-full text-left text-sm">
                 <thead class="bg-gray-50 border-b border-slate-100">
-                    <tr class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                        <th scope="col" class="px-6 py-4 min-w-[200px]">Pegawai</th>
-                        <th scope="col" class="px-6 py-4 min-w-[120px]">Jenis</th>
-                        <th scope="col" class="px-6 py-4 min-w-[150px]">Periode</th>
-                        <th scope="col" class="px-6 py-4 min-w-[200px]">Alasan</th>
-                        <th scope="col" class="px-6 py-4 min-w-[120px]">Status</th>
-                        <th scope="col" class="px-6 py-4 text-right min-w-[100px]">Aksi</th>
+                    <tr class="text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">
+                        <th scope="col" class="px-6 py-4 w-12">No.</th>
+                        <th scope="col" class="px-6 py-4 min-w-[200px] text-left">Pegawai</th>
+                        <th scope="col" class="px-6 py-4 min-w-[120px] text-left">Jenis</th>
+                        <th scope="col" class="px-6 py-4 min-w-[150px] text-left">Periode</th>
+                        <th scope="col" class="px-6 py-4 min-w-[200px] text-left">Alasan</th>
+                        <th scope="col" class="px-6 py-4 min-w-[120px] text-left">Status</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 bg-white">
@@ -259,9 +259,13 @@ include '../layouts/header.php';
 
                     <?php
                     $months = ['Jan' => 'Jan', 'Feb' => 'Feb', 'Mar' => 'Mar', 'Apr' => 'Apr', 'May' => 'Mei', 'Jun' => 'Jun', 'Jul' => 'Jul', 'Aug' => 'Agu', 'Sep' => 'Sep', 'Oct' => 'Okt', 'Nov' => 'Nov', 'Dec' => 'Des'];
-                    foreach ($permits as $permit):
+                    foreach ($permits as $index => $permit):
                         ?>
                         <tr class="hover:bg-slate-50 transition-colors">
+                            <!-- No -->
+                            <td class="px-6 py-4 text-center text-slate-500 font-medium">
+                                <?php echo $offset + $index + 1; ?>.
+                            </td>
                             <!-- Employee -->
                             <td class="px-6 py-4">
                                 <div class="flex items-center">
@@ -354,27 +358,6 @@ include '../layouts/header.php';
                                     <span class="h-2 w-2 rounded-full bg-<?php echo $statusColor; ?>-500 mr-2"></span>
                                     <?php echo $statusText; ?>
                                 </div>
-                            </td>
-
-                            <!-- Actions -->
-                            <td class="px-6 py-4 text-right">
-                                <?php if ($permit['status'] === 'Pending'): ?>
-                                    <div class="flex justify-end items-center gap-2">
-                                        <a href="<?php url('logic/permits/quick_action.php?action=approve&id=' . $permit['id']); ?>"
-                                            class="bg-cyan-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-cyan-700 transition">
-                                            Setujui
-                                        </a>
-                                        <a href="<?php url('logic/permits/quick_action.php?action=reject&id=' . $permit['id']); ?>"
-                                            class="bg-white border border-slate-200 text-red-600 px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-red-50 transition">
-                                            Tolak
-                                        </a>
-                                    </div>
-                                <?php else: ?>
-                                    <span
-                                        class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-500">
-                                        Diproses
-                                    </span>
-                                <?php endif; ?>
                             </td>
                         </tr>
                     <?php endforeach; ?>

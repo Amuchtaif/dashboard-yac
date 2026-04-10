@@ -154,10 +154,57 @@ try {
             continue;
         }
 
-        // 5. Resolve Teacher (Improved: Partial Match/LIKE)
-        $stmt = $conn->prepare("SELECT id FROM employees WHERE full_name LIKE ? AND status = 'active' ORDER BY LENGTH(full_name) ASC LIMIT 1");
-        $stmt->execute(['%' . $teacher_name . '%']);
-        $teacher_id = $stmt->fetchColumn();
+        // 5. Resolve Teacher (Fuzzy Match)
+        $teacher_id = null;
+        $search_name = trim($teacher_name);
+
+        if ($search_name) {
+            // First attempt: Exact match or simple LIKE
+            $stmt = $conn->prepare("SELECT id FROM employees WHERE (full_name = ? OR full_name LIKE ?) AND status = 'active' LIMIT 1");
+            $stmt->execute([$search_name, $search_name]);
+            $teacher_id = $stmt->fetchColumn();
+
+            if (!$teacher_id) {
+                // Second attempt: Replace spaces and punctuation with wildcards (Muadin Lc -> %Muadin%Lc%)
+                // Prioritize names that START with the search term (Dian -> Dian Sari instead of Rusdiana)
+                $fuzzy_wildcard = preg_replace('/[^\w]/u', '%', $search_name);
+                $stmt = $conn->prepare("
+                    SELECT id FROM employees 
+                    WHERE full_name LIKE :contains 
+                      AND status = 'active' 
+                    ORDER BY (full_name LIKE :starts) DESC, LENGTH(full_name) ASC 
+                    LIMIT 1
+                ");
+                $stmt->execute([
+                    ':contains' => '%' . $fuzzy_wildcard . '%',
+                    ':starts' => $fuzzy_wildcard . '%'
+                ]);
+                $teacher_id = $stmt->fetchColumn();
+            }
+
+            if (!$teacher_id) {
+                // Third attempt: Try matching the first part of the name (assuming titles/degrees are at the end)
+                $name_parts = explode(' ', $search_name);
+                if (count($name_parts) > 1) {
+                    $first_part = $name_parts[0];
+                    if (strlen($first_part) > 3) {
+                        $stmt = $conn->prepare("
+                            SELECT id FROM employees 
+                            WHERE full_name LIKE :contains 
+                              AND status = 'active' 
+                            ORDER BY (full_name LIKE :starts) DESC, LENGTH(full_name) ASC 
+                            LIMIT 1
+                        ");
+                        $stmt->execute([
+                            ':contains' => '%' . $first_part . '%',
+                            ':starts' => $first_part . '%'
+                        ]);
+                        $teacher_id = $stmt->fetchColumn();
+                    }
+                }
+            }
+        }
+
         if (!$teacher_id) {
             $errorCount++;
             $errors[] = "Baris $rowNumber: Guru '$teacher_name' tidak ditemukan.";
@@ -190,25 +237,62 @@ try {
         ];
         $day_of_week = $day_map[$day] ?? 0;
 
-        // 7. Duplicate Check (to avoid Integrity constraint violation)
+        // 7. Duplicate & Conflict Check
+        // a. Check if Class/Grade already has a schedule at this time
         $stmtCheck = $conn->prepare("
-            SELECT id FROM class_schedules 
-            WHERE academic_year_id = :ay 
-              AND grade_level_id = :grade 
-              AND day_of_week = :dow 
-              AND lesson_period_id = :lp 
+            SELECT cs.id FROM class_schedules cs
+            JOIN lesson_periods lp_start ON cs.lesson_period_id = lp_start.id
+            LEFT JOIN lesson_periods lp_end ON cs.end_lesson_period_id = lp_end.id
+            WHERE cs.academic_year_id = :ay 
+              AND cs.grade_level_id = :grade 
+              AND cs.day_of_week = :dow 
+              AND lp_start.education_unit_id = :unit_id
+              AND (
+                  (:start_p <= COALESCE(lp_end.period_number, lp_start.period_number) AND :end_p >= lp_start.period_number)
+              )
             LIMIT 1
         ");
         $stmtCheck->execute([
             ':ay' => $ay_id,
             ':grade' => $grade_id,
             ':dow' => $day_of_week,
-            ':lp' => $lp_id
+            ':unit_id' => $unit_id,
+            ':start_p' => $start_period,
+            ':end_p' => $end_period
         ]);
 
         if ($stmtCheck->fetch()) {
             $errorCount++;
-            $errors[] = "Baris $rowNumber: Jadwal sudah ada untuk " . htmlspecialchars("$grade_name di hari $day jam ke-$start_period") . ". Baris ini dilewati.";
+            $errors[] = "Baris $rowNumber: Kelas '$grade_name' sudah memiliki jadwal di hari $day jam ke-$start_period s/d $end_period. Baris ini dilewati.";
+            continue;
+        }
+
+        // b. Check if Teacher (Employee) already has a schedule at this time (prevent uq_teacher_schedule error)
+        $stmtTeacherCheck = $conn->prepare("
+            SELECT cs.id FROM class_schedules cs
+            JOIN lesson_periods lp_start ON cs.lesson_period_id = lp_start.id
+            LEFT JOIN lesson_periods lp_end ON cs.end_lesson_period_id = lp_end.id
+            WHERE cs.academic_year_id = :ay 
+              AND cs.employee_id = :emp 
+              AND cs.day_of_week = :dow 
+              AND lp_start.education_unit_id = :unit_id
+              AND (
+                  (:start_p <= COALESCE(lp_end.period_number, lp_start.period_number) AND :end_p >= lp_start.period_number)
+              )
+            LIMIT 1
+        ");
+        $stmtTeacherCheck->execute([
+            ':ay' => $ay_id,
+            ':emp' => $teacher_id,
+            ':dow' => $day_of_week,
+            ':unit_id' => $unit_id,
+            ':start_p' => $start_period,
+            ':end_p' => $end_period
+        ]);
+
+        if ($stmtTeacherCheck->fetch()) {
+            $errorCount++;
+            $errors[] = "Baris $rowNumber: Guru '$teacher_name' sudah memiliki jadwal mengajar lain di hari $day jam ke-$start_period s/d $end_period. Baris ini dilewati.";
             continue;
         }
 

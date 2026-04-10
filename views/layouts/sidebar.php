@@ -1,13 +1,28 @@
 <?php
 $current_page = $_SERVER['REQUEST_URI'];
+if (!function_exists('isUrlActive')) {
+    function isUrlActive($path)
+    {
+        global $current_page;
+        // Special case for boarding attendance subpages
+        $is_boarding_attendance = (strpos($current_page, 'boarding/attendance') !== false && $path === 'boarding/attendance');
+        if ($is_boarding_attendance) return true;
+
+        // Ensure we match as a path segment to avoid substring issues
+        // If path doesn't start with '/', add one for comparison unless it's a full URL
+        $search_path = $path;
+        if (strpos($path, '/') !== 0 && strpos($path, 'http') !== 0) {
+            $search_path = '/' . $path;
+        }
+
+        return (strpos($current_page, $search_path) !== false);
+    }
+}
+
 if (!function_exists('isActive')) {
     function isActive($path)
     {
-        global $current_page;
-        // Check if current page contains the given path or if it's a boarding attendance subpage
-        $is_boarding_attendance = (strpos($current_page, 'boarding/attendance') !== false && $path === 'boarding/attendance');
-
-        return (strpos($current_page, $path) !== false || $is_boarding_attendance)
+        return isUrlActive($path)
             ? 'bg-cyan-50 text-cyan-700 font-semibold border-l-[6px] border-cyan-600 rounded-r-3xl'
             : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 border-l-[6px] border-transparent rounded-r-3xl';
     }
@@ -16,8 +31,7 @@ if (!function_exists('isActive')) {
 if (!function_exists('getIconClass')) {
     function getIconClass($path)
     {
-        global $current_page;
-        return strpos($current_page, $path) !== false ? 'text-cyan-600' : 'text-slate-400 group-hover:text-slate-600';
+        return isUrlActive($path) ? 'text-cyan-600' : 'text-slate-400 group-hover:text-slate-600';
     }
 }
 
@@ -174,13 +188,25 @@ if (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Adminis
 
                 <!-- Attendance -->
                 <a href="<?php url('views/attendance/index.php'); ?>"
-                    class="<?php echo isActive('views/attendance/'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('attendance'); ?> transition-colors"
+                    class="<?php echo isActive('views/attendance/index.php'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('views/attendance/index.php'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                             d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     Absensi Pegawai
+                </a>
+
+                <!-- Attendance Summary -->
+                <a href="<?php url('views/attendance/summary.php'); ?>"
+                    class="<?php echo isActive('attendance/summary.php'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('attendance/summary.php'); ?> transition-colors"
+                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" 
+                            d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5M9 11.25v1.5M12 9v3.75m3-6v6" />
+                    </svg>
+                    Rekap Absensi Pegawai
                 </a>
 
                 <!-- Kinerja Pegawai -->
@@ -232,8 +258,8 @@ if (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Adminis
 
                 <!-- Locations Management -->
                 <a href="<?php url('views/settings/locations.php'); ?>"
-                    class="<?php echo isActive('locations.php'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('locations.php'); ?> transition-colors"
+                    class="<?php echo isActive('settings/locations.php'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('settings/locations.php'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -340,6 +366,18 @@ if (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Adminis
                     Kalender Akademik
                 </a>
 
+                <!-- Teachers -->
+                <a href="<?php url('views/class_schedules/teachers.php'); ?>"
+                    class="<?php echo isActive('class_schedules/teachers.php'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('class_schedules/teachers.php'); ?> transition-colors"
+                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                    </svg>
+                    Data Guru
+                </a>
+
                 <!-- Students -->
                 <a href="<?php url('views/students/index.php'); ?>"
                     class="<?php echo (strpos($current_page, 'students/index.php') !== false) ? 'bg-cyan-50 text-cyan-700 font-semibold border-l-[6px] border-cyan-600 rounded-r-3xl' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 border-l-[6px] border-transparent rounded-r-3xl'; ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
@@ -353,7 +391,7 @@ if (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Adminis
                     Data Siswa
                 </a>
 
-                <!-- Inactive Students -->
+                <!-- Data Siswa (Non-Aktif) -->
                 <a href="<?php url('views/students/inactive.php'); ?>"
                     class="<?php echo (strpos($current_page, 'students/inactive.php') !== false) ? 'bg-cyan-50 text-cyan-700 font-semibold border-l-[6px] border-cyan-600 rounded-r-3xl' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 border-l-[6px] border-transparent rounded-r-3xl'; ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo (strpos($current_page, 'students/inactive.php') !== false) ? 'text-cyan-600' : 'text-slate-400 group-hover:text-slate-600'; ?> transition-colors"
@@ -426,8 +464,8 @@ if (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Adminis
 
                 <!-- Class Schedules -->
                 <a href="<?php url('views/class_schedules/index.php'); ?>"
-                    class="<?php echo isActive('class_schedules'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('class_schedules'); ?> transition-colors"
+                    class="<?php echo (strpos($current_page, 'tahfidz/halaqah') !== false) ? 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 border-l-[6px] border-transparent rounded-r-3xl' : (isUrlActive('class_schedules') && strpos($current_page, 'teachers.php') === false ? 'bg-cyan-50 text-cyan-700 font-semibold border-l-[6px] border-cyan-600 rounded-r-3xl' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 border-l-[6px] border-transparent rounded-r-3xl'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo (strpos($current_page, 'tahfidz/halaqah') !== false) ? 'text-slate-400 group-hover:text-slate-600' : (isUrlActive('class_schedules') && strpos($current_page, 'teachers.php') === false ? 'text-cyan-600' : 'text-slate-400 group-hover:text-slate-600'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -438,8 +476,8 @@ if (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Adminis
 
                 <!-- Student Attendance -->
                 <a href="<?php url('views/student_attendance/index.php'); ?>"
-                    class="<?php echo isActive('student_attendance'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('student_attendance'); ?> transition-colors"
+                    class="<?php echo isActive('views/student_attendance/'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('views/student_attendance/'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round"

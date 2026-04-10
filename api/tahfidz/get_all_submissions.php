@@ -45,7 +45,7 @@ try {
     // tahfidz_memorization table
     // Assuming structure: id, student_id, teacher_id, date, status, notes
     $query = "SELECT 
-                tm.*,
+                tm.id, tm.student_id, tm.teacher_id, tm.date, tm.surah_start, tm.ayat_start, tm.surah_end, tm.ayat_end, tm.juz, tm.status, tm.notes, tm.created_at,
                 s.nama_siswa as student_name,
                 s.kelas,
                 e.full_name as teacher_name

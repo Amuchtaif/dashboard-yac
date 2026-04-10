@@ -160,12 +160,13 @@ include '../layouts/header.php';
                     <!-- Personal Fields -->
                     <div class="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div>
-                            <label for="nik" class="block text-sm font-semibold text-slate-700 mb-1">NIK (Nomor Induk Karyawan)
+                            <label for="nik" class="block text-sm font-semibold text-slate-700 mb-1">NIK (Nomor Induk
+                                Karyawan)
                                 <span class="text-red-500">*</span></label>
                             <input type="text" name="nik" id="nik" required
                                 value="<?php echo htmlspecialchars($employee['nik'] ?? ''); ?>"
                                 class="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 focus:outline-none transition-all placeholder:text-slate-400 shadow-sm"
-                                placeholder="misal: 12345678">
+                                placeholder="masukan NIK">
                         </div>
                         <div>
                             <label for="full_name" class="block text-sm font-semibold text-slate-700 mb-1">Nama Lengkap
@@ -173,7 +174,7 @@ include '../layouts/header.php';
                             <input type="text" name="full_name" id="full_name" required
                                 value="<?php echo htmlspecialchars($employee['full_name']); ?>"
                                 class="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 focus:outline-none transition-all placeholder:text-slate-400 shadow-sm"
-                                placeholder="misal: Sarah Johnson">
+                                placeholder="masukan nama lengkap">
                         </div>
                         <div>
                             <label for="email" class="block text-sm font-semibold text-slate-700 mb-1">Alamat Email
@@ -181,7 +182,7 @@ include '../layouts/header.php';
                             <input type="email" name="email" id="email" required
                                 value="<?php echo htmlspecialchars($employee['email']); ?>"
                                 class="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 focus:outline-none transition-all placeholder:text-slate-400 shadow-sm"
-                                placeholder="sarah@company.com">
+                                placeholder="masukan alamat email">
                         </div>
 
                         <!-- Phone Number -->
@@ -191,7 +192,7 @@ include '../layouts/header.php';
                             <input type="text" name="phone_number" id="phone_number" required
                                 value="<?php echo htmlspecialchars($employee['phone_number']); ?>"
                                 class="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 focus:outline-none transition-all placeholder:text-slate-400 shadow-sm"
-                                placeholder="+62 812...">
+                                placeholder="08...">
                         </div>
 
                         <div>

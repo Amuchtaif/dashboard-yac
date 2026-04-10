@@ -10,7 +10,7 @@ try {
 
     // To prevent N+1 queries for breadcrumbs, let's load all locations ONCE
     // into a Hash Map (O(n) fast access).
-    $locStmt = $conn->query("SELECT id, name, parent_id FROM inventory_locations");
+    $locStmt = $conn->query("SELECT id, name, location_code, location_label, parent_id FROM inventory_locations");
     $locs = $locStmt->fetchAll(PDO::FETCH_ASSOC);
     $locMap = [];
     foreach ($locs as $l) {
@@ -24,7 +24,7 @@ try {
         $path = [];
         $current = $locId;
         while ($current != null) {
-            $path[] = $map[$current]['name'];
+            $path[] = $map[$current]['location_label'] ?? $map[$current]['name'];
             $current = $map[$current]['parent_id'];
         }
         
@@ -67,7 +67,9 @@ try {
             i.description, 
             i.item_condition, i.item_condition AS kondisi_barang,
             i.item_photo, i.item_photo AS foto_barang,
-            l.name as location_leaf_name
+            l.name as location_leaf_name,
+            l.location_code as kode_lokasi,
+            l.location_label as label_lokasi
         FROM inventory_items i
         LEFT JOIN inventory_locations l ON i.location_id = l.id
     ";

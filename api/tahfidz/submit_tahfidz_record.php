@@ -22,6 +22,20 @@ $juz = isset($input['juz']) ? $input['juz'] : null;
 $status = isset($input['status']) ? $input['status'] : 'Lancar';
 $notes = isset($input['notes']) ? $input['notes'] : '';
 
+// Auto-detect Juz from Quran API based on Surah and Ayat start
+if ($surah_start && $ayat_start) {
+    if (is_numeric($surah_start)) {
+        $url = "https://api.alquran.cloud/v1/ayah/{$surah_start}:{$ayat_start}";
+        $api_res = @file_get_contents($url);
+        if ($api_res) {
+            $api_data = json_decode($api_res, true);
+            if (isset($api_data['data']['juz'])) {
+                $juz = $api_data['data']['juz'];
+            }
+        }
+    }
+}
+
 // Validation
 if (!$student_id || !$teacher_id) {
     http_response_code(400);

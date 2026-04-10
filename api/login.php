@@ -66,7 +66,13 @@ try {
         // Determine coordinator status based on position name
         include_once '../config/permission.php';
         $user['is_koordinator'] = (stripos($user['position_name'], 'Koordinator Tahfidz') !== false) ? 1 : 0;
-        $user['can_access_education'] = hasPermission($user['id'], 'access_education') ? 1 : 0;
+        
+        // Dynamic Access for Education Menu (Teacher Check)
+        $stmtTeacher = $conn->prepare("SELECT COUNT(*) FROM class_schedules WHERE employee_id = ? LIMIT 1");
+        $stmtTeacher->execute([$user['id']]);
+        $isTeacher = (int)$stmtTeacher->fetchColumn() > 0;
+
+        $user['can_access_education'] = (hasPermission($user['id'], 'access_education') || $isTeacher) ? 1 : 0;
         $user['can_manage_news'] = hasPermission($user['id'], 'manage_news') ? 1 : 0;
         $user['can_access_kesantrian'] = hasPermission($user['id'], 'can_access_kesantrian') ? 1 : 0;
 

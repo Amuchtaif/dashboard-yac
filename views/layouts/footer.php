@@ -45,6 +45,41 @@
     </div>
 </div>
 
+<!-- Global Generic Confirmation Modal -->
+<div id="confirmModal" class="fixed inset-0 z-[60] hidden overflow-y-auto" aria-labelledby="confirm-modal-title" role="dialog" aria-modal="true">
+    <!-- Backdrop -->
+    <div id="confirmModalBackdrop" class="fixed inset-0 bg-slate-900/50 transition-opacity duration-300 opacity-0 backdrop-blur-sm"></div>
+
+    <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <!-- Modal Panel -->
+        <div id="confirmModalPanel" class="relative transform overflow-hidden rounded-xl bg-white text-left shadow-2xl transition-all duration-300 opacity-0 scale-95 sm:my-8 sm:w-full sm:max-w-lg">
+            <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                <div class="sm:flex sm:items-start">
+                    <div id="confirmModalIconContainer" class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-cyan-100 sm:mx-0 sm:h-10 sm:w-10">
+                        <svg id="confirmModalIcon" class="h-6 w-6 text-cyan-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                        </svg>
+                    </div>
+                    <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+                        <h3 class="text-lg font-bold leading-6 text-slate-900" id="confirm-modal-title">Konfirmasi</h3>
+                        <div class="mt-2 text-sm text-slate-500" id="confirm-modal-message">
+                            Apakah Anda yakin ingin melanjutkan tindakan ini?
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-slate-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 gap-2">
+                <a id="confirmModalBtn" href="#" class="inline-flex w-full justify-center rounded-lg bg-cyan-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 sm:w-auto transition-all transform active:scale-95">
+                    Ya, Lanjutkan
+                </a>
+                <button type="button" onclick="closeConfirmModal()" class="mt-3 inline-flex w-full justify-center rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 sm:mt-0 sm:w-auto transition-all">
+                    Batal
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     function openDeleteModal(url) {
         document.getElementById('confirmDeleteBtn').href = url;
@@ -63,6 +98,43 @@
         const modal = document.getElementById('deleteModal');
         const backdrop = document.getElementById('deleteModalBackdrop');
         const panel = document.getElementById('deleteModalPanel');
+
+        backdrop.classList.add('opacity-0');
+        panel.classList.add('opacity-0', 'scale-95');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
+    }
+
+    function openConfirmModal(url, title, message, color = 'cyan') {
+        document.getElementById('confirmModalBtn').href = url;
+        document.getElementById('confirm-modal-title').innerText = title;
+        document.getElementById('confirm-modal-message').innerText = message;
+        
+        const btn = document.getElementById('confirmModalBtn');
+        const iconContainer = document.getElementById('confirmModalIconContainer');
+        const icon = document.getElementById('confirmModalIcon');
+
+        // Apply theme colors
+        btn.className = `inline-flex w-full justify-center rounded-lg bg-${color}-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-${color}-500 sm:w-auto transition-all transform active:scale-95`;
+        iconContainer.className = `mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-${color}-100 sm:mx-0 sm:h-10 sm:w-10`;
+        icon.className = `h-6 w-6 text-${color}-600`;
+
+        const modal = document.getElementById('confirmModal');
+        const backdrop = document.getElementById('confirmModalBackdrop');
+        const panel = document.getElementById('confirmModalPanel');
+
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            backdrop.classList.remove('opacity-0');
+            panel.classList.remove('opacity-0', 'scale-95');
+        }, 10);
+    }
+
+    function closeConfirmModal() {
+        const modal = document.getElementById('confirmModal');
+        const backdrop = document.getElementById('confirmModalBackdrop');
+        const panel = document.getElementById('confirmModalPanel');
 
         backdrop.classList.add('opacity-0');
         panel.classList.add('opacity-0', 'scale-95');

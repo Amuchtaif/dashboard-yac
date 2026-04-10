@@ -21,7 +21,7 @@ try {
 
     if ($hasFilter) {
         // Return FLAT list of direct children for mobile navigation
-        $sql = "SELECT id, name, parent_id FROM inventory_locations WHERE ";
+        $sql = "SELECT id, name, location_code, location_label, parent_id FROM inventory_locations WHERE ";
         $sql .= ($parentIdFilter === 'null' || $parentIdFilter === '') ? "parent_id IS NULL" : "parent_id = ?";
         $sql .= " ORDER BY name ASC";
         
@@ -46,7 +46,7 @@ try {
     }
 
     // --- LEGACY TREE VIEW (for Web) ---
-    $stmt = $conn->query("SELECT id, name, parent_id FROM inventory_locations ORDER BY name ASC");
+    $stmt = $conn->query("SELECT id, name, location_code, location_label, parent_id FROM inventory_locations ORDER BY name ASC");
     $locations = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     $tree = [];

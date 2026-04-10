@@ -14,22 +14,34 @@ while ($row = $resDiv->fetch_assoc())
 
 // Fetch active employees with Division and Unit info
 $queryEmp = "
-    SELECT e.id, e.full_name, d.name as division_name, u.name as unit_name 
+    SELECT e.id, e.full_name, d.name as division_name, u.name as unit_name, p.level as position_level 
     FROM employees e 
     LEFT JOIN divisions d ON e.division_id = d.id 
     LEFT JOIN units u ON e.unit_id = u.id 
+    JOIN positions p ON e.position_id = p.id
     WHERE e.status = 'active' 
     ORDER BY d.name, u.name, e.full_name ASC
 ";
 $resEmp = $mysqli->query($queryEmp);
 $employees = [];
+$pengurusInti = [];
 while ($row = $resEmp->fetch_assoc()) {
+    // Collect Pengurus Inti (Level 1 & 2)
+    if ($row['position_level'] == 1 || $row['position_level'] == 2) {
+        $pengurusInti[] = $row;
+    }
+
     // Create a group key for display
     $div = $row['division_name'] ?: 'Tanpa Divisi';
     $unit = $row['unit_name'] ?: 'Umum';
     $groupKey = "$div - $unit";
     
     $employees[$groupKey][] = $row;
+}
+
+// Prepend Pengurus Inti if not empty
+if (!empty($pengurusInti)) {
+    $employees = ['Pengurus Inti' => $pengurusInti] + $employees;
 }
 
 include '../layouts/header.php';

@@ -27,6 +27,20 @@ try {
 
         $_SESSION['success'] = "Kelompok halaqah berhasil ditambahkan.";
     } 
+    elseif ($action === 'update_group') {
+        $group_id = $_POST['group_id'] ?? '';
+        $group_name = $_POST['group_name'] ?? '';
+        $teacher_id = $_POST['teacher_id'] ?? '';
+
+        if (empty($group_id) || empty($group_name) || empty($teacher_id)) {
+            throw new Exception("ID, Nama kelompok, dan pengampu harus diisi.");
+        }
+
+        $stmt = $conn->prepare("UPDATE halaqah_groups SET group_name = ?, teacher_id = ? WHERE id = ?");
+        $stmt->execute([$group_name, $teacher_id, $group_id]);
+
+        $_SESSION['success'] = "Kelompok halaqah berhasil diperbarui.";
+    }
     elseif ($action === 'delete_group') {
         $group_id = $_POST['group_id'] ?? '';
 

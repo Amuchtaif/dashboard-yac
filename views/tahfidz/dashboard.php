@@ -33,7 +33,7 @@ $todayStudentCount = $conn->query($todayStudentsQuery)->fetchColumn();
 
 $query = "
     SELECT 
-        tm.*,
+        tm.id, tm.student_id, tm.teacher_id, tm.date, tm.surah_start, tm.ayat_start, tm.surah_end, tm.ayat_end, tm.juz, tm.status, tm.notes, tm.created_at,
         s.nama_siswa AS student_name,
         s.kelas AS student_class,
         s.tingkat AS student_level,
@@ -130,7 +130,7 @@ include '../layouts/header.php';
                         <th class="px-6 py-3">Waktu</th>
                         <th class="px-6 py-3">Santri</th>
                         <th class="px-6 py-3">Setoran / Hafalan</th>
-                        <th class="px-6 py-3 text-center">Juz</th>
+                        <th class="px-6 py-3">Catatan</th>
                         <th class="px-6 py-3">Status</th>
                         <th class="px-6 py-3">Pengampu</th>
                     </tr>
@@ -163,15 +163,17 @@ include '../layouts/header.php';
                                 <td class="px-6 py-4">
                                     <div class="text-slate-700 font-medium">
                                         <?php echo htmlspecialchars($row['surah_start']); ?> : <?php echo $row['ayat_start']; ?>
+                                        <span class="mx-1 text-slate-300">s.d.</span>
+                                        <?php echo htmlspecialchars($row['surah_end']); ?> : <?php echo $row['ayat_end']; ?>
                                     </div>
-                                    <div class="text-xs text-slate-400">
-                                        s.d. <?php echo htmlspecialchars($row['surah_end']); ?> : <?php echo $row['ayat_end']; ?>
+                                    <div class="mt-1">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded bg-slate-100 text-slate-500 font-bold text-[10px] uppercase tracking-tight">
+                                            Juz <?php echo htmlspecialchars($row['juz'] ?? '-'); ?>
+                                        </span>
                                     </div>
                                 </td>
-                                <td class="px-6 py-4 text-center">
-                                    <span class="inline-flex items-center justify-center px-2 py-1 rounded bg-slate-100 text-slate-600 font-bold text-xs">
-                                        <?php echo $row['juz']; ?>
-                                    </span>
+                                <td class="px-6 py-4 text-slate-500 max-w-[150px] truncate">
+                                    <?php echo htmlspecialchars($row['notes'] ?: '-'); ?>
                                 </td>
                                 <td class="px-6 py-4">
                                     <?php

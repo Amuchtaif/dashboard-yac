@@ -302,7 +302,8 @@ include '../layouts/header.php';
                         stroke-width="1.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>
-                    <span class="ml-2 lg:hidden text-[11px] font-bold uppercase tracking-widest text-slate-500">Reset</span>
+                    <span
+                        class="ml-2 lg:hidden text-[11px] font-bold uppercase tracking-widest text-slate-500">Reset</span>
                 </a>
             </div>
         </div>
@@ -488,7 +489,11 @@ include '../layouts/header.php';
                                     <?php echo htmlspecialchars($emp['email'] ?? ''); ?>
                                 </div>
                                 <div class="text-xs text-slate-400 mt-1 flex items-center gap-1">
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z">
+                                        </path>
+                                    </svg>
                                     <?php echo htmlspecialchars($emp['phone_number'] ?? '-'); ?>
                                 </div>
                             </td>
@@ -522,15 +527,16 @@ include '../layouts/header.php';
                             <td class="relative whitespace-nowrap py-4 pl-3 pr-6 text-right text-sm font-medium">
                                 <div class="flex items-center justify-end gap-2">
                                     <!-- Status Toggle -->
-                                    <a href="<?php url('logic/employees/toggle_status.php?id=' . $emp['id']); ?>"
-                                        class="p-2 text-slate-400 rounded-lg"
+                                    <button type="button"
+                                        onclick="openConfirmModal('<?php url('logic/employees/toggle_status.php?id=' . $emp['id']); ?>', '<?php echo (isset($emp['status']) && $emp['status'] === 'inactive') ? 'Aktifkan Pegawai' : 'Nonaktifkan Pegawai'; ?>', 'Apakah Anda yakin ingin <?php echo (isset($emp['status']) && $emp['status'] === 'inactive') ? 'mengaktifkan kembali' : 'menonaktifkan'; ?> akun pegawai ini?', '<?php echo (isset($emp['status']) && $emp['status'] === 'inactive') ? 'emerald' : 'rose'; ?>')"
+                                        class="p-2 text-slate-400 rounded-lg hover:text-<?php echo (isset($emp['status']) && $emp['status'] === 'inactive') ? 'emerald' : 'rose'; ?>-600 transition-colors"
                                         title="<?php echo (isset($emp['status']) && $emp['status'] === 'inactive') ? 'Aktifkan' : 'Nonaktifkan'; ?>">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                             stroke-width="2" stroke="currentColor" class="w-4 h-4">
                                             <path stroke-linecap="round" stroke-linejoin="round"
                                                 d="M5.636 5.636a9 9 0 1012.728 0M12 3v9" />
                                         </svg>
-                                    </a>
+                                    </button>
                                     <a href="<?php url('views/employees/form.php?id=' . $emp['id']); ?>"
                                         class="p-2 text-slate-400 rounded-lg" title="Ubah">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -556,18 +562,23 @@ include '../layouts/header.php';
             </table>
 
             <!-- Dynamic Pagination -->
-            <div class="flex flex-col sm:flex-row items-center justify-between border-t border-slate-200 bg-white px-4 py-4 md:py-3 sm:px-6 gap-4">
+            <div
+                class="flex flex-col sm:flex-row items-center justify-between border-t border-slate-200 bg-white px-4 py-4 md:py-3 sm:px-6 gap-4">
                 <!-- Mobile Pagination Info -->
                 <div class="flex sm:hidden flex-col items-center gap-2">
                     <p class="text-xs text-slate-500">
-                        Menampilkan <span class="font-bold text-slate-900"><?php echo $offset + 1; ?></span> - <span class="font-bold text-slate-900"><?php echo min($offset + $limit, $total_rows); ?></span> dari <span class="font-bold text-slate-900"><?php echo $total_rows; ?></span>
+                        Menampilkan <span class="font-bold text-slate-900"><?php echo $offset + 1; ?></span> - <span
+                            class="font-bold text-slate-900"><?php echo min($offset + $limit, $total_rows); ?></span>
+                        dari <span class="font-bold text-slate-900"><?php echo $total_rows; ?></span>
                     </p>
                     <div class="flex gap-2">
                         <?php if ($page > 1): ?>
-                            <a href="?page=<?php echo $page - 1; ?>&limit=<?php echo $limit; ?>" class="rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50">Prev</a>
+                            <a href="?page=<?php echo $page - 1; ?>&limit=<?php echo $limit; ?>"
+                                class="rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50">Prev</a>
                         <?php endif; ?>
                         <?php if ($page < $total_pages): ?>
-                            <a href="?page=<?php echo $page + 1; ?>&limit=<?php echo $limit; ?>" class="rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50">Next</a>
+                            <a href="?page=<?php echo $page + 1; ?>&limit=<?php echo $limit; ?>"
+                                class="rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50">Next</a>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -579,18 +590,23 @@ include '../layouts/header.php';
                             class="block rounded-lg border-slate-300 py-1.5 pl-3 pr-8 text-slate-900 ring-1 ring-inset ring-slate-100 focus:ring-2 focus:ring-cyan-600 sm:text-xs">
                             <?php foreach ([10, 20, 50, 100] as $val): ?>
                                 <option value="<?php echo $val; ?>" <?php echo $limit == $val ? 'selected' : ''; ?>>
-                                    <?php echo $val; ?> per hal
+                                    <?php echo $val; ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
                     </div>
                     <div>
-                        <nav class="isolate inline-flex -space-x-px rounded-xl shadow-sm border border-slate-200 overflow-hidden" aria-label="Pagination">
+                        <nav class="isolate inline-flex -space-x-px rounded-xl shadow-sm border border-slate-200 overflow-hidden"
+                            aria-label="Pagination">
                             <!-- Prev -->
                             <?php if ($page > 1): ?>
                                 <a href="?page=<?php echo $page - 1; ?>&limit=<?php echo $limit; ?>"
                                     class="relative inline-flex items-center px-3 py-2 text-slate-400 hover:bg-slate-50 focus:z-20 transition-colors">
-                                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" /></svg>
+                                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd"
+                                            d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
+                                            clip-rule="evenodd" />
+                                    </svg>
                                 </a>
                             <?php endif; ?>
 
@@ -606,7 +622,8 @@ include '../layouts/header.php';
                                     <?php
                                 } elseif ($i == 2 || $i == $total_pages - 1) {
                                     ?>
-                                    <span class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-slate-400">...</span>
+                                    <span
+                                        class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-slate-400">...</span>
                                     <?php
                                 }
                             }
@@ -616,7 +633,11 @@ include '../layouts/header.php';
                             <?php if ($page < $total_pages): ?>
                                 <a href="?page=<?php echo $page + 1; ?>&limit=<?php echo $limit; ?>"
                                     class="relative inline-flex items-center px-3 py-2 text-slate-400 hover:bg-slate-50 focus:z-20 transition-colors">
-                                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" /></svg>
+                                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd"
+                                            d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
+                                            clip-rule="evenodd" />
+                                    </svg>
                                 </a>
                             <?php endif; ?>
                         </nav>

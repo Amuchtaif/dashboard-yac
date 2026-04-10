@@ -38,15 +38,19 @@ $members_stmt = $conn->prepare($members_query);
 $members_stmt->execute([$group_id]);
 $members = $members_stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Fetch students not in this group for adding
+// Fetch students not in ANY halaqah group for adding
+// Note: We follow the room_members.php logic of excluding some units if needed, 
+// but here we just strictly exclude those already in THIS group or ANY group (optional).
+// For now, let's strictly exclude those already in THIS group.
 $available_students_query = "
     SELECT id, nama_siswa, nomor_induk, kelas
     FROM students 
-    WHERE id NOT IN (SELECT student_id FROM halaqah_members WHERE group_id = ?)
+    WHERE status = 'Aktif'
+    AND id NOT IN (SELECT student_id FROM halaqah_members)
     ORDER BY nama_siswa ASC
 ";
 $available_stmt = $conn->prepare($available_students_query);
-$available_stmt->execute([$group_id]);
+$available_stmt->execute();
 $available_students = $available_stmt->fetchAll(PDO::FETCH_ASSOC);
 
 include '../layouts/header.php';
@@ -78,26 +82,26 @@ include '../layouts/header.php';
     </div>
 
     <!-- Members Table -->
-    <div class="mt-8 flex flex-col">
-        <div class="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 md:rounded-xl bg-white">
-            <table class="min-w-full divide-y divide-slate-200">
-                <thead class="bg-slate-50">
-                    <tr class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                        <th scope="col" class="px-6 py-4 text-left w-16">No.</th>
-                        <th scope="col" class="px-6 py-4 text-left min-w-[200px]">Nama Santri</th>
-                        <th scope="col" class="px-6 py-4 text-left min-w-[150px]">Nomor Induk</th>
-                        <th scope="col" class="px-6 py-4 text-left min-w-[120px]">Kelas</th>
-                        <th scope="col" class="relative px-6 py-4 text-right w-24 border-none">Aksi</th>
+    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-50 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                        <th class="px-6 py-4 w-16">No.</th>
+                        <th class="px-6 py-4 min-w-[200px]">Nama Santri</th>
+                        <th class="px-6 py-4 min-w-[150px]">Nomor Induk</th>
+                        <th class="px-6 py-4 min-w-[120px]">Kelas</th>
+                        <th class="px-6 py-4 text-right min-w-[100px]">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 bg-white">
+                <tbody class="divide-y divide-slate-100 text-sm">
                     <?php if (count($members) > 0): ?>
                         <?php foreach ($members as $index => $m): ?>
-                            <tr class="hover:bg-slate-50/50 transition-colors group">
-                                <td class="px-6 py-4 whitespace-nowrap text-slate-400 font-medium"><?php echo $index + 1; ?>.</td>
-                                <td class="px-6 py-4 whitespace-nowrap">
+                            <tr class="hover:bg-slate-50/50 transition-colors">
+                                <td class="px-6 py-4 text-slate-400 font-medium"><?php echo $index + 1; ?>.</td>
+                                <td class="px-6 py-4">
                                     <div class="flex items-center">
-                                        <div class="h-9 w-9 rounded-full bg-cyan-50 flex items-center justify-center text-cyan-600 font-bold border border-white ring-2 ring-cyan-50 shadow-sm">
+                                        <div class="h-9 w-9 rounded-full bg-cyan-50 flex items-center justify-center text-cyan-600 font-bold border border-white ring-2 ring-cyan-50">
                                             <?php echo substr($m['nama_siswa'], 0, 1); ?>
                                         </div>
                                         <div class="ml-3">
@@ -105,16 +109,12 @@ include '../layouts/header.php';
                                         </div>
                                     </div>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-slate-500 font-mono text-xs italic tracking-tighter">
-                                    <?php echo htmlspecialchars($m['student_nik'] ?? '-'); ?>
+                                <td class="px-6 py-4 text-slate-500 font-mono text-xs italic"><?php echo htmlspecialchars($m['student_nik'] ?? '-'); ?></td>
+                                <td class="px-6 py-4">
+                                    <span class="text-xs font-medium text-slate-500"><?php echo htmlspecialchars($m['class_name'] ?? '-'); ?></span>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="inline-flex items-center rounded-lg bg-slate-50 px-2.5 py-1 text-[11px] font-bold text-slate-600 ring-1 ring-inset ring-slate-500/10 uppercase">
-                                        <?php echo htmlspecialchars($m['class_name'] ?? '-'); ?>
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right">
-                                    <button onclick="removeMember(<?php echo $m['id']; ?>)" class="p-2 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all" title="Hapus dari kelompok">
+                                <td class="px-6 py-4 text-right">
+                                    <button onclick="removeMember(<?php echo $m['id']; ?>)" class="text-slate-400 hover:text-red-600 transition-colors p-2" title="Hapus dari kelompok">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                         </svg>
@@ -124,14 +124,7 @@ include '../layouts/header.php';
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="5" class="px-6 py-20 text-center">
-                                <div class="flex flex-col items-center">
-                                    <svg class="h-10 w-10 text-slate-200 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                                    </svg>
-                                    <p class="text-sm text-slate-400 font-medium italic">Belum ada santri di kelompok ini.</p>
-                                </div>
-                            </td>
+                            <td colspan="5" class="px-6 py-20 text-center text-slate-400 italic">Belum ada santri di kelompok ini.</td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
@@ -141,13 +134,13 @@ include '../layouts/header.php';
 </div>
 
 <!-- Modal Add Member -->
-<div id="modal-add-member" class="fixed inset-0 z-50 hidden overflow-y-auto">
+<div id="modal-add-member" class="fixed inset-0 z-50 hidden overflow-y-auto transition-opacity duration-300 opacity-0" aria-hidden="true">
     <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
         <div class="fixed inset-0 transition-opacity" aria-hidden="true">
             <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm opacity-100"></div>
         </div>
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-        <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-xl sm:w-full border border-slate-200">
+        <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full border border-slate-200">
             <form action="../../logic/tahfidz/manage_halaqah.php" method="POST">
                 <input type="hidden" name="action" value="add_member">
                 <input type="hidden" name="group_id" value="<?php echo $group_id; ?>">
@@ -174,7 +167,7 @@ include '../layouts/header.php';
                     
                     <div class="space-y-4">
                         <div class="flex items-center justify-between mb-2 px-1">
-                            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Daftar Santri Tersedia</p>
+                            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Daftar Santri Belum Ditempatkan</p>
                             <?php if (count($available_students) > 0): ?>
                             <label class="flex items-center gap-2 cursor-pointer group">
                                 <input type="checkbox" id="select-all-available" class="rounded border-slate-300 text-cyan-600 focus:ring-cyan-500">
@@ -197,16 +190,30 @@ include '../layouts/header.php';
                                        </label>
                                    <?php endforeach; ?>
                                <?php else: ?>
-                                   <p class="text-center py-6 text-slate-400 text-sm italic">Semua santri yang tersedia sudah masuk ke kelompok ini atau tidak ada data santri lain.</p>
+                                   <div class="py-12 text-center">
+                                       <p class="text-slate-400 text-sm italic">Semua santri sudah mendapatkan halaqah.</p>
+                                   </div>
                                <?php endif; ?>
                            </div>
                         </div>
+                    </div>
+
+                    <!-- Selected Sticky Bar -->
+                    <div id="selection-sticky-bar" class="hidden sticky bottom-0 left-0 right-0 -mx-8 mt-4 bg-cyan-600 text-white px-8 py-4 flex items-center justify-between z-20 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.1)] translate-y-full transition-transform duration-300">
+                        <div class="flex items-center gap-3">
+                            <span id="selected-count" class="bg-white text-cyan-600 rounded-lg h-7 w-7 flex items-center justify-center font-bold text-sm shadow-sm">0</span>
+                            <div>
+                                <p class="text-xs font-bold leading-none uppercase tracking-wider mb-0.5">Santri Terpilih</p>
+                                <p class="text-[10px] text-cyan-100 font-medium">Siap untuk ditambahkan ke halaqah ini.</p>
+                            </div>
+                        </div>
+                        <button type="button" onclick="clearSelection()" class="text-xs font-bold border border-white/30 rounded-lg px-3 py-1.5 hover:bg-white/10 transition-all active:scale-95">Batalkan Semua</button>
                     </div>
                 </div>
                 <div class="bg-slate-50 px-8 py-6 flex flex-row-reverse gap-3">
                     <?php if (count($available_students) > 0): ?>
                         <button type="submit" class="inline-flex justify-center rounded-xl bg-cyan-600 px-8 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-cyan-700 focus:outline-none transition-all">
-                            Tambahkan
+                            Simpan Penempatan
                         </button>
                     <?php endif; ?>
                     <button type="button" onclick="closeModal('modal-add-member')" class="inline-flex justify-center rounded-xl bg-white border border-slate-200 px-6 py-2.5 text-sm font-bold text-slate-600 shadow-sm hover:bg-slate-50 focus:outline-none transition-all">
@@ -220,67 +227,99 @@ include '../layouts/header.php';
 
 <script>
     function openModal(id) {
-        document.getElementById(id).classList.remove('hidden');
+        const modal = document.getElementById(id);
+        modal.classList.remove('hidden');
+        void modal.offsetWidth;
+        modal.classList.remove('opacity-0');
+        modal.classList.add('opacity-100');
         document.body.style.overflow = 'hidden';
-        // Clear search on open
         document.getElementById('member-search').value = '';
         filterStudents();
     }
 
     function closeModal(id) {
-        document.getElementById(id).classList.add('hidden');
-        document.body.style.overflow = 'auto';
-    }
-
-    // Select All Logic
-    const selectAllCheckbox = document.getElementById('select-all-available');
-    if (selectAllCheckbox) {
-        selectAllCheckbox.addEventListener('change', function() {
-            const visibleCheckboxes = document.querySelectorAll('.student-item[style*="display: flex"] .student-checkbox, .student-item:not([style*="display: none"]) .student-checkbox');
-            visibleCheckboxes.forEach(cb => {
-                cb.checked = this.checked;
-            });
-        });
+        const modal = document.getElementById(id);
+        modal.classList.remove('opacity-100');
+        modal.classList.add('opacity-0');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }, 300);
     }
 
     function filterStudents() {
         const query = document.getElementById('member-search').value.toLowerCase();
         const items = document.querySelectorAll('.student-item');
-        
         items.forEach(item => {
             const name = item.getAttribute('data-name');
             const nik = item.getAttribute('data-nik');
-            
-            if (name.includes(query) || nik.includes(query)) {
-                item.style.display = 'flex';
-            } else {
-                item.style.display = 'none';
-            }
+            item.style.display = (name.includes(query) || nik.includes(query)) ? 'flex' : 'none';
+        });
+    }
+
+    // --- Selection Management ---
+    function updateSelectionUI() {
+        const checkboxes = document.querySelectorAll('.student-checkbox');
+        const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+        const stickyBar = document.getElementById('selection-sticky-bar');
+        const countBadge = document.getElementById('selected-count');
+        
+        countBadge.textContent = checkedCount;
+        
+        if (checkedCount > 0) {
+            stickyBar.classList.remove('hidden');
+            setTimeout(() => {
+                stickyBar.classList.remove('translate-y-full');
+            }, 10);
+        } else {
+            stickyBar.classList.add('translate-y-full');
+            setTimeout(() => {
+                if (Array.from(checkboxes).filter(cb => cb.checked).length === 0) {
+                    stickyBar.classList.add('hidden');
+                }
+            }, 300);
+        }
+    }
+
+    function clearSelection() {
+        document.querySelectorAll('.student-checkbox').forEach(cb => cb.checked = false);
+        const selectAll = document.getElementById('select-all-available');
+        if (selectAll) selectAll.checked = false;
+        updateSelectionUI();
+    }
+
+    // Event listeners for checkboxes
+    document.addEventListener('change', function(e) {
+        if (e.target.classList.contains('student-checkbox')) {
+            updateSelectionUI();
+        }
+    });
+
+    const selectAllCheckbox = document.getElementById('select-all-available');
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function() {
+            const visibleCheckboxes = document.querySelectorAll('.student-item:not([style*="display: none"]) .student-checkbox');
+            visibleCheckboxes.forEach(cb => cb.checked = this.checked);
+            updateSelectionUI();
         });
     }
 
     function removeMember(memberId) {
-        if (confirm('Apakah Anda yakin ingin menghapus santri ini dari kelompok?')) {
+        if (confirm('Hapus santri ini dari kelompok?')) {
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = '../../logic/tahfidz/manage_halaqah.php';
             
             const actionInput = document.createElement('input');
-            actionInput.type = 'hidden';
-            actionInput.name = 'action';
-            actionInput.value = 'remove_member';
+            actionInput.type = 'hidden'; actionInput.name = 'action'; actionInput.value = 'remove_member';
             form.appendChild(actionInput);
             
             const memberInput = document.createElement('input');
-            memberInput.type = 'hidden';
-            memberInput.name = 'member_id';
-            memberInput.value = memberId;
+            memberInput.type = 'hidden'; memberInput.name = 'member_id'; memberInput.value = memberId;
             form.appendChild(memberInput);
 
             const groupInput = document.createElement('input');
-            groupInput.type = 'hidden';
-            groupInput.name = 'group_id';
-            groupInput.value = '<?php echo $group_id; ?>';
+            groupInput.type = 'hidden'; groupInput.name = 'group_id'; groupInput.value = '<?php echo $group_id; ?>';
             form.appendChild(groupInput);
             
             document.body.appendChild(form);

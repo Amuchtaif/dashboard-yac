@@ -63,15 +63,20 @@ try {
         $posName = $row['position_name'] ?? '';
         $isKoordinator = (stripos($posName, 'Koordinator Tahfidz') !== false) ? 1 : 0;
         
+        // Dynamic Access for Education Menu (Teacher Check)
+        $stmtTeacher = $db->prepare("SELECT COUNT(*) FROM class_schedules WHERE employee_id = ? LIMIT 1");
+        $stmtTeacher->execute([$user_id]);
+        $isTeacher = (int)$stmtTeacher->fetchColumn() > 0;
+
         $permissions = [
-            "can_create_meeting" => hasPermission($user_id, 'create_meeting'),
-            "can_approve_permits" => hasPermission($user_id, 'approve_permits'),
-            "can_access_tahfidz" => hasPermission($user_id, 'access_tahfidz'),
-            "can_access_education" => hasPermission($user_id, 'access_education'),
-            "can_manage_news" => hasPermission($user_id, 'manage_news'),
-            "can_create_assignment" => hasPermission($user_id, 'manage_assignments'),
-            "can_access_kabid" => hasPermission($user_id, 'can_access_kabid'),
-            "can_access_kesantrian" => hasPermission($user_id, 'can_access_kesantrian'),
+            "can_create_meeting" => (int)hasPermission($user_id, 'create_meeting'),
+            "can_approve_permits" => (int)hasPermission($user_id, 'approve_permits'),
+            "can_access_tahfidz" => (int)hasPermission($user_id, 'access_tahfidz'),
+            "can_access_education" => (hasPermission($user_id, 'access_education') || $isTeacher) ? 1 : 0,
+            "can_manage_news" => (int)hasPermission($user_id, 'manage_news'),
+            "can_create_assignment" => (int)hasPermission($user_id, 'manage_assignments'),
+            "can_access_kabid" => (int)hasPermission($user_id, 'can_access_kabid'),
+            "can_access_kesantrian" => (int)hasPermission($user_id, 'can_access_kesantrian'),
             "is_koordinator" => $isKoordinator,
         ];
         

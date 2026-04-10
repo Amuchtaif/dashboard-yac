@@ -29,7 +29,7 @@ if ($page < 1)
 $offset = ($page - 1) * $limit;
 
 // Build WHERE Clause
-$where = " WHERE 1=1 ";
+$where = " WHERE (e.status = 'active' OR e.status IS NULL) ";
 $params = [];
 
 if ($division_id) {

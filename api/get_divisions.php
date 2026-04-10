@@ -11,6 +11,9 @@ try {
     $result = $mysqli->query($query);
 
     $divisions = [];
+    // Add virtual division for Pengurus Inti
+    $divisions[] = ["id" => "pengurus_inti", "name" => "Pengurus Inti"];
+
     while ($row = $result->fetch_assoc()) {
         $divisions[] = $row;
     }

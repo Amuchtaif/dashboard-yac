@@ -30,6 +30,7 @@ try {
     $id = $data->id ?? $_GET['id'] ?? null;
     $name = $data->name ?? '';
     $parent_id = $data->parent_id ?? null;
+    $label = $data->label ?? $data->location_label ?? $name;
 
     if (!$id || empty($name)) {
         echo json_encode(["success" => false, "message" => "ID and Name are required."]);
@@ -44,8 +45,8 @@ try {
         exit;
     }
 
-    $stmt = $conn->prepare("UPDATE inventory_locations SET name = ?, parent_id = ? WHERE id = ?");
-    if ($stmt->execute([$name, $parent_id, $id])) {
+    $stmt = $conn->prepare("UPDATE inventory_locations SET name = ?, location_label = ?, parent_id = ? WHERE id = ?");
+    if ($stmt->execute([$name, $label, $parent_id, $id])) {
         echo json_encode(["success" => true, "message" => "Location updated successfully."]);
     } else {
         echo json_encode(["success" => false, "message" => "Failed to update location."]);
