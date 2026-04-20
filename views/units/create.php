@@ -74,12 +74,12 @@ include '../layouts/header.php';
 
                     <div class="sm:col-span-4">
                         <label for="division_id"
-                            class="block text-sm font-medium leading-6 text-gray-900">Divisi</label>
+                            class="block text-sm font-medium leading-6 text-gray-900">Bidang</label>
                         <div class="mt-2 relative" id="dropdown-container-division">
                             <input type="hidden" name="division_id" id="input-division" value="">
                             <button type="button" onclick="toggleFormDropdown('division')" id="button-division"
                                 class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200 transition-all">
-                                <span id="text-division" class="block truncate">Pilih Divisi</span>
+                                <span id="text-division" class="block truncate">Pilih Bidang</span>
                                 <svg class="h-4 w-4 text-slate-500 transition-transform duration-200"
                                     id="arrow-division" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
                                     fill="currentColor">
@@ -91,9 +91,9 @@ include '../layouts/header.php';
                             <div id="menu-division"
                                 class="absolute z-50 mt-1 hidden max-h-60 w-full overflow-auto rounded-lg bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                                 <ul class="py-1">
-                                    <li onclick="selectFormOption('division', '', 'Pilih Divisi')"
+                                    <li onclick="selectFormOption('division', '', 'Pilih Bidang')"
                                         class="cursor-pointer px-4 py-2 text-sm text-slate-500 hover:bg-slate-50 hover:text-cyan-700 transition-colors">
-                                        Pilih Divisi
+                                        Pilih Bidang
                                     </li>
                                     <?php foreach ($divisions as $div): ?>
                                         <li onclick="selectFormOption('division', '<?php echo $div['id']; ?>', '<?php echo htmlspecialchars($div['name'], ENT_QUOTES); ?>')"
@@ -157,7 +157,7 @@ include '../layouts/header.php';
                             <input type="hidden" name="schedule_id" id="input-schedule" value="">
                             <button type="button" onclick="toggleFormDropdown('schedule')" id="button-schedule"
                                 class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200 transition-all">
-                                <span id="text-schedule" class="block truncate">-- Ikuti Jadwal Divisi (Default)
+                                <span id="text-schedule" class="block truncate">-- Ikuti Jadwal Bidang (Default)
                                     --</span>
                                 <svg class="h-4 w-4 text-slate-500 transition-transform duration-200"
                                     id="arrow-schedule" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
@@ -170,9 +170,9 @@ include '../layouts/header.php';
                             <div id="menu-schedule"
                                 class="absolute z-50 mt-1 hidden max-h-60 w-full overflow-auto rounded-lg bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                                 <ul class="py-1">
-                                    <li onclick="selectFormOption('schedule', '', '-- Ikuti Jadwal Divisi (Default) --')"
+                                    <li onclick="selectFormOption('schedule', '', '-- Ikuti Jadwal Bidang (Default) --')"
                                         class="cursor-pointer px-4 py-2 text-sm text-slate-500 hover:bg-slate-50 hover:text-cyan-700 transition-colors">
-                                        -- Ikuti Jadwal Divisi (Default) --
+                                        -- Ikuti Jadwal Bidang (Default) --
                                     </li>
                                     <?php foreach ($schedules as $schedule): ?>
                                         <li onclick="selectFormOption('schedule', '<?php echo $schedule['id']; ?>', '<?php echo htmlspecialchars($schedule['name'], ENT_QUOTES); ?>')"
@@ -183,7 +183,7 @@ include '../layouts/header.php';
                                 </ul>
                             </div>
                             <p class="mt-1 text-xs text-slate-500">Kosongkan untuk menggunakan jadwal yang ditetapkan
-                                pada Divisi.</p>
+                                pada Bidang.</p>
                         </div>
                     </div>
                 </div>

@@ -17,11 +17,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt->bindParam(':name', $name);
             $stmt->bindParam(':department_id', $department_id);
             $stmt->execute();
-        header("Location: ../../views/departments/index.php?success=Unit+Created");
+        header("Location: ../../views/departments/index.php?success=Unit+berhasil+dibuat");
         } catch (PDOException $e) {
-        header("Location: ../../views/departments/index.php?error=Error+Creating+Unit");
+        header("Location: ../../views/departments/index.php?error=Gagal+membuat+unit");
         }
     } else {
-        header("Location: ../../views/departments/index.php?error=Fields+Required");
+        header("Location: ../../views/departments/index.php?error=Wajib+diisi");
     }
 }

@@ -10,9 +10,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-require_once __DIR__ . '/../../config/database.php';
+require_once dirname(__DIR__, 2) . '/config/database.php';
 
 try {
+    /** @var \Database $database */
     $database = new Database();
     $db = $database->getConnection();
 
@@ -48,22 +49,44 @@ try {
     }
 
     $is_admin = ($supervisor['position_name'] === 'Administrator');
-    $sup_level = (int)($supervisor['position_level'] ?? 99);
+    $userLevel = (int)($supervisor['position_level'] ?? 99);
+    $division_id = $supervisor['division_id'];
+    $unit_id = $supervisor['unit_id'];
 
-    // Build subordinates query
-    // - Administrator: can assign to ALL active employees (except themselves)
-    // - Others: can assign to employees with same or higher level number (lower in hierarchy)
-    //   and exclude themselves
     $query = "SELECT e.id, e.full_name, p.name as position_name
               FROM employees e
               LEFT JOIN positions p ON e.position_id = p.id
-              WHERE e.status = 'active' AND e.id != :supervisor_id";
+              WHERE e.status = 'active'";
+    
+    $params = [];
 
-    $params = [':supervisor_id' => $supervisor_id];
-
-    if (!$is_admin) {
-        $query .= " AND p.level >= :sup_level";
-        $params[':sup_level'] = $sup_level;
+    if ($is_admin) {
+        // Administrator: Tampilkan semua pegawai aktif kecuali diri sendiri
+        $query .= " AND e.id != :supervisor_id";
+        $params[':supervisor_id'] = $supervisor_id;
+    } else if ($userLevel === 1) {
+        // Mudir (Muksin): Tampilkan semua Kepala Bidang (Level 2)
+        $query .= " AND p.level = 2";
+    } else if ($userLevel === 2) {
+        // Kepala Bidang (Kabid): Tampilkan Kepala Unit/Sub (Level 3) 
+        // dan Staff Langsung di bawah divisi (Posisi 'Staf' dengan unit_id kosong)
+        $query .= " AND e.division_id = :division_id 
+                    AND e.id != :supervisor_id
+                    AND (
+                        p.level = 3 
+                        OR (p.name = 'Staf' AND (e.unit_id IS NULL OR e.unit_id = 0))
+                    )";
+        $params[':division_id'] = $division_id;
+        $params[':supervisor_id'] = $supervisor_id;
+    } else if ($userLevel === 3) {
+        // Kepala Unit/Sub: Tampilkan semua pegawai dalam satu unit
+        $query .= " AND e.unit_id = :unit_id AND e.id != :supervisor_id";
+        $params[':unit_id'] = $unit_id;
+        $params[':supervisor_id'] = $supervisor_id;
+    } else {
+        // Level lain: Hanya bisa menugaskan ke diri sendiri atau list kosong
+        $query .= " AND e.id = :supervisor_id";
+        $params[':supervisor_id'] = $supervisor_id;
     }
 
     $query .= " ORDER BY e.full_name ASC";

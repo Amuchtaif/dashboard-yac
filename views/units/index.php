@@ -55,7 +55,7 @@ include '../layouts/header.php';
     <div class="sm:flex sm:items-center">
         <div class="sm:flex-auto">
             <h1 class="text-xl font-bold text-slate-900">Unit / Tim</h1>
-            <p class="mt-2 text-sm text-slate-500">Kelola unit operasional dan tim di dalam divisi.</p>
+            <p class="mt-2 text-sm text-slate-500">Kelola unit operasional dan tim di dalam bidang.</p>
         </div>
         <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none flex justify-end">
             <a href="<?php url('views/units/create.php'); ?>"
@@ -87,7 +87,7 @@ include '../layouts/header.php';
                     <tr class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                         <th scope="col" class="py-3.5 pl-6 pr-3 text-left w-16">No.</th>
                         <th scope="col" class="px-3 py-3.5 text-left min-w-[200px]">Nama Unit</th>
-                        <th scope="col" class="px-3 py-3.5 text-left min-w-[180px]">Divisi</th>
+                        <th scope="col" class="px-3 py-3.5 text-left min-w-[180px]">Bidang</th>
                         <th scope="col" class="px-3 py-3.5 text-left min-w-[120px]">Anggota</th>
                         <th scope="col" class="px-3 py-3.5 text-left min-w-[150px]">Jadwal</th>
                         <th scope="col" class="relative py-3.5 pl-3 pr-6 text-right w-32 border-none">Aksi</th>
@@ -103,7 +103,7 @@ include '../layouts/header.php';
                                 <?php echo htmlspecialchars($unit['name']); ?>
                             </td>
                             <td class="whitespace-nowrap px-3 py-4 text-sm text-slate-600 font-medium">
-                                <?php echo htmlspecialchars($unit['division_name'] ?? 'Tidak Ada Divisi'); ?>
+                                <?php echo htmlspecialchars($unit['division_name'] ?? 'Tidak Ada Bidang'); ?>
                             </td>
                             <td class="whitespace-nowrap px-3 py-4 text-sm">
                                 <span
@@ -118,7 +118,7 @@ include '../layouts/header.php';
                                         <?php echo htmlspecialchars($unit['schedule_name']); ?>
                                     </span>
                                 <?php else: ?>
-                                    <span class="text-slate-400 italic text-xs">Default Divisi</span>
+                                    <span class="text-slate-400 italic text-xs">Default Bidang</span>
                                 <?php endif; ?>
                             </td>
                             <td class="relative whitespace-nowrap py-4 pl-3 pr-6 text-right text-sm font-medium">
@@ -227,10 +227,10 @@ include '../layouts/header.php';
                                 </div>
                                 <div class="mb-4">
                                     <label for="division_id"
-                                        class="block text-sm font-medium text-gray-700">Divisi</label>
+                                        class="block text-sm font-medium text-gray-700">Bidang</label>
                                     <select name="division_id" id="division_id" required
                                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 sm:text-sm">
-                                        <option value="">Pilih Divisi</option>
+                                        <option value="">Pilih Bidang</option>
                                         <?php foreach ($divisions as $div): ?>
                                             <option value="<?php echo $div['id']; ?>">
                                                 <?php echo htmlspecialchars($div['name']); ?>

@@ -23,7 +23,7 @@ $stmt->execute();
 $permit = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$permit) {
-    header("Location: index.php?error=Permit not found");
+    header("Location: index.php?error=Izin tidak ditemukan");
     exit;
 }
 

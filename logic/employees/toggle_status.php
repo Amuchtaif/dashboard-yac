@@ -4,6 +4,11 @@ require_once '../../config/database.php';
 
 check_login();
 
+$params = $_GET;
+unset($params['id']);
+$qs = http_build_query($params);
+$redirect_qs = $qs ? "&" . $qs : "";
+
 if (isset($_GET['id'])) {
     $id = $_GET['id'];
 
@@ -27,6 +32,6 @@ if (isset($_GET['id'])) {
 }
 
 // Redirect back to employees list
-        header("Location: ../../views/employees/index.php?success=Operasi+berhasil");
+header("Location: ../../views/employees/index.php?success=Status+berhasil+diubah" . $redirect_qs);
 exit();
 ?>

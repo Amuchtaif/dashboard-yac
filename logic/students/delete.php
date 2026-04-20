@@ -14,8 +14,8 @@ if (isset($_GET['id'])) {
         $stmt = $conn->prepare("DELETE FROM students WHERE id = :id");
         $stmt->bindParam(':id', $id);
         $stmt->execute();
-        header("Location: ../../views/students/index.php?success=Student+Deleted");
+        header("Location: ../../views/students/index.php?success=Siswa+berhasil+dihapus");
     } catch (PDOException $e) {
-        header("Location: ../../views/students/index.php?error=Error+Deleting+Student");
+        header("Location: ../../views/students/index.php?error=Gagal+menghapus+siswa");
     }
 }

@@ -100,7 +100,7 @@ include '../layouts/header.php';
                         class="block w-full px-4 py-2.5 border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-colors">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Divisi <span class="text-red-500">*</span></label>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Bidang <span class="text-red-500">*</span></label>
                     <select name="division_id" required
                         class="block w-full px-4 py-2.5 border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-colors">
                         <?php foreach ($divisions as $div): ?>

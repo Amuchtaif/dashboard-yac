@@ -93,10 +93,10 @@ include '../layouts/header.php';
                         class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-slate-700">Divisi Penyelenggara</label>
+                    <label class="block text-sm font-medium text-slate-700">Bidang Penyelenggara</label>
                     <select name="division_id" required
                         class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                        <option value="">Pilih Divisi</option>
+                        <option value="">Pilih Bidang</option>
                         <?php foreach ($divisions as $div): ?>
                             <option value="<?= $div['id'] ?>">
                                 <?= htmlspecialchars($div['name']) ?>

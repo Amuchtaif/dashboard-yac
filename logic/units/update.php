@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $schedule_id = $_POST['schedule_id'] ?? '';
 
     if (empty($id) || empty($name) || empty($division_id)) {
-        header("Location: ../../views/units/edit.php?id=$id&error=Please fill in all fields");
+        header("Location: ../../views/units/edit.php?id=$id&error=Mohon lengkapi semua bidang");
         exit;
     }
 
@@ -22,9 +22,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->bindParam(':id', $id);
 
     if ($stmt->execute()) {
-        header("Location: ../../views/units/index.php?success=Unit+updated+successfully");
+        header("Location: ../../views/units/index.php?success=Unit+berhasil+diperbarui");
     } else {
-        header("Location: ../../views/units/edit.php?id=$id&error=Failed to update unit");
+        header("Location: ../../views/units/edit.php?id=$id&error=Gagal memperbarui unit");
     }
 } else {
         header("Location: ../../views/units/index.php?error=Operasi+gagal");

@@ -8,6 +8,7 @@ if (!defined('BASE_URL')) {
     // Normalize path separators for both Windows and Linux
     $docRoot = rtrim(str_replace('\\', '/', $_SERVER['DOCUMENT_ROOT']), '/');
     $projectRoot = rtrim(str_replace('\\', '/', dirname(__DIR__)), '/');
+    define('BASE_PATH', $projectRoot);
     
     // Find the relative path from DocumentRoot to project root
     $relativePath = '';
@@ -40,6 +41,10 @@ if (session_status() == PHP_SESSION_NONE) {
  */
 function redirect($path)
 {
+    // Hapus .php jika bukan di folder api untuk mendukung clean URL
+    if (strpos($path, 'api/') === false) {
+        $path = preg_replace('/\.php$/', '', $path);
+    }
     header("Location: " . BASE_URL . "/" . $path);
     exit;
 }
@@ -63,7 +68,7 @@ function check_permission($permission)
     require_once __DIR__ . '/permission.php';
     if (!hasPermission($_SESSION['user_id'], $permission)) {
         // Redirect to dashboard with error or show 403
-        header("Location: " . BASE_URL . "/views/dashboard/index.php?error=unauthorized");
+        header("Location: " . BASE_URL . "/views/dashboard/index");
         exit;
     }
 }
@@ -91,6 +96,10 @@ function asset($path)
  */
 function url($path)
 {
+    // Hapus .php jika bukan di folder api untuk mendukung clean URL
+    if (strpos($path, 'api/') === false) {
+        $path = preg_replace('/\.php$/', '', $path);
+    }
     echo BASE_URL . '/' . $path;
 }
 

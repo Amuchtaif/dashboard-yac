@@ -38,7 +38,7 @@ $offset = ($page - 1) * $limit;
 
 // --- Search Logic ---
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
-$where_clauses = ["1=1"];
+$where_clauses = ["e.status = 'active'"];
 $params = [];
 
 if ($search) {
@@ -388,7 +388,7 @@ function renderToggle($empId, $permName, $effectiveValue, $source, $roleValue = 
 
 <script>
 function updateUserPermission(empId, permName, isChecked, checkboxEl) {
-    const apiUrl = '../../logic/permissions/update_employee_permission.php';
+    const apiUrl = '../../logic/permissions/update_employee_permission';
     const sourceEl = document.getElementById(`src-${empId}-${permName}`);
     
     // Show saving state

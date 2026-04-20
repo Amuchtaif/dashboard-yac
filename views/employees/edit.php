@@ -22,7 +22,7 @@ try {
     $employee = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$employee) {
-        header("Location: index.php?error=Employee not found");
+        header("Location: index.php?error=Pegawai tidak ditemukan");
         exit;
     }
 } catch (PDOException $e) {

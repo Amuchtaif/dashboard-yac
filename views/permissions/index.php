@@ -325,7 +325,7 @@ function updatePermission(id, permissionType, isChecked) {
         statusText.innerText = 'Menyimpan...';
     }
 
-    const apiUrl = '../../logic/permissions/update_role_permission.php';
+    const apiUrl = '../../logic/permissions/update_role_permission';
     console.log('Calling API:', apiUrl, 'Data:', { id, permissionType, value: isChecked ? 1 : 0 });
     
     fetch(apiUrl, {

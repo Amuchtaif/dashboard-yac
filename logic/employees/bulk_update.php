@@ -11,6 +11,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // or empty string '' if we want to "No Change"
     $unit_id = $_POST['unit_id'] ?? '';
     $position_id = $_POST['position_id'] ?? '';
+    $return_filters = $_POST['return_filters'] ?? '';
+    $redirect_qs = $return_filters ? "&" . $return_filters : "";
 
     if (!empty($employee_ids) && is_array($employee_ids)) {
         $db = new Database();
@@ -59,17 +61,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt = $conn->prepare($sql);
                 $stmt->execute($execute_params);
                 // Redirect with success
-        header("Location: ../../views/employees/index.php?success=Bulk+update+successful");
+        header("Location: ../../views/employees/index.php?success=Pembaruan+massal+berhasil" . $redirect_qs);
                 exit();
             } catch (PDOException $e) {
                 // Redirect with error
-                header("Location: ../../views/employees/index.php?error=" . urlencode($e->getMessage()));
+                header("Location: ../../views/employees/index.php?error=" . urlencode($e->getMessage()) . $redirect_qs);
                 exit();
             }
         }
     }
 }
 
-        header("Location: ../../views/employees/index.php?success=Operasi+berhasil");
+        header("Location: ../../views/employees/index.php?success=Operasi+berhasil" . $redirect_qs);
 exit();
 ?>

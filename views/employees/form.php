@@ -33,7 +33,7 @@ if ($is_edit) {
         if ($fetched) {
             $employee = $fetched;
         } else {
-            header("Location: index.php?error=Employee not found");
+            header("Location: index.php?error=Pegawai tidak ditemukan");
             exit;
         }
     } catch (PDOException $e) {
@@ -48,6 +48,11 @@ $positions = $conn->query("SELECT * FROM positions ORDER BY level ASC")->fetchAl
 $schedules = $conn->query("SELECT * FROM work_schedules ORDER BY name ASC")->fetchAll();
 
 include '../layouts/header.php';
+
+// Capture return filters
+$return_filters = $_GET;
+unset($return_filters['id'], $return_filters['error'], $return_filters['success']);
+$return_filters_qs = http_build_query($return_filters);
 ?>
 
 <div class="w-full pb-10">
@@ -101,10 +106,11 @@ include '../layouts/header.php';
     <?php endif; ?>
 
     <form action="<?php echo $is_edit ? url('logic/employees/update.php') : url('logic/employees/store.php'); ?>"
-        method="POST" class="space-y-6">
+        method="POST" enctype="multipart/form-data" class="space-y-6">
         <?php if ($is_edit): ?>
             <input type="hidden" name="id" value="<?php echo $employee['id']; ?>">
         <?php endif; ?>
+        <input type="hidden" name="return_filters" value="<?php echo htmlspecialchars($return_filters_qs); ?>">
 
         <!-- Main Card -->
         <div class="bg-white rounded-xl shadow-sm border border-slate-200">
@@ -127,34 +133,59 @@ include '../layouts/header.php';
                     <!-- Profile Photo Placeholder -->
                     <div class="md:col-span-1">
                         <label class="block text-sm font-semibold text-slate-700 mb-2">Foto Profil</label>
-                        <div
-                            class="flex flex-col items-center justify-center w-32 h-32 rounded-full border-2 border-dashed border-slate-300 bg-slate-50 relative group cursor-pointer hover:border-cyan-500 hover:bg-cyan-50 transition-all">
-                            <?php if ($is_edit): ?>
-                                <img class="w-full h-full rounded-full object-cover"
-                                    src="https://ui-avatars.com/api/?name=<?php echo urlencode($employee['full_name']); ?>&background=random&size=128"
-                                    alt="">
-                            <?php else: ?>
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                                    stroke="currentColor" class="w-8 h-8 text-slate-400 group-hover:text-cyan-600">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
-                                </svg>
-                            <?php endif; ?>
-                            <span
-                                class="absolute bottom-0 right-0 bg-white border border-slate-200 rounded-full p-1.5 shadow-sm">
+                        <div class="relative w-32 h-32 mx-auto">
+                            <input type="file" name="profile_photo" id="profile_photo_input" class="hidden"
+                                accept="image/*" onchange="previewImage(this)">
+                            <input type="hidden" name="remove_photo" id="remove_photo_input" value="0">
+
+                            <div onclick="document.getElementById('profile_photo_input').click()"
+                                class="flex flex-col items-center justify-center w-32 h-32 rounded-full border-2 border-dashed border-slate-300 bg-slate-50 relative group cursor-pointer hover:border-cyan-500 hover:bg-cyan-50 transition-all overflow-hidden">
+                                <?php
+                                $photo_url = null;
+                                if (!empty($employee['profile_photo']) && file_exists(BASE_PATH . '/uploads/profile_photos/' . $employee['profile_photo'])) {
+                                    $photo_url = BASE_URL . 'uploads/profile_photos/' . $employee['profile_photo'];
+                                }
+                                ?>
+                                <img id="profile_preview"
+                                    class="w-full h-full rounded-full object-cover <?php echo $photo_url ? '' : 'hidden'; ?>"
+                                    src="<?php echo $photo_url ?: ''; ?>" alt="">
+
+                                <div id="photo_placeholder"
+                                    class="<?php echo $photo_url ? 'hidden' : 'flex'; ?> flex-col items-center justify-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                        stroke-width="1.5" stroke="currentColor"
+                                        class="w-8 h-8 text-slate-400 group-hover:text-cyan-600">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
+                                    </svg>
+                                </div>
+
+                                <!-- Overlay on hover -->
+                                <div
+                                    class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                        stroke-width="2" stroke="currentColor" class="w-6 h-6 text-white">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                                    </svg>
+                                </div>
+                            </div>
+
+                            <!-- Remove button -->
+                            <button type="button" id="remove_photo_btn" onclick="removeImage()"
+                                class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600 transition-all <?php echo $photo_url ? '' : 'hidden'; ?>">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
-                                    class="w-3 h-3 text-slate-500">
+                                    class="w-4 h-4">
                                     <path
-                                        d="M5.433 13.917l1.262-3.155A4 4 0 017.58 9.42l6.92-6.918a2.121 2.121 0 013 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 01-.65-.65z" />
-                                    <path
-                                        d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0010 3H4.75A2.75 2.75 0 002 5.75v9.5A2.75 2.75 0 004.75 18h9.5A2.75 2.75 0 0017 15.25V10a.75.75 0 00-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5z" />
+                                        d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
                                 </svg>
-                            </span>
+                            </button>
                         </div>
-                        <p class="text-[10px] text-slate-400 mt-2 text-center w-32">Unggah foto profesional. Ukuran maks
-                            2MB.</p>
+                        <p
+                            class="text-[10px] text-slate-400 mt-3 text-center w-full uppercase tracking-wider font-bold">
+                            Ketuk untuk ubah foto</p>
                     </div>
 
                     <!-- Personal Fields -->
@@ -257,7 +288,7 @@ include '../layouts/header.php';
 
                     <!-- Division (Custom Dropdown) -->
                     <div class="relative group" id="container-division_id">
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Divisi (Bidang) <span
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Bidang <span
                                 class="text-red-500">*</span></label>
                         <input type="hidden" name="division_id" id="input-division_id"
                             value="<?php echo $employee['division_id']; ?>">
@@ -265,7 +296,7 @@ include '../layouts/header.php';
                             class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all">
                             <span id="text-division_id" class="block truncate">
                                 <?php
-                                $divName = "Pilih Divisi";
+                                $divName = "Pilih Bidang";
                                 foreach ($divisions as $d) {
                                     if ($d['id'] == $employee['division_id']) {
                                         $divName = $d['name'];
@@ -284,9 +315,9 @@ include '../layouts/header.php';
                         <div id="menu-division_id"
                             class="hidden absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
                             <ul class="py-1">
-                                <li onclick="selectFormOption('division_id', '', 'Pilih Divisi')"
+                                <li onclick="selectFormOption('division_id', '', 'Pilih Bidang')"
                                     class="cursor-pointer select-none py-2 pl-3 pr-9 text-slate-500 hover:bg-slate-50">
-                                    Pilih Divisi</li>
+                                    Pilih Bidang</li>
                                 <?php foreach ($divisions as $div): ?>
                                     <li onclick="selectFormOption('division_id', '<?php echo $div['id']; ?>', '<?php echo htmlspecialchars($div['name'], ENT_QUOTES); ?>')"
                                         class="cursor-pointer select-none py-2 pl-3 pr-9 text-slate-900 hover:bg-cyan-50 hover:text-cyan-700">
@@ -306,7 +337,7 @@ include '../layouts/header.php';
                             class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all">
                             <span id="text-unit_id" class="block truncate">
                                 <?php
-                                $unitName = "Langsung di bawah Divisi (Tanpa Unit)";
+                                $unitName = "Langsung di bawah Bidang (Tanpa Unit)";
                                 foreach ($units as $u) {
                                     if ($u['id'] == $employee['unit_id']) {
                                         $unitName = $u['name'];
@@ -326,9 +357,9 @@ include '../layouts/header.php';
                             class="hidden absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
                             <ul class="py-1" id="list-unit_id">
                                 <!-- Populated via JS -->
-                                <li onclick="selectFormOption('unit_id', '', 'Langsung di bawah Divisi (Tanpa Unit)')"
+                                <li onclick="selectFormOption('unit_id', '', 'Langsung di bawah Bidang (Tanpa Unit)')"
                                     class="cursor-pointer select-none py-2 pl-3 pr-9 text-slate-900 hover:bg-cyan-50 hover:text-cyan-700">
-                                    Langsung di bawah Divisi (Tanpa Unit)</li>
+                                    Langsung di bawah Bidang (Tanpa Unit)</li>
                             </ul>
                         </div>
                     </div>
@@ -336,7 +367,7 @@ include '../layouts/header.php';
 
                 <!-- Position (Custom Dropdown) -->
                 <div class="relative group" id="container-position_id">
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Jabatan / Judul Pekerjaan <span
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Jabatan<span
                             class="text-red-500">*</span></label>
                     <input type="hidden" name="position_id" id="input-position_id"
                         value="<?php echo $employee['position_id']; ?>">
@@ -365,7 +396,10 @@ include '../layouts/header.php';
                             <li onclick="selectFormOption('position_id', '', 'Pilih Jabatan')"
                                 class="cursor-pointer select-none py-2 pl-3 pr-9 text-slate-500 hover:bg-slate-50">
                                 Pilih Jabatan</li>
-                            <?php foreach ($positions as $pos): ?>
+                            <?php foreach ($positions as $pos): 
+                                // Skip Administrator position
+                                if ($pos['name'] === 'Administrator') continue;
+                            ?>
                                 <li onclick="selectFormOption('position_id', '<?php echo $pos['id']; ?>', '<?php echo htmlspecialchars($pos['name'], ENT_QUOTES); ?>')"
                                     class="cursor-pointer select-none py-2 pl-3 pr-9 text-slate-900 hover:bg-cyan-50 hover:text-cyan-700">
                                     <?php echo htmlspecialchars($pos['name']); ?>
@@ -378,7 +412,7 @@ include '../layouts/header.php';
                 <!-- Work Schedule (Custom Dropdown) -->
                 <div class="relative group" id="container-schedule_id">
                     <label class="block text-sm font-semibold text-slate-700 mb-1">Jadwal Kerja</label>
-                    <p class="text-xs text-slate-500 mb-2">Ganti jadwal default unit/divisi jika diperlukan.
+                    <p class="text-xs text-slate-500 mb-2">Ganti jadwal default unit/bidang jika diperlukan.
                     </p>
                     <input type="hidden" name="schedule_id" id="input-schedule_id"
                         value="<?php echo $employee['schedule_id']; ?>">
@@ -423,7 +457,7 @@ include '../layouts/header.php';
 
 <!-- Action Buttons -->
 <div class="flex justify-end gap-4 pt-2">
-    <a href="<?php url('views/employees/index.php'); ?>"
+    <a href="<?php url('views/employees/index.php?' . $return_filters_qs); ?>"
         class="px-6 py-2.5 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors shadow-sm">
         Batal
     </a>
@@ -436,6 +470,41 @@ include '../layouts/header.php';
 </div>
 
 <script>
+    // --- Profile Photo Handling ---
+    function previewImage(input) {
+        const preview = document.getElementById('profile_preview');
+        const placeholder = document.getElementById('photo_placeholder');
+        const removeBtn = document.getElementById('remove_photo_btn');
+        const removeInput = document.getElementById('remove_photo_input');
+
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                preview.src = e.target.result;
+                preview.classList.remove('hidden');
+                placeholder.classList.add('hidden');
+                removeBtn.classList.remove('hidden');
+                removeInput.value = "0";
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function removeImage() {
+        const input = document.getElementById('profile_photo_input');
+        const preview = document.getElementById('profile_preview');
+        const placeholder = document.getElementById('photo_placeholder');
+        const removeBtn = document.getElementById('remove_photo_btn');
+        const removeInput = document.getElementById('remove_photo_input');
+
+        input.value = "";
+        preview.src = "";
+        preview.classList.add('hidden');
+        placeholder.classList.remove('hidden');
+        removeBtn.classList.add('hidden');
+        removeInput.value = "1";
+    }
+
     const allUnits = <?php echo json_encode($units); ?>;
     const currentUnitId = "<?php echo $employee['unit_id']; ?>";
     const currentDivisionId = "<?php echo $employee['division_id']; ?>";
@@ -503,14 +572,14 @@ include '../layouts/header.php';
 
         // Reset Unit
         unitInput.value = '';
-        unitText.textContent = 'Langsung di bawah Divisi (Tanpa Unit)';
+        unitText.textContent = 'Langsung di bawah Bidang (Tanpa Unit)';
         unitList.innerHTML = '';
 
         // Default option
         const defaultLi = document.createElement('li');
-        defaultLi.onclick = () => selectFormOption('unit_id', '', 'Langsung di bawah Divisi (Tanpa Unit)');
+        defaultLi.onclick = () => selectFormOption('unit_id', '', 'Langsung di bawah Bidang (Tanpa Unit)');
         defaultLi.className = "cursor-pointer select-none py-2 pl-3 pr-9 text-slate-900 hover:bg-cyan-50 hover:text-cyan-700";
-        defaultLi.textContent = "Langsung di bawah Divisi (Tanpa Unit)";
+        defaultLi.textContent = "Langsung di bawah Bidang (Tanpa Unit)";
         unitList.appendChild(defaultLi);
 
         if (divisionId) {
@@ -537,9 +606,9 @@ include '../layouts/header.php';
                 unitList.innerHTML = ''; // Clear
 
                 const defaultLi = document.createElement('li');
-                defaultLi.onclick = () => selectFormOption('unit_id', '', 'Langsung di bawah Divisi (Tanpa Unit)');
+                defaultLi.onclick = () => selectFormOption('unit_id', '', 'Langsung di bawah Bidang (Tanpa Unit)');
                 defaultLi.className = "cursor-pointer select-none py-2 pl-3 pr-9 text-slate-900 hover:bg-cyan-50 hover:text-cyan-700";
-                defaultLi.textContent = "Langsung di bawah Divisi (Tanpa Unit)";
+                defaultLi.textContent = "Langsung di bawah Bidang (Tanpa Unit)";
                 unitList.appendChild(defaultLi);
 
                 const filteredUnits = allUnits.filter(unit => unit.division_id == initialDivId);

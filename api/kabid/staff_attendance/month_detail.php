@@ -5,27 +5,35 @@ header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Methods: GET");
 date_default_timezone_set('Asia/Jakarta');
 
-require_once __DIR__ . '/../../../config/database.php';
+require_once dirname(__DIR__, 3) . '/config/database.php';
 
 try {
-    /** @var Database $db */
+    /** @var \Database $db */
     $db = new Database();
     $conn = $db->getConnection();
 
-    $kabid_id = $_GET['user_id'] ?? null;
+    $user_id = $_GET['user_id'] ?? null;
     $month_label = $_GET['month'] ?? null; // e.g. "Februari 2026"
 
-    if (!$kabid_id || !$month_label) {
+    if (!$user_id || !$month_label) {
         echo json_encode(["success" => false, "message" => "Parameter user_id dan month wajib diisi."]);
         exit;
     }
 
     // Map Indo to Eng for parsing
     $indoToEng = [
-        'Januari' => 'January', 'Februari' => 'February', 'Maret' => 'March',
-        'April' => 'April', 'Mei' => 'May', 'Juni' => 'June',
-        'Juli' => 'July', 'Agustus' => 'August', 'September' => 'September',
-        'Oktober' => 'October', 'November' => 'November', 'Desember' => 'December'
+        'Januari' => 'January',
+        'Februari' => 'February',
+        'Maret' => 'March',
+        'April' => 'April',
+        'Mei' => 'May',
+        'Juni' => 'June',
+        'Juli' => 'July',
+        'Agustus' => 'August',
+        'September' => 'September',
+        'Oktober' => 'October',
+        'November' => 'November',
+        'Desember' => 'December'
     ];
     $engLabel = $month_label;
     foreach ($indoToEng as $id => $en) {
@@ -44,31 +52,61 @@ try {
     $month = $dateObj->format('m');
     $year = $dateObj->format('Y');
 
-    // 1. Ambil Divisi Kabid
-    $stmtKabid = $conn->prepare("SELECT division_id FROM employees WHERE id = ?");
-    $stmtKabid->execute([$kabid_id]);
-    $kabid = $stmtKabid->fetch(PDO::FETCH_ASSOC);
+    // 1. Ambil info user (Level, Divisi, & Unit)
+    $stmtUser = $conn->prepare("
+        SELECT e.division_id, e.unit_id, p.level 
+        FROM employees e 
+        INNER JOIN positions p ON e.position_id = p.id 
+        WHERE e.id = ?
+    ");
+    $stmtUser->execute([$user_id]);
+    $user = $stmtUser->fetch(PDO::FETCH_ASSOC);
 
-    if (!$kabid || !$kabid['division_id']) {
-        echo json_encode(["success" => false, "message" => "User bukan Kabid atau tidak memiliki divisi."]);
+    if (!$user) {
+        echo json_encode(["success" => false, "message" => "User tidak ditemukan."]);
         exit;
     }
 
-    $division_id = $kabid['division_id'];
+    $userLevel = (int) $user['level'];
+    $division_id = $user['division_id'];
+    $unit_id = $user['unit_id'];
 
-    // 2. Ambil List Staff di Divisi Tersebut (Filter Level)
-    // - Level 3
-    // - Level 4 ke bawah TANPA Unit (unit_id IS NULL or 0)
+    // 2. Tentukan Filter Subordinat berdasarkan Level
+    $subordinateFilter = "";
+    $params = [];
+    if ($userLevel === 1) {
+        // Mudir: Tampilkan semua Kepala Bidang (Level 2)
+        $subordinateFilter = "p.level = 2";
+    } else if ($userLevel === 2) {
+        // Kepala Bidang (Kabid): Tampilkan Kepala Unit/Sub (Level 3) 
+        // dan Staff Langsung di bawah divisi (Posisi 'Staf' dengan unit_id kosong)
+        $subordinateFilter = "e.division_id = :div_id 
+                             AND e.id != :user_id
+                             AND (
+                                 p.level = 3 
+                                 OR (p.name = 'Staf' AND (e.unit_id IS NULL OR e.unit_id = 0))
+                             )";
+        $params['div_id'] = $division_id;
+        $params['user_id'] = $user_id;
+    } else if ($userLevel === 3) {
+        // Kepala Unit/Sub: Tampilkan semua pegawai dalam satu unit
+        $subordinateFilter = "e.unit_id = :unit_id AND e.id != :user_id";
+        $params['unit_id'] = $unit_id;
+        $params['user_id'] = $user_id;
+    } else {
+        $subordinateFilter = "1=0";
+    }
+
+    // 3. Ambil List Staff Sesuai Filter
     $queryStaff = "
         SELECT e.id, e.full_name, e.profile_photo 
         FROM employees e
         INNER JOIN positions p ON e.position_id = p.id
-        WHERE e.division_id = ? AND e.id != ? AND e.status = 'active'
-        AND (p.level = 3 OR (p.level >= 4 AND (e.unit_id IS NULL OR e.unit_id = 0)))
+        WHERE e.status = 'active' AND $subordinateFilter
         ORDER BY e.full_name ASC
     ";
     $stmtStaff = $conn->prepare($queryStaff);
-    $stmtStaff->execute([$division_id, $kabid_id]);
+    $stmtStaff->execute($params);
     $staffList = $stmtStaff->fetchAll(PDO::FETCH_ASSOC);
 
     $results = [];
@@ -91,13 +129,13 @@ try {
             AND (MONTH(start_date) = ? AND YEAR(start_date) = ?)
         ");
         $stmtP->execute([$staff['id'], $month, $year]);
-        $permits = (int)$stmtP->fetchColumn();
+        $permits = (int) $stmtP->fetchColumn();
 
         $results[] = [
             "id" => $staff['id'],
             "name" => $staff['full_name'],
-            "hadir" => (int)($stats['hadir'] ?? 0),
-            "telat" => (int)($stats['telat'] ?? 0),
+            "hadir" => (int) ($stats['hadir'] ?? 0),
+            "telat" => (int) ($stats['telat'] ?? 0),
             "absent" => $permits, // Per UI naming convention
             "photo" => $staff['profile_photo']
         ];

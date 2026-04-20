@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $level = (int) $_POST['level'];
 
     if (empty($id) || empty($name) || empty($level)) {
-        header("Location: " . BASE_URL . "/views/positions/form.php?id=$id&error=" . urlencode("All fields are required"));
+        header("Location: " . BASE_URL . "/views/positions/form.php?id=$id&error=" . urlencode("Semua kolom wajib diisi"));
         exit;
     }
 
@@ -21,10 +21,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $conn->prepare("UPDATE positions SET name = :name, level = :level WHERE id = :id");
         $stmt->execute([':name' => $name, ':level' => $level, ':id' => $id]);
 
-        header("Location: " . BASE_URL . "/views/positions/index.php?success=" . urlencode("Position updated successfully"));
+        header("Location: " . BASE_URL . "/views/positions/index.php?success=" . urlencode("Jabatan berhasil diperbarui"));
         exit;
     } catch (PDOException $e) {
-        header("Location: " . BASE_URL . "/views/positions/form.php?id=$id&error=" . urlencode("Database Error: " . $e->getMessage()));
+        header("Location: " . BASE_URL . "/views/positions/form.php?id=$id&error=" . urlencode("Kesalahan Database: " . $e->getMessage()));
         exit;
     }
 }

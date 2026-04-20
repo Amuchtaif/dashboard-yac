@@ -21,7 +21,7 @@ $supervised_room = $currentUser['supervised_room_id'] ?? null;
 // Page Title & Access Control
 $page_title = "Absensi Makan Santri (List)";
 if (!$is_admin && !$is_musyrif && !can('can_access_kesantrian')) {
-    redirect('views/dashboard/index.php?error=unauthorized');
+    redirect('views/dashboard/index.php?error=tidak diizinkan');
 }
 
 // Fetch Filters Data
@@ -149,9 +149,28 @@ require_once __DIR__ . '/../layouts/header.php';
                 </table>
             </div>
         </div>
+
+        <!-- Pagination Controls -->
+        <div class="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-100 pt-6">
+            <div class="flex items-center gap-3">
+                <select id="pagination-limit" onchange="changeLimit()" class="px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 outline-none focus:border-cyan-500 transition-all bg-slate-50">
+                    <option value="10">10 Baris</option>
+                    <option value="25" selected>25 Baris</option>
+                    <option value="50">50 Baris</option>
+                    <option value="100">100 Baris</option>
+                </select>
+                <p class="text-xs text-slate-400 font-medium" id="pagination-info">Menampilkan 0 - 0 dari 0 santri</p>
+            </div>
+            <div class="flex items-center gap-1" id="pagination-buttons">
+                <!-- Group of buttons will be here -->
+            </div>
+        </div>
     </div>
 
 <script>
+    let currentPage = 1;
+    let currentLimit = 25;
+
     window.onload = function() {
         const isMusyrif = document.getElementById('is_musyrif').value === '1';
         const supervisedRoom = document.getElementById('supervised_room').value;
@@ -175,6 +194,18 @@ require_once __DIR__ . '/../layouts/header.php';
             const input = container.querySelector('.hybrid-search-input');
             if(input) input.placeholder = (type === 'room') ? 'Semua Asrama' : 'Semua Kelas';
         }
+        currentPage = 1; // Reset to page 1 when filter changes
+    }
+
+    function changeLimit() {
+        currentLimit = document.getElementById('pagination-limit').value;
+        currentPage = 1;
+        fetchData();
+    }
+
+    function changePage(page) {
+        currentPage = page;
+        fetchData();
     }
 
     async function fetchData() {
@@ -187,14 +218,14 @@ require_once __DIR__ . '/../layouts/header.php';
         rosterBody.innerHTML = '<tr><td colspan="4" class="px-6 py-20 text-center text-cyan-600 font-bold animate-pulse">Memuat data santri...</td></tr>';
 
         try {
-            const url = `../../api/meal_attendance/get_students_list.php?date=${date}&meal_type=${meal_type}&grade_id=${grade_id}&room_id=${room_id}`;
+            const url = `../../api/meal_attendance/get_students_list.php?date=${date}&meal_type=${meal_type}&grade_id=${grade_id}&room_id=${room_id}&page=${currentPage}&limit=${currentLimit}`;
             const res = await fetch(url);
             const json = await res.json();
             
             if(json.success) {
-                const students = json.data || [];
-                renderRoster(students, meal_type);
-                updateStats(students);
+                renderRoster(json.data || [], (currentPage - 1) * currentLimit);
+                updateStats(json.stats);
+                renderPagination(json.pagination);
             } else {
                 rosterBody.innerHTML = `<tr><td colspan="4" class="px-6 py-20 text-center text-red-500 font-bold">${json.message}</td></tr>`;
                 showToast(json.message, "error");
@@ -206,19 +237,13 @@ require_once __DIR__ . '/../layouts/header.php';
         }
     }
 
-    function updateStats(data) {
-        data = data || [];
-        const total = data.length;
-        const eaten = data.filter(s => s.attendance_id).length;
-        const remaining = total - eaten;
-
-        document.getElementById('stat-eaten').innerText = eaten;
-        document.getElementById('stat-remaining').innerText = remaining;
-        document.getElementById('stat-total').innerText = total;
+    function updateStats(stats) {
+        document.getElementById('stat-eaten').innerText = stats.eaten || 0;
+        document.getElementById('stat-remaining').innerText = stats.remaining || 0;
+        document.getElementById('stat-total').innerText = stats.total || 0;
     }
 
-    function renderRoster(data, mealType) {
-        data = data || [];
+    function renderRoster(data, offset) {
         const tbody = document.getElementById('roster-body');
         
         if(data.length === 0) {
@@ -234,7 +259,7 @@ require_once __DIR__ . '/../layouts/header.php';
 
             return `
                 <tr class="hover:bg-slate-50/50 transition-colors group">
-                    <td class="px-6 py-4 text-slate-400 font-medium text-center">${index + 1}.</td>
+                    <td class="px-6 py-4 text-slate-400 font-medium text-center">${offset + index + 1}.</td>
                     <td class="px-6 py-4">
                         <div class="flex items-center">
                             <div class="h-10 w-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500 font-bold border border-white ring-2 ring-slate-50 group-hover:ring-cyan-50 group-hover:bg-cyan-50 group-hover:text-cyan-600 transition-all">
@@ -258,6 +283,53 @@ require_once __DIR__ . '/../layouts/header.php';
         });
 
         tbody.innerHTML = rows.join('');
+    }
+
+    function renderPagination(pagination) {
+        const info = document.getElementById('pagination-info');
+        const buttons = document.getElementById('pagination-buttons');
+        
+        const start = pagination.total_rows > 0 ? (pagination.current_page - 1) * pagination.limit + 1 : 0;
+        const end = Math.min(pagination.current_page * pagination.limit, pagination.total_rows);
+        
+        info.innerText = `Menampilkan ${start} - ${end} dari ${pagination.total_rows} santri`;
+
+        let btns = '';
+        
+        // Prev button
+        btns += `
+            <button onclick="changePage(${pagination.current_page - 1})" 
+                ${pagination.current_page <= 1 ? 'disabled' : ''}
+                class="px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-bold transition-all ${pagination.current_page <= 1 ? 'text-slate-300 cursor-not-allowed' : 'text-slate-600 hover:bg-slate-50 active:scale-95'} ">
+                &larr; Prev
+            </button>
+        `;
+
+        // Page numbers (limited range)
+        const range = 2;
+        for (let i = 1; i <= pagination.total_pages; i++) {
+            if (i === 1 || i === pagination.total_pages || (i >= pagination.current_page - range && i <= pagination.current_page + range)) {
+                btns += `
+                    <button onclick="changePage(${i})" 
+                        class="px-3 py-1.5 rounded-lg border text-xs font-bold transition-all ${i === pagination.current_page ? 'bg-cyan-600 text-white border-cyan-600' : 'border-slate-200 text-slate-600 hover:bg-slate-50 active:scale-95'}">
+                        ${i}
+                    </button>
+                `;
+            } else if (i === pagination.current_page - range - 1 || i === pagination.current_page + range + 1) {
+                btns += `<span class="px-1 text-slate-300">...</span>`;
+            }
+        }
+
+        // Next button
+        btns += `
+            <button onclick="changePage(${pagination.current_page + 1})" 
+                ${pagination.current_page >= pagination.total_pages ? 'disabled' : ''}
+                class="px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-bold transition-all ${pagination.current_page >= pagination.total_pages ? 'text-slate-300 cursor-not-allowed' : 'text-slate-600 hover:bg-slate-50 active:scale-95'}">
+                Next &rarr;
+            </button>
+        `;
+
+        buttons.innerHTML = btns;
     }
 
     async function markMeal(studentId, type) {

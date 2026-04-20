@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $schedule_id = $_POST['schedule_id'] ?? '';
 
     if (empty($name) || empty($division_id)) {
-        header("Location: ../../views/units/index.php?error=Please+fill+in+all+fields");
+        header("Location: ../../views/units/index.php?error=Mohon+lengkapi+semua+bidang");
         exit;
     }
 
@@ -20,9 +20,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->bindValue(':schedule_id', !empty($schedule_id) ? $schedule_id : null, PDO::PARAM_INT);
 
     if ($stmt->execute()) {
-        header("Location: ../../views/units/index.php?success=Unit+created+successfully");
+        header("Location: ../../views/units/index.php?success=Unit+berhasil+dibuat");
     } else {
-        header("Location: ../../views/units/index.php?error=Failed+to+create+unit");
+        header("Location: ../../views/units/index.php?error=Gagal+membuat+unit");
     }
 } else {
         header("Location: ../../views/units/index.php?error=Operasi+gagal");

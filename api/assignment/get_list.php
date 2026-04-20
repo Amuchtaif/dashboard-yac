@@ -37,8 +37,54 @@ try {
     }
 
     if ($created_by) {
-        $conditions[] = "a.created_by = :created_by";
-        $params[':created_by'] = $created_by;
+        // Ambil info supervisor (Level, Divisi, & Unit)
+        $stmtUser = $db->prepare("
+            SELECT e.division_id, e.unit_id, p.level 
+            FROM employees e 
+            INNER JOIN positions p ON e.position_id = p.id 
+            WHERE e.id = ?
+        ");
+        $stmtUser->execute([$created_by]);
+        $user = $stmtUser->fetch(PDO::FETCH_ASSOC);
+
+        if ($user) {
+            $userLevel = (int)$user['level'];
+            $division_id = $user['division_id'];
+            $unit_id = $user['unit_id'];
+
+            if ($userLevel === 1) {
+                // Mudir: Lihat urusan sendiri + urusan by Kabids (Lvl 2)
+                $conditions[] = "(a.created_by = :created_by OR p_creator.level = 2)";
+                $params[':created_by'] = $created_by;
+            } else if ($userLevel === 2) {
+                // Kabid: Lihat urusan sendiri + urusan by subunit/staff di divisinya
+                // Filter pencipta tugas (creator) yang merupakan bawahan Kabid
+                $conditions[] = "(a.created_by = :created_by OR (
+                    e_creator.division_id = :division_id 
+                    AND e_creator.id != :created_by
+                    AND (
+                        p_creator.level = 3 
+                        OR (p_creator.name = 'Staf' AND (e_creator.unit_id IS NULL OR e_creator.unit_id = 0))
+                    )
+                ))";
+                $params[':created_by'] = $created_by;
+                $params[':division_id'] = $division_id;
+            } else if ($userLevel === 3) {
+                // Kepala Unit/Sub: Lihat urusan sendiri + urusan by siapapun di unitnya
+                $conditions[] = "(a.created_by = :created_by OR (
+                    e_creator.unit_id = :unit_id AND e_creator.id != :created_by
+                ))";
+                $params[':created_by'] = $created_by;
+                $params[':unit_id'] = $unit_id;
+            } else {
+                // Posisi lain: Hanya lihat urusan sendiri
+                $conditions[] = "a.created_by = :created_by";
+                $params[':created_by'] = $created_by;
+            }
+        } else {
+            $conditions[] = "a.created_by = :created_by";
+            $params[':created_by'] = $created_by;
+        }
     }
 
     if ($status) {

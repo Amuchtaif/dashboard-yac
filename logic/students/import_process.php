@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 if (!isset($_FILES['csv_file']) || $_FILES['csv_file']['error'] !== UPLOAD_ERR_OK) {
-    header("Location: " . BASE_URL . "/views/students/import.php?error=Upload failed or no file selected");
+    header("Location: " . BASE_URL . "/views/students/import.php?error=Gagal mengunggah file atau tidak ada file yang dipilih");
     exit;
 }
 
@@ -18,7 +18,7 @@ $file = $_FILES['csv_file']['tmp_name'];
 $handle = fopen($file, "r");
 
 if ($handle === false) {
-    header("Location: " . BASE_URL . "/views/students/import.php?error=Could not open file");
+    header("Location: " . BASE_URL . "/views/students/import.php?error=Tidak dapat membuka file");
     exit;
 }
 
@@ -122,9 +122,9 @@ try {
     $conn->commit();
     fclose($handle);
 
-    $msg = "Import Success! Processed: $successCount students.";
+    $msg = "Impor Berhasil! Memproses: $successCount siswa.";
     if ($errorCount > 0) {
-        $msg .= " With $errorCount errors.";
+        $msg .= " Dengan $errorCount kesalahan.";
     }
 
     header("Location: " . BASE_URL . "/views/students/index.php?success=" . urlencode($msg));
@@ -136,6 +136,6 @@ try {
     }
     fclose($handle);
     error_log($e->getMessage());
-    header("Location: " . BASE_URL . "/views/students/import.php?error=" . urlencode('System Error: ' . $e->getMessage()));
+    header("Location: " . BASE_URL . "/views/students/import.php?error=" . urlencode('Kesalahan Sistem: ' . $e->getMessage()));
     exit;
 }

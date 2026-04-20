@@ -5,7 +5,7 @@ require_once '../../config/app.php'; // For check_login if needed, though this i
 header('Content-Type: application/json');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+    echo json_encode(['success' => false, 'message' => 'Metode permintaan tidak valid']);
     exit;
 }
 
@@ -17,7 +17,7 @@ $id = isset($input['id']) ? intval($input['id']) : 0;
 $can_create_meeting = isset($input['can_create_meeting']) ? intval($input['can_create_meeting']) : 0;
 
 if ($id <= 0) {
-    echo json_encode(['success' => false, 'message' => 'Invalid ID']);
+    echo json_encode(['success' => false, 'message' => 'ID tidak valid']);
     exit;
 }
 
@@ -31,12 +31,12 @@ try {
     $stmt->bindParam(':id', $id, PDO::PARAM_INT);
 
     if ($stmt->execute()) {
-        echo json_encode(['success' => true, 'message' => 'Permission updated successfully']);
+        echo json_encode(['success' => true, 'message' => 'Izin berhasil diperbarui']);
     } else {
-        echo json_encode(['success' => false, 'message' => 'Failed to update permission']);
+        echo json_encode(['success' => false, 'message' => 'Gagal memperbarui izin']);
     }
 
 } catch (PDOException $e) {
-    echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
+    echo json_encode(['success' => false, 'message' => 'Kesalahan database: ' . $e->getMessage()]);
 }
 ?>

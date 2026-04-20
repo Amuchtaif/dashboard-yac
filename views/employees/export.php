@@ -12,8 +12,6 @@ $conn = $db->getConnection();
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $division_id = isset($_GET['division_id']) ? $_GET['division_id'] : '';
 $unit_id = isset($_GET['unit_id']) ? $_GET['unit_id'] : '';
-$status = isset($_GET['status']) ? $_GET['status'] : '';
-
 $where_clauses = ["e.id != 1"];
 $params = [];
 
@@ -29,13 +27,9 @@ if ($unit_id) {
     $where_clauses[] = "e.unit_id = :unit_id";
     $params[':unit_id'] = $unit_id;
 }
-if ($status) {
-    if ($status === 'active') {
-        $where_clauses[] = "(e.status = 'active' OR e.status IS NULL)";
-    } elseif ($status === 'inactive') {
-        $where_clauses[] = "e.status = 'inactive'";
-    }
-}
+
+// Always filter for active employees as requested
+$where_clauses[] = "(e.status = 'active' OR e.status IS NULL)";
 
 $where_sql = implode(" AND ", $where_clauses);
 
@@ -74,12 +68,13 @@ $output = fopen('php://output', 'w');
 fwrite($output, "\xEF\xBB\xBF");
 
 // CSV Header Row
-fputcsv($output, ['ID', 'Full Name', 'Email', 'Phone', 'Address', 'Division', 'Unit', 'Position', 'Status']);
+fputcsv($output, ['No', 'Nama Lengkap', 'Email', 'Telepon', 'Alamat', 'Bidang', 'Unit', 'Jabatan', 'Status']);
 
 // Data Rows
+$no = 1;
 foreach ($employees as $row) {
     fputcsv($output, [
-        $row['id'],
+        $no++,
         $row['full_name'],
         $row['email'],
         $row['phone_number'],

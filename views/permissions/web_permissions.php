@@ -257,7 +257,7 @@ include '../layouts/header.php';
 
 <script>
 function updateWebPermission(id, permissionType, isChecked) {
-    const apiUrl = '../../logic/permissions/update_role_permission.php';
+    const apiUrl = '../../logic/permissions/update_role_permission';
     const checkbox = event.target;
     
     fetch(apiUrl, {

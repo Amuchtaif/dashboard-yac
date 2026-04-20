@@ -29,7 +29,7 @@ if ($is_edit) {
         if ($fetched) {
             $news = $fetched;
         } else {
-            header("Location: index.php?error=News not found");
+            header("Location: index.php?error=Berita tidak ditemukan");
             exit;
         }
     } catch (PDOException $e) {

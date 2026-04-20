@@ -20,14 +20,14 @@ if (isset($_GET['id'])) {
         $stmt = $conn->prepare($sql);
 
         if ($stmt->execute([':id' => $id])) {
-            header("Location: " . BASE_URL . "views/settings/schedules/index.php?success=" . urlencode("Schedule deleted successfully"));
+            header("Location: " . BASE_URL . "views/settings/schedules/index.php?success=" . urlencode("Jadwal berhasil dihapus"));
         } else {
-            header("Location: " . BASE_URL . "views/settings/schedules/index.php?error=" . urlencode("Failed to delete schedule"));
+            header("Location: " . BASE_URL . "views/settings/schedules/index.php?error=" . urlencode("Gagal menghapus jadwal"));
         }
     } catch (PDOException $e) {
-        $msg = "Error deleting schedule. It might be in use.";
+        $msg = "Gagal menghapus jadwal. Mungkin masih digunakan.";
         if (strpos($e->getMessage(), 'Integrity constraint violation') !== false) {
-            $msg = "Cannot delete: This schedule is correctly assigned to employees/departments.";
+            $msg = "Tidak dapat menghapus: Jadwal ini masih digunakan oleh pegawai atau divisi.";
         }
         header("Location: " . BASE_URL . "views/settings/schedules/index.php?error=" . urlencode($msg));
     }

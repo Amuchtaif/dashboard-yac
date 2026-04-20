@@ -6,7 +6,7 @@ check_login();
 check_permission('manage_academic');
 
 if (!isset($_GET['id'])) {
-    redirect('views/grade_levels/index.php?error=Invalid Request');
+    redirect('views/grade_levels/index.php?error=Permintaan tidak valid');
 }
 
 $id = $_GET['id'];
@@ -20,7 +20,7 @@ $stmt->execute();
 $level = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$level) {
-    redirect('views/grade_levels/index.php?error=Class not found');
+    redirect('views/grade_levels/index.php?error=Kelas tidak ditemukan');
 }
 
 // Fetch Education Units

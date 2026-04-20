@@ -50,7 +50,7 @@ include '../layouts/header.php';
     <div class="sm:flex sm:items-center">
         <div class="sm:flex-auto">
             <h1 class="text-xl font-bold text-slate-900">Data Jabatan</h1>
-            <p class="mt-2 text-sm text-slate-500">Kelola gelar pekerjaan karyawan dan tingkat hierarki.</p>
+            <p class="mt-2 text-sm text-slate-500">Kelola jabatan karyawan dan tingkat hierarki organisasi.</p>
         </div>
         <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none flex justify-end">
             <a href="<?php url('views/positions/form.php'); ?>"
@@ -146,10 +146,10 @@ include '../layouts/header.php';
                             </p>
                             <div class="flex gap-2">
                                 <?php if ($page > 1): ?>
-                                    <a href="?page=<?php echo $page - 1; ?>&limit=<?php echo $limit; ?>" class="rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50">Prev</a>
+                                    <a href="?page=<?php echo $page - 1; ?>&limit=<?php echo $limit; ?>" class="rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50">Sebelumnya</a>
                                 <?php endif; ?>
                                 <?php if ($page < $total_pages): ?>
-                                    <a href="?page=<?php echo $page + 1; ?>&limit=<?php echo $limit; ?>" class="rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50">Next</a>
+                                    <a href="?page=<?php echo $page + 1; ?>&limit=<?php echo $limit; ?>" class="rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50">Selanjutnya</a>
                                 <?php endif; ?>
                             </div>
                         </div>

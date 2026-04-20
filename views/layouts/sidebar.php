@@ -4,18 +4,22 @@ if (!function_exists('isUrlActive')) {
     function isUrlActive($path)
     {
         global $current_page;
+        
+        // Bersihkan ekstensi .php dari URL saat ini dan path target agar perbandingan akurat
+        $clean_page = str_replace('.php', '', $current_page);
+        $clean_path = str_replace('.php', '', $path);
+
         // Special case for boarding attendance subpages
-        $is_boarding_attendance = (strpos($current_page, 'boarding/attendance') !== false && $path === 'boarding/attendance');
+        $is_boarding_attendance = (strpos($clean_page, 'boarding/attendance') !== false && $clean_path === 'boarding/attendance');
         if ($is_boarding_attendance) return true;
 
-        // Ensure we match as a path segment to avoid substring issues
-        // If path doesn't start with '/', add one for comparison unless it's a full URL
-        $search_path = $path;
-        if (strpos($path, '/') !== 0 && strpos($path, 'http') !== 0) {
-            $search_path = '/' . $path;
+        // Pastikan kita mencocokkan sebagai segmen path
+        $search_path = $clean_path;
+        if (strpos($clean_path, '/') !== 0 && strpos($clean_path, 'http') !== 0) {
+            $search_path = '/' . $clean_path;
         }
 
-        return (strpos($current_page, $search_path) !== false);
+        return (strpos($clean_page, $search_path) !== false);
     }
 }
 
@@ -107,8 +111,8 @@ if (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Adminis
 
                 <!-- Employees -->
                 <a href="<?php url('views/employees/index.php'); ?>"
-                    class="<?php echo (strpos($current_page, 'employees') !== false && strpos($current_page, 'reset_password') === false) ? 'bg-cyan-50 text-cyan-700 font-semibold border-l-[6px] border-cyan-600 rounded-r-3xl' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 border-l-[6px] border-transparent rounded-r-3xl'; ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo (strpos($current_page, 'employees') !== false && strpos($current_page, 'reset_password') === false) ? 'text-cyan-600' : 'text-slate-400 group-hover:text-slate-600'; ?> transition-colors"
+                    class="<?php echo (isUrlActive('employees') && !isUrlActive('reset_password')) ? 'bg-cyan-50 text-cyan-700 font-semibold border-l-[6px] border-cyan-600 rounded-r-3xl' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 border-l-[6px] border-transparent rounded-r-3xl'; ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo (isUrlActive('employees') && !isUrlActive('reset_password')) ? 'text-cyan-600' : 'text-slate-400 group-hover:text-slate-600'; ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                             d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -116,7 +120,7 @@ if (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Adminis
                     Data Pegawai
                 </a>
 
-                <!-- Functions/Departments (Renamed to Divisions to match UI) -->
+                <!-- Bidang Organisasi (Renamed to Bidang to match UI) -->
                 <a href="<?php url('views/departments/index.php'); ?>"
                     class="<?php echo isActive('departments'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('departments'); ?> transition-colors"
@@ -380,8 +384,8 @@ if (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Adminis
 
                 <!-- Students -->
                 <a href="<?php url('views/students/index.php'); ?>"
-                    class="<?php echo (strpos($current_page, 'students/index.php') !== false) ? 'bg-cyan-50 text-cyan-700 font-semibold border-l-[6px] border-cyan-600 rounded-r-3xl' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 border-l-[6px] border-transparent rounded-r-3xl'; ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo (strpos($current_page, 'students/index.php') !== false) ? 'text-cyan-600' : 'text-slate-400 group-hover:text-slate-600'; ?> transition-colors"
+                    class="<?php echo isActive('students/index'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('students/index'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                             d="M12 14l9-5-9-5-9 5 9 5z" />
@@ -393,8 +397,8 @@ if (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Adminis
 
                 <!-- Data Siswa (Non-Aktif) -->
                 <a href="<?php url('views/students/inactive.php'); ?>"
-                    class="<?php echo (strpos($current_page, 'students/inactive.php') !== false) ? 'bg-cyan-50 text-cyan-700 font-semibold border-l-[6px] border-cyan-600 rounded-r-3xl' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 border-l-[6px] border-transparent rounded-r-3xl'; ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo (strpos($current_page, 'students/inactive.php') !== false) ? 'text-cyan-600' : 'text-slate-400 group-hover:text-slate-600'; ?> transition-colors"
+                    class="<?php echo isActive('students/inactive'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('students/inactive'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/xl" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -464,8 +468,8 @@ if (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Adminis
 
                 <!-- Class Schedules -->
                 <a href="<?php url('views/class_schedules/index.php'); ?>"
-                    class="<?php echo (strpos($current_page, 'tahfidz/halaqah') !== false) ? 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 border-l-[6px] border-transparent rounded-r-3xl' : (isUrlActive('class_schedules') && strpos($current_page, 'teachers.php') === false ? 'bg-cyan-50 text-cyan-700 font-semibold border-l-[6px] border-cyan-600 rounded-r-3xl' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 border-l-[6px] border-transparent rounded-r-3xl'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo (strpos($current_page, 'tahfidz/halaqah') !== false) ? 'text-slate-400 group-hover:text-slate-600' : (isUrlActive('class_schedules') && strpos($current_page, 'teachers.php') === false ? 'text-cyan-600' : 'text-slate-400 group-hover:text-slate-600'); ?> transition-colors"
+                    class="<?php echo (isUrlActive('tahfidz/halaqah')) ? 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 border-l-[6px] border-transparent rounded-r-3xl' : (isUrlActive('class_schedules') && !isUrlActive('teachers') ? 'bg-cyan-50 text-cyan-700 font-semibold border-l-[6px] border-cyan-600 rounded-r-3xl' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 border-l-[6px] border-transparent rounded-r-3xl'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo (isUrlActive('tahfidz/halaqah')) ? 'text-slate-400 group-hover:text-slate-600' : (isUrlActive('class_schedules') && !isUrlActive('teachers') ? 'text-cyan-600' : 'text-slate-400 group-hover:text-slate-600'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -794,8 +798,8 @@ if (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Adminis
             <?php
             $profile_name = $_SESSION['user_name'] ?? 'User';
             $profile_photo = $_SESSION['user_photo'] ?? '';
-            $avatar_url = !empty($profile_photo)
-                ? BASE_URL . '/public/uploads/employees/' . $profile_photo
+            $avatar_url = (!empty($profile_photo) && file_exists(BASE_PATH . '/uploads/profile_photos/' . $profile_photo))
+                ? BASE_URL . '/uploads/profile_photos/' . $profile_photo
                 : "https://ui-avatars.com/api/?name=" . urlencode($profile_name) . "&background=random";
             ?>
             <img class="h-8 w-8 rounded-full border border-slate-200 object-cover" src="<?php echo $avatar_url; ?>"

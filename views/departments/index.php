@@ -5,7 +5,7 @@ require_once '../../config/database.php';
 check_login();
 check_permission('manage_employees');
 
-$page_title = "Divisi";
+$page_title = "Bidang";
 
 $db = new Database();
 $conn = $db->getConnection();
@@ -173,7 +173,7 @@ include '../layouts/header.php';
             </div>
             <input type="text"
                 class="block w-full rounded-lg border-slate-200 pl-10 pt-2 pb-2 text-sm focus:border-cyan-500 focus:ring-cyan-500 bg-slate-50 border placeholder:text-slate-400 text-slate-600"
-                placeholder="Cari divisi...">
+                placeholder="Cari bidang...">
         </div>
 
         <div class="flex gap-3">

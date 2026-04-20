@@ -3,10 +3,11 @@
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Methods: POST");
-require_once __DIR__ . '/../../../config/database.php';
-require_once __DIR__ . '/../../../config/app.php';
+require_once dirname(__DIR__, 3) . '/config/database.php';
+require_once dirname(__DIR__, 3) . '/config/app.php';
 
 try {
+    /** @var \Database $db */
     $db = new Database();
     $conn = $db->getConnection();
 
@@ -35,8 +36,7 @@ try {
     $stmtVal = $conn->prepare("
         SELECT e.id FROM employees e
         INNER JOIN positions p ON e.position_id = p.id
-        WHERE e.id = ? AND e.division_id = ? 
-        AND (p.level = 3 OR (p.level >= 4 AND (e.unit_id IS NULL OR e.unit_id = 0)))
+        WHERE e.id = ? AND e.division_id = ?
     ");
     $stmtVal->execute([$staff_id, $kabid['division_id'] ?? 0]);
     $isValidSubordinate = $stmtVal->fetch();

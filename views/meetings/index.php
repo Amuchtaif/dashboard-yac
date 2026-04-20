@@ -89,7 +89,7 @@ include '../layouts/header.php';
             <form method="GET" class="relative">
                 <select name="division_id" onchange="this.form.submit()"
                     class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-lg shadow-sm border bg-white">
-                    <option value="">Semua Divisi</option>
+                    <option value="">Semua Bidang</option>
                     <?php foreach ($divisions as $div): ?>
                         <option value="<?= $div['id'] ?>" <?= $div['id'] == $division_id ? 'selected' : '' ?>>
                             <?= htmlspecialchars($div['name']) ?>
@@ -114,7 +114,7 @@ include '../layouts/header.php';
                 <thead class="bg-slate-50">
                     <tr class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                         <th scope="col" class="px-6 py-4 text-left w-12">No.</th>
-                        <th scope="col" class="px-6 py-4 text-left min-w-[250px]">Judul / Divisi</th>
+                        <th scope="col" class="px-6 py-4 text-left min-w-[250px]">Judul / Bidang</th>
                         <th scope="col" class="px-6 py-4 text-left min-w-[180px]">Dibuat Oleh</th>
                         <th scope="col" class="px-6 py-4 text-left min-w-[180px]">Tanggal & Waktu</th>
                         <th scope="col" class="px-6 py-4 text-left min-w-[100px]">Tipe</th>

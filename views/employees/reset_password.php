@@ -19,7 +19,7 @@ $offset = ($page - 1) * $limit;
 // --- Search ---
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 
-$where_clauses = ["e.id != 1"];
+$where_clauses = ["e.id != 1", "e.status = 'active'"];
 $params = [];
 
 if ($search) {
@@ -142,7 +142,7 @@ include '../layouts/header.php';
                                 <th class="py-3 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 sm:pl-6 w-12">No.</th>
                                 <th class="py-3 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 sm:pl-6">Karyawan</th>
                                 <th class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Jabatan</th>
-                                <th class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Divisi / Unit</th>
+                                <th class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Bidang / Unit</th>
                                 <th class="px-3 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 w-48">Aksi</th>
                             </tr>
                         </thead>

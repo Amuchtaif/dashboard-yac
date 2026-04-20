@@ -6,10 +6,16 @@ check_login();
 
 if (isset($_GET['id'])) {
     $id = $_GET['id'];
+    
+    // Construct redirect query string from current GET params
+    $params = $_GET;
+    unset($params['id']);
+    $qs = http_build_query($params);
+    $redirect_qs = $qs ? "&" . $qs : "";
 
     // Prevent deleting self
     if ($id == $_SESSION['user_id']) {
-        header("Location: ../../views/employees/index.php?error=Cannot+delete+your+own+account");
+        header("Location: ../../views/employees/index.php?error=Anda+tidak+dapat+menghapus+akun+Anda+sendiri" . $redirect_qs);
         exit;
     }
 
@@ -20,8 +26,8 @@ if (isset($_GET['id'])) {
         $stmt = $conn->prepare("DELETE FROM employees WHERE id = :id");
         $stmt->bindParam(':id', $id);
         $stmt->execute();
-        header("Location: ../../views/employees/index.php?success=Employee+Deleted");
+        header("Location: ../../views/employees/index.php?success=Pegawai+berhasil+dihapus" . $redirect_qs);
     } catch (PDOException $e) {
-        header("Location: ../../views/employees/index.php?error=Error+Deleting+Employee");
+        header("Location: ../../views/employees/index.php?error=Gagal+menghapus+pegawai" . $redirect_qs);
     }
 }

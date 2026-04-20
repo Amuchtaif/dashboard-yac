@@ -5,42 +5,72 @@ header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Methods: GET");
 date_default_timezone_set('Asia/Jakarta');
 
-require_once __DIR__ . '/../../../config/database.php';
+require_once dirname(__DIR__, 3) . '/config/database.php';
 
 try {
-    /** @var Database $db */
+    /** @var \Database $db */
     $db = new Database();
     $conn = $db->getConnection();
 
-    $kabid_id = $_GET['user_id'] ?? null;
-    if (!$kabid_id) {
-        echo json_encode(["success" => false, "message" => "Parameter user_id (Kabid ID) wajib diisi."]);
+    $user_id = $_GET['user_id'] ?? null;
+    if (!$user_id) {
+        echo json_encode(["success" => false, "message" => "Parameter user_id wajib diisi."]);
         exit;
     }
 
-    // 1. Ambil Divisi Kabid & Jumlah Staff
-    $stmtKabid = $conn->prepare("SELECT division_id FROM employees WHERE id = ?");
-    $stmtKabid->execute([$kabid_id]);
-    $kabid = $stmtKabid->fetch(PDO::FETCH_ASSOC);
+    // 1. Ambil info user (Level, Divisi, & Unit)
+    $stmtUser = $conn->prepare("
+        SELECT e.division_id, e.unit_id, p.level 
+        FROM employees e 
+        INNER JOIN positions p ON e.position_id = p.id 
+        WHERE e.id = ?
+    ");
+    $stmtUser->execute([$user_id]);
+    $user = $stmtUser->fetch(PDO::FETCH_ASSOC);
 
-    if (!$kabid || !$kabid['division_id']) {
-        echo json_encode(["success" => false, "message" => "User bukan Kabid atau tidak memiliki divisi."]);
+    if (!$user) {
+        echo json_encode(["success" => false, "message" => "User tidak ditemukan."]);
         exit;
     }
 
-    $division_id = $kabid['division_id'];
+    $userLevel = (int)$user['level'];
+    $division_id = $user['division_id'];
+    $unit_id = $user['unit_id'];
 
-    // Hitung jumlah staff aktif di divisi ini dengan kriteria:
-    // - Level 3
-    // - Level 4 ke bawah TANPA Unit (unit_id IS NULL or 0)
+    // 2. Tentukan Filter Subordinat berdasarkan Level
+    $subordinateFilter = "";
+    $params = [];
+    if ($userLevel === 1) {
+        // Mudir: Tampilkan semua Kepala Bidang (Level 2)
+        $subordinateFilter = "p.level = 2";
+    } else if ($userLevel === 2) {
+        // Kepala Bidang (Kabid): Tampilkan Kepala Unit/Sub (Level 3) 
+        // dan Staff Langsung di bawah divisi (Posisi 'Staf' dengan unit_id kosong)
+        $subordinateFilter = "e.division_id = :div_id 
+                             AND e.id != :user_id
+                             AND (
+                                 p.level = 3 
+                                 OR (p.name = 'Staf' AND (e.unit_id IS NULL OR e.unit_id = 0))
+                             )";
+        $params['div_id'] = $division_id;
+        $params['user_id'] = $user_id;
+    } else if ($userLevel === 3) {
+        // Kepala Unit/Sub: Tampilkan semua pegawai dalam satu unit
+        $subordinateFilter = "e.unit_id = :unit_id AND e.id != :user_id";
+        $params['unit_id'] = $unit_id;
+        $params['user_id'] = $user_id;
+    } else {
+        $subordinateFilter = "1=0";
+    }
+
+    // Hitung jumlah staff aktif sesuai filter
     $stmtStaffCount = $conn->prepare("
         SELECT COUNT(*) 
         FROM employees e
         INNER JOIN positions p ON e.position_id = p.id
-        WHERE e.division_id = ? AND e.id != ? AND e.status = 'active'
-        AND (p.level = 3 OR (p.level >= 4 AND (e.unit_id IS NULL OR e.unit_id = 0)))
+        WHERE e.status = 'active' AND $subordinateFilter
     ");
-    $stmtStaffCount->execute([$division_id, $kabid_id]);
+    $stmtStaffCount->execute($params);
     $totalStaff = (int)$stmtStaffCount->fetchColumn();
 
     if ($totalStaff === 0) $totalStaff = 1; // Avoid division by zero
@@ -58,31 +88,29 @@ try {
         FROM attendances a
         JOIN employees e ON a.user_id = e.id
         INNER JOIN positions p ON e.position_id = p.id
-        WHERE e.division_id = :div_id AND e.id != :kabid_id
-        AND (p.level = 3 OR (p.level >= 4 AND (e.unit_id IS NULL OR e.unit_id = 0)))
+        WHERE e.status = 'active' AND $subordinateFilter
         AND MONTH(a.date) = :month AND YEAR(a.date) = :year
     ";
     $stmtStats = $conn->prepare($queryStats);
-    $stmtStats->execute(['div_id' => $division_id, 'kabid_id' => $kabid_id, 'month' => $thisMonth, 'year' => $thisYear]);
+    $statsParams = array_merge($params, ['month' => $thisMonth, 'year' => $thisYear]);
+    $stmtStats->execute($statsParams);
     $stats = $stmtStats->fetch(PDO::FETCH_ASSOC);
 
     // Izin/Sakit Bulanan
     $queryPermits = "
         SELECT COUNT(*) 
-        FROM permits p
-        JOIN employees e ON p.employee_id = e.id
-        INNER JOIN positions p2 ON e.position_id = p2.id
-        WHERE e.division_id = ? AND e.id != ?
-        AND (p2.level = 3 OR (p2.level >= 4 AND (e.unit_id IS NULL OR e.unit_id = 0)))
-        AND MONTH(p.start_date) = ? AND YEAR(p.start_date) = ?
-        AND p.status = 'approved'
+        FROM permits perm
+        JOIN employees e ON perm.employee_id = e.id
+        INNER JOIN positions p ON e.position_id = p.id
+        WHERE e.status = 'active' AND $subordinateFilter
+        AND MONTH(perm.start_date) = :month AND YEAR(perm.start_date) = :year
+        AND perm.status = 'approved'
     ";
     $stmtPermits = $conn->prepare($queryPermits);
-    $stmtPermits->execute([$division_id, $kabid_id, $thisMonth, $thisYear]);
+    $stmtPermits->execute($statsParams);
     $permitCount = (int)$stmtPermits->fetchColumn();
 
     // Hitung Rata-rata Kehadiran (%)
-    // Asumsi: Target hari kerja sd hari ini (sekitar 22-26 hari per bulan)
     // Hari kerja efektif (Senin-Sabtu) dari tgl 1 sd hari ini
     $workDaysSoFar = 0;
     $start = new DateTime(date('Y-m-01'));
@@ -108,9 +136,8 @@ try {
         $y = $mDate->format('Y');
         $mLabel = $mDate->format('F Y');
 
-        // Skip current month in history list if desired, or keep it. UI shows prev months.
         if ($i == 0) {
-            $monthName = $mLabel; // Set current month label for the orange card
+            $monthName = $mLabel; 
             continue; 
         }
 
@@ -118,12 +145,12 @@ try {
         $stmtH = $conn->prepare("
             SELECT COUNT(*) FROM attendances a
             JOIN employees e ON a.user_id = e.id
-            INNER JOIN positions pos ON e.position_id = pos.id
-            WHERE e.division_id = ? AND e.id != ?
-            AND (pos.level = 3 OR (pos.level >= 4 AND (e.unit_id IS NULL OR e.unit_id = 0)))
-            AND MONTH(a.date) = ? AND YEAR(a.date) = ?
+            INNER JOIN positions p ON e.position_id = p.id
+            WHERE e.status = 'active' AND $subordinateFilter
+            AND MONTH(a.date) = :month AND YEAR(a.date) = :year
         ");
-        $stmtH->execute([$division_id, $kabid_id, $m, $y]);
+        $hParams = array_merge($params, ['month' => $m, 'year' => $y]);
+        $stmtH->execute($hParams);
         $hPresent = (int)$stmtH->fetchColumn();
 
         // Calculate expected (full month)

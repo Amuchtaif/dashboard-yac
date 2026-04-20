@@ -86,9 +86,17 @@ $divisions = $conn->query("SELECT id, name FROM divisions ORDER BY name ASC")->f
 $units_all = $conn->query("SELECT id, name, division_id FROM units ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
 $positions = $conn->query("SELECT id, name FROM positions ORDER BY level ASC")->fetchAll(PDO::FETCH_ASSOC);
 
+// Reusable Filter Query for CRUD redirects
+$current_filters = $_GET;
+unset($current_filters['success'], $current_filters['error'], $current_filters['id']);
+$filter_qs = http_build_query($current_filters);
+
+$pagination_params = $current_filters;
+unset($pagination_params['page']);
+$pag_qs = http_build_query($pagination_params);
+
 // Export URL
-$export_query = http_build_query(array_merge($_GET, ['action' => 'export']));
-$export_url = "export.php?" . $export_query;
+$export_url = "export.php?" . $filter_qs;
 
 include '../layouts/header.php';
 ?>
@@ -111,7 +119,7 @@ include '../layouts/header.php';
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
                     </svg>
-                    Export
+                    Ekspor
                     <svg class="ml-2 h-4 w-4 text-slate-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
                         fill="currentColor">
                         <path fill-rule="evenodd"
@@ -145,7 +153,7 @@ include '../layouts/header.php';
                     </div>
                 </div>
             </div>
-            <a href="<?php url('views/employees/form.php'); ?>"
+            <a href="<?php url('views/employees/form.php?' . $filter_qs); ?>"
                 class="inline-flex items-center justify-center rounded-lg border border-transparent bg-cyan-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 sm:w-auto transition-colors">
                 <svg class="-ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                     stroke-width="1.5" stroke="currentColor">
@@ -159,6 +167,7 @@ include '../layouts/header.php';
     <form id="filter-form"
         class="mt-8 bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col lg:flex-row gap-4 justify-between items-stretch lg:items-center"
         method="GET" action="">
+        <input type="hidden" name="limit" value="<?php echo $limit; ?>">
 
         <!-- Search -->
         <div class="relative w-full lg:w-96">
@@ -184,7 +193,7 @@ include '../layouts/header.php';
                     class="inline-flex items-center justify-between gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] font-bold text-slate-600 hover:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-colors w-full lg:w-40 h-10">
                     <span id="filter-division-text" class="truncate">
                         <?php
-                        $currDiv = "Divisi: Semua";
+                        $currDiv = "Bidang: Semua";
                         if ($division_id) {
                             foreach ($divisions as $d) {
                                 if ($d['id'] == $division_id) {
@@ -204,9 +213,9 @@ include '../layouts/header.php';
                 <div id="filter-division-menu"
                     class="hidden absolute top-full left-0 mt-1 w-56 origin-top-left rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50 max-h-60 overflow-y-auto">
                     <ul class="py-1">
-                        <li onclick="selectFilterOption('division', '', 'Divisi: Semua')"
+                        <li onclick="selectFilterOption('division', '', 'Bidang: Semua')"
                             class="cursor-pointer px-4 py-2 text-xs text-slate-500 hover:bg-slate-50 hover:text-cyan-700">
-                            Divisi: Semua</li>
+                            Bidang: Semua</li>
                         <?php foreach ($divisions as $div): ?>
                             <li onclick="selectFilterOption('division', '<?php echo $div['id']; ?>', 'Div: <?php echo htmlspecialchars($div['name'], ENT_QUOTES); ?>')"
                                 class="cursor-pointer px-4 py-2 text-xs text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
@@ -331,6 +340,7 @@ include '../layouts/header.php';
             class="flex flex-col sm:flex-row gap-3 w-full items-center">
             <!-- Hidden inputs for selected IDs -->
             <div id="bulk-ids-container"></div>
+            <input type="hidden" name="return_filters" value="<?php echo htmlspecialchars($filter_qs); ?>">
 
             <div class="flex gap-2">
                 <!-- Division Dropdown -->
@@ -338,7 +348,7 @@ include '../layouts/header.php';
                     <input type="hidden" name="division_id" id="bulk-division-input">
                     <button type="button" onclick="toggleBulkDropdown('division')"
                         class="flex w-40 items-center justify-between rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500">
-                        <span id="bulk-division-text" class="block truncate">Division</span>
+                        <span id="bulk-division-text" class="block truncate">Bidang</span>
                         <svg class="h-4 w-4 text-slate-400 transition-transform duration-200" id="bulk-division-arrow"
                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -347,9 +357,9 @@ include '../layouts/header.php';
                     <div id="bulk-division-menu"
                         class="hidden absolute bottom-full left-0 mb-2 w-full origin-bottom-left rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50 max-h-60 overflow-y-auto">
                         <ul class="py-1">
-                            <li onclick="selectBulkOption('division', '', 'Change Division')"
+                            <li onclick="selectBulkOption('division', '', 'Ubah Divisi')"
                                 class="cursor-pointer px-4 py-2 text-sm text-slate-500 hover:bg-slate-50 hover:text-cyan-700">
-                                Ubah Divisi</li>
+                                Ubah Bidang</li>
                             <?php foreach ($divisions as $div): ?>
                                 <li onclick="selectBulkOption('division', '<?php echo $div['id']; ?>', '<?php echo htmlspecialchars($div['name'], ENT_QUOTES); ?>')"
                                     class="cursor-pointer px-4 py-2 text-sm text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
@@ -389,7 +399,7 @@ include '../layouts/header.php';
                     <input type="hidden" name="position_id" id="bulk-position-input">
                     <button type="button" onclick="toggleBulkDropdown('position')"
                         class="flex w-40 items-center justify-between rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500">
-                        <span id="bulk-position-text" class="block truncate">Position</span>
+                        <span id="bulk-position-text" class="block truncate">Jabatan</span>
                         <svg class="h-4 w-4 text-slate-400 transition-transform duration-200" id="bulk-position-arrow"
                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -398,7 +408,7 @@ include '../layouts/header.php';
                     <div id="bulk-position-menu"
                         class="hidden absolute bottom-full left-0 mb-2 w-full origin-bottom-left rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50 max-h-60 overflow-y-auto">
                         <ul class="py-1">
-                            <li onclick="selectBulkOption('position', '', 'Change Position')"
+                            <li onclick="selectBulkOption('position', '', 'Ubah Jabatan')"
                                 class="cursor-pointer px-4 py-2 text-sm text-slate-500 hover:bg-slate-50 hover:text-cyan-700">
                                 Ubah Jabatan</li>
                             <?php foreach ($positions as $pos): ?>
@@ -446,7 +456,7 @@ include '../layouts/header.php';
                             Kontak
                         </th>
                         <th scope="col" class="px-3 py-3.5 text-left min-w-[180px]">
-                            Divisi & Unit
+                            Bidang & Unit
                         </th>
                         <th scope="col" class="px-3 py-3.5 text-left w-28">
                             Status
@@ -469,9 +479,15 @@ include '../layouts/header.php';
                             <td class="whitespace-nowrap px-3 py-4">
                                 <div class="flex items-center">
                                     <div class="h-10 w-10 flex-shrink-0">
-                                        <img class="h-10 w-10 rounded-full border-2 border-slate-100 object-cover"
-                                            src="https://ui-avatars.com/api/?name=<?php echo urlencode($emp['full_name']); ?>&background=random&color=fff&bold=true"
-                                            alt="">
+                                        <?php if (!empty($emp['profile_photo']) && file_exists(BASE_PATH . '/uploads/profile_photos/' . $emp['profile_photo'])): ?>
+                                            <img class="h-10 w-10 rounded-full border-2 border-slate-100 object-cover"
+                                                src="<?php echo BASE_URL . '/uploads/profile_photos/' . $emp['profile_photo']; ?>"
+                                                alt="">
+                                        <?php else: ?>
+                                            <img class="h-10 w-10 rounded-full border-2 border-slate-100 object-cover"
+                                                src="https://ui-avatars.com/api/?name=<?php echo urlencode($emp['full_name']); ?>&background=random&color=fff&bold=true"
+                                                alt="">
+                                        <?php endif; ?>
                                     </div>
                                     <div class="ml-4">
                                         <div class="font-bold text-slate-900 text-sm">
@@ -509,35 +525,24 @@ include '../layouts/header.php';
                             </td>
                             <td class="whitespace-nowrap px-3 py-4">
                                 <?php
-                                $statusColor = 'slate';
                                 $statusText = $emp['status'] ?? 'active';
-                                if ($statusText === 'active') {
-                                    $statusColor = 'emerald';
-                                    $statusText = 'Aktif';
-                                } else {
-                                    $statusColor = 'rose';
-                                    $statusText = 'Nonaktif';
-                                }
+                                $isActive = ($statusText === 'active');
+                                $displayText = $isActive ? 'Aktif' : 'Nonaktif';
                                 ?>
-                                <span
-                                    class="inline-flex items-center rounded-full bg-<?php echo $statusColor; ?>-50 px-2.5 py-0.5 text-[10px] font-bold text-<?php echo $statusColor; ?>-700 ring-1 ring-inset ring-<?php echo $statusColor; ?>-600/20 uppercase">
-                                    <?php echo $statusText; ?>
-                                </span>
+                                <div class="flex items-center gap-3">
+                                    <button type="button"
+                                        onclick="openConfirmModal('<?php url('logic/employees/toggle_status.php?id=' . $emp['id'] . '&' . $filter_qs); ?>', '<?php echo $isActive ? 'Nonaktifkan Pegawai' : 'Aktifkan Pegawai'; ?>', 'Apakah Anda yakin ingin <?php echo $isActive ? 'menonaktifkan' : 'mengaktifkan kembali'; ?> akun pegawai ini?', '<?php echo $isActive ? 'rose' : 'emerald'; ?>')"
+                                        class="relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 <?php echo $isActive ? 'bg-emerald-500' : 'bg-slate-200'; ?>"
+                                        title="<?php echo $isActive ? 'Klik untuk Nonaktifkan' : 'Klik untuk Aktifkan'; ?>">
+                                        <span class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out <?php echo $isActive ? 'translate-x-4' : 'translate-x-0'; ?>"></span>
+                                    </button>
+                                    <span class="text-[11px] font-bold text-slate-500 uppercase tracking-tight"><?php echo $displayText; ?></span>
+                                </div>
                             </td>
                             <td class="relative whitespace-nowrap py-4 pl-3 pr-6 text-right text-sm font-medium">
                                 <div class="flex items-center justify-end gap-2">
-                                    <!-- Status Toggle -->
-                                    <button type="button"
-                                        onclick="openConfirmModal('<?php url('logic/employees/toggle_status.php?id=' . $emp['id']); ?>', '<?php echo (isset($emp['status']) && $emp['status'] === 'inactive') ? 'Aktifkan Pegawai' : 'Nonaktifkan Pegawai'; ?>', 'Apakah Anda yakin ingin <?php echo (isset($emp['status']) && $emp['status'] === 'inactive') ? 'mengaktifkan kembali' : 'menonaktifkan'; ?> akun pegawai ini?', '<?php echo (isset($emp['status']) && $emp['status'] === 'inactive') ? 'emerald' : 'rose'; ?>')"
-                                        class="p-2 text-slate-400 rounded-lg hover:text-<?php echo (isset($emp['status']) && $emp['status'] === 'inactive') ? 'emerald' : 'rose'; ?>-600 transition-colors"
-                                        title="<?php echo (isset($emp['status']) && $emp['status'] === 'inactive') ? 'Aktifkan' : 'Nonaktifkan'; ?>">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                            stroke-width="2" stroke="currentColor" class="w-4 h-4">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M5.636 5.636a9 9 0 1012.728 0M12 3v9" />
-                                        </svg>
-                                    </button>
-                                    <a href="<?php url('views/employees/form.php?id=' . $emp['id']); ?>"
+
+                                    <a href="<?php url('views/employees/form.php?id=' . $emp['id'] . '&' . $filter_qs); ?>"
                                         class="p-2 text-slate-400 rounded-lg" title="Ubah">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                             stroke-width="2" stroke="currentColor" class="w-4 h-4">
@@ -546,7 +551,7 @@ include '../layouts/header.php';
                                         </svg>
                                     </a>
                                     <button
-                                        onclick="openDeleteModal('<?php url('logic/employees/delete.php?id=' . $emp['id']); ?>')"
+                                        onclick="openDeleteModal('<?php url('logic/employees/delete.php?id=' . $emp['id'] . '&' . $filter_qs); ?>')"
                                         class="p-2 text-slate-400 rounded-lg" title="Hapus">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                             stroke-width="2" stroke="currentColor" class="w-4 h-4">
@@ -573,11 +578,11 @@ include '../layouts/header.php';
                     </p>
                     <div class="flex gap-2">
                         <?php if ($page > 1): ?>
-                            <a href="?page=<?php echo $page - 1; ?>&limit=<?php echo $limit; ?>"
+                            <a href="?page=<?php echo $page - 1; ?><?php echo $pag_qs ? '&' . $pag_qs : ''; ?>"
                                 class="rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50">Prev</a>
                         <?php endif; ?>
                         <?php if ($page < $total_pages): ?>
-                            <a href="?page=<?php echo $page + 1; ?>&limit=<?php echo $limit; ?>"
+                            <a href="?page=<?php echo $page + 1; ?><?php echo $pag_qs ? '&' . $pag_qs : ''; ?>"
                                 class="rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50">Next</a>
                         <?php endif; ?>
                     </div>
@@ -586,7 +591,7 @@ include '../layouts/header.php';
                 <!-- Desktop/Tablet Pagination Info -->
                 <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
                     <div class="flex items-center gap-4">
-                        <select onchange="window.location.href='?page=1&limit='+this.value"
+                        <select onchange="window.location.href='?page=1&'+(this.value ? 'limit='+this.value : '')+'<?php echo $pag_qs ? '&' . str_replace('limit=' . $limit, '', $pag_qs) : ''; ?>'.replace('&&', '&')"
                             class="block rounded-lg border-slate-300 py-1.5 pl-3 pr-8 text-slate-900 ring-1 ring-inset ring-slate-100 focus:ring-2 focus:ring-cyan-600 sm:text-xs">
                             <?php foreach ([10, 20, 50, 100] as $val): ?>
                                 <option value="<?php echo $val; ?>" <?php echo $limit == $val ? 'selected' : ''; ?>>
@@ -600,7 +605,7 @@ include '../layouts/header.php';
                             aria-label="Pagination">
                             <!-- Prev -->
                             <?php if ($page > 1): ?>
-                                <a href="?page=<?php echo $page - 1; ?>&limit=<?php echo $limit; ?>"
+                                <a href="?page=<?php echo $page - 1; ?><?php echo $pag_qs ? '&' . $pag_qs : ''; ?>"
                                     class="relative inline-flex items-center px-3 py-2 text-slate-400 hover:bg-slate-50 focus:z-20 transition-colors">
                                     <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                         <path fill-rule="evenodd"
@@ -615,7 +620,7 @@ include '../layouts/header.php';
                             for ($i = 1; $i <= $total_pages; $i++) {
                                 if ($i == 1 || $i == $total_pages || ($i >= $page - $range && $i <= $page + $range)) {
                                     ?>
-                                    <a href="?page=<?php echo $i; ?>&limit=<?php echo $limit; ?>"
+                                    <a href="?page=<?php echo $i; ?><?php echo $pag_qs ? '&' . $pag_qs : ''; ?>"
                                         class="relative inline-flex items-center px-4 py-2 text-sm font-semibold <?php echo ($i == $page) ? 'bg-cyan-600 text-white' : 'text-slate-900 hover:bg-slate-50'; ?> border-x border-slate-100 transition-colors">
                                         <?php echo $i; ?>
                                     </a>
@@ -631,7 +636,7 @@ include '../layouts/header.php';
 
                             <!-- Next -->
                             <?php if ($page < $total_pages): ?>
-                                <a href="?page=<?php echo $page + 1; ?>&limit=<?php echo $limit; ?>"
+                                <a href="?page=<?php echo $page + 1; ?><?php echo $pag_qs ? '&' . $pag_qs : ''; ?>"
                                     class="relative inline-flex items-center px-3 py-2 text-slate-400 hover:bg-slate-50 focus:z-20 transition-colors">
                                     <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                         <path fill-rule="evenodd"
@@ -788,10 +793,10 @@ include '../layouts/header.php';
 
         // Clear list and add default
         unitList.innerHTML = `
-            <li onclick="selectBulkOption('unit', '', 'Change Unit')" 
-                class="cursor-pointer px-4 py-2 text-sm text-slate-500 hover:bg-slate-50 hover:text-cyan-700 transition-colors">Change Unit</li>
-            <li onclick="selectBulkOption('unit', 'NULL', 'No Unit')" 
-                class="cursor-pointer px-4 py-2 text-sm text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">No Unit</li>
+            <li onclick="selectBulkOption('unit', '', 'Ubah Unit')" 
+                class="cursor-pointer px-4 py-2 text-sm text-slate-500 hover:bg-slate-50 hover:text-cyan-700 transition-colors">Ubah Unit</li>
+            <li onclick="selectBulkOption('unit', 'NULL', 'Tidak Ada Unit')" 
+                class="cursor-pointer px-4 py-2 text-sm text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">Tidak Ada Unit</li>
         `;
 
         if (divisionId) {

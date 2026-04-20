@@ -9,7 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $level = (int) $_POST['level'];
 
     if (empty($name) || empty($level)) {
-        header("Location: " . BASE_URL . "/views/positions/form.php?error=" . urlencode("All fields are required"));
+        header("Location: " . BASE_URL . "/views/positions/form.php?error=" . urlencode("Semua kolom wajib diisi"));
         exit;
     }
 
@@ -20,10 +20,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $conn->prepare("INSERT INTO positions (name, level) VALUES (:name, :level)");
         $stmt->execute([':name' => $name, ':level' => $level]);
 
-        header("Location: " . BASE_URL . "/views/positions/index.php?success=" . urlencode("Position created successfully"));
+        header("Location: " . BASE_URL . "/views/positions/index.php?success=" . urlencode("Jabatan berhasil ditambahkan"));
         exit;
     } catch (PDOException $e) {
-        header("Location: " . BASE_URL . "/views/positions/forms.php?error=" . urlencode("Database Error: " . $e->getMessage()));
+        header("Location: " . BASE_URL . "/views/positions/forms.php?error=" . urlencode("Kesalahan Database: " . $e->getMessage()));
         exit;
     }
 }

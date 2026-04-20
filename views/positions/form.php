@@ -26,7 +26,7 @@ if ($is_edit) {
     if ($fetch) {
         $position = $fetch;
     } else {
-        header("Location: " . BASE_URL . "/views/positions/index.php?error=" . urlencode("Position not found"));
+        header("Location: " . BASE_URL . "/views/positions/index.php?error=" . urlencode("Jabatan tidak ditemukan"));
         exit;
     }
 }
@@ -105,7 +105,7 @@ include '../layouts/header.php';
                             <input type="text" name="name" id="name" required
                                 value="<?php echo htmlspecialchars($position['name']); ?>"
                                 class="block w-full px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 focus:outline-none transition-all placeholder:text-slate-400 shadow-sm"
-                                placeholder="e.g. Senior Manager">
+                                placeholder="misal: Kepala Unit">
                         </div>
                     </div>
 
@@ -117,7 +117,7 @@ include '../layouts/header.php';
                             <input type="number" name="level" id="level" required min="1"
                                 value="<?php echo htmlspecialchars($position['level']); ?>"
                                 class="block w-full px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 focus:outline-none transition-all placeholder:text-slate-400 shadow-sm"
-                                placeholder="e.g. 1">
+                                placeholder="misal: 1">
                             <p class="mt-1 text-xs text-gray-500">Angka lebih rendah = Tingkatan lebih tinggi (misal: 1
                                 = Direktur, 10 = Magang)
                             </p>
