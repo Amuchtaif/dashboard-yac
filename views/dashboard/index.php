@@ -260,7 +260,7 @@ include '../layouts/header.php';
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         <!-- Attendance Ratio Pie Chart -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+        <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 sm:p-6">
             <div class="flex items-center justify-between mb-4">
                 <div>
                     <h3 class="text-base font-bold text-slate-800">Rasio Kehadiran</h3>
@@ -289,7 +289,7 @@ include '../layouts/header.php';
         </div>
 
         <!-- Recent Permissions Card -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+        <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 sm:p-6">
             <div class="flex items-center justify-between mb-6">
                 <h3 class="text-base font-bold text-slate-800">Perizinan Pegawai</h3>
                 <a href="<?php url('views/permits/index.php'); ?>" class="text-xs font-semibold text-cyan-600 hover:text-cyan-700">Lihat Semua</a>
@@ -340,7 +340,7 @@ include '../layouts/header.php';
 
 
         <!-- Real-time Activity -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+        <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 sm:p-6">
             <div class="flex items-center justify-between mb-6">
                 <h3 class="text-base font-bold text-slate-800">Aktivitas Terkini</h3>
                 <a href="#" class="text-xs font-semibold text-cyan-600 hover:text-cyan-700">Lihat Semua</a>

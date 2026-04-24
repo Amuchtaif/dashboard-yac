@@ -360,7 +360,7 @@ include '../layouts/header.php';
             if (data.success) {
                 btnText.textContent = 'Berhasil!';
                 setTimeout(() => {
-                    window.location.reload();
+                    window.location.href = 'index.php?success=' + encodeURIComponent(data.message || 'Rapat berhasil dihapus');
                 }, 500);
             } else {
                 alert('Gagal menghapus: ' + (data.message || 'Terjadi kesalahan'));

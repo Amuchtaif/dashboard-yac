@@ -47,6 +47,7 @@ $query = "
             SUM(CASE WHEN status = 'Telat' THEN 1 ELSE 0 END) as telat_count,
             SUM(CASE WHEN status_out = 'Pulang' OR status_out = 'Tepat Waktu' THEN 1 ELSE 0 END) as pulang_count,
             SUM(CASE WHEN status_out = 'Pulang Cepat' THEN 1 ELSE 0 END) as cepat_count,
+            SUM(CASE WHEN status_out = 'Lupa Absen Pulang' THEN 1 ELSE 0 END) as lupa_count,
             SUM(
                 CASE 
                     WHEN status = 'Hadir' OR status = 'Tepat Waktu' THEN 10 
@@ -56,6 +57,7 @@ $query = "
                 CASE 
                     WHEN status_out = 'Pulang' OR status_out = 'Tepat Waktu' THEN 10 
                     WHEN status_out = 'Pulang Cepat' THEN -5 
+                    WHEN status_out = 'Lupa Absen Pulang' THEN -5
                     ELSE 0 
                 END
             ) as att_points 
@@ -113,7 +115,7 @@ include '../layouts/header.php';
     <!-- Summary Cards -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-5 mb-8">
         <!-- Total Pegawai -->
-        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
             <div class="flex items-center gap-4">
                 <div class="flex-shrink-0 w-12 h-12 bg-cyan-50 rounded-xl flex items-center justify-center">
                     <svg class="w-6 h-6 text-cyan-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -128,7 +130,7 @@ include '../layouts/header.php';
         </div>
 
         <!-- Poin Rata-rata -->
-        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
             <div class="flex items-center gap-4">
                 <div class="flex-shrink-0 w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center">
                     <svg class="w-6 h-6 text-amber-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -143,7 +145,7 @@ include '../layouts/header.php';
         </div>
 
         <!-- Poin Tertinggi -->
-        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
             <div class="flex items-center gap-4">
                 <div class="flex-shrink-0 w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center">
                     <svg class="w-6 h-6 text-emerald-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -158,7 +160,7 @@ include '../layouts/header.php';
         </div>
 
         <!-- Logika Perhitungan -->
-        <div class="bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-2xl p-5 shadow-sm shadow-cyan-500/20">
+        <div class="bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-2xl p-4 sm:p-5 shadow-sm shadow-cyan-500/20">
             <p class="text-xs font-semibold text-cyan-100 uppercase tracking-wider mb-3">Logika Poin</p>
             <div class="space-y-1.5">
                 <div class="flex items-center justify-between">
@@ -175,6 +177,10 @@ include '../layouts/header.php';
                 </div>
                 <div class="flex items-center justify-between">
                     <span class="text-xs text-white/90">Pulang Cepat</span>
+                    <span class="text-xs font-bold text-red-200">-5</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-xs text-white/90">Lupa Absen Pulang</span>
                     <span class="text-xs font-bold text-red-200">-5</span>
                 </div>
                 <div class="flex items-center justify-between">
@@ -340,6 +346,7 @@ include '../layouts/header.php';
                         <th scope="col" class="px-3 py-3.5 text-center min-w-[100px] text-rose-500">Telat</th>
                         <th scope="col" class="px-3 py-3.5 text-center min-w-[100px] text-emerald-600">Pulang</th>
                         <th scope="col" class="px-3 py-3.5 text-center min-w-[100px] text-rose-500">Cepat</th>
+                        <th scope="col" class="px-3 py-3.5 text-center min-w-[100px] text-rose-400">Lupa</th>
                         <th scope="col" class="px-3 py-3.5 text-center min-w-[100px] text-blue-600">Rapat</th>
                         <th scope="col" class="px-3 py-3.5 text-center min-w-[120px]">Total Poin</th>
                         <th scope="col" class="px-3 py-3.5 text-center min-w-[150px]">Status</th>
@@ -406,6 +413,12 @@ include '../layouts/header.php';
                                     <span class="inline-flex items-center gap-1 text-sm font-medium text-red-500">
                                         <?php echo $emp['cepat_count'] ?? 0; ?>
                                         <span class="text-xs text-red-400">(<?php echo ($emp['cepat_count'] ?? 0) > 0 ? '-' . (($emp['cepat_count'] ?? 0) * 5) : '0'; ?>)</span>
+                                    </span>
+                                </td>
+                                <td class="whitespace-nowrap px-3 py-4 text-center">
+                                    <span class="inline-flex items-center gap-1 text-sm font-medium text-rose-400">
+                                        <?php echo $emp['lupa_count'] ?? 0; ?>
+                                        <span class="text-xs text-rose-300">(<?php echo ($emp['lupa_count'] ?? 0) > 0 ? '-' . (($emp['lupa_count'] ?? 0) * 5) : '0'; ?>)</span>
                                     </span>
                                 </td>
                                 <td class="whitespace-nowrap px-3 py-4 text-center">

@@ -117,7 +117,7 @@ $return_filters_qs = http_build_query($return_filters);
             <div class="h-1 bg-cyan-500 w-full rounded-t-xl"></div>
 
             <!-- Personal Information Section -->
-            <div class="p-8 border-b border-slate-100">
+            <div class="p-4 sm:p-8 border-b border-slate-100">
                 <div class="flex items-center gap-3 mb-6">
                     <div class="p-2 bg-blue-50 rounded-lg text-blue-600">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
@@ -129,7 +129,7 @@ $return_filters_qs = http_build_query($return_filters);
                     <h3 class="text-base font-bold text-slate-800">Informasi Pribadi</h3>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 sm:gap-8">
                     <!-- Profile Photo Placeholder -->
                     <div class="md:col-span-1">
                         <label class="block text-sm font-semibold text-slate-700 mb-2">Foto Profil</label>
@@ -189,7 +189,7 @@ $return_filters_qs = http_build_query($return_filters);
                     </div>
 
                     <!-- Personal Fields -->
-                    <div class="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
                         <div>
                             <label for="nik" class="block text-sm font-semibold text-slate-700 mb-1">NIK (Nomor Induk
                                 Karyawan)
@@ -252,7 +252,7 @@ $return_filters_qs = http_build_query($return_filters);
             </div>
 
             <!-- Employment Details Section -->
-            <div class="p-8 space-y-8">
+            <div class="p-4 sm:p-8 space-y-8">
                 <div class="flex items-center gap-3 mb-6">
                     <div class="p-2 bg-cyan-50 rounded-lg text-cyan-600">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
@@ -264,7 +264,7 @@ $return_filters_qs = http_build_query($return_filters);
                     <h3 class="text-base font-bold text-slate-800">Rincian Pekerjaan (Organisasi)</h3>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
                     <!-- Employee ID (Read only mock) -->
                     <?php if (!$is_edit): ?>
                         <div>

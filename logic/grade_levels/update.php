@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $teacher_id = !empty($_POST['teacher_id']) ? $_POST['teacher_id'] : null;
 
     if (empty($id) || empty($name) || empty($education_unit_id)) {
-        redirect('views/grade_levels/edit.php?id=' . $id . '&error=All required fields are required');
+        redirect('views/grade_levels/edit.php?id=' . $id . '&error=' . urlencode('Semua field wajib diisi.'));
         exit;
     }
 
@@ -33,9 +33,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->bindParam(':id', $id);
 
     if ($stmt->execute()) {
-        redirect('views/grade_levels/index.php?success=Class+updated+successfully');
+        redirect('views/grade_levels/index.php?success=' . urlencode('Kelas berhasil diperbarui.'));
     } else {
-        redirect('views/grade_levels/edit.php?id=' . $id . '&error=Failed to update Class');
+        redirect('views/grade_levels/edit.php?id=' . $id . '&error=' . urlencode('Gagal memperbarui kelas.'));
     }
 }
 ?>

@@ -5,7 +5,7 @@ require_once '../../config/database.php';
 check_login();
 check_permission('manage_academic');
 
-$page_title = "Data Absensi Siswa";
+$page_title = "Data Absensi Kelas";
 $db = new Database();
 $conn = $db->getConnection();
 
@@ -26,54 +26,50 @@ $idn_day = $day_map[$english_day];
 $units = $conn->query("SELECT id, name FROM education_units ORDER BY FIELD(name, 'Playgroup', 'TKIT', 'SDIT', 'MTs', 'Idad Lughoh', 'MA', 'Mahad Aly') ASC, name ASC")->fetchAll(PDO::FETCH_ASSOC);
 $grades = $conn->query("SELECT id, name, education_unit_id FROM grade_levels ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
 
-// Fetch students for the filtered class
-$students = [];
-if ($grade_id) {
-    // Get students in this class for the active academic year
-    $active_year = $conn->query("SELECT id FROM academic_years WHERE is_active = 1 LIMIT 1")->fetchColumn();
-    
-    $stmt = $conn->prepare("
-        SELECT 
-            s.id, 
-            s.nama_siswa, 
-            s.nomor_induk,
-            s.foto
-        FROM students s
-        JOIN student_class_history sch ON s.id = sch.student_id
-        WHERE sch.class_id = :grade_id AND sch.academic_year_id = :year_id AND s.status = 'Aktif'
-        ORDER BY s.nama_siswa ASC
-    ");
-    $stmt->execute([':grade_id' => $grade_id, ':year_id' => $active_year]);
-    $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
+// --- Fetch Schedules & Attendance ---
+$sql = "
+    SELECT 
+        cs.id as schedule_id,
+        lp.start_time,
+        COALESCE(lp_end.end_time, lp.end_time) as end_time,
+        gl.name as class_name,
+        s.name as subject_name,
+        e.full_name as teacher_name,
+        cj.id as journal_id,
+        cj.topic,
+        cj.notes,
+        (SELECT COUNT(*) FROM student_attendances sa WHERE sa.class_journal_id = cj.id AND sa.status = 'present') as present,
+        (SELECT COUNT(*) FROM student_attendances sa WHERE sa.class_journal_id = cj.id AND sa.status = 'absent') as absent,
+        (SELECT COUNT(*) FROM student_attendances sa WHERE sa.class_journal_id = cj.id AND sa.status = 'sick') as sick,
+        (SELECT COUNT(*) FROM student_attendances sa WHERE sa.class_journal_id = cj.id AND sa.status = 'permit') as permit,
+        (SELECT COUNT(*) FROM student_attendances sa WHERE sa.class_journal_id = cj.id AND sa.status = 'late') as late
+    FROM class_schedules cs
+    JOIN grade_levels gl ON cs.grade_level_id = gl.id
+    JOIN subjects s ON cs.subject_id = s.id
+    JOIN lesson_periods lp ON cs.lesson_period_id = lp.id
+    LEFT JOIN lesson_periods lp_end ON cs.end_lesson_period_id = lp_end.id
+    JOIN employees e ON cs.employee_id = e.id
+    LEFT JOIN class_journals cj ON cs.id = cj.class_schedule_id AND cj.date = :date
+    WHERE cs.day = :day
+";
 
-    // Get attendance records for these students on this date across all subjects
-    // We'll aggregate them into a list of subjects and statuses per student
-    $att_stmt = $conn->prepare("
-        SELECT 
-            sa.student_id,
-            sa.status,
-            sub.name as subject_name,
-            lp.start_time
-        FROM student_attendances sa
-        JOIN class_journals cj ON sa.class_journal_id = cj.id
-        JOIN class_schedules cs ON cj.class_schedule_id = cs.id
-        JOIN subjects sub ON cs.subject_id = sub.id
-        JOIN lesson_periods lp ON cs.lesson_period_id = lp.id
-        WHERE cj.date = :date AND cs.grade_level_id = :grade_id
-        ORDER BY lp.start_time ASC
-    ");
-    $att_stmt->execute([':date' => $date, ':grade_id' => $grade_id]);
-    $attendance_raw = $att_stmt->fetchAll(PDO::FETCH_ASSOC);
+$params = [':date' => $date, ':day' => $english_day];
 
-    $attendance_map = [];
-    foreach ($attendance_raw as $row) {
-        $attendance_map[$row['student_id']][] = [
-            'subject' => $row['subject_name'],
-            'status' => $row['status'],
-            'time' => $row['start_time']
-        ];
-    }
+if ($unit_id) {
+    $sql .= " AND gl.education_unit_id = :unit_id";
+    $params[':unit_id'] = $unit_id;
 }
+
+if ($grade_id) {
+    $sql .= " AND cs.grade_level_id = :grade_id";
+    $params[':grade_id'] = $grade_id;
+}
+
+$sql .= " ORDER BY lp.start_time ASC, gl.name ASC";
+
+$stmt = $conn->prepare($sql);
+$stmt->execute($params);
+$schedules = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 include '../layouts/header.php';
 ?>
@@ -81,8 +77,8 @@ include '../layouts/header.php';
 <div class="pb-10">
     <div class="sm:flex sm:items-center">
         <div class="sm:flex-auto">
-            <h1 class="text-xl font-bold text-slate-900">Absensi Siswa</h1>
-            <p class="mt-2 text-sm text-slate-500">Lihat status kehadiran masing-masing siswa berdasarkan jadwal mata pelajaran.</p>
+            <h1 class="text-xl font-bold text-slate-900">Absensi Kelas</h1>
+            <p class="mt-2 text-sm text-slate-500">Pantau rekapitulasi kehadiran siswa per kelas dan mata pelajaran.</p>
         </div>
     </div>
 
@@ -97,6 +93,7 @@ include '../layouts/header.php';
                         onchange="this.form.submit()"
                         class="block w-full rounded-lg border-slate-200 text-sm focus:border-cyan-500 focus:ring-cyan-500 bg-slate-50 border text-slate-600 py-2.5 px-4 h-[45px]">
                 </div>
+                <!-- <p class="mt-1.5 text-[11px] font-medium text-cyan-600 bg-cyan-50 px-2 py-0.5 rounded-full inline-block"><?php echo $idn_day; ?></p> -->
             </div>
 
             <!-- Unit Filter -->
@@ -188,7 +185,23 @@ include '../layouts/header.php';
     <script>
     function selectFilterOption(type, value, text) {
         document.getElementById('filter-' + type + '-input').value = value;
+        // If it's unit, we might want to reset grade, but usually we just submit and let PHP handle it
         document.getElementById('filterForm').submit();
+    }
+    
+    function filterGrades() {
+        // This is now partially handled by the server on submit, 
+        // but if we wanted to do it client side before submit, we'd loop through .grade-option
+        const unitId = document.getElementById('filter-unit-input').value;
+        const items = document.querySelectorAll('.grade-option');
+        items.forEach(item => {
+            const optUnitId = item.getAttribute('data-unit');
+            if (!unitId || !optUnitId || optUnitId === unitId) {
+                item.style.display = "";
+            } else {
+                item.style.display = "none";
+            }
+        });
     }
     </script>
 
@@ -198,76 +211,55 @@ include '../layouts/header.php';
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                        <th class="py-3.5 pl-4 pr-3 text-left w-16 sm:pl-6 text-center">No.</th>
-                        <th class="px-3 py-3.5 text-left min-w-[250px]">Siswa</th>
-                        <th class="px-3 py-3.5 text-left">Status Kehadiran per Mata Pelajaran</th>
+                        <th class="py-3.5 pl-4 pr-3 text-left min-w-[120px] sm:pl-6">Waktu</th>
+                        <th class="px-3 py-3.5 text-left min-w-[150px]">Kelas</th>
+                        <th class="px-3 py-3.5 text-left min-w-[200px]">Mata Pelajaran</th>
+                        <th class="px-3 py-3.5 text-left min-w-[200px]">Guru</th>
+                        <th class="px-3 py-3.5 text-center min-w-[100px]">Status</th>
+                        <th class="px-3 py-3.5 text-center min-w-[150px]">Kehadiran</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200 bg-white">
-                    <?php if (empty($grade_id)): ?>
+                    <?php if (empty($schedules)): ?>
                         <tr>
-                            <td colspan="3" class="py-10 text-center text-sm text-slate-500 italic">Silakan pilih unit dan kelas terlebih dahulu.</td>
+                            <td colspan="6" class="py-10 text-center text-sm text-slate-500">Tidak ada jadwal pelajaran pada hari ini.</td>
                         </tr>
-                    <?php elseif (empty($students)): ?>
-                        <tr>
-                            <td colspan="3" class="py-10 text-center text-sm text-slate-500 italic">Tidak ada siswa aktif di kelas ini.</td>
-                        </tr>
-                    <?php else: ?>
-                        <?php foreach ($students as $index => $s): ?>
-                            <tr class="hover:bg-gray-50 transition-colors">
-                                <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-400 sm:pl-6 text-center">
-                                    <?php echo $index + 1; ?>.
-                                </td>
-                                <td class="whitespace-nowrap px-3 py-4">
-                                    <div class="flex items-center">
-                                        <div class="h-10 w-10 flex-shrink-0">
-                                            <?php
-                                            $avatarPath = "https://ui-avatars.com/api/?name=" . urlencode($s['nama_siswa']) . "&background=random&color=fff&bold=true";
-                                            if (!empty($s['foto']) && file_exists("../../uploads/students/" . $s['foto'])) {
-                                                $avatarPath = "../../uploads/students/" . $s['foto'];
-                                            }
-                                            ?>
-                                            <img class="h-10 w-10 rounded-full object-cover border border-slate-100" src="<?php echo $avatarPath; ?>" alt="">
-                                        </div>
-                                        <div class="ml-4">
-                                            <div class="font-bold text-slate-900 text-sm"><?php echo htmlspecialchars($s['nama_siswa']); ?></div>
-                                            <div class="text-[11px] text-slate-400 font-medium uppercase tracking-tight">NIS: <?php echo htmlspecialchars($s['nomor_induk'] ?? '-'); ?></div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-3 py-4 text-sm">
-                                    <div class="flex flex-wrap gap-2">
-                                        <?php if (isset($attendance_map[$s['id']])): ?>
-                                            <?php foreach ($attendance_map[$s['id']] as $att): ?>
-                                                <?php
-                                                $statusClass = 'bg-slate-100 text-slate-600';
-                                                $st = strtolower($att['status']);
-                                                if ($st == 'present') $statusClass = 'bg-green-100 text-green-700';
-                                                elseif ($st == 'absent') $statusClass = 'bg-red-100 text-red-700';
-                                                elseif ($st == 'sick') $statusClass = 'bg-blue-100 text-blue-700';
-                                                elseif ($st == 'permit') $statusClass = 'bg-yellow-100 text-yellow-700';
-                                                elseif ($st == 'late') $statusClass = 'bg-orange-100 text-orange-700';
-                                                
-                                                $statusTextMap = [
-                                                    'present' => 'H', 'absent' => 'A', 'sick' => 'S', 'permit' => 'I', 'late' => 'T'
-                                                ];
-                                                $text = $statusTextMap[$st] ?? $att['status'];
-                                                ?>
-                                                <div class="flex items-center gap-1.5 px-2 py-1 rounded-lg border border-slate-100 bg-white shadow-sm" title="<?php echo htmlspecialchars($att['subject'] . ' (' . date('H:i', strtotime($att['time'])) . ')'); ?>">
-                                                    <span class="text-[10px] font-bold text-slate-400 uppercase"><?php echo htmlspecialchars($att['subject']); ?>:</span>
-                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-black <?php echo $statusClass; ?>">
-                                                        <?php echo $text; ?>
-                                                    </span>
-                                                </div>
-                                            <?php endforeach; ?>
-                                        <?php else: ?>
-                                            <span class="text-slate-400 text-xs italic">Belum ada data presensi hari ini.</span>
-                                        <?php endif; ?>
-                                    </div>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
                     <?php endif; ?>
+                    <?php foreach ($schedules as $s): ?>
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-500 sm:pl-6">
+                                <?php echo date('H:i', strtotime($s['start_time'])); ?> - <?php echo date('H:i', strtotime($s['end_time'])); ?>
+                            </td>
+                            <td class="whitespace-nowrap px-3 py-4 text-sm font-medium text-gray-900">
+                                <?php echo htmlspecialchars($s['class_name']); ?>
+                            </td>
+                            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                <?php echo htmlspecialchars($s['subject_name']); ?>
+                            </td>
+                            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                <?php echo htmlspecialchars($s['teacher_name']); ?>
+                            </td>
+                            <td class="whitespace-nowrap px-3 py-4 text-sm text-center">
+                                <?php if ($s['journal_id']): ?>
+                                    <span class="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">Sudah</span>
+                                <?php else: ?>
+                                    <span class="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">Belum</span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="px-3 py-4 text-sm text-center">
+                                <?php if ($s['journal_id']): ?>
+                                    <div class="flex justify-center space-x-2 text-xs">
+                                        <span class="text-green-600 font-bold" title="Hadir">H: <?php echo $s['present']; ?></span>
+                                        <span class="text-red-600 font-bold" title="Alpha">A: <?php echo $s['absent']; ?></span>
+                                        <span class="text-yellow-600 font-bold" title="Sakit">S: <?php echo $s['sick']; ?></span>
+                                        <span class="text-blue-600 font-bold" title="Izin">I: <?php echo $s['permit']; ?></span>
+                                    </div>
+                                <?php else: ?>
+                                    <span class="text-slate-400 text-xs">-</span>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
                 </tbody>
             </table>
         </div>

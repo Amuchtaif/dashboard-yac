@@ -47,6 +47,7 @@ try {
                         CASE 
                             WHEN status_out = 'Pulang' OR status_out = 'Tepat Waktu' THEN 10 
                             WHEN status_out = 'Pulang Cepat' THEN -5 
+                            WHEN status_out = 'Lupa Absen Pulang' THEN -5
                             ELSE 0 
                         END
                     ) as points 

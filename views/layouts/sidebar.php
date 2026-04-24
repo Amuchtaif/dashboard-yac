@@ -478,10 +478,22 @@ if (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Adminis
                     Jadwal Pelajaran
                 </a>
 
+                <!-- Class Attendance -->
+                <a href="<?php url('views/class_attendance/index.php'); ?>"
+                    class="<?php echo isActive('views/class_attendance/'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('views/class_attendance/'); ?> transition-colors"
+                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18" />
+                    </svg>
+                    Absensi Kelas
+                </a>
+
                 <!-- Student Attendance -->
                 <a href="<?php url('views/student_attendance/index.php'); ?>"
-                    class="<?php echo isActive('views/student_attendance/'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('views/student_attendance/'); ?> transition-colors"
+                    class="<?php echo isActive('views/student_attendance/index.php'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('views/student_attendance/index.php'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round"

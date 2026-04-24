@@ -304,7 +304,7 @@ async function submitForm(e) {
         
         const result = await response.json();
         if (result.success) {
-            window.location.reload();
+            window.location.href = 'index.php?success=' + encodeURIComponent(result.message || 'Data berhasil disimpan');
         } else {
             alert('Gagal: ' + result.message);
         }
@@ -323,7 +323,7 @@ async function confirmDelete(id) {
             });
             const result = await response.json();
             if (result.success) {
-                window.location.reload();
+                window.location.href = 'index.php?success=' + encodeURIComponent(result.message || 'Data berhasil dihapus');
             } else {
                 alert('Gagal: ' + result.message);
             }

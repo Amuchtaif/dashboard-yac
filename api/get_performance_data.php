@@ -85,6 +85,9 @@ try {
             } elseif ($row['status_out'] == 'Pulang Cepat') {
                 $pointsOut = -5;
                 $titleOut = "Presensi Pulang Sebelum Waktunya";
+            } elseif ($row['status_out'] == 'Lupa Absen Pulang') {
+                $pointsOut = -5;
+                $titleOut = "Lupa Melakukan Absen Pulang";
             }
 
             if ($pointsOut != 0) {

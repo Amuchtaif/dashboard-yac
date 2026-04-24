@@ -196,12 +196,12 @@
     </style>
 </head>
 
-<body class="h-screen flex overflow-hidden bg-slate-100">
+<body class="h-screen h-[100dvh] flex overflow-hidden bg-slate-100">
     <!-- Sidebar -->
     <?php include __DIR__ . '/sidebar.php'; ?>
 
     <!-- Main Content -->
-    <div class="flex flex-col flex-1 w-0 md:pl-64 overflow-hidden">
+    <div class="flex flex-col flex-1 min-w-0 md:pl-64 overflow-hidden">
 
         <!-- Top Header Bar -->
         <header class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-4 md:px-8 z-30 sticky top-0">
@@ -297,7 +297,7 @@
         </script>
 
         <main class="flex-1 overflow-y-auto focus:outline-none">
-            <div class="py-6 px-4 sm:px-6 lg:px-8">
+            <div class="pt-6 pb-24 px-4 sm:px-6 lg:px-8">
                 <!-- Global Notifications (Section Bar Style) -->
                 <div id="dynamic-alert-container"></div>
                 

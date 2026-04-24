@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $teacher_id = !empty($_POST['teacher_id']) ? $_POST['teacher_id'] : null;
 
     if (empty($name) || empty($education_unit_id)) {
-        redirect('views/grade_levels/create.php?error=All+required+fields+are+required');
+        redirect('views/grade_levels/create.php?error=' . urlencode('Semua field wajib diisi.'));
         exit;
     }
 
@@ -30,9 +30,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->bindParam(':capacity', $capacity);
 
     if ($stmt->execute()) {
-        redirect('views/grade_levels/index.php?success=Class+added+successfully');
+        redirect('views/grade_levels/index.php?success=' . urlencode('Kelas berhasil ditambahkan.'));
     } else {
-        redirect('views/grade_levels/create.php?error=Failed+to+add+Class');
+        redirect('views/grade_levels/create.php?error=' . urlencode('Gagal menambahkan kelas.'));
     }
 }
 ?>
