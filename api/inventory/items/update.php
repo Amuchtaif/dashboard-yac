@@ -21,6 +21,7 @@ try {
         $unit = $data->item_unit ?? '';
         $desc = $data->description ?? '';
         $condition = $data->item_condition ?? 'Baik';
+        $purchase_date = $data->purchase_date ?? null;
     } else {
         $id = $_POST['id'] ?? $_GET['id'] ?? null;
         $name = $_POST['name'] ?? '';
@@ -30,6 +31,7 @@ try {
         $unit = $_POST['item_unit'] ?? '';
         $desc = $_POST['description'] ?? '';
         $condition = $_POST['item_condition'] ?? 'Baik';
+        $purchase_date = !empty($_POST['purchase_date']) ? $_POST['purchase_date'] : null;
     }
 
     if (!$id || empty($name) || !$location_id) {
@@ -46,8 +48,8 @@ try {
         $code = generateItemCodeV2($conn, $location_id, $locName, $name, $id);
     }
 
-    $sql = "UPDATE inventory_items SET item_code = ?, name = ?, location_id = ?, qty = ?, item_unit = ?, description = ?, item_condition = ?";
-    $params = [$code, $name, $location_id, (int)$qty, $unit, $desc, $condition];
+    $sql = "UPDATE inventory_items SET item_code = ?, name = ?, location_id = ?, qty = ?, item_unit = ?, description = ?, item_condition = ?, purchase_date = ?";
+    $params = [$code, $name, $location_id, (int)$qty, $unit, $desc, $condition, $purchase_date];
 
     if (isset($_FILES['item_photo']) && $_FILES['item_photo']['error'] === UPLOAD_ERR_OK) {
         $uploadDir = '../../../uploads/inventory/';

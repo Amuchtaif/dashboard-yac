@@ -20,6 +20,7 @@ try {
         $unit = $data->item_unit ?? '';
         $desc = $data->description ?? '';
         $condition = $data->item_condition ?? 'Baik';
+        $purchase_date = $data->purchase_date ?? null;
     } else {
         $name = $_POST['name'] ?? '';
         $code = $_POST['item_code'] ?? '';
@@ -28,6 +29,7 @@ try {
         $unit = $_POST['item_unit'] ?? '';
         $desc = $_POST['description'] ?? '';
         $condition = $_POST['item_condition'] ?? 'Baik';
+        $purchase_date = !empty($_POST['purchase_date']) ? $_POST['purchase_date'] : null;
     }
 
     if (empty($name) || !$location_id) {
@@ -44,8 +46,8 @@ try {
     }
 
     // Insert
-    $stmt = $conn->prepare("INSERT INTO inventory_items (item_code, name, location_id, qty, item_unit, description, item_condition, item_photo) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-    if ($stmt->execute([$code, $name, $location_id, (int)$qty, $unit, $desc, $condition, $photo])) {
+    $stmt = $conn->prepare("INSERT INTO inventory_items (item_code, name, location_id, qty, item_unit, description, item_condition, item_photo, purchase_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    if ($stmt->execute([$code, $name, $location_id, (int)$qty, $unit, $desc, $condition, $photo, $purchase_date])) {
         $lastId = $conn->lastInsertId();
         
         // AUTO-GEN CODE V2

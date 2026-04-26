@@ -111,23 +111,24 @@ error_reporting(E_ALL);
 /**
  * --- INVENTORY HELPERS ---
  */
-function shortenWord($word) {
-    if (!$word) return 'UNK';
-    $clean = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $word));
-    if (strlen($clean) <= 3) return $clean;
-    $noVowels = preg_replace('/[AEIOU]/i', '', $clean);
-    return strtoupper(substr(strlen($noVowels) >= 3 ? $noVowels : $clean, 0, 3));
-}
-
-function generateLocationCode($locName) {
-    if (!$locName) return 'UNK';
+function generateLocationCode($locName, $parentCode = null) {
+    if (!$locName) return 'LOC' . rand(100, 999);
+    
+    // Clean and get initials
     $words = explode(' ', trim($locName));
-    $parts = [];
+    $initials = '';
     foreach ($words as $w) {
-        $short = shortenWord($w);
-        if ($short !== '') $parts[] = $short;
+        $clean = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $w));
+        if ($clean !== '') $initials .= $clean[0];
     }
-    return count($parts) > 0 ? implode('-', $parts) : 'UNK';
+    
+    // Limit initials length
+    $initials = substr($initials, 0, 4);
+    
+    if ($parentCode) {
+        return strtoupper($parentCode . '-' . $initials);
+    }
+    return strtoupper($initials);
 }
 
 function generateItemCodeV2($conn, $location_id, $locName, $itemName, $id) {

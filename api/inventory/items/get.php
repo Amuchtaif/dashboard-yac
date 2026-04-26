@@ -67,6 +67,7 @@ try {
             i.description, 
             i.item_condition, i.item_condition AS kondisi_barang,
             i.item_photo, i.item_photo AS foto_barang,
+            i.purchase_date,
             l.name as location_leaf_name,
             l.location_code as kode_lokasi,
             l.location_label as label_lokasi

@@ -9,9 +9,8 @@
     RewriteRule ^api/ - [L]
 
     # 2. Hapus ekstensi .php dari URL (Redirect eksternal)
-    # Kecualikan juga folder 'logic' dari pengalihan ini agar AJAX POST tidak error
-    RewriteCond %{REQUEST_URI} !^/logic/ [NC]
-    RewriteCond %{REQUEST_URI} !^.*/logic/ [NC]
+    # Kecualikan juga folder 'logic' dan 'api' dari pengalihan ini agar AJAX POST tidak error
+    RewriteCond %{REQUEST_URI} !/(api|logic)/ [NC]
     RewriteCond %{THE_REQUEST} ^[A-Z]{3,}\s(.*?)\.php[\s?] [NC]
     RewriteRule ^ %1 [R=301,L]
 

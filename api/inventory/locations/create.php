@@ -1,71 +1,70 @@
 <?php
 // api/inventory/locations/create.php
+ob_start(); // Buffer output to prevent notices from breaking JSON
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Methods: POST");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    exit;
+}
+
 require_once __DIR__ . '/../../../config/database.php';
+require_once __DIR__ . '/../../../config/app.php';
 
 try {
     $db = new Database();
     $conn = $db->getConnection();
     
-    $data = json_decode(file_get_contents("php://input"));
-    $name = $data->name ?? $_POST['name'] ?? '';
-    $parent_id = $data->parent_id ?? $_POST['parent_id'] ?? null;
-    $label = $data->label ?? $name;
+    // Read JSON input
+    $input = file_get_contents("php://input");
+    $data = json_decode($input, true);
+    
+    // Fallback to $_POST if JSON is empty
+    $name = $data['name'] ?? $_POST['name'] ?? '';
+    $parent_id = $data['parent_id'] ?? $_POST['parent_id'] ?? null;
+    $label = $data['label'] ?? $data['location_label'] ?? $_POST['location_label'] ?? $name;
+    $location_code = $data['location_code'] ?? $_POST['location_code'] ?? null;
 
     if (empty($name)) {
-        echo json_encode(["success" => false, "message" => "Name is required."]);
+        ob_clean();
+        echo json_encode(["success" => false, "message" => "Nama lokasi wajib diisi."]);
         exit;
     }
 
-    if ($parent_id === "") $parent_id = null; // Normalize empty string to null
-
-    // Auto-generate Code
-    $words = explode(' ', trim($name));
-    $code = "";
-
-    function getDistinctConsonants($word, $limit = 2) {
-        $consonants = preg_replace('/[aeiou\s]/i', '', $word);
-        $result = "";
-        $lastChar = "";
-        for ($i = 0; $i < strlen($consonants); $i++) {
-            if ($consonants[$i] !== $lastChar) {
-                $result .= $consonants[$i];
-                $lastChar = $consonants[$i];
-                if (strlen($result) >= $limit) break;
-            }
-        }
-        return strtoupper($result);
+    if ($parent_id === "" || $parent_id === "null" || $parent_id === 0 || $parent_id === "0") {
+        $parent_id = null;
     }
 
-    if (count($words) == 1) {
-        $first = strtoupper(substr($words[0], 0, 1));
-        $rest = getDistinctConsonants(substr($words[0], 1), 2);
-        $code = $first . $rest;
-        if (strlen($code) < 3) $code = strtoupper(substr($words[0], 0, 3));
-    } else {
-        $lastWord = end($words);
-        if (is_numeric($lastWord)) {
-            $firstChar = strtoupper(substr($words[0], 0, 1));
-            $rest = getDistinctConsonants(substr($words[0], 1), 2);
-            $code = $firstChar . $rest . $lastWord;
-        } else {
-            // "Gedung Yayasan" -> G-YYSN
-            $firstChar = strtoupper(substr($words[0], 0, 1));
-            $secondWord = $words[1];
-            $secondConsonants = strtoupper(preg_replace('/[aeiou\s]/i', '', $secondWord));
-            $code = $firstChar . "-" . $secondConsonants;
+    // Auto-generate Code if not provided
+    if (empty($location_code) || $location_code === 'Otomatis') {
+        $parentCode = null;
+        if ($parent_id) {
+            $pStmt = $conn->prepare("SELECT location_code FROM inventory_locations WHERE id = ?");
+            $pStmt->execute([$parent_id]);
+            $parentCode = $pStmt->fetchColumn();
         }
+        $location_code = generateLocationCode($name, $parentCode);
+    }
+
+    // Ensure Unique Code
+    $checkStmt = $conn->prepare("SELECT COUNT(*) FROM inventory_locations WHERE location_code = ?");
+    $checkStmt->execute([$location_code]);
+    if ($checkStmt->fetchColumn() > 0) {
+        $location_code .= rand(10, 99);
     }
 
     $stmt = $conn->prepare("INSERT INTO inventory_locations (name, location_code, location_label, parent_id) VALUES (?, ?, ?, ?)");
-    if ($stmt->execute([$name, $code, $label, $parent_id])) {
-        echo json_encode(["success" => true, "message" => "Location created successfully.", "id" => $conn->lastInsertId(), "code" => $code]);
+    if ($stmt->execute([$name, $location_code, $label, $parent_id])) {
+        ob_clean();
+        echo json_encode(["success" => true, "message" => "Lokasi berhasil dibuat.", "id" => $conn->lastInsertId(), "code" => $location_code]);
     } else {
-        echo json_encode(["success" => false, "message" => "Failed to create location."]);
+        ob_clean();
+        echo json_encode(["success" => false, "message" => "Gagal menyimpan ke database."]);
     }
-} catch (PDOException $e) {
-    echo json_encode(["success" => false, "message" => "Database error: " . $e->getMessage()]);
+} catch (Throwable $e) {
+    ob_clean();
+    echo json_encode(["success" => false, "message" => "System Error: " . $e->getMessage()]);
 }
 ?>

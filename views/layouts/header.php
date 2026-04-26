@@ -366,42 +366,6 @@
                         }, 3500);
                     });
 
-                    function showToast(message, type = 'success') {
-                        const container = document.getElementById('dynamic-alert-container');
-                        if (!container) return;
-                        
-                        const id = `alert-${Date.now()}`;
-                        const theme = {
-                            success: { bg: 'bg-emerald-600', border: 'border-emerald-500/30', icon: 'M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z' },
-                            error: { bg: 'bg-rose-600', border: 'border-rose-500/30', icon: 'M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z' },
-                            info: { bg: 'bg-cyan-600', border: 'border-cyan-500/30', icon: 'M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z' }
-                        }[type] || theme.success;
-
-                        const html = `
-                            <div id="${id}" class="alert-banner mb-6 rounded-xl ${theme.bg} shadow-2xl px-5 py-4 border ${theme.border} transition-all duration-500 flex items-center justify-between animate-bounce-in">
-                                <div class="flex items-center gap-4">
-                                    <div class="flex-shrink-0 bg-white/20 p-2 rounded-xl flex items-center justify-center">
-                                        <svg class="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fill-rule="evenodd" d="${theme.icon}" clip-rule="evenodd" />
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <p class="text-[11px] font-black text-white/70 uppercase tracking-widest leading-none mb-1">${type === 'error' ? 'Peringatan!' : 'Informasi'}</p>
-                                        <p class="text-sm font-bold text-white">${message}</p>
-                                    </div>
-                                </div>
-                                <button type="button" onclick="closeAlert('${id}')" class="text-white/70 hover:text-white transition-colors focus:outline-none p-2 hover:bg-white/10 rounded-lg">
-                                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                </button>
-                            </div>
-                        `;
-
-                        const div = document.createElement('div');
-                        div.innerHTML = html;
-                        container.appendChild(div.firstElementChild);
-
-                        setTimeout(() => closeAlert(id), 4000);
-                    }
                 </script>
 
 

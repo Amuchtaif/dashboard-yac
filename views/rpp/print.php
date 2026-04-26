@@ -113,22 +113,22 @@ if (!$rpp) {
         <!-- Konten Struktural -->
         <div class="space-y-6 text-sm leading-relaxed">
             <section>
-                <h3 class="font-bold mb-1">A. Standar Kompetensi</h3>
-                <div class="whitespace-pre-line pl-5"><?php echo nl2br(htmlspecialchars($rpp['content_sk'] ?? '')); ?></div>
+                <h3 class="font-bold mb-1">A. Capaian Pembelajaran (CP)</h3>
+                <div class="whitespace-pre-line pl-5"><?php echo nl2br(htmlspecialchars($rpp['content_cp'] ?? '')); ?></div>
             </section>
 
             <section>
-                <h3 class="font-bold mb-1">B. Kompetensi Dasar</h3>
-                <div class="whitespace-pre-line pl-5"><?php echo nl2br(htmlspecialchars($rpp['content_kd'] ?? '')); ?></div>
+                <h3 class="font-bold mb-1">B. Alur Tujuan Pembelajaran (ATP)</h3>
+                <div class="whitespace-pre-line pl-5"><?php echo nl2br(htmlspecialchars($rpp['content_atp'] ?? '')); ?></div>
             </section>
 
             <section>
-                <h3 class="font-bold mb-1">C. Indikator</h3>
-                <div class="whitespace-pre-line pl-5"><?php echo nl2br(htmlspecialchars($rpp['content_indicator'] ?? '')); ?></div>
+                <h3 class="font-bold mb-1">C. Pertanyaan Pemantik</h3>
+                <div class="whitespace-pre-line pl-5"><?php echo nl2br(htmlspecialchars($rpp['content_pertanyaan_pemantik'] ?? '')); ?></div>
             </section>
 
             <section>
-                <h3 class="font-bold mb-1">D. Tujuan Pembelajaran</h3>
+                <h3 class="font-bold mb-1">D. Tujuan Pembelajaran (TP)</h3>
                 <div class="whitespace-pre-line pl-5"><?php echo nl2br(htmlspecialchars($rpp['learning_goal'] ?? '')); ?></div>
             </section>
 
@@ -138,22 +138,22 @@ if (!$rpp) {
             </section>
 
             <section>
-                <h3 class="font-bold mb-1">F. Metode Pembelajaran</h3>
-                <div class="whitespace-pre-line pl-5"><?php echo nl2br(htmlspecialchars($rpp['teaching_method'] ?? '')); ?></div>
+                <h3 class="font-bold mb-1">F. Profil Pelajar Pancasila</h3>
+                <div class="whitespace-pre-line pl-5"><?php echo nl2br(htmlspecialchars($rpp['teaching_profil_pancasila'] ?? '')); ?></div>
             </section>
 
             <section>
-                <h3 class="font-bold mb-1">G. Langkah-langkah Pembelajaran</h3>
+                <h3 class="font-bold mb-1">G. Kegiatan Pembelajaran</h3>
                 <div class="whitespace-pre-line pl-5"><?php echo nl2br(htmlspecialchars($rpp['content_steps'] ?? '')); ?></div>
             </section>
 
             <section>
-                <h3 class="font-bold mb-1">H. Alat dan Sumber Belajar</h3>
+                <h3 class="font-bold mb-1">H. Media dan Sumber Belajar</h3>
                 <div class="whitespace-pre-line pl-5"><?php echo nl2br(htmlspecialchars($rpp['content_summary'] ?? '')); ?></div>
             </section>
 
             <section>
-                <h3 class="font-bold mb-1">I. Penilaian</h3>
+                <h3 class="font-bold mb-1">I. Asesmen</h3>
                 <div class="whitespace-pre-line pl-5"><?php echo nl2br(htmlspecialchars($rpp['assessment'] ?? '')); ?></div>
             </section>
         </div>

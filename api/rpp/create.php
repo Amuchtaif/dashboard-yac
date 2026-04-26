@@ -23,12 +23,12 @@ $allocation = $data['allocation'] ?? null;
 $title = $data['title'] ?? '';
 
 // Core content
-$content_sk = $data['content_sk'] ?? '';
-$content_kd = $data['content_kd'] ?? '';
-$content_indicator = $data['content_indicator'] ?? '';
+$content_cp = $data['content_cp'] ?? '';
+$content_atp = $data['content_atp'] ?? '';
+$content_pertanyaan_pemantik = $data['content_pertanyaan_pemantik'] ?? '';
 $learning_goal = $data['learning_goal'] ?? '';
 $teaching_material = $data['teaching_material'] ?? '';
-$teaching_method = $data['teaching_method'] ?? '';
+$teaching_profil_pancasila = $data['teaching_profil_pancasila'] ?? '';
 $content_steps = $data['content_steps'] ?? '';
 $content_summary = $data['content_summary'] ?? '';
 $assessment = $data['assessment'] ?? '';
@@ -51,12 +51,12 @@ try {
                 session_no,
                 allocation,
                 title, 
-                content_sk, 
-                content_kd, 
-                content_indicator, 
+                content_cp, 
+                content_atp, 
+                content_pertanyaan_pemantik, 
                 learning_goal,
                 teaching_material,
-                teaching_method,
+                teaching_profil_pancasila,
                 content_steps, 
                 content_summary, 
                 assessment,
@@ -74,12 +74,12 @@ try {
         $session_no,
         $allocation,
         $title, 
-        $content_sk, 
-        $content_kd, 
-        $content_indicator, 
+        $content_cp, 
+        $content_atp, 
+        $content_pertanyaan_pemantik, 
         $learning_goal,
         $teaching_material,
-        $teaching_method,
+        $teaching_profil_pancasila,
         $content_steps, 
         $content_summary, 
         $assessment,

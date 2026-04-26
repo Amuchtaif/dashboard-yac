@@ -40,36 +40,59 @@ require_once __DIR__ . '/../layouts/header.php';
     </div>
 
     <!-- Search & Filter Bar -->
-    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-            <!-- Search -->
-            <div class="md:col-span-1">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">Cari Barang</label>
-                <div class="relative">
-                    <input type="text" id="searchInput" onkeyup="handleSearch()" placeholder="Nama atau kode..." class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all text-sm outline-none">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 mb-8 overflow-hidden">
+        <div class="p-5 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-lg bg-cyan-100 text-cyan-600 flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                    </svg>
+                </div>
+                <h3 class="text-sm font-bold text-slate-700">Filter & Pencarian</h3>
+            </div>
+            <button onclick="resetFilters()" class="text-xs font-semibold text-slate-400 hover:text-cyan-600 transition-colors flex items-center gap-1">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Reset Filter
+            </button>
+        </div>
+        <div class="p-5">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                <!-- Search -->
+                <div class="md:col-span-3">
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 ml-1">Nama / Kode Barang</label>
+                    <div class="relative group">
+                        <input type="text" id="searchInput" onkeyup="handleSearch()" placeholder="Cari sesuatu..." class="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-4 focus:ring-cyan-500/10 focus:border-cyan-500 transition-all text-sm outline-none bg-slate-50/50 focus:bg-white">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-slate-400 group-focus-within:text-cyan-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Lokasi Filter -->
-            <div class="md:col-span-2">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">Filter Lokasi</label>
-                <div id="filter-location-cascader" class="flex flex-wrap gap-2">
-                    <!-- Cascading Dropdowns will be rendered here -->
+                <!-- Lokasi Filter -->
+                <div class="md:col-span-6">
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 ml-1">Pilih Lokasi</label>
+                    <div id="filter-location-cascader" class="flex flex-wrap md:flex-nowrap gap-3">
+                        <!-- Cascading Dropdowns will be rendered here -->
+                        <div class="flex-1 h-[46px] animate-pulse bg-slate-100 rounded-xl"></div>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Kondisi Filter -->
-            <div class="md:col-span-1">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">Filter Kondisi</label>
-                <select id="filterCondition" onchange="fetchData()" class="hybrid-select" data-searchable="false">
-                    <option value="">Semua Kondisi</option>
-                    <option value="Baik">Baik</option>
-                    <option value="Rusak Ringan">Rusak Ringan</option>
-                    <option value="Rusak Berat">Rusak Berat</option>
-                </select>
+                <!-- Kondisi Filter -->
+                <div class="md:col-span-3">
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 ml-1">Kondisi Barang</label>
+                    <div class="relative">
+                        <select id="filterCondition" onchange="fetchData()" class="hybrid-select" data-searchable="false">
+                            <option value="">Semua Kondisi</option>
+                            <option value="Baik">Baik</option>
+                            <option value="Rusak Ringan">Rusak Ringan</option>
+                            <option value="Rusak Berat">Rusak Berat</option>
+                        </select>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -88,6 +111,7 @@ require_once __DIR__ . '/../layouts/header.php';
                         <th scope="col" class="px-3 py-3.5 text-left text-xs font-bold uppercase tracking-wider text-gray-500 min-w-[200px]">Lokasi</th>
                         <th scope="col" class="px-3 py-3.5 text-center text-xs font-bold uppercase tracking-wider text-gray-500 min-w-[80px]">Jumlah</th>
                         <th scope="col" class="px-3 py-3.5 text-center text-xs font-bold uppercase tracking-wider text-gray-500 min-w-[120px]">Kondisi</th>
+                        <th scope="col" class="px-3 py-3.5 text-center text-xs font-bold uppercase tracking-wider text-gray-500 min-w-[120px]">Tgl Beli</th>
                         <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6 text-right text-xs font-bold uppercase tracking-wider text-gray-500 min-w-[100px]">Aksi</th>
                     </tr>
                 </thead>
@@ -210,6 +234,13 @@ require_once __DIR__ . '/../layouts/header.php';
             </div>
 
             <div class="mb-4">
+                <label class="block text-sm font-semibold text-slate-700 mb-1">Tanggal Pembelian</label>
+                <div class="relative">
+                    <input type="date" id="purchase_date" class="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 outline-none transition">
+                </div>
+            </div>
+
+            <div class="mb-4">
                 <label class="block text-sm font-semibold text-slate-700 mb-1">Catatan / Deskripsi</label>
                 <textarea id="item_description" rows="2" class="w-full rounded-lg border border-slate-300 px-4 py-2 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 outline-none transition placeholder-slate-400" placeholder="Opsional..."></textarea>
             </div>
@@ -257,10 +288,31 @@ require_once __DIR__ . '/../layouts/header.php';
     </div>
 </div>
 
+<!-- Modal Dialog DELETE CONFIRMATION -->
+<div id="item-delete-modal" class="fixed inset-0 z-[70] flex items-center justify-center hidden bg-black/50 backdrop-blur-sm transition-opacity">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-sm:mx-4 max-w-sm overflow-hidden transform transition-all scale-95 opacity-0" id="item-delete-modal-content">
+        <div class="p-6 text-center">
+            <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-rose-100 mb-4">
+                <svg class="h-8 w-8 text-rose-600" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                </svg>
+            </div>
+            <h3 class="text-lg font-bold text-slate-800 mb-2">Konfirmasi Hapus</h3>
+            <p class="text-sm text-slate-500 mb-6 px-4" id="item-delete-modal-message">Apakah Anda yakin ingin menghapus data ini secara permanen? Tindakan ini tidak dapat dibatalkan.</p>
+            
+            <div class="flex justify-center gap-3">
+                <button type="button" onclick="closeItemDeleteModal()" class="flex-1 px-4 py-2.5 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl text-sm font-semibold transition">Batal</button>
+                <button type="button" id="item-confirm-delete-btn" class="flex-1 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-sm font-semibold transition shadow-sm shadow-rose-200">Hapus</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     let locationTreeData = [];
     let currentItems = [];
     let selectedItemIds = new Set();
+    let deleteTargetIds = [];
     
     // Pagination state
     let currentPage = 1;
@@ -331,6 +383,21 @@ require_once __DIR__ . '/../layouts/header.php';
         if (page < 1 || page > Math.ceil(currentItems.length / rowsPerPage)) return;
         currentPage = page;
         renderTable();
+    }
+
+    function resetFilters() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('filterCondition').value = '';
+        
+        // Reset location cascader
+        buildCascadingDropdowns([], 'filter-location-cascader', () => fetchData());
+        
+        // Update hybrid selects UI
+        const conditionSelect = document.getElementById('filterCondition');
+        const hybridInput = conditionSelect.previousElementSibling.querySelector('.hybrid-search-input');
+        if (hybridInput) hybridInput.placeholder = 'Semua Kondisi';
+        
+        fetchData();
     }
 
     function renderPaginationControls(totalItems) {
@@ -436,7 +503,7 @@ require_once __DIR__ . '/../layouts/header.php';
             
             const divWrapper = document.createElement('div');
             // For filter bar, use flex-1 to fill space, for modal use relative mb-3
-            divWrapper.className = containerId.includes('filter') ? "flex-1 min-w-[150px]" : "relative mb-3";
+            divWrapper.className = containerId.includes('filter') ? "flex-1 min-w-[140px]" : "relative mb-3";
 
             const select = document.createElement('select');
             select.className = "hybrid-select"; 
@@ -493,7 +560,7 @@ require_once __DIR__ . '/../layouts/header.php';
         tbody.innerHTML = '';
 
         if(currentItems.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-8 text-center text-slate-500">Belum ada barang diinventaris.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="9" class="px-6 py-8 text-center text-slate-500">Belum ada barang diinventaris.</td></tr>';
             renderPaginationControls(0);
             return;
         }
@@ -543,6 +610,9 @@ require_once __DIR__ . '/../layouts/header.php';
                 </td>
                 <td class="whitespace-nowrap px-3 py-4 text-center">
                     ${getConditionBadge(item.item_condition)}
+                </td>
+                <td class="whitespace-nowrap px-3 py-4 text-center text-xs font-medium text-slate-500">
+                    ${item.purchase_date ? new Date(item.purchase_date).toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'}) : '-'}
                 </td>
                 <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                     <div class="flex items-center justify-end gap-3 text-gray-400">
@@ -633,6 +703,7 @@ require_once __DIR__ . '/../layouts/header.php';
         document.getElementById('item_qty').value = '1';
         document.getElementById('item_unit').value = 'Pcs';
         document.getElementById('item_description').value = '';
+        document.getElementById('purchase_date').value = '';
         document.getElementById('item_photo').value = '';
         document.getElementById('photo-preview').innerHTML = '<svg class="w-8 h-8 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>';
 
@@ -652,6 +723,7 @@ require_once __DIR__ . '/../layouts/header.php';
         document.getElementById('item_qty').value = it.qty;
         document.getElementById('item_unit').value = it.item_unit || 'Pcs';
         document.getElementById('item_description').value = it.description;
+        document.getElementById('purchase_date').value = it.purchase_date || '';
         document.getElementById('item_photo').value = '';
 
         if (it.item_photo) {
@@ -691,6 +763,32 @@ require_once __DIR__ . '/../layouts/header.php';
         triggerModalUI(false, 'item-modal', 'modal-content');
     }
 
+    function openItemDeleteModal(ids, message) {
+        deleteTargetIds = ids;
+        document.getElementById('item-delete-modal-message').innerText = message;
+        
+        const confirmBtn = document.getElementById('item-confirm-delete-btn');
+        const newConfirmBtn = confirmBtn.cloneNode(true);
+        confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+        
+        newConfirmBtn.addEventListener('click', async () => {
+            newConfirmBtn.disabled = true;
+            newConfirmBtn.innerHTML = `
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg> Menghapus...`;
+            await execDelete(deleteTargetIds);
+            closeItemDeleteModal();
+        });
+
+        triggerModalUI(true, 'item-delete-modal', 'item-delete-modal-content');
+    }
+
+    function closeItemDeleteModal() {
+        triggerModalUI(false, 'item-delete-modal', 'item-delete-modal-content');
+    }
+
     async function saveItem(e) {
         e.preventDefault();
         
@@ -711,6 +809,7 @@ require_once __DIR__ . '/../layouts/header.php';
         formData.append('qty', document.getElementById('item_qty').value);
         formData.append('item_unit', document.getElementById('item_unit').value);
         formData.append('description', document.getElementById('item_description').value);
+        formData.append('purchase_date', document.getElementById('purchase_date').value);
         
         const photoFile = document.getElementById('item_photo').files[0];
         if (photoFile) {
@@ -743,21 +842,18 @@ require_once __DIR__ . '/../layouts/header.php';
     }
 
     async function singleDelete(id) {
-        if (!confirm("Hapus barang ini secara permanen?")) return;
-        await execDelete([id]);
+        openItemDeleteModal([id], "Hapus barang ini secara permanen? Tindakan ini tidak dapat dibatalkan.");
     }
 
     async function bulkDelete() {
-        if (!confirm(`Yakin ingin HAPUS ${selectedItemIds.size} barang terpilih secara permanen?`)) return;
-        await execDelete(Array.from(selectedItemIds));
+        openItemDeleteModal(Array.from(selectedItemIds), `Yakin ingin menghapus ${selectedItemIds.size} barang terpilih secara permanen?`);
     }
 
     async function execDelete(idList) {
         try {
-            // Karena tidak ada backend Bulk Delete, kita loop fetch 
-            // Untuk performa, kita jalankan parallel (Promise.all)
-            const tasks = idList.map(id => fetch('<?php echo BASE_URL; ?>/api/inventory/items/delete.php', {
-                method: 'DELETE',
+            const endpoint = '<?php echo BASE_URL; ?>/api/inventory/items/delete.php';
+            const tasks = idList.map(id => fetch(endpoint, {
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id: id })
             }));

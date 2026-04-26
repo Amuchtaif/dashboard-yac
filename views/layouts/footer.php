@@ -145,8 +145,12 @@
 
     // --- Toast Notification Logic ---
     function showToast(message, type = 'success') {
+        console.log(`showToast called: ${message} (${type})`);
         const alertContainer = document.getElementById('dynamic-alert-container');
-        if (!alertContainer) return;
+        if (!alertContainer) {
+            console.error('dynamic-alert-container not found!');
+            return;
+        }
 
         // Create Alert Banner Element
         const toast = document.createElement('div');

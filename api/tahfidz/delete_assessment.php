@@ -1,12 +1,13 @@
 <?php
-header('Content-Type: application/json');
+header("Access-Control-Allow-Origin: *");
+header("Content-Type: application/json; charset=UTF-8");
+header("Access-Control-Allow-Methods: POST");
+
 require_once '../../config/app.php';
 require_once '../../config/database.php';
 
-if (!isset($_SESSION['user_id'])) {
-    echo json_encode(['success' => false, 'message' => 'Unauthorized']);
-    exit;
-}
+// Since this is called from Flutter, we might not have a session.
+// We can optionally pass teacher_id for permission check if needed.
 
 $db = new Database();
 $conn = $db->getConnection();
@@ -22,9 +23,13 @@ $id = $data['id'];
 
 try {
     $stmt = $conn->prepare("DELETE FROM tahfidz_assessments WHERE id = ?");
-    $stmt->execute([$id]);
     
-    echo json_encode(['success' => true, 'message' => 'Data penilaian berhasil dihapus.']);
+    if ($stmt->execute([$id])) {
+        echo json_encode(['success' => true, 'message' => 'Data penilaian berhasil dihapus.']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Gagal menghapus data.']);
+    }
 } catch (PDOException $e) {
     echo json_encode(['success' => false, 'message' => 'Gagal menghapus data: ' . $e->getMessage()]);
 }
+?>

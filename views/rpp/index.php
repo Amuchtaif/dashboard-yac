@@ -316,17 +316,17 @@ async function viewRPP(id) {
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
-                    ${renderSection('A', 'Standar Kompetensi', data.content_sk, 'bg-cyan-50 text-cyan-600')}
-                    ${renderSection('B', 'Kompetensi Dasar', data.content_kd, 'bg-indigo-50 text-indigo-600')}
-                    ${renderSection('C', 'Indikator', data.content_indicator, 'bg-amber-50 text-amber-600')}
-                    ${renderSection('D', 'Tujuan Pembelajaran', data.learning_goal, 'bg-emerald-50 text-emerald-600')}
+                    ${renderSection('A', 'Capaian Pembelajaran (CP)', data.content_cp, 'bg-cyan-50 text-cyan-600')}
+                    ${renderSection('B', 'Alur Tujuan Pembelajaran (ATP)', data.content_atp, 'bg-indigo-50 text-indigo-600')}
+                    ${renderSection('C', 'Pertanyaan Pemantik', data.content_pertanyaan_pemantik, 'bg-amber-50 text-amber-600')}
+                    ${renderSection('D', 'Tujuan Pembelajaran (TP)', data.learning_goal, 'bg-emerald-50 text-emerald-600')}
                     ${renderSection('E', 'Materi Ajar', data.teaching_material, 'bg-rose-50 text-rose-600')}
-                    ${renderSection('F', 'Metode Pembelajaran', data.teaching_method, 'bg-violet-50 text-violet-600')}
+                    ${renderSection('F', 'Profil Pelajar Pancasila', data.teaching_profil_pancasila, 'bg-violet-50 text-violet-600')}
                     <div class="md:col-span-2">
-                        ${renderSection('G', 'Langkah-langkah Pembelajaran', data.content_steps, 'bg-slate-800 text-white', 'grid grid-cols-1')}
+                        ${renderSection('G', 'Kegiatan Pembelajaran', data.content_steps, 'bg-slate-800 text-white', 'grid grid-cols-1')}
                     </div>
-                    ${renderSection('H', 'Alat & Sumber', data.content_summary, 'bg-slate-100 text-slate-600')}
-                    ${renderSection('I', 'Penilaian', data.assessment, 'bg-green-50 text-green-600')}
+                    ${renderSection('H', 'Media & Sumber Belajar', data.content_summary, 'bg-slate-100 text-slate-600')}
+                    ${renderSection('I', 'Asesmen', data.assessment, 'bg-green-50 text-green-600')}
                 </div>
             `;
         }

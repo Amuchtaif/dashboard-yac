@@ -43,6 +43,14 @@ if ($id > 0) {
                 s.name as subject_name, 
                 gl.name as class_name, 
                 at.name as assessment_type_name,
+                (SELECT COUNT(*) + 1 
+                 FROM student_assessments sa2 
+                 WHERE sa2.assessment_type_id = sa.assessment_type_id 
+                   AND sa2.grade_level_id = sa.grade_level_id 
+                   AND sa2.subject_id = sa.subject_id 
+                   AND (sa2.assessment_date < sa.assessment_date 
+                        OR (sa2.assessment_date = sa.assessment_date AND sa2.id < sa.id))
+                ) as sequence_number,
                 e.full_name as teacher_name,
                 (SELECT COUNT(*) FROM student_assessment_details WHERE assessment_id = sa.id) as student_count
             FROM student_assessments sa

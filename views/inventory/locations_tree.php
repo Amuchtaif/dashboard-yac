@@ -33,7 +33,12 @@ require_once __DIR__ . '/../layouts/header.php';
 
     <div class="p-6">
         <ul id="location-tree" class="space-y-2">
-            <li>Loading...</li>
+            <div class="flex items-center justify-center py-12" id="tree-loading">
+                <div class="flex flex-col items-center gap-3">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-600"></div>
+                    <span class="text-slate-400 text-sm font-medium">Memuat struktur lokasi...</span>
+                </div>
+            </div>
         </ul>
     </div>
 </div>
@@ -56,12 +61,15 @@ require_once __DIR__ . '/../layouts/header.php';
 
             <div class="mb-4" id="code-container">
                 <label class="block text-sm font-semibold text-slate-700 mb-1">Kode Lokasi</label>
-                <input type="text" id="loc_code" name="location_code" readonly class="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-2 text-slate-500 outline-none cursor-not-allowed" placeholder="Otomatis">
+                <div class="relative">
+                    <input type="text" id="loc_code" name="location_code" readonly class="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-2 text-slate-500 outline-none cursor-not-allowed font-mono uppercase" placeholder="Otomatis">
+                    <p class="text-[10px] text-slate-400 mt-1">Kode unik otomatis untuk identifikasi barcode.</p>
+                </div>
             </div>
 
             <div class="mb-4">
                 <label class="block text-sm font-semibold text-slate-700 mb-1">Label Lokasi</label>
-                <input type="text" id="loc_label" name="location_label" required class="w-full rounded-lg border border-slate-300 px-4 py-2 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 outline-none transition" placeholder="Contoh: Gedung A Lantai 1">
+                <input type="text" id="loc_label" name="location_label" required class="w-full rounded-lg border border-slate-300 px-4 py-2 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 outline-none transition">
             </div>
 
             <p id="parent-info" class="text-sm text-amber-600 bg-amber-50 p-3 rounded-lg border border-amber-200 mb-4 hidden"></p>
@@ -83,7 +91,7 @@ require_once __DIR__ . '/../layouts/header.php';
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
         </div>
-        <h3 class="text-xl font-bold text-slate-800 mb-2">Konfirmasi Pindah</h3>
+        <h3 class="text-xl font-bold text-slate-800 mb-2" id="confirm-modal-title-text">Konfirmasi Pindah</h3>
         <p class="text-sm text-slate-500 mb-6 leading-relaxed" id="confirm-message">Apakah Anda yakin?</p>
         <div class="flex justify-center gap-3">
             <button id="btn-cancel-move" class="px-5 py-2.5 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl text-sm font-semibold transition w-full">Batal</button>
@@ -97,8 +105,15 @@ require_once __DIR__ . '/../layouts/header.php';
     let allLocationsData = [];
 
     async function loadTree() {
+        const treeContainer = document.getElementById('location-tree');
+        const apiPath = '<?php url("api/inventory/locations/get.php"); ?>';
+        console.log('Loading tree from:', apiPath);
+        
         try {
-            const res = await fetch('<?php echo BASE_URL; ?>/api/inventory/locations/get.php');
+            const res = await fetch(apiPath);
+            
+            if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
+            
             const data = await res.json();
             
             const treeContainer = document.getElementById('location-tree');
@@ -114,6 +129,13 @@ require_once __DIR__ . '/../layouts/header.php';
             }
         } catch (err) {
             console.error(err);
+            const treeContainer = document.getElementById('location-tree');
+            if (treeContainer) {
+                treeContainer.innerHTML = `<li class="text-rose-500 font-bold p-4 bg-rose-50 rounded-xl border border-rose-100 flex items-center gap-3">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    Gagal memuat data: ${err.message}
+                </li>`;
+            }
         }
     }
 
@@ -155,9 +177,12 @@ require_once __DIR__ . '/../layouts/header.php';
             try {
                 const data = JSON.parse(e.dataTransfer.getData('text/plain'));
                 if (data.id && data.id != node.id) {
-                    openConfirmModal(
+                    openLocalConfirmModal(
                         `Pindahkan <strong>"${data.name}"</strong> ke dalam <strong>"${node.name}"</strong>?`,
-                        () => moveNode(data.id, data.name, node.id)
+                        () => moveNode(data.id, data.name, node.id),
+                        'Konfirmasi Pindah',
+                        'Pindahkan',
+                        'amber'
                     );
                 }
             } catch(err) {}
@@ -234,33 +259,57 @@ require_once __DIR__ . '/../layouts/header.php';
     }
 
     async function moveNode(id, name, newParentId) {
+        if (!id) {
+            showToast("ID lokasi tidak valid.", "error");
+            return;
+        }
         try {
-            const res = await fetch('<?php echo BASE_URL; ?>/api/inventory/locations/update.php', {
+            const apiPath = '<?php url("api/inventory/locations/update.php"); ?>';
+            const res = await fetch(apiPath, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id: id, name: name, parent_id: newParentId })
             });
+            
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(text || `Server error: ${res.status}`);
+            }
+
             const data = await res.json();
             
             if (data.success) {
                 loadTree();
                 showToast("Lokasi berhasil dipindahkan!", "success");
             } else {
-                showToast(data.message || "Gagal memindahkan lokasi.", "error"); // Jika kena the circular dependency error
+                showToast(data.message || "Gagal memindahkan lokasi.", "error");
             }
         } catch (err) {
             console.error(err);
-            showToast("Terjadi kesalahan sistem saat memindah.", "error");
+            showToast("Terjadi kesalahan sistem: " + err.message, "error");
         }
     }
 
     // Modal konfirmasi custom
-    function openConfirmModal(message, actionCallback) {
+    function openLocalConfirmModal(message, actionCallback, title = 'Konfirmasi', confirmText = 'Ya, Lanjutkan', color = 'amber') {
         document.getElementById('confirm-message').innerHTML = message;
+        document.getElementById('confirm-modal-title-text').innerText = title;
         
+        const btnConfirm = document.getElementById('btn-confirm-move');
+        btnConfirm.innerText = confirmText;
+        
+        // Dynamic Color classes
+        const colorMap = {
+            amber: 'bg-amber-600 hover:bg-amber-700',
+            rose: 'bg-rose-600 hover:bg-rose-700',
+            emerald: 'bg-emerald-600 hover:bg-emerald-700',
+            blue: 'bg-blue-600 hover:bg-blue-700'
+        };
+        
+        btnConfirm.className = `px-5 py-2.5 ${colorMap[color] || colorMap.amber} text-white rounded-xl text-sm font-semibold transition shadow-sm w-full`;
+
         const modal = document.getElementById('confirm-modal');
         const content = document.getElementById('confirm-content');
-        const btnConfirm = document.getElementById('btn-confirm-move');
         const btnCancel = document.getElementById('btn-cancel-move');
 
         modal.classList.remove('hidden');
@@ -277,14 +326,14 @@ require_once __DIR__ . '/../layouts/header.php';
         btnCancel.parentNode.replaceChild(newBtnCancel, btnCancel);
 
         newBtnConfirm.addEventListener('click', async () => {
-            closeConfirmModal();
+            closeLocalConfirmModal();
             if (typeof actionCallback === 'function') await actionCallback();
         });
 
-        newBtnCancel.addEventListener('click', closeConfirmModal);
+        newBtnCancel.addEventListener('click', closeLocalConfirmModal);
     }
 
-    function closeConfirmModal() {
+    function closeLocalConfirmModal() {
         const modal = document.getElementById('confirm-modal');
         const content = document.getElementById('confirm-content');
         
@@ -321,6 +370,26 @@ require_once __DIR__ . '/../layouts/header.php';
 
         document.getElementById('modal-title').innerText = id ? "Edit Lokasi" : "Tambah Lokasi";
         
+        // Auto-generate suggestion for NEW locations
+        if (!id) {
+            const parentCode = document.querySelector(`li[data-id="${parentId}"]`)?.dataset.code || '';
+            const suggestCode = (label) => {
+                if (!label) return '';
+                const initials = label.split(' ').map(w => w[0]).join('').toUpperCase();
+                return parentCode ? `${parentCode}-${initials}` : initials;
+            };
+
+            const labelInput = document.getElementById('loc_label');
+            const codeInput = document.getElementById('loc_code');
+            
+            // Real-time suggestion while typing label
+            labelInput.oninput = () => {
+                if (!id) codeInput.value = suggestCode(labelInput.value);
+            };
+        } else {
+            document.getElementById('loc_label').oninput = null;
+        }
+
         const modal = document.getElementById('location-modal');
         const content = document.getElementById('modal-content');
         modal.classList.remove('hidden');
@@ -331,6 +400,11 @@ require_once __DIR__ . '/../layouts/header.php';
         modal.classList.add('opacity-100');
         content.classList.remove('scale-95', 'opacity-0');
         content.classList.add('scale-100', 'opacity-100');
+
+        // Focus the name field
+        setTimeout(() => {
+            document.getElementById('loc_label').focus();
+        }, 150);
     }
 
     function closeModal() {
@@ -346,19 +420,29 @@ require_once __DIR__ . '/../layouts/header.php';
 
     async function saveLocation(e) {
         e.preventDefault();
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        const originalBtnText = submitBtn.innerHTML;
         
         const id = document.getElementById('loc_id').value;
         const parent_id = document.getElementById('loc_parent_id').value;
         const label = document.getElementById('loc_label').value;
         const name = label; // Use label as name
         
+        if (!name) {
+            showToast("Nama/Label lokasi harus diisi.", "error");
+            return;
+        }
+
         const payload = { name: name, parent_id: parent_id, label: label };
         if (id) payload.id = id;
 
         try {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Menyimpan...`;
+
             const endpoint = id 
-                ? '<?php echo BASE_URL; ?>/api/inventory/locations/update.php' 
-                : '<?php echo BASE_URL; ?>/api/inventory/locations/create.php';
+                ? '<?php url("api/inventory/locations/update.php"); ?>' 
+                : '<?php url("api/inventory/locations/create.php"); ?>';
             const method = id ? 'PUT' : 'POST';
 
             const res = await fetch(endpoint, {
@@ -366,6 +450,12 @@ require_once __DIR__ . '/../layouts/header.php';
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
+
+            if (!res.ok) {
+                const errorText = await res.text();
+                throw new Error(errorText || `HTTP error! status: ${res.status}`);
+            }
+
             const data = await res.json();
             
             if (data.success) {
@@ -376,21 +466,35 @@ require_once __DIR__ . '/../layouts/header.php';
                 showToast(data.message || "Gagal menyimpan lokasi.", "error");
             }
         } catch (err) {
-            console.error(err);
-            showToast("Terjadi kesalahan.", "error");
+            console.error("Save Location Error:", err);
+            showToast("Gagal menyimpan: " + (err.message || "Terjadi kesalahan."), "error");
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
         }
     }
 
     async function deleteNode(id) {
-        openConfirmModal(
+        if (!id) {
+            showToast("ID lokasi tidak valid.", "error");
+            return;
+        }
+        openLocalConfirmModal(
             `<span class="text-rose-600 font-bold">Yakin ingin menghapus lokasi ini beserta seluruh turunannya?</span><br>Tindakan ini tidak dapat dikembalikan.`,
             async () => {
                 try {
-                    const res = await fetch('<?php echo BASE_URL; ?>/api/inventory/locations/delete.php', {
+                    const apiPath = '<?php url("api/inventory/locations/delete.php"); ?>';
+                    const res = await fetch(apiPath, {
                         method: 'DELETE',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ id: id })
                     });
+
+                    if (!res.ok) {
+                        const text = await res.text();
+                        throw new Error(text || `Server error: ${res.status}`);
+                    }
+
                     const data = await res.json();
                     
                     if (data.success) {
@@ -401,13 +505,16 @@ require_once __DIR__ . '/../layouts/header.php';
                     }
                 } catch (err) {
                     console.error(err);
-                    showToast("Terjadi kesalahan saat menghapus.", "error");
+                    showToast("Terjadi kesalahan saat menghapus: " + err.message, "error");
                 }
-            }
+            },
+            'Hapus Lokasi',
+            'Hapus Sekarang',
+            'rose'
         );
     }
 
-    window.onload = () => {
+    document.addEventListener('DOMContentLoaded', () => {
         loadTree();
         
         // Allow dropping directly onto the container background to make a node become a Root Location
@@ -421,14 +528,17 @@ require_once __DIR__ . '/../layouts/header.php';
                 // If the drop event got here, it means it wasn't intercepted by stopPropagation() on a Child Node.
                 const data = JSON.parse(e.dataTransfer.getData('text/plain'));
                 if (data.id) {
-                    openConfirmModal(
+                    openLocalConfirmModal(
                         `Pindahkan <strong>"${data.name}"</strong> menjadi <strong>Root Lokasi</strong> (di luar asrama/gedung manapun)?`,
-                        () => moveNode(data.id, data.name, null)
+                        () => moveNode(data.id, data.name, null),
+                        'Pindah ke Root',
+                        'Pindahkan',
+                        'amber'
                     );
                 }
             } catch(err) {}
         });
-    };
+    });
 
     // Print Barcode Label logic
     function openPrintModal(node) {
