@@ -153,7 +153,7 @@ include '../layouts/header.php';
                             </h4>
                         </div>
                         
-                        <div class="border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
+                        <div class="border border-slate-200 rounded-3xl overflow-x-auto shadow-sm">
                             <table class="w-full text-left">
                                 <thead class="bg-slate-50 border-b border-slate-200">
                                     <tr class="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em]">
@@ -302,7 +302,7 @@ include '../layouts/header.php';
                             Konfigurasi Harian
                         </h4>
                     </div>
-                    <div class="border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
+                    <div class="border border-slate-200 rounded-3xl overflow-x-auto shadow-sm">
                         <table class="w-full text-left">
                             <thead class="bg-slate-50 border-b border-slate-200">
                                 <tr class="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em]">

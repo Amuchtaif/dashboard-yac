@@ -46,8 +46,18 @@ if ($grade_id) {
     $stmt->execute([':grade_id' => $grade_id, ':year_id' => $active_year]);
     $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    $is_admin = (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Administrator');
+    
     // Get attendance records for these students on this date across all subjects
     // We'll aggregate them into a list of subjects and statuses per student
+    $where_att = "WHERE cj.date = :date AND cs.grade_level_id = :grade_id";
+    $params_att = [':date' => $date, ':grade_id' => $grade_id];
+
+    if (!$is_admin) {
+        $where_att .= " AND cs.employee_id = :current_user_id";
+        $params_att[':current_user_id'] = $_SESSION['user_id'];
+    }
+
     $att_stmt = $conn->prepare("
         SELECT 
             sa.student_id,
@@ -59,10 +69,10 @@ if ($grade_id) {
         JOIN class_schedules cs ON cj.class_schedule_id = cs.id
         JOIN subjects sub ON cs.subject_id = sub.id
         JOIN lesson_periods lp ON cs.lesson_period_id = lp.id
-        WHERE cj.date = :date AND cs.grade_level_id = :grade_id
+        $where_att
         ORDER BY lp.start_time ASC
     ");
-    $att_stmt->execute([':date' => $date, ':grade_id' => $grade_id]);
+    $att_stmt->execute($params_att);
     $attendance_raw = $att_stmt->fetchAll(PDO::FETCH_ASSOC);
 
     $attendance_map = [];

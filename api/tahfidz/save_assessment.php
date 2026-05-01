@@ -18,15 +18,15 @@ if (!$data || empty($data['student_id']) || empty($data['assessment_date'])) {
     exit;
 }
 
-$id = $data['id'] ?? null;
-$student_id = $data['student_id'];
-$assessment_date = $data['assessment_date'];
-$assessment_type_id = $data['assessment_type_id'];
-$teacher_id = $data['teacher_id'];
-$tajweed_score = (int)$data['tajweed_score'];
-$fluency_score = (int)$data['fluency_score'];
-$makhraj_score = (int)$data['makhraj_score'];
-$total_score = (int)$data['total_score'];
+$id = !empty($data['id']) ? $data['id'] : null;
+$student_id = !empty($data['student_id']) ? $data['student_id'] : null;
+$assessment_date = !empty($data['assessment_date']) ? $data['assessment_date'] : date('Y-m-d');
+$assessment_type_id = !empty($data['assessment_type_id']) ? $data['assessment_type_id'] : null;
+$teacher_id = !empty($data['teacher_id']) ? $data['teacher_id'] : ($_SESSION['user_id'] ?? null);
+$tajweed_score = (int)($data['tajweed_score'] ?? 0);
+$fluency_score = (int)($data['fluency_score'] ?? 0);
+$makhraj_score = (int)($data['makhraj_score'] ?? 0);
+$total_score = (int)($data['total_score'] ?? 0);
 $comments = $data['comments'] ?? '';
 
 // Get type name for compatibility with old category field
@@ -34,7 +34,9 @@ $type_name = "";
 if ($assessment_type_id) {
     $stmt = $conn->prepare("SELECT name FROM tahfidz_assessment_types WHERE id = ?");
     $stmt->execute([$assessment_type_id]);
-    $type_name = $stmt->fetchColumn();
+    $type_name = $stmt->fetchColumn() ?: "Lainnya";
+} else {
+    $type_name = !empty($data['category']) ? $data['category'] : "Bulanan";
 }
 
 try {

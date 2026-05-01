@@ -87,7 +87,7 @@ require_once __DIR__ . '/../layouts/header.php';
             <!-- Date -->
             <div>
                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Pilih Tanggal</label>
-                <input type="date" id="filter-date" value="<?php echo date('Y-m-d'); ?>" onchange="fetchData()" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-4 focus:ring-cyan-500/10 focus:border-cyan-500 text-sm font-semibold outline-none bg-slate-50 transition-all">
+                <input type="date" id="filter-date" value="<?php echo date('Y-m-d'); ?>" onchange="fetchData()" class="w-full px-5 py-3.5 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-cyan-500/10 focus:border-cyan-500 text-[14px] font-semibold outline-none bg-white transition-all text-slate-700 cursor-pointer hover:border-cyan-500 shadow-sm">
             </div>
 
             <!-- Meal Type Filter -->

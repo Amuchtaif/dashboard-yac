@@ -40,8 +40,8 @@ require_once __DIR__ . '/../layouts/header.php';
     </div>
 
     <!-- Search & Filter Bar -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 mb-8 overflow-hidden">
-        <div class="p-5 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 mb-8">
+        <div class="p-5 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between rounded-t-2xl">
             <div class="flex items-center gap-2">
                 <div class="w-8 h-8 rounded-lg bg-cyan-100 text-cyan-600 flex items-center justify-center">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -75,7 +75,7 @@ require_once __DIR__ . '/../layouts/header.php';
                 <!-- Lokasi Filter -->
                 <div class="md:col-span-6">
                     <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 ml-1">Pilih Lokasi</label>
-                    <div id="filter-location-cascader" class="flex flex-wrap md:flex-nowrap gap-3">
+                    <div id="filter-location-cascader" class="flex flex-wrap gap-3">
                         <!-- Cascading Dropdowns will be rendered here -->
                         <div class="flex-1 h-[46px] animate-pulse bg-slate-100 rounded-xl"></div>
                     </div>
@@ -975,5 +975,28 @@ require_once __DIR__ . '/../layouts/header.php';
 
     window.onload = fetchData;
 </script>
+
+<style>
+    /* Prevent hybrid select from causing overflow in flex containers */
+    .hybrid-select-container {
+        min-width: 0;
+        flex-shrink: 1;
+    }
+    
+    /* Ensure the location cascader handles many levels gracefully */
+    #filter-location-cascader {
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 transparent;
+    }
+    
+    #filter-location-cascader::-webkit-scrollbar {
+        height: 4px;
+    }
+    
+    #filter-location-cascader::-webkit-scrollbar-thumb {
+        background-color: #cbd5e1;
+        border-radius: 20px;
+    }
+</style>
 
 <?php require_once __DIR__ . '/../layouts/footer.php'; ?>

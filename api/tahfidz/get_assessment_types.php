@@ -3,13 +3,13 @@ header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Methods: GET");
 
-require_once '../config/database.php';
+require_once '../../config/database.php';
 
 $database = new Database();
 $db = $database->getConnection();
 
 try {
-    $query = "SELECT id, name, is_active FROM tahfidz_assessment_types WHERE is_active = 1 ORDER BY name ASC";
+    $query = "SELECT id, name, description, is_active FROM tahfidz_assessment_types WHERE is_active = 1 ORDER BY name ASC";
     $stmt = $db->prepare($query);
     $stmt->execute();
     
@@ -17,6 +17,7 @@ try {
     
     echo json_encode([
         "success" => true,
+        "count" => count($types),
         "data" => $types
     ]);
 } catch (PDOException $e) {

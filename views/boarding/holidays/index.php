@@ -149,12 +149,18 @@ include '../../layouts/header.php';
     }
 
     function deleteHoliday(id) {
-        if(confirm('Hapus jadwal libur ini?')) {
+        const confirmBtn = document.getElementById('confirmDeleteBtn');
+        if (!confirmBtn) return;
+
+        confirmBtn.onclick = (e) => {
+            e.preventDefault();
             const f = document.createElement('form'); f.method='POST'; f.action='../../../logic/boarding/manage_holidays.php';
             const a = document.createElement('input'); a.type='hidden'; a.name='action'; a.value='delete_holiday'; f.appendChild(a);
             const i = document.createElement('input'); i.type='hidden'; i.name='id'; i.value=id; f.appendChild(i);
             document.body.appendChild(f); f.submit();
-        }
+        };
+
+        openDeleteModal('#');
     }
 </script>
 

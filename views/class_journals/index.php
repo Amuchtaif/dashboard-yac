@@ -14,6 +14,10 @@ $date = isset($_GET['date']) ? $_GET['date'] : date('Y-m-d');
 $unit_id = isset($_GET['unit_id']) ? $_GET['unit_id'] : '';
 $grade_id = isset($_GET['grade_id']) ? $_GET['grade_id'] : '';
 $employee_id = isset($_GET['employee_id']) ? $_GET['employee_id'] : '';
+$is_admin = (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Administrator');
+if (!$is_admin) {
+    $employee_id = $_SESSION['user_id'];
+}
 
 $where_clauses = ["cj.date = :date"];
 $params = [':date' => $date];
@@ -168,6 +172,7 @@ include '../layouts/header.php';
                 </div>
             </div>
 
+            <?php if ($is_admin): ?>
             <!-- Custom Employee (Guru) Dropdown -->
             <div class="relative" id="container-employee_id">
                 <input type="hidden" name="employee_id" id="input-employee_id" value="<?php echo $employee_id; ?>">
@@ -198,6 +203,7 @@ include '../layouts/header.php';
                     </ul>
                 </div>
             </div>
+            <?php endif; ?>
             <?php if (!empty($unit_id) || !empty($grade_id) || !empty($employee_id) || $date != date('Y-m-d')): ?>
             <div class="flex items-end h-[42px] mt-auto">
                 <a href="?" class="inline-flex w-full items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all h-[42px]">
@@ -282,7 +288,7 @@ include '../layouts/header.php';
 
     <!-- Table -->
     <div class="mt-8 flex flex-col">
-        <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+        <div class="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
@@ -330,20 +336,20 @@ include '../layouts/header.php';
                             <td class="whitespace-nowrap px-3 py-4 text-sm text-right align-top">
                                 <div class="flex items-center justify-end gap-2">
                                     <button type="button" 
-                                        onclick="openViewModal({
-                                            date: '<?php echo date('d M Y', strtotime($j['date'])); ?>',
-                                            time: '<?php echo date('H:i', strtotime($j['start_time'])) . ' - ' . date('H:i', strtotime($j['end_time'])); ?>',
-                                            class: '<?php echo htmlspecialchars(addslashes($j['class_name']), ENT_QUOTES); ?>',
-                                            subject: '<?php echo htmlspecialchars(addslashes($j['subject_name']), ENT_QUOTES); ?>',
-                                            teacher: '<?php echo htmlspecialchars(addslashes($j['teacher_name']), ENT_QUOTES); ?>',
-                                            topic: '<?php echo htmlspecialchars(addslashes($j['topic'] ?? '-'), ENT_QUOTES); ?>',
-                                            notes: '<?php echo htmlspecialchars(addslashes(preg_replace('/\r|\n/', ' ', $j['notes'] ?? '-')), ENT_QUOTES); ?>',
-                                            present: <?php echo $j['count_present']; ?>,
-                                            absent: <?php echo $j['count_absent']; ?>,
-                                            sick: <?php echo $j['count_sick']; ?>,
-                                            permit: <?php echo $j['count_permit']; ?>,
-                                            late: <?php echo $j['count_late']; ?>
-                                        })"
+                                        onclick="openViewModal(<?php echo htmlspecialchars(json_encode([
+                                            'date' => date('d M Y', strtotime($j['date'])),
+                                            'time' => date('H:i', strtotime($j['start_time'])) . ' - ' . date('H:i', strtotime($j['end_time'])),
+                                            'class' => $j['class_name'],
+                                            'subject' => $j['subject_name'],
+                                            'teacher' => $j['teacher_name'],
+                                            'topic' => $j['topic'] ?? '-',
+                                            'notes' => preg_replace('/\r|\n/', ' ', $j['notes'] ?? '-'),
+                                            'present' => $j['count_present'],
+                                            'absent' => $j['count_absent'],
+                                            'sick' => $j['count_sick'],
+                                            'permit' => $j['count_permit'],
+                                            'late' => $j['count_late']
+                                        ]), ENT_QUOTES); ?>)"
                                         class="inline-flex items-center p-1.5 text-cyan-600 hover:text-cyan-900 bg-cyan-50 hover:bg-cyan-100 rounded-lg transition-colors" title="Lihat Jurnal">
                                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />

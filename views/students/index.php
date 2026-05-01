@@ -48,9 +48,21 @@ if ($unit_id) {
 }
 $classes = $classes_stmt->fetchAll(PDO::FETCH_ASSOC);
 
+$is_admin = (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Administrator');
+
 // Build Where Clause
 $where_clauses = ["1=1"]; // Default true
 $params = [];
+
+if (!$is_admin) {
+    $where_clauses[] = "gl.id IN (
+        SELECT id FROM grade_levels WHERE teacher_id = :teacher_id_filter
+        UNION
+        SELECT grade_level_id FROM class_schedules WHERE employee_id = :employee_id_filter
+    )";
+    $params[':teacher_id_filter'] = $_SESSION['user_id'];
+    $params[':employee_id_filter'] = $_SESSION['user_id'];
+}
 
 if ($search) {
     $where_clauses[] = "(nama_siswa LIKE :search OR nomor_induk LIKE :search)";
@@ -316,10 +328,13 @@ include '../layouts/header.php';
                 <button type="button" onclick="toggleDropdown('filter-status')"
                     class="inline-flex items-center justify-between gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-colors w-32">
                     <span id="filter-status-text" class="truncate">
-                        <?php 
-                        if ($status === 'Semua') echo "Semua Status";
-                        elseif ($status) echo str_replace('_', ' ', $status);
-                        else echo "Status: Aktif"; 
+                        <?php
+                        if ($status === 'Semua')
+                            echo "Semua Status";
+                        elseif ($status)
+                            echo str_replace('_', ' ', $status);
+                        else
+                            echo "Status: Aktif";
                         ?>
                     </span>
                     <svg class="h-4 w-4 text-slate-400 transition-transform duration-200" id="filter-status-arrow"
@@ -477,12 +492,14 @@ include '../layouts/header.php';
                                 <td class="relative whitespace-nowrap py-4 pl-3 pr-6 text-right text-sm font-medium">
                                     <div class="flex justify-end gap-2 transition-opacity">
                                         <?php if ($status === 'Aktif'): ?>
-                                            <button type="button" 
+                                            <button type="button"
                                                 onclick="openStatusModal(<?php echo $student['id']; ?>, '<?php echo addslashes(htmlspecialchars(ucwords(strtolower($student['nama_siswa'])))); ?>')"
                                                 class="p-2 text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-all"
                                                 title="Nonaktifkan">
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                                    stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
                                                 </svg>
                                             </button>
                                         <?php endif; ?>
@@ -495,8 +512,8 @@ include '../layouts/header.php';
                                                     d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
                                             </svg>
                                         </a>
-                                        <a href="<?php url('logic/students/delete.php?id=' . $student['id']); ?>"
-                                            onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?')"
+                                        <button type="button"
+                                            onclick="openDeleteModal('<?php url('logic/students/delete.php?id=' . $student['id']); ?>')"
                                             class="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all"
                                             title="Hapus">
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -504,7 +521,7 @@ include '../layouts/header.php';
                                                 <path stroke-linecap="round" stroke-linejoin="round"
                                                     d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
                                             </svg>
-                                        </a>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -609,51 +626,68 @@ include '../layouts/header.php';
     </div>
 
     <!-- Status Confirmation Modal -->
-    <div id="statusModal" class="fixed inset-0 z-[60] hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div id="statusModal" class="fixed inset-0 z-[60] hidden overflow-y-auto" aria-labelledby="modal-title"
+        role="dialog" aria-modal="true">
         <!-- Backdrop -->
-        <div id="statusModalBackdrop" class="fixed inset-0 bg-slate-900/50 transition-opacity duration-300 opacity-0 backdrop-blur-sm"></div>
+        <div id="statusModalBackdrop"
+            class="fixed inset-0 bg-slate-900/50 transition-opacity duration-300 opacity-0 backdrop-blur-sm"></div>
 
         <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
             <!-- Modal Panel -->
-            <div id="statusModalPanel" class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all duration-300 opacity-0 scale-95 sm:my-8 sm:w-full sm:max-w-lg border border-slate-100">
+            <div id="statusModalPanel"
+                class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all duration-300 opacity-0 scale-95 sm:my-8 sm:w-full sm:max-w-lg border border-slate-100">
                 <form action="<?php url('logic/students/update_status.php'); ?>" method="POST">
                     <input type="hidden" name="student_id" id="modal_student_id">
-                    
+
                     <div class="bg-white px-8 pb-6 pt-10 sm:p-10 sm:pb-8">
                         <div class="sm:flex sm:items-start">
-                            <div class="mx-auto flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-3xl bg-amber-50 sm:mx-0 sm:h-12 sm:w-12 border border-amber-100">
-                                <svg class="h-6 w-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                            <div
+                                class="mx-auto flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-3xl bg-amber-50 sm:mx-0 sm:h-12 sm:w-12 border border-amber-100">
+                                <svg class="h-6 w-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
                                 </svg>
                             </div>
                             <div class="mt-4 text-center sm:ml-6 sm:mt-0 sm:text-left w-full">
-                                <h3 class="text-xl font-black leading-6 text-slate-800 uppercase tracking-tight" id="modal-title">Perbarui Status</h3>
+                                <h3 class="text-xl font-black leading-6 text-slate-800 uppercase tracking-tight"
+                                    id="modal-title">Perbarui Status</h3>
                                 <div class="mt-3">
                                     <p class="text-sm text-slate-500 font-medium leading-relaxed">
-                                        Anda akan memperbarui status <span id="modal_student_name" class="font-black text-slate-900 border-b-2 border-amber-300"></span>.
+                                        Anda akan memperbarui status <span id="modal_student_name"
+                                            class="font-black text-slate-900 border-b-2 border-amber-300"></span>.
                                     </p>
-                                    
+
                                     <div class="mt-6 p-5 bg-slate-50 rounded-2xl border border-slate-100">
-                                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2.5 ml-1">Pilih Status Akhir</label>
-                                        <select name="status" id="modal_status_select" class="block w-full rounded-xl border-slate-200 border-2 bg-white px-4 py-3.5 text-sm font-bold text-slate-800 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all outline-none shadow-sm">
+                                        <label
+                                            class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2.5 ml-1">Pilih
+                                            Status Akhir</label>
+                                        <select name="status" id="modal_status_select"
+                                            class="block w-full rounded-xl border-slate-200 border-2 bg-white px-4 py-3.5 text-sm font-bold text-slate-800 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all outline-none shadow-sm">
                                             <option value="Non_aktif">Non-aktif (Umum)</option>
                                             <option value="Lulus">Lulus (Tamat Pendidikan)</option>
                                             <option value="Pindah">Pindah (Sekolah Lain)</option>
                                             <option value="Dikeluarkan">Dikeluarkan</option>
                                         </select>
-                                        <p class="mt-3 text-[11px] text-slate-400 font-medium leading-tight">Siswa dengan status ini tidak akan muncul di daftar aktif utama.</p>
+                                        <p class="mt-3 text-[11px] text-slate-400 font-medium leading-tight">Siswa
+                                            dengan status ini tidak akan muncul di daftar aktif utama.</p>
                                     </div>
-                                    
-                                    <p class="mt-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] italic text-center sm:text-left">Konfirmasi perubahan ini?</p>
+
+                                    <p
+                                        class="mt-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] italic text-center sm:text-left">
+                                        Konfirmasi perubahan ini?</p>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="bg-slate-50/50 px-8 py-6 sm:flex sm:flex-row-reverse sm:px-10 gap-3 border-t border-slate-100">
-                        <button type="submit" class="inline-flex w-full justify-center rounded-xl bg-slate-900 px-8 py-3.5 text-sm font-black text-white hover:bg-slate-800 sm:w-auto transition-all transform active:scale-95 uppercase tracking-widest shadow-lg shadow-slate-200">
+                    <div
+                        class="bg-slate-50/50 px-8 py-6 sm:flex sm:flex-row-reverse sm:px-10 gap-3 border-t border-slate-100">
+                        <button type="submit"
+                            class="inline-flex w-full justify-center rounded-xl bg-slate-900 px-8 py-3.5 text-sm font-black text-white hover:bg-slate-800 sm:w-auto transition-all transform active:scale-95 uppercase tracking-widest shadow-lg shadow-slate-200">
                             Ya, Simpan Perubahan
                         </button>
-                        <button type="button" onclick="closeStatusModal()" class="mt-3 inline-flex w-full justify-center rounded-xl bg-white px-6 py-3 text-sm font-bold text-slate-500 shadow-sm ring-1 ring-inset ring-slate-200 hover:bg-slate-50 sm:mt-0 sm:w-auto transition-all transform active:scale-95">
+                        <button type="button" onclick="closeStatusModal()"
+                            class="mt-3 inline-flex w-full justify-center rounded-xl bg-white px-6 py-3 text-sm font-bold text-slate-500 shadow-sm ring-1 ring-inset ring-slate-200 hover:bg-slate-50 sm:mt-0 sm:w-auto transition-all transform active:scale-95">
                             Batal
                         </button>
                     </div>
@@ -680,7 +714,7 @@ include '../layouts/header.php';
         function openStatusModal(id, name) {
             document.getElementById('modal_student_id').value = id;
             document.getElementById('modal_student_name').innerText = name;
-            
+
             const modal = document.getElementById('statusModal');
             const backdrop = document.getElementById('statusModalBackdrop');
             const panel = document.getElementById('statusModalPanel');

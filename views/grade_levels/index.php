@@ -18,8 +18,17 @@ $units = $conn->query("SELECT id, name FROM education_units ORDER BY FIELD(name,
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $unit_id = isset($_GET['unit_id']) ? $_GET['unit_id'] : '';
 
-$where_clauses = ["1=1"];
+$is_admin = (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Administrator');
+
+$where_clauses = [];
 $params = [];
+
+if (!$is_admin) {
+    // Teachers only see classes they are wali kelas for OR classes they have a schedule in
+    $where_clauses[] = "(gl.teacher_id = :teacher_id_filter OR gl.id IN (SELECT grade_level_id FROM class_schedules WHERE employee_id = :employee_id_filter))";
+    $params[':teacher_id_filter'] = $_SESSION['user_id'];
+    $params[':employee_id_filter'] = $_SESSION['user_id'];
+}
 
 if (!empty($search)) {
     $where_clauses[] = "gl.name LIKE :search";
@@ -31,7 +40,7 @@ if (!empty($unit_id)) {
     $params[':unit_id'] = $unit_id;
 }
 
-$where_sql = implode(' AND ', $where_clauses);
+$where_sql = count($where_clauses) > 0 ? implode(' AND ', $where_clauses) : "1=1";
 
 // Pagination Logic
 $limit = 10;

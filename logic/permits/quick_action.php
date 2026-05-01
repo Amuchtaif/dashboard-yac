@@ -17,12 +17,13 @@ if (isset($_GET['id']) && isset($_GET['action'])) {
         $stmt->bindParam(':id', $id);
 
         if ($stmt->execute()) {
-            header("Location: ../../views/permits/index.php?success=Permit " . strtolower($status) . " successfully");
+            $msg = ($status === 'Approved') ? 'disetujui' : 'ditolak';
+            header("Location: ../../views/permits/index.php?success=Pengajuan+izin+berhasil+" . $msg);
         } else {
-        header("Location: ../../views/permits/index.php?error=Failed+to+update+status");
+            header("Location: ../../views/permits/index.php?error=Gagal+memperbarui+status");
         }
     } else {
-        header("Location: ../../views/permits/index.php?error=Invalid+action");
+        header("Location: ../../views/permits/index.php?error=Aksi+tidak+valid");
     }
 } else {
         header("Location: ../../views/permits/index.php?error=Operasi+gagal");

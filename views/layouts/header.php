@@ -114,7 +114,6 @@
             max-height: 250px;
             overflow-y: auto;
             display: none;
-            overflow: hidden;
         }
 
         .hybrid-select-dropdown.active {

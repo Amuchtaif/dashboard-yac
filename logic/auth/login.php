@@ -30,7 +30,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             header("Location: ../../views/dashboard/index.php");
             exit;
         } else {
-        header("Location: ../../views/auth/login.php?error=Invalid+Credentials");
+            header("Location: ../../views/auth/login.php?error=Invalid+Credentials");
             exit;
         }
     } catch (PDOException $e) {

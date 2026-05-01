@@ -338,24 +338,31 @@ require_once '../../layouts/header.php';
     }
 
     async function deleteViolation(id) {
-        if (!confirm('Apakah Anda yakin ingin menghapus catatan pelanggaran ini?')) return;
-        
-        try {
-            const res = await fetch('<?php echo url('api/student_violations/delete.php'); ?>', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id })
-            });
-            const result = await res.json();
-            if (result.success) {
-                showToast(result.message);
-                loadViolations();
-            } else {
-                showToast(result.message, 'error');
+        const confirmBtn = document.getElementById('confirmDeleteBtn');
+        if (!confirmBtn) return;
+
+        confirmBtn.onclick = async (e) => {
+            e.preventDefault();
+            try {
+                const res = await fetch('<?php echo url('api/student_violations/delete.php'); ?>', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id })
+                });
+                const result = await res.json();
+                if (result.success) {
+                    showToast(result.message);
+                    if (typeof closeDeleteModal === 'function') closeDeleteModal();
+                    loadViolations();
+                } else {
+                    showToast(result.message, 'error');
+                }
+            } catch (e) {
+                showToast('Gagal menghapus data', 'error');
             }
-        } catch (e) {
-            showToast('Gagal menghapus data', 'error');
-        }
+        };
+
+        openDeleteModal('#');
     }
 
     document.getElementById('violation-form').onsubmit = async (e) => {

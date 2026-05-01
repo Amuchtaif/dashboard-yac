@@ -23,8 +23,15 @@ $unit_id = isset($_GET['unit_id']) ? $_GET['unit_id'] : '';
 $grade_id = isset($_GET['grade_id']) ? $_GET['grade_id'] : '';
 $day = isset($_GET['day']) ? $_GET['day'] : '';
 
+$is_admin = (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Administrator');
+
 $where_clauses = [];
 $params = [];
+
+if (!$is_admin) {
+    $where_clauses[] = "cs.employee_id = :current_user_id";
+    $params[':current_user_id'] = $_SESSION['user_id'];
+}
 
 if ($search) {
     $where_clauses[] = "(e.full_name LIKE :search OR s.name LIKE :search OR gl.name LIKE :search)";
@@ -355,7 +362,7 @@ include '../layouts/header.php';
 
     <!-- Table -->
     <div class="mt-8 flex flex-col">
-        <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+        <div class="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>

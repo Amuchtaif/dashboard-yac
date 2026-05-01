@@ -76,7 +76,7 @@ include '../../layouts/header.php';
     </div>
 
     <!-- Table -->
-    <div class="bg-white shadow-sm ring-1 ring-gray-200 sm:rounded-lg overflow-hidden">
+    <div class="bg-white shadow-sm ring-1 ring-gray-200 sm:rounded-lg overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-300">
             <thead class="bg-gray-50">
                 <tr>

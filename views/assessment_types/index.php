@@ -13,7 +13,8 @@ $conn = $db->getConnection();
 // --- Logika Paginasi ---
 $limit = isset($_GET['limit']) && in_array((int) $_GET['limit'], [10, 20, 50, 100]) ? (int) $_GET['limit'] : 10;
 $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int) $_GET['page'] : 1;
-if ($page < 1) $page = 1;
+if ($page < 1)
+    $page = 1;
 $offset = ($page - 1) * $limit;
 
 // --- Logika Filter ---
@@ -53,7 +54,7 @@ include '../layouts/header.php';
     <div class="sm:flex sm:items-center">
         <div class="sm:flex-auto">
             <h1 class="text-xl font-bold text-slate-900">Jenis Penilaian</h1>
-            <p class="mt-2 text-sm text-slate-500">Kelola jenis-jenis penilaian (UH, PTS, PAS, dll) yang akan tampil di Flutter.</p>
+            <p class="mt-2 text-sm text-slate-500">Kelola jenis-jenis penilaian (UH, PTS, PAS, dll).</p>
         </div>
         <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
             <button onclick="openFormModal()"
@@ -96,22 +97,31 @@ include '../layouts/header.php';
 
     <!-- Table -->
     <div class="mt-8 flex flex-col">
-        <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+        <div class="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
             <table class="min-w-full divide-y divide-gray-200 table-fixed">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="py-3.5 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 sm:pl-6 w-12">No.</th>
-                        <th class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Kode</th>
-                        <th class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Nama Penilaian</th>
-                        <th class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Bobot</th>
-                        <th class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Deskripsi</th>
-                        <th class="relative py-3.5 pl-3 pr-4 sm:pr-6 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">Aksi</th>
+                        <th
+                            class="py-3.5 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 sm:pl-6 w-12">
+                            No.</th>
+                        <th class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                            Kode</th>
+                        <th class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                            Nama Penilaian</th>
+                        <th class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                            Bobot</th>
+                        <th class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                            Deskripsi</th>
+                        <th
+                            class="relative py-3.5 pl-3 pr-4 sm:pr-6 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">
+                            Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200 bg-white">
                     <?php if (empty($assessment_types)): ?>
                         <tr>
-                            <td colspan="6" class="py-10 text-center text-sm text-slate-500">Belum ada data jenis penilaian.</td>
+                            <td colspan="6" class="py-10 text-center text-sm text-slate-500">Belum ada data jenis penilaian.
+                            </td>
                         </tr>
                     <?php endif; ?>
                     <?php foreach ($assessment_types as $index => $item): ?>
@@ -141,7 +151,10 @@ include '../layouts/header.php';
                                                 d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
                                         </svg>
                                     </button>
-                                    <button onclick="confirmDelete(<?php echo $item['id']; ?>)"
+                                    <button type="button" 
+                                        data-id="<?php echo htmlspecialchars($item['id'], ENT_QUOTES, 'UTF-8'); ?>" 
+                                        data-name="<?php echo htmlspecialchars($item['name'], ENT_QUOTES, 'UTF-8'); ?>"
+                                        onclick="handleDelete(this)"
                                         class="hover:text-red-600 transition-colors" title="Hapus">
                                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                                             stroke="currentColor">
@@ -162,7 +175,9 @@ include '../layouts/header.php';
                     <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
                         <div>
                             <p class="text-sm text-gray-700">
-                                Menampilkan <span class="font-medium"><?php echo $offset + 1; ?></span> ke <span class="font-medium"><?php echo min($offset + $limit, $total_rows); ?></span> dari <span class="font-medium"><?php echo $total_rows; ?></span> hasil
+                                Menampilkan <span class="font-medium"><?php echo $offset + 1; ?></span> ke <span
+                                    class="font-medium"><?php echo min($offset + $limit, $total_rows); ?></span> dari <span
+                                    class="font-medium"><?php echo $total_rows; ?></span> hasil
                             </p>
                         </div>
                         <div>
@@ -171,7 +186,9 @@ include '../layouts/header.php';
                                     <a href="?page=<?php echo $page - 1; ?>&limit=<?php echo $limit; ?>&search=<?php echo $search; ?>"
                                         class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
                                         <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
+                                            <path fill-rule="evenodd"
+                                                d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
+                                                clip-rule="evenodd" />
                                         </svg>
                                     </a>
                                 <?php endif; ?>
@@ -185,7 +202,9 @@ include '../layouts/header.php';
                                     <a href="?page=<?php echo $page + 1; ?>&limit=<?php echo $limit; ?>&search=<?php echo $search; ?>"
                                         class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
                                         <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
+                                            <path fill-rule="evenodd"
+                                                d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
+                                                clip-rule="evenodd" />
                                         </svg>
                                     </a>
                                 <?php endif; ?>
@@ -199,18 +218,26 @@ include '../layouts/header.php';
 </div>
 
 <!-- Form Modal -->
-<div id="formModal" class="fixed inset-0 z-50 invisible transition-all duration-300 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+<div id="formModal" class="fixed inset-0 z-50 invisible transition-all duration-300 overflow-y-auto"
+    aria-labelledby="modal-title" role="dialog" aria-modal="true">
     <div class="flex items-center justify-center min-h-screen p-4">
-        <div id="modalOverlay" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm opacity-0 transition-opacity duration-300" onclick="closeFormModal()"></div>
-        
-        <div id="modalContent" class="relative bg-white rounded-3xl shadow-2xl transform opacity-0 scale-95 transition-all duration-300 w-full max-w-md border border-slate-100 overflow-hidden">
+        <div id="modalOverlay"
+            class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm opacity-0 transition-opacity duration-300"
+            onclick="closeFormModal()"></div>
+
+        <div id="modalContent"
+            class="relative bg-white rounded-3xl shadow-2xl transform opacity-0 scale-95 transition-all duration-300 w-full max-w-md border border-slate-100 overflow-hidden">
             <form id="assessmentForm" onsubmit="submitForm(event)">
                 <input type="hidden" name="id" id="form-id">
-                
+
                 <div class="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                     <h3 class="text-lg font-black text-slate-800" id="modal-title">Tambah Jenis Penilaian</h3>
-                    <button type="button" onclick="closeFormModal()" class="p-2 rounded-xl bg-white border border-slate-200 text-slate-400 hover:text-slate-600 shadow-sm transition-all">
-                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    <button type="button" onclick="closeFormModal()"
+                        class="p-2 rounded-xl bg-white border border-slate-200 text-slate-400 hover:text-slate-600 shadow-sm transition-all">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
                     </button>
                 </div>
 
@@ -238,8 +265,10 @@ include '../layouts/header.php';
                 </div>
 
                 <div class="px-8 py-6 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3">
-                    <button type="button" onclick="closeFormModal()" class="px-6 py-2.5 text-sm font-bold text-slate-500 hover:text-slate-700 transition-colors">Batal</button>
-                    <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-cyan-600 px-8 py-2.5 text-sm font-bold text-white shadow-lg shadow-cyan-600/20 hover:bg-cyan-700 transition-all active:scale-95">
+                    <button type="button" onclick="closeFormModal()"
+                        class="px-6 py-2.5 text-sm font-bold text-slate-500 hover:text-slate-700 transition-colors">Batal</button>
+                    <button type="submit"
+                        class="inline-flex items-center justify-center rounded-xl bg-cyan-600 px-8 py-2.5 text-sm font-bold text-white shadow-lg shadow-cyan-600/20 hover:bg-cyan-700 transition-all active:scale-95">
                         Simpan Data
                     </button>
                 </div>
@@ -249,81 +278,104 @@ include '../layouts/header.php';
 </div>
 
 <script>
-function openFormModal(data = null) {
-    const modal = document.getElementById('formModal');
-    const overlay = document.getElementById('modalOverlay');
-    const modalContent = document.getElementById('modalContent');
-    const form = document.getElementById('assessmentForm');
-    const title = document.getElementById('modal-title');
-    
-    form.reset();
-    document.getElementById('form-id').value = '';
-    
-    if (data) {
-        title.textContent = 'Edit Jenis Penilaian';
-        document.getElementById('form-id').value = data.id;
-        document.getElementById('form-name').value = data.name;
-        document.getElementById('form-code').value = data.code || '';
-        document.getElementById('form-weight').value = data.weight;
-        document.getElementById('form-description').value = data.description || '';
-    } else {
-        title.textContent = 'Tambah Jenis Penilaian';
-    }
-
-    modal.classList.remove('invisible');
-    setTimeout(() => {
-        overlay.classList.remove('opacity-0');
-        modalContent.classList.remove('opacity-0', 'scale-95');
-    }, 10);
-}
-
-function closeFormModal() {
-    const modal = document.getElementById('formModal');
-    const overlay = document.getElementById('modalOverlay');
-    const modalContent = document.getElementById('modalContent');
-    
-    overlay.classList.add('opacity-0');
-    modalContent.classList.add('opacity-0', 'scale-95');
-    
-    setTimeout(() => {
-        modal.classList.add('invisible');
-    }, 300);
-}
-
-async function submitForm(e) {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData.entries());
-
-    try {
-        const response = await fetch('../../api/assessment_types/save.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
+    function handleDelete(btn) {
+        const id = btn.getAttribute('data-id');
         
-        const result = await response.json();
-        if (result.success) {
-            window.location.href = 'index.php?success=' + encodeURIComponent(result.message || 'Data berhasil disimpan');
-        } else {
-            alert('Gagal: ' + result.message);
-        }
-    } catch (e) {
-        alert('Terjadi kesalahan sistem.');
-    }
-}
+        const confirmBtn = document.getElementById('confirmDeleteBtn');
+        if (!confirmBtn) return;
+        
+        // Hijack the global confirm button
+        confirmBtn.onclick = async (e) => {
+            e.preventDefault();
+            confirmBtn.style.pointerEvents = 'none';
+            const originalText = confirmBtn.innerText;
+            confirmBtn.innerText = 'Menghapus...';
 
-async function confirmDelete(id) {
-    if (confirm('Yakin ingin menghapus jenis penilaian ini?')) {
+            try {
+                const response = await fetch('../../api/assessment_types/delete.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: id })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    window.location.href = 'index.php?success=' + encodeURIComponent(result.message || 'Data berhasil dihapus');
+                } else {
+                    alert('Gagal: ' + result.message);
+                    confirmBtn.style.pointerEvents = 'auto';
+                    confirmBtn.innerText = originalText;
+                    if (typeof closeDeleteModal === 'function') closeDeleteModal();
+                }
+            } catch (error) {
+                alert('Terjadi kesalahan sistem.');
+                confirmBtn.style.pointerEvents = 'auto';
+                confirmBtn.innerText = originalText;
+                if (typeof closeDeleteModal === 'function') closeDeleteModal();
+            }
+        };
+
+        // Call the global function
+        if (typeof openDeleteModal === 'function') {
+            openDeleteModal('#');
+        }
+    }
+
+    function openFormModal(data = null) {
+        const modal = document.getElementById('formModal');
+        const overlay = document.getElementById('modalOverlay');
+        const modalContent = document.getElementById('modalContent');
+        const form = document.getElementById('assessmentForm');
+        const title = document.getElementById('modal-title');
+
+        form.reset();
+        document.getElementById('form-id').value = '';
+
+        if (data) {
+            title.textContent = 'Edit Jenis Penilaian';
+            document.getElementById('form-id').value = data.id;
+            document.getElementById('form-name').value = data.name;
+            document.getElementById('form-code').value = data.code || '';
+            document.getElementById('form-weight').value = data.weight;
+            document.getElementById('form-description').value = data.description || '';
+        } else {
+            title.textContent = 'Tambah Jenis Penilaian';
+        }
+
+        modal.classList.remove('invisible');
+        setTimeout(() => {
+            overlay.classList.remove('opacity-0');
+            modalContent.classList.remove('opacity-0', 'scale-95');
+        }, 10);
+    }
+
+    function closeFormModal() {
+        const modal = document.getElementById('formModal');
+        const overlay = document.getElementById('modalOverlay');
+        const modalContent = document.getElementById('modalContent');
+
+        overlay.classList.add('opacity-0');
+        modalContent.classList.add('opacity-0', 'scale-95');
+
+        setTimeout(() => {
+            modal.classList.add('invisible');
+        }, 300);
+    }
+
+    async function submitForm(e) {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+
         try {
-            const response = await fetch('../../api/assessment_types/delete.php', {
+            const response = await fetch('../../api/assessment_types/save.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: id })
+                body: JSON.stringify(data)
             });
+
             const result = await response.json();
             if (result.success) {
-                window.location.href = 'index.php?success=' + encodeURIComponent(result.message || 'Data berhasil dihapus');
+                window.location.href = 'index.php?success=' + encodeURIComponent(result.message || 'Data berhasil disimpan');
             } else {
                 alert('Gagal: ' + result.message);
             }
@@ -331,7 +383,8 @@ async function confirmDelete(id) {
             alert('Terjadi kesalahan sistem.');
         }
     }
-}
+
+
 </script>
 
 <?php include '../layouts/footer.php'; ?>

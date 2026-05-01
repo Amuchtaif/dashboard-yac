@@ -69,8 +69,8 @@ if (!function_exists('hasPermission')) {
                 $stmtRole->execute([$employee['position_id']]);
                 $role_perm = $stmtRole->fetch(PDO::FETCH_ASSOC);
 
-                if ($role_perm && isset($role_perm[$column_name])) {
-                    return (bool) $role_perm[$column_name];
+                if ($role_perm && !empty($role_perm[$column_name])) {
+                    return true;
                 }
             }
 
@@ -78,20 +78,18 @@ if (!function_exists('hasPermission')) {
             
             // --- KEPALA BIDANG FALLBACK ---
             if ($permission_name === 'can_access_kabid') {
-                if (isset($employee['level']) && ($employee['level'] == 1 || $employee['level'] == 2)) {
-                    return true;
-                }
+                // Hardcoded fallback removed as per user request to treat all levels same as teachers.
+                // Access should now be managed via database permissions.
             }
 
             // --- KESANTRIAN FALLBACK ---
             if ($permission_name === 'can_access_kesantrian') {
                 $posName = strtolower($employee['position_name'] ?? '');
-                if (isset($employee['level']) && $employee['level'] <= 3) return true;
                 if (strpos($posName, 'musyrif') !== false || strpos($posName, 'kesantrian') !== false) return true;
             }
 
-            // --- TEACHING SCHEDULE FALLBACK ---
-            if ($permission_name === 'access_education') {
+            // --- TEACHING SCHEDULE FALLBACK (Academic & Education) ---
+            if ($permission_name === 'access_education' || $permission_name === 'manage_academic') {
                 $stmtSched = $conn->prepare("SELECT COUNT(*) FROM class_schedules WHERE employee_id = ?");
                 $stmtSched->execute([$employee_id]);
                 if ($stmtSched->fetchColumn() > 0) {

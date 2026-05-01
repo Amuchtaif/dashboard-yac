@@ -15,6 +15,8 @@ $end_date = isset($_GET['end_date']) ? $_GET['end_date'] : date('Y-m-d');
 $status_filter = isset($_GET['status']) ? $_GET['status'] : '';
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 
+$is_admin = (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Administrator');
+
 // --- Build Query ---
 $query = "
     SELECT 
@@ -31,6 +33,11 @@ $params = [
     ':start_date' => $start_date,
     ':end_date' => $end_date
 ];
+
+if (!$is_admin) {
+    $query .= " AND ta.teacher_id = :current_user_id";
+    $params[':current_user_id'] = $_SESSION['user_id'];
+}
 
 if (!empty($status_filter)) {
     $query .= " AND ta.status = :status";

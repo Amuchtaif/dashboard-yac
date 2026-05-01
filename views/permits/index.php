@@ -38,7 +38,10 @@ $stats['approval_rate'] = ($rateData['total'] > 0) ? round(($rateData['approved'
 
 
 // --- Filter & Pagination Logic ---
-$limit = 10;
+$limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 10;
+if (!in_array($limit, [10, 50, 100]))
+    $limit = 10;
+
 $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
 if ($page < 1)
     $page = 1;
@@ -205,25 +208,36 @@ include '../layouts/header.php';
         <div
             class="p-6 flex flex-col sm:flex-row justify-between items-center bg-white border-b border-slate-100 gap-4">
             <div class="flex items-center gap-3 w-full sm:w-auto">
-                <form action="" method="GET" class="flex gap-3">
+                <form action="" method="GET" class="flex gap-3 items-center">
                     <input type="hidden" name="tab" value="<?php echo htmlspecialchars($tab); ?>">
 
+                    <!-- Type Filter -->
                     <div class="relative">
                         <select name="type" onchange="this.form.submit()"
                             class="appearance-none bg-white border border-slate-300 text-slate-700 py-2 pl-4 pr-10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500">
                             <option value="">Jenis Izin: Semua</option>
-                            <option value="Sick" <?php echo $permit_type == 'Sick' ? 'selected' : ''; ?>>Sakit
-                            </option>
-                            <option value="Leave" <?php echo $permit_type == 'Leave' ? 'selected' : ''; ?>>Cuti Tahunan
-                            </option>
-                            <option value="Other" <?php echo $permit_type == 'Other' ? 'selected' : ''; ?>>Lainnya
-                            </option>
+                            <option value="Sick" <?php echo $permit_type == 'Sick' ? 'selected' : ''; ?>>Sakit</option>
+                            <option value="Leave" <?php echo $permit_type == 'Leave' ? 'selected' : ''; ?>>Cuti Tahunan</option>
+                            <option value="Other" <?php echo $permit_type == 'Other' ? 'selected' : ''; ?>>Lainnya</option>
                         </select>
-                        <div
-                            class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 9l-7 7-7-7" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Limit Filter -->
+                    <div class="relative">
+                        <select name="limit" onchange="this.form.submit()"
+                            class="appearance-none bg-white border border-slate-300 text-slate-700 py-2 pl-4 pr-10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500">
+                            <option value="10" <?php echo $limit == 10 ? 'selected' : ''; ?>>10 baris</option>
+                            <option value="50" <?php echo $limit == 50 ? 'selected' : ''; ?>>50 baris</option>
+                            <option value="100" <?php echo $limit == 100 ? 'selected' : ''; ?>>100 baris</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                             </svg>
                         </div>
                     </div>
@@ -246,6 +260,7 @@ include '../layouts/header.php';
                         <th scope="col" class="px-6 py-4 min-w-[150px] text-left">Periode</th>
                         <th scope="col" class="px-6 py-4 min-w-[200px] text-left">Alasan</th>
                         <th scope="col" class="px-6 py-4 min-w-[120px] text-left">Status</th>
+                        <th scope="col" class="px-6 py-4 text-right">Opsi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 bg-white">
@@ -359,6 +374,40 @@ include '../layouts/header.php';
                                     <?php echo $statusText; ?>
                                 </div>
                             </td>
+                            <!-- Action -->
+                            <td class="px-6 py-4 text-right">
+                                <div class="flex justify-end gap-2">
+                                    <?php if ($permit['status'] === 'Pending'): ?>
+                                        <!-- Approve -->
+                                        <a href="<?php url('logic/permits/quick_action.php?id=' . $permit['id'] . '&action=approve'); ?>" 
+                                           class="p-2 text-emerald-500 hover:bg-emerald-50 rounded-lg transition-all" 
+                                           title="Setujui"
+                                           onclick="return confirm('Setujui pengajuan izin ini?')">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                            </svg>
+                                        </a>
+                                        <!-- Reject -->
+                                        <a href="<?php url('logic/permits/quick_action.php?id=' . $permit['id'] . '&action=reject'); ?>" 
+                                           class="p-2 text-amber-500 hover:bg-amber-50 rounded-lg transition-all" 
+                                           title="Tolak"
+                                           onclick="return confirm('Tolak pengajuan izin ini?')">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </a>
+                                    <?php endif; ?>
+                                    
+                                    <!-- Delete -->
+                                    <button onclick="openDeleteModal('<?php url('logic/permits/delete.php?id=' . $permit['id']); ?>')" 
+                                            class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all" 
+                                            title="Hapus">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -374,10 +423,10 @@ include '../layouts/header.php';
                 </p>
                 <div class="flex gap-2">
                     <?php if ($page > 1): ?>
-                        <a href="?page=<?php echo $page - 1; ?>&tab=<?php echo $tab; ?>&type=<?php echo $permit_type; ?>" class="rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 transition-all">Prev</a>
+                        <a href="?page=<?php echo $page - 1; ?>&tab=<?php echo $tab; ?>&type=<?php echo $permit_type; ?>&limit=<?php echo $limit; ?>" class="rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 transition-all">Prev</a>
                     <?php endif; ?>
                     <?php if ($page < $total_pages): ?>
-                        <a href="?page=<?php echo $page + 1; ?>&tab=<?php echo $tab; ?>&type=<?php echo $permit_type; ?>" class="rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 transition-all">Next</a>
+                        <a href="?page=<?php echo $page + 1; ?>&tab=<?php echo $tab; ?>&type=<?php echo $permit_type; ?>&limit=<?php echo $limit; ?>" class="rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 transition-all">Next</a>
                     <?php endif; ?>
                 </div>
             </div>
@@ -393,7 +442,7 @@ include '../layouts/header.php';
                     <nav class="isolate inline-flex -space-x-px rounded-xl shadow-sm border border-slate-200 overflow-hidden" aria-label="Pagination">
                         <!-- Previous -->
                         <?php if ($page > 1): ?>
-                            <a href="?page=<?php echo $page - 1; ?>&tab=<?php echo $tab; ?>&type=<?php echo $permit_type; ?>"
+                            <a href="?page=<?php echo $page - 1; ?>&tab=<?php echo $tab; ?>&type=<?php echo $permit_type; ?>&limit=<?php echo $limit; ?>"
                                 class="relative inline-flex items-center px-3 py-2 text-slate-400 hover:bg-slate-50 focus:z-20 transition-colors">
                                 <span class="sr-only">Previous</span>
                                 <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -405,7 +454,7 @@ include '../layouts/header.php';
                         <!-- Numbers -->
                         <?php for ($i = 1; $i <= $total_pages; $i++): ?>
                             <?php if ($i == 1 || $i == $total_pages || ($i >= $page - 2 && $i <= $page + 2)): ?>
-                                <a href="?page=<?php echo $i; ?>&tab=<?php echo $tab; ?>&type=<?php echo $permit_type; ?>"
+                                <a href="?page=<?php echo $i; ?>&tab=<?php echo $tab; ?>&type=<?php echo $permit_type; ?>&limit=<?php echo $limit; ?>"
                                     class="relative inline-flex items-center px-4 py-2 text-sm font-bold <?php echo $i === $page ? 'bg-cyan-600 text-white' : 'text-slate-700 hover:bg-slate-50'; ?> border-x border-slate-100 transition-colors">
                                     <?php echo $i; ?>
                                 </a>
@@ -416,7 +465,7 @@ include '../layouts/header.php';
 
                         <!-- Next -->
                         <?php if ($page < $total_pages): ?>
-                            <a href="?page=<?php echo $page + 1; ?>&tab=<?php echo $tab; ?>&type=<?php echo $permit_type; ?>"
+                            <a href="?page=<?php echo $page + 1; ?>&tab=<?php echo $tab; ?>&type=<?php echo $permit_type; ?>&limit=<?php echo $limit; ?>"
                                 class="relative inline-flex items-center px-3 py-2 text-slate-400 hover:bg-slate-50 focus:z-20 transition-colors">
                                 <span class="sr-only">Next</span>
                                 <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">

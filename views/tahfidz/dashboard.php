@@ -11,26 +11,24 @@ $page_title = "Dashboard Tahfidz";
 $db = new Database();
 $conn = $db->getConnection();
 
+$is_admin = (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Administrator');
+
 // --- Stats Logic ---
 $today = date('Y-m-d');
+$where_today = "date = '$today'";
+if (!$is_admin) {
+    $where_today .= " AND teacher_id = " . (int)$_SESSION['user_id'];
+}
 
 // Total Setoran Hari Ini
-$todayItemsQuery = "SELECT COUNT(*) FROM tahfidz_memorization WHERE date = '$today'";
+$todayItemsQuery = "SELECT COUNT(*) FROM tahfidz_memorization WHERE $where_today";
 $todayCount = $conn->query($todayItemsQuery)->fetchColumn();
 
 // Total Santri Setor Hari Ini (Distinct)
-$todayStudentsQuery = "SELECT COUNT(DISTINCT student_id) FROM tahfidz_memorization WHERE date = '$today'";
+$todayStudentsQuery = "SELECT COUNT(DISTINCT student_id) FROM tahfidz_memorization WHERE $where_today";
 $todayStudentCount = $conn->query($todayStudentsQuery)->fetchColumn();
 
 // Fetch Recent Setoran Data (Today)
-// Assuming students table has 'nama_siswa', 'kelas', 'tingkat'. Assuming 'employees' table for teacher if needed.
-// Teacher ID is in tahfidz_memorization.teacher_id -> employees.id? Or separate users table?
-// Usually teacher_id refers to user_id or employee_id. Let's assume employees.id and name is full_name based on dashboard/index.php.
-// But in submit_memorization.php, teacher_id likely comes from user logic.
-// We'll LEFT JOIN employees ON t.teacher_id = employees.id (or user_id).
-// Let's assume employees table has 'id', 'full_name'.
-// We also need student name. students table has 'nama_siswa' based on get_students.php fix earlier.
-
 $query = "
     SELECT 
         tm.id, tm.student_id, tm.teacher_id, tm.date, tm.surah_start, tm.ayat_start, tm.surah_end, tm.ayat_end, tm.juz, tm.status, tm.notes, tm.created_at,
@@ -42,9 +40,13 @@ $query = "
     LEFT JOIN students s ON tm.student_id = s.id
     LEFT JOIN employees e ON tm.teacher_id = e.id
     WHERE tm.date = '$today'
-    ORDER BY tm.id DESC
-    LIMIT 50
 ";
+
+if (!$is_admin) {
+    $query .= " AND tm.teacher_id = " . (int)$_SESSION['user_id'];
+}
+
+$query .= " ORDER BY tm.id DESC LIMIT 50";
 
 $stm = $conn->prepare($query);
 $stm->execute();

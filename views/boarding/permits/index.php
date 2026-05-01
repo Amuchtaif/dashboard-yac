@@ -191,12 +191,18 @@ include '../../layouts/header.php';
     }
 
     function deletePermit(id) {
-        if(confirm('Hapus data izin ini?')) {
+        const confirmBtn = document.getElementById('confirmDeleteBtn');
+        if (!confirmBtn) return;
+
+        confirmBtn.onclick = (e) => {
+            e.preventDefault();
             const f = document.createElement('form'); f.method='POST'; f.action='../../../logic/boarding/manage_permits.php';
             const a = document.createElement('input'); a.type='hidden'; a.name='action'; a.value='delete_permit'; f.appendChild(a);
             const i = document.createElement('input'); i.type='hidden'; i.name='id'; i.value=id; f.appendChild(i);
             document.body.appendChild(f); f.submit();
-        }
+        };
+
+        openDeleteModal('#');
     }
 </script>
 

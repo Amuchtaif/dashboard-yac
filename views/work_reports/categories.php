@@ -41,8 +41,8 @@ require_once __DIR__ . '/../layouts/header.php';
         </div>
 
         <!-- Table Container -->
-        <div class="p-0 relative min-h-[400px]">
-            <table class="w-full text-left border-collapse table-fixed">
+        <div class="p-0 relative min-h-[400px] overflow-x-auto">
+            <table class="w-full text-left border-collapse table-fixed min-w-[600px]">
                 <thead>
                     <tr class="bg-slate-50/50">
                         <th class="px-8 py-5 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] w-24">No</th>

@@ -10,16 +10,31 @@ $page_title = "Data Halaqah";
 $db = new Database();
 $conn = $db->getConnection();
 
+$is_admin = (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Administrator');
+
 // --- Fetch Data ---
 // 1. Fetch Halaqah Groups with Teachers
+$where_clauses = ["1=1"];
+$params = [];
+
+if (!$is_admin) {
+    $where_clauses[] = "hg.teacher_id = :current_user_id";
+    $params[':current_user_id'] = $_SESSION['user_id'];
+}
+
+$where_sql = implode(" AND ", $where_clauses);
+
 $groups_query = "
     SELECT hg.*, e.full_name as teacher_name,
     (SELECT COUNT(*) FROM halaqah_members WHERE group_id = hg.id) as member_count
     FROM halaqah_groups hg
     JOIN employees e ON hg.teacher_id = e.id
+    WHERE $where_sql
     ORDER BY hg.group_name ASC
 ";
-$groups = $conn->query($groups_query)->fetchAll(PDO::FETCH_ASSOC);
+$groups_stmt = $conn->prepare($groups_query);
+$groups_stmt->execute($params);
+$groups = $groups_stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // 2. Fetch All Teachers (for group creation)
 $teachers_query = "SELECT id, full_name FROM employees WHERE status = 'active' ORDER BY full_name ASC";

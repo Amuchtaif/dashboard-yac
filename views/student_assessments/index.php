@@ -22,8 +22,15 @@ $unit_id = $_GET['unit_id'] ?? '';
 $class_id = $_GET['class_id'] ?? '';
 $subject_id = $_GET['subject_id'] ?? '';
 
+$is_admin = (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Administrator');
+
 $where_clauses = [];
 $params = [];
+
+if (!$is_admin) {
+    $where_clauses[] = "sa.teacher_id = :current_user_id";
+    $params[':current_user_id'] = $_SESSION['user_id'];
+}
 
 if ($search) {
     $where_clauses[] = "(s.name LIKE :search OR at.name LIKE :search OR e.full_name LIKE :search)";
@@ -297,6 +304,9 @@ include '../layouts/header.php';
                                     <a href="print.php?id=<?php echo $a['id']; ?>" target="_blank" class="p-2.5 bg-white border border-slate-200 text-slate-400 rounded-xl hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-all shadow-sm active:scale-95" title="Cetak">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
                                     </a>
+                                    <button onclick="handleDelete(<?php echo $a['id']; ?>)" class="p-2.5 bg-white border border-slate-200 text-slate-400 rounded-xl hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition-all shadow-sm active:scale-95" title="Hapus">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -553,6 +563,36 @@ function closeModal() {
     setTimeout(() => {
         modal.classList.add('invisible');
     }, 300);
+}
+
+function handleDelete(id) {
+    const confirmBtn = document.getElementById('confirmDeleteBtn');
+    if (!confirmBtn) return;
+
+    confirmBtn.onclick = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await fetch(`../../api/grading/delete.php`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id })
+            });
+            const result = await response.json();
+            
+            if (result.success) {
+                showToast(result.message);
+                if (typeof closeDeleteModal === 'function') closeDeleteModal();
+                // Reload page after a short delay to see the change
+                setTimeout(() => window.location.reload(), 1000);
+            } else {
+                showToast(result.message, 'error');
+            }
+        } catch (e) {
+            showToast('Terjadi kesalahan saat menghapus data.', 'error');
+        }
+    };
+
+    openDeleteModal('#');
 }
 </script>
 

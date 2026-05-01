@@ -14,12 +14,14 @@ if (!$group_id) {
 $db = new Database();
 $conn = $db->getConnection();
 
+$is_admin = (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Administrator');
+
 // Fetch group info
 $group_stmt = $conn->prepare("SELECT hg.*, e.full_name as teacher_name FROM halaqah_groups hg JOIN employees e ON hg.teacher_id = e.id WHERE hg.id = ?");
 $group_stmt->execute([$group_id]);
 $group = $group_stmt->fetch(PDO::FETCH_ASSOC);
 
-if (!$group) {
+if (!$group || (!$is_admin && $group['teacher_id'] != $_SESSION['user_id'])) {
     header('Location: halaqah.php');
     exit;
 }

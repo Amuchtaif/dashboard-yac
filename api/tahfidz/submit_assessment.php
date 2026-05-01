@@ -36,14 +36,25 @@ if (!$student_id) {
 }
 
 try {
-    $stmt = $mysqli->prepare("INSERT INTO tahfidz_assessments 
-        (student_id, assessment_date, category, tajweed_score, fluency_score, makhraj_score, total_score, comments, teacher_id) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $assessment_type_id = isset($input['assessment_type_id']) ? $input['assessment_type_id'] : null;
     
-    $stmt->bind_param("issiiiisi", 
+    // Get type name for category fallback
+    if ($assessment_type_id) {
+        $res = $mysqli->query("SELECT name FROM tahfidz_assessment_types WHERE id = " . (int)$assessment_type_id);
+        if ($res && $row = $res->fetch_assoc()) {
+            $category = $row['name'];
+        }
+    }
+
+    $stmt = $mysqli->prepare("INSERT INTO tahfidz_assessments 
+        (student_id, assessment_date, category, assessment_type_id, tajweed_score, fluency_score, makhraj_score, total_score, comments, teacher_id) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    
+    $stmt->bind_param("issiiiiisi", 
         $student_id, 
         $assessment_date, 
-        $category, 
+        $category,
+        $assessment_type_id, 
         $tajweed_score, 
         $fluency_score, 
         $makhraj_score, 

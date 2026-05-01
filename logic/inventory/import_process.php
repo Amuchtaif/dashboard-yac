@@ -11,7 +11,16 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_FILES['csv_file'])) {
 
 $file = $_FILES['csv_file']['tmp_name'];
 $handle = fopen($file, "r");
-$header = fgetcsv($handle, 1000, ","); // Skip header
+
+// Detect delimiter (comma or semicolon)
+$firstLine = fgets($handle);
+$commaCount = substr_count($firstLine, ',');
+$semicolonCount = substr_count($firstLine, ';');
+$delimiter = ($semicolonCount > $commaCount) ? ';' : ',';
+
+// Reset file pointer and skip header
+rewind($handle);
+fgetcsv($handle, 1000, $delimiter); 
 
 $db = new Database();
 $conn = $db->getConnection();
@@ -22,38 +31,34 @@ $rowNum = 0;
 try {
     $conn->beginTransaction();
 
-    while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
+    while (($data = fgetcsv($handle, 1000, $delimiter)) !== FALSE) {
         $rowNum++;
         
-        // Expected format (same as export): 
-        // No, Code, Name, Full Location, Qty, Unit, Condition, Desc
-        // 0   1     2     3               4    5     6          7
+        // Skip empty rows
+        if (empty(array_filter($data))) continue;
+
+        // Expected format: No, Code, Name, Full Location, Qty, Unit, Condition, Desc
         if (count($data) < 4) continue;
 
-        $codeFromCsv = trim($data[1]);
-        $name = trim($data[2]);
-        $fullLocName = trim($data[3]);
-        $qty = (int)trim($data[4]);
-        $unit = trim($data[5]) ?: 'Pcs';
-        $condition = trim($data[6]) ?: 'Baik';
-        $desc = trim($data[7]);
+        $codeFromCsv = isset($data[1]) ? trim($data[1]) : '';
+        $name = isset($data[2]) ? trim($data[2]) : '';
+        $fullLocName = isset($data[3]) ? trim($data[3]) : '';
+        $qty = isset($data[4]) ? (int)trim($data[4]) : 0;
+        $unit = (isset($data[5]) && trim($data[5])) ? trim($data[5]) : 'Pcs';
+        $condition = (isset($data[6]) && trim($data[6])) ? trim($data[6]) : 'Baik';
+        $desc = isset($data[7]) ? trim($data[7]) : '';
 
         if (empty($name) || empty($fullLocName)) continue;
 
-        // Find location by full name or leaf name
-        // We split by ' > ' if it's there
+        // Find location
         $locParts = explode(' > ', $fullLocName);
-        $leafName = end($locParts);
+        $leafName = trim(end($locParts));
 
         $stmtLoc = $conn->prepare("SELECT id, name FROM inventory_locations WHERE name = ? LIMIT 1");
         $stmtLoc->execute([$leafName]);
         $loc = $stmtLoc->fetch();
 
-        if (!$loc) {
-            // If location not found, we skip or put in Unassigned
-            // For now, let's skip
-            continue;
-        }
+        if (!$loc) continue;
 
         $locId = $loc['id'];
         $locRealName = $loc['name'];

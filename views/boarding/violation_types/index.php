@@ -32,7 +32,7 @@ include '../../layouts/header.php';
         </div>
     </div>
 
-    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-x-auto">
         <table class="w-full text-left border-collapse">
             <thead>
                 <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
@@ -120,12 +120,18 @@ include '../../layouts/header.php';
     function openModal(id) { document.getElementById(id).classList.remove('hidden'); document.body.style.overflow = 'hidden'; }
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); document.body.style.overflow = 'auto'; }
     function deleteType(id) {
-        if(confirm('Hapus jenis pelanggaran ini?')) {
+        const confirmBtn = document.getElementById('confirmDeleteBtn');
+        if (!confirmBtn) return;
+
+        confirmBtn.onclick = (e) => {
+            e.preventDefault();
             const f = document.createElement('form'); f.method='POST'; f.action='../../../logic/boarding/manage_violations.php';
             const a = document.createElement('input'); a.type='hidden'; a.name='action'; a.value='delete_type'; f.appendChild(a);
             const i = document.createElement('input'); i.type='hidden'; i.name='id'; i.value=id; f.appendChild(i);
             document.body.appendChild(f); f.submit();
-        }
+        };
+
+        openDeleteModal('#');
     }
 </script>
 

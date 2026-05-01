@@ -22,8 +22,15 @@ $type_id = isset($_GET['type_id']) ? $_GET['type_id'] : '';
 $date_start = isset($_GET['date_start']) ? $_GET['date_start'] : '';
 $date_end = isset($_GET['date_end']) ? $_GET['date_end'] : '';
 
+$is_admin = (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Administrator');
+
 $where_clauses = [];
 $params = [];
+
+if (!$is_admin) {
+    $where_clauses[] = "a.teacher_id = :current_user_id";
+    $params[':current_user_id'] = $_SESSION['user_id'];
+}
 
 if ($search) {
     $where_clauses[] = "(s.nama_siswa LIKE :search OR e.full_name LIKE :search)";
@@ -91,7 +98,7 @@ $assessment_types = $conn->query("SELECT id, name FROM tahfidz_assessment_types 
 
 // Fetch students for "Add New" form (filtered by status Aktif)
 $students = $conn->query("SELECT id, nama_siswa, nomor_induk as nis, kelas FROM students WHERE status = 'Aktif' ORDER BY nama_siswa ASC")->fetchAll(PDO::FETCH_ASSOC);
-$teachers = $conn->query("SELECT id, full_name FROM employees WHERE status = 'active' ORDER BY full_name ASC LIMIT 100")->fetchAll(PDO::FETCH_ASSOC);
+$teachers = $conn->query("SELECT id, full_name FROM employees WHERE status = 'active' OR id IN (SELECT DISTINCT teacher_id FROM tahfidz_assessments) ORDER BY full_name ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 include '../layouts/header.php';
 ?>
@@ -162,13 +169,14 @@ include '../layouts/header.php';
 
     <!-- Data Table -->
     <div class="mt-8 flex flex-col">
-        <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg bg-white">
+        <div class="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 md:rounded-lg bg-white">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="py-3.5 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 sm:pl-6 w-12 text-center">No</th>
                         <th class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Santri</th>
                         <th class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Info Kelas</th>
+                        <th class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Pengampu</th>
                         <th class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Tanggal</th>
                         <th class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Jenis</th>
                         <th class="px-3 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">T / F / M</th>
@@ -195,6 +203,9 @@ include '../layouts/header.php';
                                 <span class="mx-1 text-gray-300">•</span>
                                 <?php echo $item['kelas']; ?>
                             </td>
+                            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-600 font-medium">
+                                <?php echo htmlspecialchars($item['teacher_name'] ?: '-'); ?>
+                            </td>
                             <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-600">
                                 <?php echo date('d/m/Y', strtotime($item['assessment_date'])); ?>
                             </td>
@@ -220,7 +231,7 @@ include '../layouts/header.php';
                                     <button onclick='openFormModal(<?php echo json_encode($item); ?>)' class="hover:text-cyan-600 transition-colors" title="Edit">
                                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" /></svg>
                                     </button>
-                                    <button onclick="confirmDelete(<?php echo $item['id']; ?>)" class="hover:text-rose-600 transition-colors" title="Hapus">
+                                    <button onclick="openDeleteModal('<?php url('logic/tahfidz/delete_assessment.php?id=' . $item['id']); ?>')" class="hover:text-rose-600 transition-colors" title="Hapus">
                                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
                                     </button>
                                 </div>
@@ -286,7 +297,7 @@ include '../layouts/header.php';
                     <div class="space-y-6">
                         <div class="space-y-2">
                             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Nama Santri</label>
-                            <select name="student_id" id="form-student_id" required class="block w-full rounded-lg border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-700 focus:bg-white focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/5 transition-all outline-none">
+                            <select name="student_id" id="form-student_id" required class="hybrid-select block w-full rounded-lg border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-700 focus:bg-white focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/5 transition-all outline-none">
                                 <option value="">Pilih Santri...</option>
                                 <?php foreach ($students as $s): ?>
                                     <option value="<?php echo $s['id']; ?>"><?php echo htmlspecialchars($s['nama_siswa']); ?> (<?php echo $s['nis']; ?>)</option>
@@ -297,7 +308,7 @@ include '../layouts/header.php';
                             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Tanggal & Jenis</label>
                             <div class="flex gap-3">
                                 <input type="date" name="assessment_date" id="form-assessment_date" value="<?php echo date('Y-m-d'); ?>" required class="flex-1 rounded-lg border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-700 focus:bg-white focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/5 transition-all outline-none">
-                                <select name="assessment_type_id" id="form-assessment_type_id" required class="flex-1 rounded-lg border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-700 focus:bg-white focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/5 transition-all outline-none">
+                                <select name="assessment_type_id" id="form-assessment_type_id" required class="hybrid-select flex-1 rounded-lg border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-700 focus:bg-white focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/5 transition-all outline-none">
                                     <option value="">Jenis...</option>
                                     <?php foreach ($assessment_types as $t): ?>
                                         <option value="<?php echo $t['id']; ?>"><?php echo $t['name']; ?></option>
@@ -307,7 +318,7 @@ include '../layouts/header.php';
                         </div>
                         <div class="space-y-2">
                             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Guru Pengampu</label>
-                            <select name="teacher_id" id="form-teacher_id" required class="block w-full rounded-lg border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-700 focus:bg-white focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/5 transition-all outline-none">
+                            <select name="teacher_id" id="form-teacher_id" required class="hybrid-select block w-full rounded-lg border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-700 focus:bg-white focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/5 transition-all outline-none">
                                 <option value="">Pilih Guru...</option>
                                 <?php foreach ($teachers as $t): ?>
                                     <option value="<?php echo $t['id']; ?>"><?php echo htmlspecialchars($t['full_name']); ?></option>
@@ -388,13 +399,27 @@ function openFormModal(data = null) {
         document.getElementById('form-id').value = data.id;
         document.getElementById('form-student_id').value = data.student_id;
         document.getElementById('form-assessment_date').value = data.assessment_date;
-        document.getElementById('form-assessment_type_id').value = data.assessment_type_id;
+        document.getElementById('form-assessment_type_id').value = data.assessment_type_id || '';
         document.getElementById('form-teacher_id').value = data.teacher_id;
         document.getElementById('form-tajweed_score').value = data.tajweed_score;
         document.getElementById('form-fluency_score').value = data.fluency_score;
         document.getElementById('form-makhraj_score').value = data.makhraj_score;
         document.getElementById('form-comments').value = data.comments || '';
         calculateTotal();
+
+        // Refresh Hybrid Selects
+        setTimeout(() => {
+            document.querySelectorAll('.hybrid-select-container').forEach(container => {
+                const select = container.nextElementSibling;
+                const input = container.querySelector('.hybrid-search-input');
+                if (select && select.tagName === 'SELECT') {
+                    const selectedOption = select.options[select.selectedIndex];
+                    if (selectedOption) {
+                        input.placeholder = selectedOption.text;
+                    }
+                }
+            });
+        }, 50);
     } else {
         title.textContent = 'Input Nilai Tahfidz';
         document.getElementById('form-assessment_date').value = new Date().toISOString().split('T')[0];
@@ -435,16 +460,7 @@ async function submitForm(e) {
         
         const result = await response.json();
         if (result.success) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Data Tersimpan!',
-                text: result.message,
-                timer: 1500,
-                showConfirmButton: false,
-                borderRadius: '30px'
-            }).then(() => {
-                window.location.reload();
-            });
+            window.location.href = 'assessments.php?success=' + encodeURIComponent(result.message);
         } else {
             Swal.fire({
                 icon: 'error',
@@ -463,56 +479,6 @@ async function submitForm(e) {
     }
 }
 
-function confirmDelete(id) {
-    Swal.fire({
-        title: 'Hapus Penilaian?',
-        text: "Data ini tidak dapat dikembalikan!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#ef4444',
-        cancelButtonColor: '#94a3b8',
-        confirmButtonText: 'Ya, Hapus Data',
-        cancelButtonText: 'Batal',
-        borderRadius: '30px'
-    }).then(async (result) => {
-        if (result.isConfirmed) {
-            try {
-                const response = await fetch('../../api/tahfidz/delete_assessment.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: id })
-                });
-                const result = await response.json();
-                if (result.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Dihapus!',
-                        text: result.message,
-                        timer: 1500,
-                        showConfirmButton: false,
-                        borderRadius: '30px'
-                    }).then(() => {
-                        window.location.reload();
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Gagal',
-                        text: result.message,
-                        borderRadius: '30px'
-                    });
-                }
-            } catch (e) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Sistem Error',
-                    text: 'Gagal menghapus data.',
-                    borderRadius: '30px'
-                });
-            }
-        }
-    });
-}
 </script>
 
 <style>

@@ -17,8 +17,15 @@ $offset = ($page - 1) * $limit;
 $is_draft = isset($_GET['draft']) ? (int)$_GET['draft'] : 0;
 $search = $_GET['search'] ?? '';
 
+$is_admin = (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Administrator');
+
 $where = "WHERE r.is_draft = :draft";
 $params = [':draft' => $is_draft];
+
+if (!$is_admin) {
+    $where .= " AND r.employee_id = :current_user_id";
+    $params[':current_user_id'] = $_SESSION['user_id'];
+}
 
 if ($search) {
     $where .= " AND (r.title LIKE :search OR s.name LIKE :search)";
