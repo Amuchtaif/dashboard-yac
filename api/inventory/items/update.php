@@ -19,6 +19,7 @@ try {
         $location_id = $data->location_id ?? null;
         $qty = $data->qty ?? 0;
         $unit = $data->item_unit ?? '';
+        $funding_source = $data->funding_source ?? '';
         $desc = $data->description ?? '';
         $condition = $data->item_condition ?? 'Baik';
         $purchase_date = $data->purchase_date ?? null;
@@ -29,6 +30,7 @@ try {
         $location_id = $_POST['location_id'] ?? null;
         $qty = $_POST['qty'] ?? 0;
         $unit = $_POST['item_unit'] ?? '';
+        $funding_source = $_POST['funding_source'] ?? '';
         $desc = $_POST['description'] ?? '';
         $condition = $_POST['item_condition'] ?? 'Baik';
         $purchase_date = !empty($_POST['purchase_date']) ? $_POST['purchase_date'] : null;
@@ -48,8 +50,8 @@ try {
         $code = generateItemCodeV2($conn, $location_id, $locName, $name, $id);
     }
 
-    $sql = "UPDATE inventory_items SET item_code = ?, name = ?, location_id = ?, qty = ?, item_unit = ?, description = ?, item_condition = ?, purchase_date = ?";
-    $params = [$code, $name, $location_id, (int)$qty, $unit, $desc, $condition, $purchase_date];
+    $sql = "UPDATE inventory_items SET item_code = ?, name = ?, location_id = ?, qty = ?, item_unit = ?, funding_source = ?, description = ?, item_condition = ?, purchase_date = ?";
+    $params = [$code, $name, $location_id, (int)$qty, $unit, $funding_source, $desc, $condition, $purchase_date];
 
     if (isset($_FILES['item_photo']) && $_FILES['item_photo']['error'] === UPLOAD_ERR_OK) {
         $uploadDir = '../../../uploads/inventory/';

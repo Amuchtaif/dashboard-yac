@@ -4,14 +4,15 @@ if (!function_exists('isUrlActive')) {
     function isUrlActive($path)
     {
         global $current_page;
-        
+
         // Bersihkan ekstensi .php dari URL saat ini dan path target agar perbandingan akurat
         $clean_page = str_replace('.php', '', $current_page);
         $clean_path = str_replace('.php', '', $path);
 
         // Special case for boarding attendance subpages
         $is_boarding_attendance = (strpos($clean_page, 'boarding/attendance') !== false && $clean_path === 'boarding/attendance');
-        if ($is_boarding_attendance) return true;
+        if ($is_boarding_attendance)
+            return true;
 
         // Pastikan kita mencocokkan sebagai segmen path
         $search_path = $clean_path;
@@ -207,7 +208,7 @@ if (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Adminis
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('attendance/summary.php'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" 
+                        <path stroke-linecap="round" stroke-linejoin="round"
                             d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5M9 11.25v1.5M12 9v3.75m3-6v6" />
                     </svg>
                     Rekap Absensi Pegawai
@@ -822,6 +823,18 @@ if (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Adminis
                             d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
                     </svg>
                     Kelola Inventaris
+                </a>
+
+                <!-- Monitoring Lokasi -->
+                <a href="<?php url('views/inventory/monitoring.php'); ?>"
+                    class="<?php echo isActive('inventory/monitoring.php'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('inventory/monitoring.php'); ?> transition-colors"
+                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+                    </svg>
+                    Monitoring Inventaris
                 </a>
             <?php endif; ?>
 

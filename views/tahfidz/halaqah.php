@@ -30,7 +30,7 @@ $groups_query = "
     FROM halaqah_groups hg
     JOIN employees e ON hg.teacher_id = e.id
     WHERE $where_sql
-    ORDER BY hg.group_name ASC
+    ORDER BY LENGTH(hg.group_name) ASC, hg.group_name ASC
 ";
 $groups_stmt = $conn->prepare($groups_query);
 $groups_stmt->execute($params);

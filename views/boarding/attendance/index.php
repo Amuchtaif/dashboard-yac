@@ -22,7 +22,7 @@ $rooms_query = "
     LEFT JOIN boarding_room_members brm ON brm.room_id = br.id
     LEFT JOIN boarding_attendances ba ON ba.room_id = br.id AND ba.date = ?
     GROUP BY br.id, br.room_name
-    ORDER BY br.room_name ASC
+    ORDER BY CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(br.room_name, ' (', 1), ' ', -1) AS UNSIGNED) ASC, br.room_name ASC
 ";
 $stmt = $conn->prepare($rooms_query);
 $stmt->execute([$date]);

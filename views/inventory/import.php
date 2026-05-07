@@ -51,7 +51,7 @@ include '../layouts/header.php';
             <h3 class="font-semibold text-cyan-800 mb-2 text-sm">Petunjuk Penting:</h3>
             <ul class="list-disc list-inside text-xs text-cyan-700 space-y-2">
                 <li>Pastikan file dalam format <strong>.CSV</strong>.</li>
-                <li>Gunakan header kolom yang sesuai dengan template (No, Kode, Nama, Lokasi, Qty, Satuan, Kondisi, Deskripsi).</li>
+                <li>Gunakan header kolom yang sesuai dengan template (No, Kode, Nama, Lokasi, Qty, Satuan, Kondisi, Sumber Dana, Tanggal Pembelian, Deskripsi).</li>
                 <li><strong>Lokasi:</strong> Gunakan nama lokasi yang sudah terdaftar di sistem (misal: "Kantor Bidik"). Jika lokasi tidak ditemukan, data akan dilewati.</li>
                 <li><strong>Kondisi:</strong> Pilih salah satu: "Baik", "Rusak Ringan", atau "Rusak Berat".</li>
                 <li><strong>Kode Barang:</strong> Bisa dikosongkan agar sistem men-generate otomatis berdasarkan skema lokasi.</li>

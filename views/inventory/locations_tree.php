@@ -376,7 +376,7 @@ require_once __DIR__ . '/../layouts/header.php';
             const suggestCode = (label) => {
                 if (!label) return '';
                 const initials = label.split(' ').map(w => w[0]).join('').toUpperCase();
-                return parentCode ? `${parentCode}-${initials}` : initials;
+                return parentCode ? `${parentCode}.${initials}` : initials;
             };
 
             const labelInput = document.getElementById('loc_label');
@@ -433,7 +433,8 @@ require_once __DIR__ . '/../layouts/header.php';
             return;
         }
 
-        const payload = { name: name, parent_id: parent_id, label: label };
+        const location_code = document.getElementById('loc_code').value;
+        const payload = { name: name, parent_id: parent_id, label: label, location_code: location_code };
         if (id) payload.id = id;
 
         try {
@@ -548,14 +549,18 @@ require_once __DIR__ . '/../layouts/header.php';
         document.getElementById('print-label-name').innerText = node.location_label || node.name;
         document.getElementById('print-label-code-text').innerText = node.location_code || 'N/A';
         
-        // Generate Barcode
-        JsBarcode("#barcode-canvas", node.location_code || '0000', {
+        // Generate Barcode as Image
+        const tempCanvas = document.createElement('canvas');
+        JsBarcode(tempCanvas, node.location_code || '0000', {
             format: "CODE128",
             width: 2,
             height: 60,
             displayValue: false,
             margin: 0
         });
+        
+        const barcodeImg = document.getElementById('barcode-img-modal');
+        barcodeImg.src = tempCanvas.toDataURL();
 
         modal.classList.remove('hidden');
         void modal.offsetWidth;
@@ -576,11 +581,44 @@ require_once __DIR__ . '/../layouts/header.php';
     function printLabel() {
         const printWindow = window.open('', '', 'height=600,width=800');
         printWindow.document.write('<html><head><title>Cetak Label Lokasi</title>');
-        printWindow.document.write('<script src="https://cdn.tailwindcss.com"><\/script>');
-        printWindow.document.write('<style>@media print { body { margin: 0; } .label-card { page-break-after: always; display: flex !important; } }</style>');
-        printWindow.document.write('</head><body class="flex flex-col items-center justify-center min-h-screen bg-white">');
-        printWindow.document.write('<div class="label-card" style="width: 80mm; height: 40mm; border: 2px solid black; padding: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: sans-serif; text-align: center;">');
-        printWindow.document.write(document.getElementById('label-to-print').innerHTML);
+        printWindow.document.write('<style>');
+        printWindow.document.write(`
+            body { margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; font-family: sans-serif; }
+            .label-card { 
+                width: 80mm; 
+                height: 40mm; 
+                border: 2px solid black; 
+                padding: 10px; 
+                display: flex; 
+                flex-direction: column; 
+                align-items: center; 
+                justify-content: center; 
+                text-align: center; 
+                box-sizing: border-box;
+            }
+            .label-card h4 { margin: 2px 0; font-size: 18px; font-weight: bold; }
+            .label-card p { margin: 0 0 5px 0; font-size: 12px; font-family: monospace; color: #333; text-transform: uppercase; }
+            .label-card .logo-img { height: 35px; width: auto; margin-bottom: 8px; }
+            .barcode-img { max-width: 100%; height: auto; }
+            @media print { body { margin: 0; } }
+        `);
+        printWindow.document.write('</style>');
+        printWindow.document.write('</head><body>');
+        printWindow.document.write('<div class="label-card">');
+        
+        // Manually build content to ensure images are transferred correctly
+        const name = document.getElementById('print-label-name').innerText;
+        const code = document.getElementById('print-label-code-text').innerText;
+        const barcodeSrc = document.getElementById('barcode-img-modal').src;
+        const logoSrc = '<?php echo BASE_URL; ?>/public/images/logo.png';
+
+        printWindow.document.write(`
+            <img src="${logoSrc}" class="logo-img">
+            <h4>${name}</h4>
+            <p>${code}</p>
+            <img src="${barcodeSrc}" class="barcode-img">
+        `);
+
         printWindow.document.write('</div>');
         printWindow.document.write('</body></html>');
         printWindow.document.close();
@@ -606,45 +644,101 @@ require_once __DIR__ . '/../layouts/header.php';
         }
         flatten(allLocationsData);
 
-        const printWindow = window.open('', '', 'height=800,width=1000');
-        printWindow.document.write('<html><head><title>Cetak Semua Label</title>');
-        printWindow.document.write('<script src="https://cdn.tailwindcss.com"><\/script>');
-        printWindow.document.write('<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"><\/script>');
-        printWindow.document.write('<style>');
-        printWindow.document.write('@media print { body { margin: 0; } .label-page { page-break-after: always; } }');
-        printWindow.document.write('.label-container { width: 80mm; height: 40mm; border: 2px solid black; padding: 8px; margin: 10px auto; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: sans-serif; text-align: center; }');
-        printWindow.document.write('</style>');
-        printWindow.document.write('</head><body class="bg-gray-100 py-10 print:bg-white print:py-0">');
-        
-        flattenedLocations.forEach((loc, index) => {
-            const canvasId = `barcode-${index}`;
-            printWindow.document.write(`
-                <div class="label-container label-page">
-                    <div style="margin-bottom: 4px;">
-                        <img src="<?php echo BASE_URL; ?>/public/images/logo.png" style="height: 30px; width: auto;">
-                    </div>
-                    <h4 style="font-weight: bold; font-size: 14px; margin-bottom: 0px; line-height: 1;">${loc.location_label || loc.name}</h4>
-                    <p style="font-size: 10px; font-family: monospace; color: #4b5563; margin-bottom: 4px; letter-spacing: 0.1em; text-transform: uppercase;">${loc.location_code || 'N/A'}</p>
-                    <canvas id="${canvasId}"></canvas>
-                </div>
-            `);
+        // Pre-generate all barcodes as DataURL in the main window
+        const tempCanvas = document.createElement('canvas');
+        const items = [];
+        flattenedLocations.forEach(loc => {
+            JsBarcode(tempCanvas, loc.location_code || '0000', {
+                format: "CODE128",
+                width: 2,
+                height: 60,
+                displayValue: false,
+                margin: 0
+            });
+            items.push({
+                name: loc.location_label || loc.name,
+                code: loc.location_code || 'N/A',
+                barcode: tempCanvas.toDataURL()
+            });
         });
 
-        printWindow.document.write('<script>');
-        flattenedLocations.forEach((loc, index) => {
-            const canvasId = `barcode-${index}`;
-            printWindow.document.write(`
-                JsBarcode("#${canvasId}", "${loc.location_code || '0000'}", {
-                    format: "CODE128",
-                    width: 1.5,
-                    height: 50,
-                    displayValue: false,
-                    margin: 0
-                });
-            `);
-        });
-        printWindow.document.write('setTimeout(() => { window.print(); window.close(); }, 800);');
-        printWindow.document.write('<\/script>');
+        const printWindow = window.open('', '', 'height=800,width=1000');
+        printWindow.document.write('<html><head><title>Cetak Semua Label</title>');
+        printWindow.document.write('<style>');
+        printWindow.document.write(`
+            body { margin: 0; font-family: sans-serif; background: #f3f4f6; }
+            @media print {
+                body { background: white; margin: 0; }
+                .page-container { 
+                    display: grid; 
+                    grid-template-columns: 1fr 1fr; 
+                    grid-template-rows: 1fr 1fr; 
+                    height: 100vh; 
+                    width: 100vw;
+                    page-break-after: always; 
+                    padding: 15mm;
+                    box-sizing: border-box;
+                    gap: 10mm;
+                }
+                .label-item {
+                    border: 2px solid #000;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 5mm;
+                    text-align: center;
+                    height: calc(50vh - 25mm);
+                    box-sizing: border-box;
+                }
+            }
+            .page-container { 
+                display: grid; 
+                grid-template-columns: 1fr 1fr; 
+                padding: 20px;
+                gap: 20px;
+                max-width: 1000px;
+                margin: 0 auto;
+            }
+            .label-item {
+                background: white;
+                border: 1px solid #ddd;
+                padding: 20px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+                min-height: 150px;
+            }
+            .logo-img { height: 35px; width: auto; margin-bottom: 8px; }
+            .label-item h4 { margin: 2px 0; font-size: 16px; font-weight: bold; }
+            .label-item p { margin: 0 0 5px 0; font-size: 11px; font-family: monospace; color: #333; text-transform: uppercase; }
+            .barcode-img { max-width: 100%; height: auto; }
+        `);
+        printWindow.document.write('</style>');
+        printWindow.document.write('</head><body>');
+        
+        const logoSrc = '<?php echo BASE_URL; ?>/public/images/logo.png';
+
+        // Group into pages of 4
+        for (let i = 0; i < items.length; i += 4) {
+            printWindow.document.write('<div class="page-container">');
+            for (let j = i; j < i + 4 && j < items.length; j++) {
+                const item = items[j];
+                printWindow.document.write(`
+                    <div class="label-item">
+                        <img src="${logoSrc}" class="logo-img">
+                        <h4>${item.name}</h4>
+                        <p>${item.code}</p>
+                        <img src="${item.barcode}" class="barcode-img">
+                    </div>
+                `);
+            }
+            printWindow.document.write('</div>');
+        }
+
+        printWindow.document.write('<script>window.onload = function() { setTimeout(() => { window.print(); window.close(); }, 500); };<\/script>');
         printWindow.document.write('</body></html>');
         printWindow.document.close();
     }
@@ -668,7 +762,7 @@ require_once __DIR__ . '/../layouts/header.php';
                 <h4 id="print-label-name" class="font-bold text-lg text-slate-900 mb-0 leading-tight">-</h4>
                 <p id="print-label-code-text" class="text-[10px] font-mono text-slate-600 mb-2 tracking-widest uppercase">-</p>
                 <div class="w-full flex justify-center bg-white p-1">
-                    <canvas id="barcode-canvas"></canvas>
+                    <img id="barcode-img-modal" src="" class="max-w-full h-auto">
                 </div>
             </div>
             

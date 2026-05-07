@@ -45,7 +45,7 @@ try {
             $pStmt->execute([$parent_id]);
             $parentCode = $pStmt->fetchColumn();
         }
-        $location_code = generateLocationCode($name, $parentCode);
+        $location_code = generateLocationCode($name, $parentCode, $conn, $parent_id);
     }
 
     // Ensure Unique Code

@@ -18,6 +18,7 @@ try {
         $location_id = $data->location_id ?? null;
         $qty = $data->qty ?? 0;
         $unit = $data->item_unit ?? '';
+        $funding_source = $data->funding_source ?? '';
         $desc = $data->description ?? '';
         $condition = $data->item_condition ?? 'Baik';
         $purchase_date = $data->purchase_date ?? null;
@@ -27,6 +28,7 @@ try {
         $location_id = $_POST['location_id'] ?? null;
         $qty = $_POST['qty'] ?? 0;
         $unit = $_POST['item_unit'] ?? '';
+        $funding_source = $_POST['funding_source'] ?? '';
         $desc = $_POST['description'] ?? '';
         $condition = $_POST['item_condition'] ?? 'Baik';
         $purchase_date = !empty($_POST['purchase_date']) ? $_POST['purchase_date'] : null;
@@ -46,8 +48,8 @@ try {
     }
 
     // Insert
-    $stmt = $conn->prepare("INSERT INTO inventory_items (item_code, name, location_id, qty, item_unit, description, item_condition, item_photo, purchase_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    if ($stmt->execute([$code, $name, $location_id, (int)$qty, $unit, $desc, $condition, $photo, $purchase_date])) {
+    $stmt = $conn->prepare("INSERT INTO inventory_items (item_code, name, location_id, qty, item_unit, funding_source, description, item_condition, item_photo, purchase_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    if ($stmt->execute([$code, $name, $location_id, (int)$qty, $unit, $funding_source, $desc, $condition, $photo, $purchase_date])) {
         $lastId = $conn->lastInsertId();
         
         // AUTO-GEN CODE V2
@@ -56,7 +58,7 @@ try {
             $locStmt->execute([$location_id]);
             $locName = $locStmt->fetchColumn();
 
-            $finalCode = generateItemCodeV2($conn, $location_id, $locName, $name, $lastId);
+            $finalCode = generateItemCodeV2($conn, $location_id, $name, $lastId);
             $conn->prepare("UPDATE inventory_items SET item_code = ? WHERE id = ?")->execute([$finalCode, $lastId]);
         }
 

@@ -1,12 +1,19 @@
+# Disable directory listing
+Options -Indexes
+
 <IfModule mod_rewrite.c>
     # Aktifkan Rewrite Engine
     RewriteEngine On
 
-    # 1. Kecualikan folder 'api' dari semua aturan di bawah
-    # Jika request dimulai dengan 'api/', lewati semua aturan htaccess ini
+    # 1. Kecualikan folder 'api' HANYA jika mengakses file langsung
+    RewriteCond %{REQUEST_FILENAME} -f
     RewriteCond %{REQUEST_URI} ^/api/ [NC,OR]
     RewriteCond %{REQUEST_URI} ^.*/api/ [NC]
     RewriteRule ^api/ - [L]
+
+    # Prevent direct access to directories (Termasuk folder api/ jika tanpa nama file)
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^(.*)$ index.php [L]
 
     # 2. Hapus ekstensi .php dari URL (Redirect eksternal)
     # Kecualikan juga folder 'logic' dan 'api' dari pengalihan ini agar AJAX POST tidak error

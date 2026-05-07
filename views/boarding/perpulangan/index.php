@@ -39,7 +39,7 @@ foreach ($stats_rows as $row) {
 }
 
 // 2. Fetch All Rooms to ensure we see all dorms
-$rooms_query = "SELECT id, room_name FROM boarding_rooms ORDER BY room_name ASC";
+$rooms_query = "SELECT id, room_name FROM boarding_rooms ORDER BY CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(room_name, ' (', 1), ' ', -1) AS UNSIGNED) ASC, room_name ASC";
 $rooms = $conn->query($rooms_query)->fetchAll(PDO::FETCH_ASSOC);
 
 // 3. Fetch Active Homecoming Students with Room Info

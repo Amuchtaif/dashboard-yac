@@ -64,6 +64,7 @@ try {
             i.location_id, 
             i.qty, i.qty AS jumlah_barang,
             i.item_unit, i.item_unit AS satuan_barang,
+            i.funding_source, i.funding_source AS sumber_dana,
             i.description, 
             i.item_condition, i.item_condition AS kondisi_barang,
             i.item_photo, i.item_photo AS foto_barang,

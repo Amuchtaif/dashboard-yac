@@ -111,10 +111,26 @@ error_reporting(E_ALL);
 /**
  * --- INVENTORY HELPERS ---
  */
-function generateLocationCode($locName, $parentCode = null) {
+function generateLocationCode($locName, $parentCode = null, $conn = null, $parent_id = null) {
     if (!$locName) return 'LOC' . rand(100, 999);
-    
-    // Clean and get initials
+
+    // If we have DB connection and parent_id, generate professional sequential code
+    if ($conn && $parent_id) {
+        if (!$parentCode) {
+            $pStmt = $conn->prepare("SELECT location_code FROM inventory_locations WHERE id = ?");
+            $pStmt->execute([$parent_id]);
+            $parentCode = $pStmt->fetchColumn();
+        }
+
+        // Count existing children to determine the next sequence number
+        $cStmt = $conn->prepare("SELECT COUNT(*) FROM inventory_locations WHERE parent_id = ?");
+        $cStmt->execute([$parent_id]);
+        $count = (int)$cStmt->fetchColumn() + 1;
+
+        return strtoupper($parentCode . "." . str_pad($count, 2, '0', STR_PAD_LEFT));
+    }
+
+    // Default/Fallback logic: Use initials
     $words = explode(' ', trim($locName));
     $initials = '';
     foreach ($words as $w) {
@@ -122,7 +138,11 @@ function generateLocationCode($locName, $parentCode = null) {
         if ($clean !== '') $initials .= $clean[0];
     }
     
-    // Limit initials length
+    // For single word, take first 3 chars
+    if (strlen($initials) < 2) {
+        $initials = strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $locName), 0, 3));
+    }
+
     $initials = substr($initials, 0, 4);
     
     if ($parentCode) {
@@ -131,8 +151,12 @@ function generateLocationCode($locName, $parentCode = null) {
     return strtoupper($initials);
 }
 
-function generateItemCodeV2($conn, $location_id, $locName, $itemName, $id) {
-    $locCode = generateLocationCode($locName);
+function generateItemCodeV2($conn, $location_id, $itemName, $id) {
+    // Get the actual location code from the database
+    $locStmt = $conn->prepare("SELECT location_code FROM inventory_locations WHERE id = ?");
+    $locStmt->execute([$location_id]);
+    $locCode = $locStmt->fetchColumn() ?: 'LOC';
+
     $namePrefix = substr(strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $itemName)), 0, 3);
     
     // Count items in this location to determine sequence

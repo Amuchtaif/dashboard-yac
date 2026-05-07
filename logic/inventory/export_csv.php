@@ -43,7 +43,7 @@ header('Content-Disposition: attachment; filename=data_inventaris_' . date('Y-m-
 $output = fopen('php://output', 'w');
 
 // Headers
-fputcsv($output, ['No', 'Kode Barang', 'Nama Barang', 'Lokasi (Lengkap)', 'Qty', 'Satuan', 'Kondisi', 'Deskripsi']);
+fputcsv($output, ['No', 'Kode Barang', 'Nama Barang', 'Lokasi (Lengkap)', 'Qty', 'Satuan', 'Kondisi', 'Sumber Dana', 'Tanggal Pembelian', 'Deskripsi']);
 
 $no = 1;
 foreach ($items as $row) {
@@ -55,6 +55,8 @@ foreach ($items as $row) {
         $row['qty'],
         $row['item_unit'] ?: 'Pcs',
         $row['item_condition'],
+        $row['funding_source'],
+        $row['purchase_date'],
         $row['description']
     ]);
 }

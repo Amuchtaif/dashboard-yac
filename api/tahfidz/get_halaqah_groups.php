@@ -17,7 +17,7 @@ try {
                      (SELECT COUNT(*) FROM halaqah_members hm WHERE hm.group_id = hg.id) as member_count
               FROM halaqah_groups hg
               LEFT JOIN employees e ON hg.teacher_id = e.id
-              ORDER BY hg.group_name ASC";
+              ORDER BY LENGTH(hg.group_name) ASC, hg.group_name ASC";
 
     $result = $mysqli->query($query);
     $groups = [];

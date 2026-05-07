@@ -26,7 +26,7 @@ if (!$is_admin && !$is_musyrif && !can('can_access_kesantrian')) {
 
 // Fetch Filters Data
 $grades = $conn->query("SELECT id, name FROM grade_levels ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
-$rooms = $conn->query("SELECT id, room_name FROM boarding_rooms ORDER BY room_name ASC")->fetchAll(PDO::FETCH_ASSOC);
+$rooms = $conn->query("SELECT id, room_name FROM boarding_rooms ORDER BY CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(room_name, ' (', 1), ' ', -1) AS UNSIGNED) ASC, room_name ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 require_once __DIR__ . '/../layouts/header.php';
 ?>

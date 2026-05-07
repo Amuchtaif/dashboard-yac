@@ -165,52 +165,14 @@ try {
             // Load Service Account for FCM
             $serviceAccountPath = 'service-account.json';
             if (file_exists($serviceAccountPath)) {
-                $credentials = json_decode(file_get_contents($serviceAccountPath), true);
-                $clientEmail = $credentials['client_email'];
-                $privateKey = $credentials['private_key'];
-                $projectId = $credentials['project_id'];
-                
-                // Generate Access Token (JWT)
-                if (!function_exists('base64UrlEncodeMeeting')) {
-                    function base64UrlEncodeMeeting($data) {
-                        return str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($data));
-                    }
-                }
-                
-                $header = json_encode(['alg' => 'RS256', 'typ' => 'JWT']);
-                $now = time();
-                $payload = json_encode([
-                    'iss' => $clientEmail,
-                    'sub' => $clientEmail,
-                    'aud' => 'https://oauth2.googleapis.com/token',
-                    'iat' => $now,
-                    'exp' => $now + 3600,
-                    'scope' => 'https://www.googleapis.com/auth/firebase.messaging'
-                ]);
-                
-                $base64Header = base64UrlEncodeMeeting($header);
-                $base64Payload = base64UrlEncodeMeeting($payload);
-                $signatureInput = $base64Header . "." . $base64Payload;
-                
-                $signature = '';
-                if (openssl_sign($signatureInput, $signature, $privateKey, 'SHA256')) {
-                    $jwt = $signatureInput . "." . base64UrlEncodeMeeting($signature);
+                require_once 'AccessToken.php';
+                try {
+                    $googleToken = new GoogleAccessToken($serviceAccountPath);
+                    $accessToken = $googleToken->getToken();
                     
-                    // Exchange JWT for Access Token
-                    $ch = curl_init();
-                    curl_setopt($ch, CURLOPT_URL, 'https://oauth2.googleapis.com/token');
-                    curl_setopt($ch, CURLOPT_POST, true);
-                    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
-                        'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-                        'assertion' => $jwt
-                    ]));
-                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                    $response = curl_exec($ch);
-                    
-                    $tokenData = json_decode($response, true);
-                    
-                    if (isset($tokenData['access_token'])) {
-                        $accessToken = $tokenData['access_token'];
+                    if ($accessToken) {
+                        $credentials = json_decode(file_get_contents($serviceAccountPath), true);
+                        $projectId = $credentials['project_id'];
                         $fcmUrl = "https://fcm.googleapis.com/v1/projects/$projectId/messages:send";
                         
                         // Send to each participant
@@ -218,12 +180,17 @@ try {
                             $targetToken = $row['fcm_token'];
                             $participantId = $row['id'];
                             
+                            // Skip notification for the creator themselves
+                            if ($participantId == $created_by) continue;
+                            
+                            $locationInfo = ($type === 'online') ? "Link: $locationOrLink" : "Lokasi: $locationOrLink";
+                            
                             $payloadData = [
                                 'message' => [
                                     'token' => $targetToken,
                                     'notification' => [
                                         'title' => 'Undangan Rapat Baru',
-                                        'body' => "$creatorName mengundang Anda ke rapat \"$title\" pada $meetingDateFormatted pukul $startTimeFormatted"
+                                        'body' => "$creatorName mengundang Anda ke rapat \"$title\" pada $meetingDateFormatted pukul $startTimeFormatted. $locationInfo"
                                     ],
                                     'android' => [
                                         'priority' => 'HIGH',
@@ -262,16 +229,16 @@ try {
                             }
                         }
                     } else {
-                        logMeetingFCM("Failed to get access token: $response");
+                        logMeetingFCM("Failed to get access token");
                     }
-                } else {
-                    logMeetingFCM("OpenSSL sign failed");
+                } catch (Exception $e) {
+                    logMeetingFCM("FCM Exception: " . $e->getMessage());
                 }
             } else {
                 logMeetingFCM("Service account file not found");
             }
         } catch (Exception $e) {
-            logMeetingFCM("FCM Exception: " . $e->getMessage());
+            logMeetingFCM("Outer FCM Exception: " . $e->getMessage());
             // Silent fail - notification error should not stop success response
         }
         

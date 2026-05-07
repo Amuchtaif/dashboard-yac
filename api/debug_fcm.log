@@ -1,7 +1,0 @@
-2026-03-23 20:59:37 - Starting Notification Process. Approver ID: 82
-2026-03-23 20:59:37 - Token found: c2bTp9UUTU...
-2026-03-23 20:59:37 - Google Access Token Acquired
-2026-03-23 20:59:38 - FCM Response: {
-  "name": "projects/dashboard-yac/messages/0:1774274384878878%a6008fffa6008fff"
-}
-

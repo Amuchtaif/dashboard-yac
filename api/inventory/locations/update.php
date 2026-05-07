@@ -42,6 +42,27 @@ try {
     $parent_id = $data['parent_id'] ?? $_POST['parent_id'] ?? null;
     $label = $data['label'] ?? $data['location_label'] ?? $_POST['location_label'] ?? $name;
     $location_code = $data['location_code'] ?? $_POST['location_code'] ?? null;
+    
+    // Jika code tidak dikirim atau null, ambil dari database yang sudah ada
+    if ($location_code === null || $location_code === '' || $location_code === 'Otomatis') {
+        $getStmt = $conn->prepare("SELECT location_code, parent_id FROM inventory_locations WHERE id = ?");
+        $getStmt->execute([$id]);
+        $existing = $getStmt->fetch(PDO::FETCH_ASSOC);
+        
+        $location_code = $existing['location_code'] ?? null;
+
+        // Jika di database JUGA null/kosong, baru kita generate-kan otomatis
+        if (empty($location_code)) {
+            $parentCode = null;
+            $pid = $parent_id ?? $existing['parent_id'] ?? null;
+            if ($pid) {
+                $pStmt = $conn->prepare("SELECT location_code FROM inventory_locations WHERE id = ?");
+                $pStmt->execute([$pid]);
+                $parentCode = $pStmt->fetchColumn();
+            }
+            $location_code = generateLocationCode($name, $parentCode, $conn, $pid);
+        }
+    }
 
     if (!$id || empty($name)) {
         ob_clean();

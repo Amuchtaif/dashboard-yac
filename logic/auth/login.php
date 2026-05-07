@@ -7,7 +7,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = trim($_POST['password']);
 
     if (empty($email) || empty($password)) {
-        header("Location: ../../views/auth/login.php?error=All+fields+are+required");
+        header("Location: ../../views/auth/login.php?error=Semua+kolom+wajib+diisi");
         exit;
     }
 
@@ -30,11 +30,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             header("Location: ../../views/dashboard/index.php");
             exit;
         } else {
-            header("Location: ../../views/auth/login.php?error=Invalid+Credentials");
+            header("Location: ../../views/auth/login.php?error=Email+atau+password+salah");
             exit;
         }
     } catch (PDOException $e) {
-        header("Location: ../../views/auth/login.php?error=System+Error");
+        header("Location: ../../views/auth/login.php?error=Terjadi+kesalahan+sistem");
     }
 } else {
     redirect('views/auth/login.php');

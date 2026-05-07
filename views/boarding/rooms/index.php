@@ -17,7 +17,7 @@ $rooms_query = "
     (SELECT GROUP_CONCAT(e.id) FROM boarding_room_supervisors brs JOIN employees e ON brs.supervisor_id = e.id WHERE brs.room_id = br.id) as supervisor_ids,
     (SELECT COUNT(*) FROM boarding_room_members WHERE room_id = br.id) as member_count
     FROM boarding_rooms br
-    ORDER BY br.room_name ASC
+    ORDER BY CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(br.room_name, ' (', 1), ' ', -1) AS UNSIGNED) ASC, br.room_name ASC
 ";
 $rooms = $conn->query($rooms_query)->fetchAll(PDO::FETCH_ASSOC);
 

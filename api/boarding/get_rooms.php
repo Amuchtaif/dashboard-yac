@@ -35,7 +35,7 @@ try {
         $query .= " WHERE (EXISTS (SELECT 1 FROM boarding_room_supervisors brs WHERE brs.room_id = br.id AND brs.supervisor_id = :supervisor_id) OR br.supervisor_id = :supervisor_id_legacy) ";
     }
 
-    $query .= " ORDER BY br.room_name ASC";
+    $query .= " ORDER BY CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(br.room_name, ' (', 1), ' ', -1) AS UNSIGNED) ASC, br.room_name ASC";
 
     $stmt = $conn->prepare($query);
     $stmt->bindParam(':date1', $date);

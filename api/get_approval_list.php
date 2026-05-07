@@ -69,8 +69,7 @@ try {
         LEFT JOIN units u ON e.unit_id = u.id
         LEFT JOIN divisions d ON e.division_id = d.id
         WHERE $whereClause 
-          AND p.status = 'Pending'
-        ORDER BY p.created_at ASC
+        ORDER BY (p.status = 'Pending') DESC, p.start_date DESC
     ";
 
     $stmt = $conn->prepare($query);
