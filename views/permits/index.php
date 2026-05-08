@@ -379,19 +379,19 @@ include '../layouts/header.php';
                                 <div class="flex justify-end gap-2">
                                     <?php if ($permit['status'] === 'Pending'): ?>
                                         <!-- Approve -->
-                                        <a href="<?php url('logic/permits/quick_action.php?id=' . $permit['id'] . '&action=approve'); ?>" 
+                                        <a href="javascript:void(0)" 
                                            class="p-2 text-emerald-500 hover:bg-emerald-50 rounded-lg transition-all" 
                                            title="Setujui"
-                                           onclick="return confirm('Setujui pengajuan izin ini?')">
+                                           onclick="openConfirmModal('<?php echo BASE_URL; ?>/logic/permits/quick_action.php?id=<?= $permit['id'] ?>&action=approve', 'Setujui Izin', 'Apakah Anda yakin ingin menyetujui pengajuan izin ini?', 'emerald')">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                             </svg>
                                         </a>
                                         <!-- Reject -->
-                                        <a href="<?php url('logic/permits/quick_action.php?id=' . $permit['id'] . '&action=reject'); ?>" 
+                                        <a href="javascript:void(0)" 
                                            class="p-2 text-amber-500 hover:bg-amber-50 rounded-lg transition-all" 
                                            title="Tolak"
-                                           onclick="return confirm('Tolak pengajuan izin ini?')">
+                                           onclick="openConfirmModal('<?php echo BASE_URL; ?>/logic/permits/quick_action.php?id=<?= $permit['id'] ?>&action=reject', 'Tolak Izin', 'Apakah Anda yakin ingin menolak pengajuan izin ini?', 'amber')">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                             </svg>

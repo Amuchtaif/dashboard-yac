@@ -78,14 +78,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 throw new Exception("Konflik Jadwal: Guru sudah mengajar " . $conflict['subject_name'] . " di " . $conflict['class_name'] . " pada range jam waktu tersebut.");
             }
 
+            // Calculate day_of_week (1=Monday ... 7=Sunday)
+            $day_map = [
+                'Monday' => 1,
+                'Tuesday' => 2,
+                'Wednesday' => 3,
+                'Thursday' => 4,
+                'Friday' => 5,
+                'Saturday' => 6,
+                'Sunday' => 7
+            ];
+            $day_of_week = $day_map[$day] ?? 0;
+
             // Update original record with start and end
-            $stmt = $conn->prepare("UPDATE class_schedules SET academic_year_id = :ay, grade_level_id = :gl, employee_id = :emp, subject_id = :sub, day = :day, lesson_period_id = :lp, end_lesson_period_id = :elp WHERE id = :id");
+            $stmt = $conn->prepare("UPDATE class_schedules SET academic_year_id = :ay, grade_level_id = :gl, employee_id = :emp, subject_id = :sub, day = :day, day_of_week = :dow, lesson_period_id = :lp, end_lesson_period_id = :elp WHERE id = :id");
             $stmt->execute([
                 ':ay' => $academic_year_id,
                 ':gl' => $grade_level_id,
                 ':emp' => $employee_id,
                 ':sub' => $subject_id,
                 ':day' => $day,
+                ':dow' => $day_of_week,
                 ':lp' => $start_lp_id,
                 ':elp' => ($start_lp_id != $end_lp_id) ? $end_lp_id : null,
                 ':id' => $id

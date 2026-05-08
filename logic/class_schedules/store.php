@@ -75,14 +75,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 throw new Exception("Konflik Jadwal: Guru sudah mengajar " . $conflict['subject_name'] . " di " . $conflict['class_name'] . " pada range jam waktu tersebut.");
             }
 
+            // Calculate day_of_week (1=Monday ... 7=Sunday)
+            $day_map = [
+                'Monday' => 1,
+                'Tuesday' => 2,
+                'Wednesday' => 3,
+                'Thursday' => 4,
+                'Friday' => 5,
+                'Saturday' => 6,
+                'Sunday' => 7
+            ];
+            $day_of_week = $day_map[$day] ?? 0;
+
             // Insert single row representing the block
-            $stmt = $conn->prepare("INSERT INTO class_schedules (academic_year_id, grade_level_id, employee_id, subject_id, day, lesson_period_id, end_lesson_period_id) VALUES (:ay, :gl, :emp, :sub, :day, :lp, :elp)");
+            $stmt = $conn->prepare("INSERT INTO class_schedules (academic_year_id, grade_level_id, employee_id, subject_id, day, day_of_week, lesson_period_id, end_lesson_period_id) VALUES (:ay, :gl, :emp, :sub, :day, :dow, :lp, :elp)");
             $stmt->execute([
                 ':ay' => $academic_year_id,
                 ':gl' => $grade_level_id,
                 ':emp' => $employee_id,
                 ':sub' => $subject_id,
                 ':day' => $day,
+                ':dow' => $day_of_week,
                 ':lp' => $start_lp_id,
                 ':elp' => ($start_lp_id != $end_lp_id) ? $end_lp_id : null
             ]);

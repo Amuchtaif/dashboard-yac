@@ -185,16 +185,19 @@ include '../layouts/header.php';
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <?php
-                                    $statusClass = match($p['status']) {
-                                        'present' => 'bg-green-100 text-green-800',
-                                        'absent' => 'bg-red-100 text-red-800',
-                                        default => 'bg-gray-100 text-gray-800'
-                                    };
-                                    $statusText = match($p['status']) {
-                                        'present' => 'Hadir',
-                                        'absent' => 'Tidak Hadir',
-                                        default => 'Diundang'
-                                    };
+                                    $statusClass = 'bg-gray-100 text-gray-800';
+                                    $statusText = 'Diundang';
+                                    
+                                    switch($p['status']) {
+                                        case 'present':
+                                            $statusClass = 'bg-green-100 text-green-800';
+                                            $statusText = 'Hadir';
+                                            break;
+                                        case 'absent':
+                                            $statusClass = 'bg-red-100 text-red-800';
+                                            $statusText = 'Tidak Hadir';
+                                            break;
+                                    }
                                     ?>
                                     <span id="badge-<?= $p['id'] ?>" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <?= $statusClass ?>">
                                         <?= $statusText ?>
@@ -239,9 +242,9 @@ include '../layouts/header.php';
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                 <h3 class="text-sm font-semibold text-slate-900 mb-4">Statistik Kehadiran</h3>
                 <?php
-                $presentCount = count(array_filter($participants, fn($p) => $p['status'] === 'present'));
-                $absentCount = count(array_filter($participants, fn($p) => $p['status'] === 'absent'));
-                $invitedCount = count(array_filter($participants, fn($p) => $p['status'] === 'invited'));
+                $presentCount = count(array_filter($participants, function($p) { return $p['status'] === 'present'; }));
+                $absentCount = count(array_filter($participants, function($p) { return $p['status'] === 'absent'; }));
+                $invitedCount = count(array_filter($participants, function($p) { return $p['status'] === 'invited'; }));
                 ?>
                 <div class="space-y-3">
                     <div class="flex justify-between items-center">

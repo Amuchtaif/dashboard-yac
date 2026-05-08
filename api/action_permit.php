@@ -63,14 +63,16 @@ try {
     $stmtCheck->execute([':pid' => $permit_id]);
     $pData = $stmtCheck->fetch(PDO::FETCH_ASSOC);
 
-    if (!$pData) sendResponse(false, "Izin tidak ditemukan");
-    if ($pData['status'] !== 'Pending') sendResponse(false, "Izin ini sudah diproses.");
+    if (!$pData)
+        sendResponse(false, "Izin tidak ditemukan");
+    if ($pData['status'] !== 'Pending')
+        sendResponse(false, "Izin ini sudah diproses.");
 
     // Fetch Current Approver Level
     $stmtU = $conn->prepare("SELECT p.level FROM employees e JOIN positions p ON e.position_id = p.id WHERE e.id = :aid");
     $stmtU->execute([':aid' => $approver_id]);
     $uLevel = (int) $stmtU->fetchColumn();
-    
+
     // Check Authorization
     $isAuthorized = false;
     if ($pData['approver_id'] == $approver_id) {
@@ -120,95 +122,82 @@ try {
             $tokenData = $stmtToken->fetch(PDO::FETCH_ASSOC);
 
             if ($tokenData && !empty($tokenData['fcm_token'])) {
-                    $targetToken = $tokenData['fcm_token'];
+                $targetToken = $tokenData['fcm_token'];
 
-                    // --- NATIVE PHP FCM V1 LOGIC (WITHOUT COMPOSER) ---
-                    try {
-                        $serviceAccountPath = 'service-account.json';
+                // --- FCM V1 using GoogleAccessToken helper ---
+                try {
+                    require_once 'AccessToken.php';
 
-                        if (file_exists($serviceAccountPath)) {
+                    // Log helper
+                    function logPermitAction($msg)
+                    {
+                        file_put_contents('fcm_debug.log', date('Y-m-d H:i:s') . " [PERMIT_ACTION] - " . $msg . "\n", FILE_APPEND);
+                    }
+
+                    $serviceAccountPath = 'service-account.json';
+
+                    if (file_exists($serviceAccountPath)) {
+                        $googleToken = new GoogleAccessToken($serviceAccountPath);
+                        $accessToken = $googleToken->getToken();
+
+                        if ($accessToken) {
                             $credentials = json_decode(file_get_contents($serviceAccountPath), true);
-                            $clientEmail = $credentials['client_email'];
-                            $privateKey = $credentials['private_key'];
                             $projectId = $credentials['project_id'];
 
-                            // Helper: Base64Url Encode
-                            if (!function_exists('base64UrlEncode')) {
-                                function base64UrlEncode($data)
-                                {
-                                    return str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($data));
-                                }
-                            }
+                            // Send Notification to Employee
+                            $fcmUrl = "https://fcm.googleapis.com/v1/projects/$projectId/messages:send";
 
-                            // A. Generate JWT
-                            $header = json_encode(['alg' => 'RS256', 'typ' => 'JWT']);
-                            $now = time();
-                            $payload = json_encode([
-                                'iss' => $clientEmail,
-                                'sub' => $clientEmail,
-                                'aud' => 'https://oauth2.googleapis.com/token',
-                                'iat' => $now,
-                                'exp' => $now + 3600,
-                                'scope' => 'https://www.googleapis.com/auth/firebase.messaging'
-                            ]);
-
-                            $base64Header = base64UrlEncode($header);
-                            $base64Payload = base64UrlEncode($payload);
-                            $signatureInput = $base64Header . "." . $base64Payload;
-
-                            $signature = '';
-                            openssl_sign($signatureInput, $signature, $privateKey, 'SHA256');
-                            $jwt = $signatureInput . "." . base64UrlEncode($signature);
-
-                            // B. Exchange JWT for Google Access Token
-                            $ch = curl_init();
-                            curl_setopt($ch, CURLOPT_URL, 'https://oauth2.googleapis.com/token');
-                            curl_setopt($ch, CURLOPT_POST, true);
-                            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
-                                'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-                                'assertion' => $jwt
-                            ]));
-                            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                            $response = curl_exec($ch);
-
-                            $tokenResponse = json_decode($response, true);
-
-                            if (isset($tokenResponse['access_token'])) {
-                                $accessToken = $tokenResponse['access_token'];
-
-                                // C. Send Notification to Employee
-                                $fcmUrl = "https://fcm.googleapis.com/v1/projects/$projectId/messages:send";
-
-                                $payloadData = [
-                                    'message' => [
-                                        'token' => $targetToken,
+                            $payloadData = [
+                                'message' => [
+                                    'token' => $targetToken,
+                                    'notification' => [
+                                        'title' => 'Status Izin Diperbarui',
+                                        'body' => "Pengajuan izin Anda telah: $newStatus oleh atasan."
+                                    ],
+                                    'android' => [
+                                        'priority' => 'HIGH',
                                         'notification' => [
-                                            'title' => 'Status Izin Diperbarui',
-                                            'body' => "Pengajuan izin Anda telah: $newStatus oleh atasan."
-                                        ],
-                                        'data' => [
-                                            'screen' => 'history',
-                                            'permit_id' => (string) $permit_id
+                                            'channel_id' => 'high_importance_channel',
+                                            'sound' => 'default',
+                                            'default_sound' => true
                                         ]
+                                    ],
+                                    'data' => [
+                                        'screen' => 'permit',
+                                        'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
+                                        'permit_id' => (string) $permit_id
                                     ]
-                                ];
+                                ]
+                            ];
 
-                                $ch = curl_init();
-                                curl_setopt($ch, CURLOPT_URL, $fcmUrl);
-                                curl_setopt($ch, CURLOPT_POST, true);
-                                curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                                    "Authorization: Bearer $accessToken",
-                                    "Content-Type: application/json"
-                                ]);
-                                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payloadData));
-                                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                                curl_exec($ch); // Send and forget
+                            $ch = curl_init();
+                            curl_setopt($ch, CURLOPT_URL, $fcmUrl);
+                            curl_setopt($ch, CURLOPT_POST, true);
+                            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                                "Authorization: Bearer $accessToken",
+                                "Content-Type: application/json"
+                            ]);
+                            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payloadData));
+                            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                            $fcmResult = curl_exec($ch);
+                            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                            curl_close($ch);
+
+                            if ($httpCode === 200) {
+                                logPermitAction("FCM sent to employee ID $employee_id ($newStatus)");
+                            } else {
+                                logPermitAction("FCM failed for employee ID $employee_id: $fcmResult");
                             }
+                        } else {
+                            logPermitAction("Failed to get access token");
                         }
-                    } catch (Exception $e) {
-                        // Silent fail (allow API to succeed even if notif fails)
+                    } else {
+                        logPermitAction("Service account not found");
                     }
+                } catch (Exception $e) {
+                    // Silent fail (allow API to succeed even if notif fails)
                 }
+            }
             // --- END NOTE ---
 
             sendResponse(true, "Berhasil memproses izin: " . $newStatus);

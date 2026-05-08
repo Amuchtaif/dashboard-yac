@@ -107,12 +107,12 @@ try {
             if (!empty($unit_id)) {
                 $approver_id = findBoss($conn, 3, 'unit_id', $unit_id);
             }
-            
+
             // B. Jika tidak ada Ka Unit, cari Kabid (Level 2) di Divisi yang sama
             if (!$approver_id && !empty($division_id)) {
                 $approver_id = findBoss($conn, 2, 'division_id', $division_id);
             }
-        } 
+        }
         // 2. KEPALA UNIT (Level 3)
         elseif ($level == 3) {
             // Cari Kabid (Level 2) di Divisi yang sama
@@ -156,12 +156,10 @@ try {
     $stmtInsert->bindParam(':app_id', $approver_id);
 
     if ($stmtInsert->execute()) {
-        // --- NOTIFICATION LOGIC (FCM V1 - Native PHP) ---
-        // --- NOTIFICATION LOGIC (FCM V1 - Native PHP) ---
-        // DEBUG LOGGER
+        // --- NOTIFICATION LOGIC (FCM V1 - Using GoogleAccessToken) ---
         function logFCM($msg)
         {
-            file_put_contents('debug_fcm.log', date('Y-m-d H:i:s') . " - " . $msg . "\n", FILE_APPEND);
+            file_put_contents('fcm_debug.log', date('Y-m-d H:i:s') . " [PERMIT] - " . $msg . "\n", FILE_APPEND);
         }
 
         logFCM("Starting Notification Process. Approver ID: " . ($approver_id ?? 'NULL'));
@@ -177,63 +175,19 @@ try {
                     $targetToken = $tokenRow['fcm_token'];
                     logFCM("Token found: " . substr($targetToken, 0, 10) . "...");
 
-                    // 2. Load Service Account
+                    // 2. Get Access Token using shared helper
                     $serviceAccountPath = 'service-account.json';
                     if (file_exists($serviceAccountPath)) {
-                        $credentials = json_decode(file_get_contents($serviceAccountPath), true);
-                        $clientEmail = $credentials['client_email'];
-                        $privateKey = $credentials['private_key'];
-                        $projectId = $credentials['project_id'];
+                        $googleToken = new GoogleAccessToken($serviceAccountPath);
+                        $accessToken = $googleToken->getToken();
 
-                        // 3. Generate Google Access Token (JWT Manual)
-                        if (!function_exists('base64UrlEncode')) {
-                            function base64UrlEncode($data)
-                            {
-                                return str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($data));
-                            }
-                        }
-
-                        $header = json_encode(['alg' => 'RS256', 'typ' => 'JWT']);
-                        $now = time();
-                        $payload = json_encode([
-                            'iss' => $clientEmail,
-                            'sub' => $clientEmail,
-                            'aud' => 'https://oauth2.googleapis.com/token',
-                            'iat' => $now,
-                            'exp' => $now + 3600,
-                            'scope' => 'https://www.googleapis.com/auth/firebase.messaging'
-                        ]);
-
-                        $base64Header = base64UrlEncode($header);
-                        $base64Payload = base64UrlEncode($payload);
-                        $signatureInput = $base64Header . "." . $base64Payload;
-
-                        $signature = '';
-                        if (!openssl_sign($signatureInput, $signature, $privateKey, 'SHA256')) {
-                            logFCM("OpenSSL Sign Failed");
-                            throw new Exception("OpenSSL Sign Failed");
-                        }
-                        $jwt = $signatureInput . "." . base64UrlEncode($signature);
-
-                        // Tukar JWT dengan Access Token
-                        $ch = curl_init();
-                        curl_setopt($ch, CURLOPT_URL, 'https://oauth2.googleapis.com/token');
-                        curl_setopt($ch, CURLOPT_POST, true);
-                        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
-                            'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-                            'assertion' => $jwt
-                        ]));
-                        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                        $response = curl_exec($ch);
-                        if (curl_errno($ch)) {
-                            logFCM("Curl JWT Error: " . curl_error($ch));
-                        }
-                        $tokenData = json_decode($response, true);
-                        if (isset($tokenData['access_token'])) {
-                            $accessToken = $tokenData['access_token'];
+                        if ($accessToken) {
                             logFCM("Google Access Token Acquired");
 
-                            // 4. Kirim Notifikasi (FCM V1)
+                            $credentials = json_decode(file_get_contents($serviceAccountPath), true);
+                            $projectId = $credentials['project_id'];
+
+                            // 3. Kirim Notifikasi (FCM V1)
                             $fcmUrl = "https://fcm.googleapis.com/v1/projects/$projectId/messages:send";
                             $newPermitId = $conn->lastInsertId();
 
@@ -241,7 +195,6 @@ try {
                             $stmtName = $conn->prepare("SELECT full_name FROM employees WHERE id = :uid LIMIT 1");
                             $stmtName->execute([':uid' => $user_id]);
                             $empName = $stmtName->fetchColumn();
-
                             $senderName = $empName ? $empName : "ID: $user_id";
 
                             $payloadData = [
@@ -251,18 +204,16 @@ try {
                                         'title' => 'Izin Baru: ' . $senderName,
                                         'body' => "Menunggu persetujuan Anda."
                                     ],
-                                    // CRITICAL FOR FLUTTER APP:
                                     'android' => [
-                                        'priority' => 'HIGH', // FCM V1 uses uppercase 'HIGH'
+                                        'priority' => 'HIGH',
                                         'notification' => [
-                                            'channel_id' => 'high_importance_channel', // MUST MATCH FLUTTER CONFIG
+                                            'channel_id' => 'high_importance_channel',
                                             'sound' => 'default',
                                             'default_sound' => true
-                                            // 'priority' removed from here as it caused invalid argument error
                                         ]
                                     ],
                                     'data' => [
-                                        'screen' => 'approval',
+                                        'screen' => 'permit_approval',
                                         'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
                                         'permit_id' => (string) $newPermitId
                                     ]
@@ -279,13 +230,16 @@ try {
                             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payloadData));
                             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
                             $fcmResult = curl_exec($ch);
-                            if (curl_errno($ch)) {
-                                logFCM("Curl FCM Error: " . curl_error($ch));
+                            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                            curl_close($ch);
+
+                            if ($httpCode === 200) {
+                                logFCM("FCM sent successfully to approver ID $approver_id");
                             } else {
-                                logFCM("FCM Response: " . $fcmResult);
+                                logFCM("FCM failed (HTTP $httpCode): $fcmResult");
                             }
                         } else {
-                            logFCM("Failed to get Access Token. Response: " . $response);
+                            logFCM("Failed to get Access Token from GoogleAccessToken class");
                         }
                     } else {
                         logFCM("Service Account file not found: $serviceAccountPath");

@@ -1,0 +1,107 @@
+[2026-05-07 21:20:03] Request Masuk! User ID: '179' | Token: fzRjWowsSH2rPph...
+[2026-05-07 21:20:03] SUKSES: Token berhasil diupdate untuk User ID 179.
+[2026-05-07 21:26:06] Request Masuk! User ID: '40' | Token: dx85AWG6QDOJ4ki...
+[2026-05-07 21:26:06] SUKSES: Token berhasil diupdate untuk User ID 40.
+2026-05-07 21:26:32 [PERMIT] - Starting Notification Process. Approver ID: 179
+2026-05-07 21:26:32 [PERMIT] - Token found: fzRjWowsSH...
+2026-05-07 21:26:33 [PERMIT] - Google Access Token Acquired
+2026-05-07 21:26:33 [PERMIT] - FCM failed (HTTP 403): {
+  "error": {
+    "code": 403,
+    "message": "SenderId mismatch",
+    "status": "PERMISSION_DENIED",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.firebase.fcm.v1.FcmError",
+        "errorCode": "SENDER_ID_MISMATCH"
+      }
+    ]
+  }
+}
+
+2026-05-07 21:29:28 [PERMIT_ACTION] - FCM sent to employee ID 40 (Rejected)
+2026-05-07 21:30:32 [MEETING] - Starting FCM notifications for meeting ID: 19
+2026-05-07 21:30:33 [MEETING] - FCM sent to participant ID 40
+2026-05-07 21:30:33 [MEETING] - FCM completed. Sent: 1 notifications
+[2026-05-07 22:17:39] Request Masuk! User ID: '25' | Token: fzRjWowsSH2rPph...
+[2026-05-07 22:17:39] SUKSES: Token berhasil diupdate untuk User ID 25.
+[2026-05-07 22:19:56] Request Masuk! User ID: '38' | Token: dx85AWG6QDOJ4ki...
+[2026-05-07 22:19:56] SUKSES: Token berhasil diupdate untuk User ID 38.
+[2026-05-07 22:19:57] Request Masuk! User ID: '40' | Token: ciffFlHkTwqZZRG...
+[2026-05-07 22:19:57] SUKSES: Token berhasil diupdate untuk User ID 40.
+[2026-05-07 22:22:24] Request Masuk! User ID: '25' | Token: fzRjWowsSH2rPph...
+[2026-05-07 22:22:24] SUKSES: Token berhasil diupdate untuk User ID 25.
+2026-05-07 22:23:31 [MEETING] - Starting FCM notifications for meeting ID: 20
+2026-05-07 22:23:31 [MEETING] - FCM sent to participant ID 38
+2026-05-07 22:23:32 [MEETING] - FCM sent to participant ID 40
+2026-05-07 22:23:32 [MEETING] - FCM completed. Sent: 2 notifications
+[2026-05-07 22:24:27] Request Masuk! User ID: '179' | Token: fzRjWowsSH2rPph...
+[2026-05-07 22:24:27] SUKSES: Token berhasil diupdate untuk User ID 179.
+[2026-05-07 22:24:38] Request Masuk! User ID: '9' | Token: dx85AWG6QDOJ4ki...
+[2026-05-07 22:24:38] SUKSES: Token berhasil diupdate untuk User ID 9.
+2026-05-07 22:30:11 [PERMIT] - Starting Notification Process. Approver ID: 179
+2026-05-07 22:30:11 [PERMIT] - Token found: fzRjWowsSH...
+2026-05-07 22:30:12 [PERMIT] - Google Access Token Acquired
+2026-05-07 22:30:12 [PERMIT] - FCM sent successfully to approver ID 179
+2026-05-07 22:30:23 [PERMIT_ACTION] - FCM sent to employee ID 9 (Approved)
+2026-05-07 22:31:51 [MEETING] - Starting FCM notifications for meeting ID: 21
+2026-05-07 22:31:51 [MEETING] - FCM sent to participant ID 5
+2026-05-07 22:31:52 [MEETING] - FCM sent to participant ID 9
+2026-05-07 22:31:52 [MEETING] - FCM sent to participant ID 34
+2026-05-07 22:31:53 [MEETING] - FCM sent to participant ID 40
+2026-05-07 22:31:53 [MEETING] - FCM sent to participant ID 65
+2026-05-07 22:31:54 [MEETING] - FCM sent to participant ID 82
+2026-05-07 22:31:54 [MEETING] - FCM sent to participant ID 123
+2026-05-07 22:31:54 [MEETING] - FCM completed. Sent: 7 notifications
+[2026-05-07 22:56:59] Request Masuk! User ID: '9' | Token: dx85AWG6QDOJ4ki...
+[2026-05-07 22:56:59] SUKSES: Token berhasil diupdate untuk User ID 9.
+[2026-05-08 10:02:32] Request Masuk! User ID: '179' | Token: fzRjWowsSH2rPph...
+[2026-05-08 10:02:32] SUKSES: Token berhasil diupdate untuk User ID 179.
+2026-05-08 10:34:59 [MEETING] - Starting FCM notifications for meeting ID: 22
+2026-05-08 10:35:00 [MEETING] - FCM failed for participant ID 5: {
+  "error": {
+    "code": 404,
+    "message": "Requested entity was not found.",
+    "status": "NOT_FOUND",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.firebase.fcm.v1.FcmError",
+        "errorCode": "UNREGISTERED"
+      }
+    ]
+  }
+}
+
+2026-05-08 10:35:01 [MEETING] - FCM failed for participant ID 9: {
+  "error": {
+    "code": 404,
+    "message": "Requested entity was not found.",
+    "status": "NOT_FOUND",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.firebase.fcm.v1.FcmError",
+        "errorCode": "UNREGISTERED"
+      }
+    ]
+  }
+}
+
+2026-05-08 10:35:01 [MEETING] - FCM sent to participant ID 34
+2026-05-08 10:35:02 [MEETING] - FCM failed for participant ID 40: {
+  "error": {
+    "code": 404,
+    "message": "Requested entity was not found.",
+    "status": "NOT_FOUND",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.firebase.fcm.v1.FcmError",
+        "errorCode": "UNREGISTERED"
+      }
+    ]
+  }
+}
+
+2026-05-08 10:35:02 [MEETING] - FCM sent to participant ID 65
+2026-05-08 10:35:03 [MEETING] - FCM sent to participant ID 82
+2026-05-08 10:35:03 [MEETING] - FCM sent to participant ID 123
+2026-05-08 10:35:03 [MEETING] - FCM completed. Sent: 4 notifications
