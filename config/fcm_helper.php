@@ -57,7 +57,6 @@ class FcmHelper
         ]));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $response = curl_exec($ch);
-        curl_close($ch);
 
         $jsonResp = json_decode($response, true);
         return $jsonResp['access_token'] ?? null;
@@ -105,10 +104,8 @@ class FcmHelper
         if ($response === FALSE) {
             $err = "[" . date('Y-m-d H:i:s') . "] FCM CURL ERROR: " . curl_error($ch) . "\n";
             file_put_contents(__DIR__ . '/../api/fcm_debug.log', $err, FILE_APPEND);
-            curl_close($ch);
             return false;
         }
-        curl_close($ch);
 
         $jsonResult = json_decode($body, true);
         if ($httpCode !== 200) {
@@ -121,6 +118,60 @@ class FcmHelper
         }
 
         return $jsonResult;
+    }
+    public function sendTopicData($topic, $data = [])
+    {
+        $accessToken = $this->getAccessToken();
+        if (!$accessToken) {
+            error_log("FCM Error: Failed to get Access Token");
+            return false;
+        }
+
+        $url = "https://fcm.googleapis.com/v1/projects/{$this->projectId}/messages:send";
+
+        $message = [
+            'message' => [
+                'topic' => $topic,
+                'data' => $data,
+                'android' => [
+                    'priority' => 'high'
+                ]
+            ]
+        ];
+
+        $headers = [
+            'Authorization: Bearer ' . $accessToken,
+            'Content-Type: application/json'
+        ];
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($message));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HEADER, true);
+
+        $response = curl_exec($ch);
+        $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $body = substr($response, $headerSize);
+        
+        if ($response === FALSE) {
+            $err = "[" . date('Y-m-d H:i:s') . "] FCM TOPIC CURL ERROR: " . curl_error($ch) . "\n";
+            file_put_contents(__DIR__ . '/../api/fcm_debug.log', $err, FILE_APPEND);
+            return false;
+        }
+
+        if ($httpCode !== 200) {
+            $err = "[" . date('Y-m-d H:i:s') . "] FCM TOPIC ERROR (HTTP $httpCode): " . $body . "\n";
+            file_put_contents(__DIR__ . '/../api/fcm_debug.log', $err, FILE_APPEND);
+        } else {
+            $msg = "[" . date('Y-m-d H:i:s') . "] FCM TOPIC SUCCESS: " . $body . "\n";
+            file_put_contents(__DIR__ . '/../api/fcm_debug.log', $msg, FILE_APPEND);
+        }
+
+        return json_decode($body, true);
     }
 }
 ?>

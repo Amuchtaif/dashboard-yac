@@ -1,11 +1,10 @@
-<?php
+﻿<?php
 require_once '../../config/database.php';
 require_once '../../config/app.php';
 require_once '../../config/permission.php';
 
 header('Content-Type: application/json');
 
-// Auth check: support both session and request parameter (for Flutter app)
 $user_id = $_SESSION['user_id'] ?? $_GET['user_id'] ?? $_POST['user_id'] ?? null;
 
 if (!$user_id) {
@@ -22,12 +21,14 @@ $db = new Database();
 $conn = $db->getConnection();
 
 try {
-    $stmt = $conn->query("SELECT id, nama_kategori, poin FROM kategori_pelanggaran ORDER BY poin ASC");
+    // Fetch from boarding_violation_types as requested
+    // Mapping type_name to nama_kategori and points to poin for frontend compatibility
+    $stmt = $conn->query("SELECT id, type_name as nama_kategori, points as poin, category FROM boarding_violation_types ORDER BY category ASC, type_name ASC");
     $categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     echo json_encode([
         'success' => true,
-        'message' => 'Data kategori berhasil dimuat',
+        'message' => 'Data jenis pelanggaran berhasil dimuat',
         'data' => $categories
     ]);
 } catch (Exception $e) {

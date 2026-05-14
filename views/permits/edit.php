@@ -67,7 +67,7 @@ include '../layouts/header.php';
     </div>
 
     <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl md:col-span-2">
-        <form action="<?php url('logic/permits/update.php'); ?>" method="POST">
+        <form action="<?php url('logic/permits/update.php'); ?>" method="POST" enctype="multipart/form-data">
             <input type="hidden" name="id" value="<?php echo $permit['id']; ?>">
 
             <div class="px-4 py-6 sm:p-8">
@@ -274,6 +274,32 @@ include '../layouts/header.php';
                             <textarea id="reason" name="reason" rows="3"
                                 class="block w-full px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 focus:outline-none transition-all shadow-sm"><?php echo htmlspecialchars($permit['reason']); ?></textarea>
                         </div>
+                    </div>
+
+                    <!-- File Upload -->
+                    <div class="col-span-full">
+                        <label for="attachment" class="block text-sm font-medium leading-6 text-gray-900">Lampiran (Bukti)</label>
+                        <?php if (!empty($permit['attachment'])): ?>
+                                <span class="text-xs text-slate-500">File saat ini:</span>
+                                <button type="button" 
+                                    onclick="openImageModal('<?php echo BASE_URL; ?>/uploads/permits/<?php echo $permit['attachment']; ?>')" 
+                                    class="text-xs text-cyan-600 font-bold hover:text-cyan-700 hover:underline flex items-center gap-1 transition-all">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                    </svg>
+                                    <?php echo $permit['attachment']; ?>
+                                </button>
+                            </div>
+                        <?php endif; ?>
+                        <div class="mt-2">
+                            <input type="file" name="attachment" id="attachment" accept=".jpg,.jpeg,.png,.pdf" class="block w-full text-sm text-slate-500
+                                  file:mr-4 file:py-2.5 file:px-4
+                                  file:rounded-lg file:border-0
+                                  file:text-sm file:font-semibold
+                                  file:bg-cyan-50 file:text-cyan-700
+                                  hover:file:bg-cyan-100 transition-all border border-slate-300 rounded-lg">
+                        </div>
+                        <p class="mt-1 text-xs text-slate-500 italic">Biarkan kosong jika tidak ingin mengubah lampiran.</p>
                     </div>
 
                     <!-- Status -->

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once '../../config/database.php';
 require_once '../../config/app.php';
 
@@ -8,12 +8,9 @@ $db = new Database();
 $conn = $db->getConnection();
 
 try {
-    // Get all students except TKIT, SDIT, and Playgroup
-    $exclude = ["'TKIT'", "'SDIT'", "'PLAY GROUP'"];
-    $exclude_str = implode(',', $exclude);
+    // Get all active students without unit restrictions
     $stmt = $conn->query("SELECT id, nama_siswa, kelas FROM students 
-                          WHERE status = 'Aktif' AND (tingkat NOT IN ($exclude_str) 
-                          OR tingkat IS NULL)
+                          WHERE status = 'Aktif'
                           ORDER BY nama_siswa ASC");
     $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
 

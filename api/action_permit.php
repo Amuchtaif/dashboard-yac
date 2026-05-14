@@ -181,7 +181,6 @@ try {
                             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
                             $fcmResult = curl_exec($ch);
                             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-                            curl_close($ch);
 
                             if ($httpCode === 200) {
                                 logPermitAction("FCM sent to employee ID $employee_id ($newStatus)");

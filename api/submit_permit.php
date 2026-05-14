@@ -25,6 +25,9 @@ $permit_type = $_POST['permit_type'] ?? '';
 $start_date = $_POST['start_date'] ?? '';
 $end_date = $_POST['end_date'] ?? '';
 $reason = $_POST['reason'] ?? '';
+$is_hourly = $_POST['is_hourly'] ?? 0;
+$start_time = $_POST['start_time'] ?? null;
+$end_time = $_POST['end_time'] ?? null;
 
 // Validasi
 if (empty($user_id) || empty($permit_type) || empty($start_date) || empty($end_date) || empty($reason)) {
@@ -34,31 +37,38 @@ if (empty($user_id) || empty($permit_type) || empty($start_date) || empty($end_d
 
 // 2. Handle File Upload
 $attachmentName = null;
-if (isset($_FILES['attachment']) && $_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
-    $fileTmpPath = $_FILES['attachment']['tmp_name'];
-    $fileName = $_FILES['attachment']['name'];
-    $fileNameCmps = explode(".", $fileName);
-    $fileExtension = strtolower(end($fileNameCmps));
+if (isset($_FILES['attachment']) && $_FILES['attachment']['name'] !== '') {
+    if ($_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
+        $fileTmpPath = $_FILES['attachment']['tmp_name'];
+        $fileName = $_FILES['attachment']['name'];
+        $fileNameCmps = explode(".", $fileName);
+        $fileExtension = strtolower(end($fileNameCmps));
 
-    $allowedfileExtensions = ['jpg', 'jpeg', 'png', 'pdf'];
+        $allowedfileExtensions = ['jpg', 'jpeg', 'png', 'pdf'];
 
-    if (in_array($fileExtension, $allowedfileExtensions)) {
-        $uploadFileDir = '../uploads/permits/';
-        if (!is_dir($uploadFileDir)) {
-            mkdir($uploadFileDir, 0755, true);
-        }
+        if (in_array($fileExtension, $allowedfileExtensions)) {
+            $uploadFileDir = '../uploads/permits/';
+            if (!is_dir($uploadFileDir)) {
+                mkdir($uploadFileDir, 0755, true);
+            }
 
-        $newFileName = time() . '_' . rand(1000, 9999) . '.' . $fileExtension;
-        $dest_path = $uploadFileDir . $newFileName;
+            $newFileName = time() . '_' . rand(1000, 9999) . '.' . $fileExtension;
+            $dest_path = $uploadFileDir . $newFileName;
 
-        if (move_uploaded_file($fileTmpPath, $dest_path)) {
-            $attachmentName = $newFileName;
+            if (move_uploaded_file($fileTmpPath, $dest_path)) {
+                $attachmentName = $newFileName;
+            } else {
+                echo json_encode(["success" => false, "message" => "Gagal memindahkan file ke folder uploads."]);
+                exit();
+            }
         } else {
-            echo json_encode(["success" => false, "message" => "Gagal upload file."]);
+            echo json_encode(["success" => false, "message" => "Format file harus JPG, PNG, atau PDF."]);
             exit();
         }
     } else {
-        echo json_encode(["success" => false, "message" => "Format file harus JPG, PNG, atau PDF."]);
+        $errorMsg = "Gagal upload file (Error: " . $_FILES['attachment']['error'] . ")";
+        if ($_FILES['attachment']['error'] === UPLOAD_ERR_INI_SIZE) $errorMsg = "File terlalu besar (Server Limit).";
+        echo json_encode(["success" => false, "message" => $errorMsg]);
         exit();
     }
 }
@@ -143,8 +153,8 @@ try {
     }
 
     // 4. INSERT DATA
-    $sql = "INSERT INTO permits (employee_id, permit_type, start_date, end_date, reason, attachment, status, approver_id) 
-            VALUES (:uid, :type, :sdate, :edate, :reason, :attach, 'Pending', :app_id)";
+    $sql = "INSERT INTO permits (employee_id, permit_type, start_date, end_date, reason, attachment, status, approver_id, is_hourly, start_time, end_time) 
+            VALUES (:uid, :type, :sdate, :edate, :reason, :attach, 'Pending', :app_id, :is_hourly, :start_time, :end_time)";
 
     $stmtInsert = $conn->prepare($sql);
     $stmtInsert->bindParam(':uid', $user_id);
@@ -154,6 +164,9 @@ try {
     $stmtInsert->bindParam(':reason', $reason);
     $stmtInsert->bindParam(':attach', $attachmentName);
     $stmtInsert->bindParam(':app_id', $approver_id);
+    $stmtInsert->bindParam(':is_hourly', $is_hourly);
+    $stmtInsert->bindParam(':start_time', $start_time);
+    $stmtInsert->bindParam(':end_time', $end_time);
 
     if ($stmtInsert->execute()) {
         // --- NOTIFICATION LOGIC (FCM V1 - Using GoogleAccessToken) ---
@@ -231,7 +244,6 @@ try {
                             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
                             $fcmResult = curl_exec($ch);
                             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-                            curl_close($ch);
 
                             if ($httpCode === 200) {
                                 logFCM("FCM sent successfully to approver ID $approver_id");

@@ -101,6 +101,7 @@ include '../layouts/header.php';
                             Izin</label>
                         <div class="mt-2 relative" id="dropdown-container-type">
                             <input type="hidden" name="permit_type" id="input-type" value="">
+                            <input type="hidden" name="is_hourly" id="is_hourly" value="0">
                             <button type="button" onclick="toggleFormDropdown('type')" id="button-type"
                                 class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200 transition-all">
                                 <span id="text-type" class="block truncate">Pilih Jenis</span>
@@ -125,6 +126,10 @@ include '../layouts/header.php';
                                     <li onclick="selectFormOption('type', 'Leave', 'Cuti')"
                                         class="cursor-pointer px-4 py-2 text-sm text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
                                         Cuti
+                                    </li>
+                                    <li onclick="selectFormOption('type', 'Hourly', 'Izin Sementara (Jam)')"
+                                        class="cursor-pointer px-4 py-2 text-sm text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
+                                        Izin Sementara (Jam)
                                     </li>
                                     <li onclick="selectFormOption('type', 'Other', 'Lainnya')"
                                         class="cursor-pointer px-4 py-2 text-sm text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
@@ -172,6 +177,25 @@ include '../layouts/header.php';
                         function selectFormOption(id, value, label) {
                             document.getElementById('input-' + id).value = value;
                             document.getElementById('text-' + id).textContent = label;
+                            
+                            if (id === 'type') {
+                                const isHourly = (value === 'Hourly');
+                                document.getElementById('is_hourly').value = isHourly ? '1' : '0';
+                                
+                                const timeFields = document.getElementById('time-fields');
+                                const endDateField = document.getElementById('end-date-container');
+                                
+                                if (isHourly) {
+                                    timeFields.classList.remove('hidden');
+                                    endDateField.classList.add('hidden');
+                                    document.getElementById('end_date').removeAttribute('required');
+                                } else {
+                                    timeFields.classList.add('hidden');
+                                    endDateField.classList.remove('hidden');
+                                    document.getElementById('end_date').setAttribute('required', 'required');
+                                }
+                            }
+                            
                             closeFormDropdown(id);
                         }
 
@@ -214,12 +238,30 @@ include '../layouts/header.php';
                         </div>
                     </div>
 
-                    <div class="sm:col-span-3">
+                    <div class="sm:col-span-3" id="end-date-container">
                         <label for="end_date" class="block text-sm font-medium leading-6 text-gray-900">Tanggal
                             Selesai</label>
                         <div class="mt-2">
                             <input type="date" name="end_date" id="end_date" required
                                 class="block w-full px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 focus:outline-none transition-all shadow-sm">
+                        </div>
+                    </div>
+
+                    <!-- Time Selection (Hidden by default) -->
+                    <div class="sm:col-span-6 hidden grid grid-cols-1 sm:grid-cols-2 gap-6" id="time-fields">
+                        <div>
+                            <label for="start_time" class="block text-sm font-medium leading-6 text-gray-900">Jam Mulai</label>
+                            <div class="mt-2">
+                                <input type="time" name="start_time" id="start_time" 
+                                    class="block w-full px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 focus:outline-none transition-all shadow-sm">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="end_time" class="block text-sm font-medium leading-6 text-gray-900">Jam Selesai</label>
+                            <div class="mt-2">
+                                <input type="time" name="end_time" id="end_time" 
+                                    class="block w-full px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 focus:outline-none transition-all shadow-sm">
+                            </div>
                         </div>
                     </div>
 

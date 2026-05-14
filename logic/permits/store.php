@@ -11,6 +11,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $start_date = $_POST['start_date'] ?? '';
     $end_date = $_POST['end_date'] ?? '';
     $reason = $_POST['reason'] ?? '';
+    
+    // Hourly Permit Support
+    $is_hourly = isset($_POST['is_hourly']) ? (int)$_POST['is_hourly'] : 0;
+    $start_time = $_POST['start_time'] ?? null;
+    $end_time = $_POST['end_time'] ?? null;
+
+    // Fallback for hourly: end_date = start_date
+    if ($is_hourly && empty($end_date)) {
+        $end_date = $start_date;
+    }
 
     // Status default is Pending
     $status = 'Pending';
@@ -23,38 +33,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // 2. File Upload Handling
     $attachment = null;
-    if (isset($_FILES['attachment']) && $_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
-        $fileTmpPath = $_FILES['attachment']['tmp_name'];
-        $fileName = $_FILES['attachment']['name'];
-        $fileSize = $_FILES['attachment']['size'];
-        $fileType = $_FILES['attachment']['type'];
+    if (isset($_FILES['attachment']) && $_FILES['attachment']['name'] !== '') {
+        if ($_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
+            $fileTmpPath = $_FILES['attachment']['tmp_name'];
+            $fileName = $_FILES['attachment']['name'];
+            $fileSize = $_FILES['attachment']['size'];
+            $fileType = $_FILES['attachment']['type'];
 
-        // Ambil ekstensi file
-        $fileNameCmps = explode(".", $fileName);
-        $fileExtension = strtolower(end($fileNameCmps));
+            // Ambil ekstensi file
+            $fileNameCmps = explode(".", $fileName);
+            $fileExtension = strtolower(end($fileNameCmps));
 
-        $allowedfileExtensions = ['jpg', 'jpeg', 'png', 'pdf'];
+            $allowedfileExtensions = ['jpg', 'jpeg', 'png', 'pdf'];
 
-        if (in_array($fileExtension, $allowedfileExtensions)) {
-            // Directory
-            $uploadFileDir = '../../uploads/permits/';
-            // Buat folder jika belum ada
-            if (!is_dir($uploadFileDir)) {
-                mkdir($uploadFileDir, 0755, true);
-            }
+            if (in_array($fileExtension, $allowedfileExtensions)) {
+                // Directory
+                $uploadFileDir = '../../uploads/permits/';
+                // Buat folder jika belum ada
+                if (!is_dir($uploadFileDir)) {
+                    mkdir($uploadFileDir, 0755, true);
+                }
 
-            // Unique Name: timestamp_random.ext
-            $newFileName = time() . '_' . rand(1000, 9999) . '.' . $fileExtension;
-            $dest_path = $uploadFileDir . $newFileName;
+                // Unique Name: timestamp_random.ext
+                $newFileName = time() . '_' . rand(1000, 9999) . '.' . $fileExtension;
+                $dest_path = $uploadFileDir . $newFileName;
 
-            if (move_uploaded_file($fileTmpPath, $dest_path)) {
-                $attachment = $newFileName;
+                if (move_uploaded_file($fileTmpPath, $dest_path)) {
+                    $attachment = $newFileName;
+                } else {
+                    header("Location: ../../views/permits/create.php?error=Gagal+memindahkan+file+ke+direktori+tujuan.+Cek+izin+folder.");
+                    exit;
+                }
             } else {
-        header("Location: ../../views/permits/create.php?error=Gagal+mengupload+file");
+                header("Location: ../../views/permits/create.php?error=Format+file+tidak+valid.+Gunakan%3A+jpg%2C+png%2C+pdf");
                 exit;
             }
         } else {
-        header("Location: ../../views/permits/create.php?error=Format+file+tidak+valid.+Gunakan%3A+jpg%2C+png%2C+pdf");
+            // Handle specific PHP upload errors
+            $errorMsg = "Gagal mengupload file (Error Code: " . $_FILES['attachment']['error'] . ")";
+            if ($_FILES['attachment']['error'] === UPLOAD_ERR_INI_SIZE) $errorMsg = "Ukuran file terlalu besar (melebihi limit server).";
+            if ($_FILES['attachment']['error'] === UPLOAD_ERR_FORM_SIZE) $errorMsg = "Ukuran file terlalu besar.";
+            
+            header("Location: ../../views/permits/create.php?error=" . urlencode($errorMsg));
             exit;
         }
     }
@@ -119,8 +139,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // 4. Save to Database
-    $sql = "INSERT INTO permits (employee_id, permit_type, start_date, end_date, reason, attachment, status, approver_id) 
-            VALUES (:employee_id, :permit_type, :start_date, :end_date, :reason, :attachment, :status, :approver_id)";
+    $sql = "INSERT INTO permits (employee_id, permit_type, start_date, end_date, reason, attachment, status, approver_id, is_hourly, start_time, end_time) 
+            VALUES (:employee_id, :permit_type, :start_date, :end_date, :reason, :attachment, :status, :approver_id, :is_hourly, :start_time, :end_time)";
 
     $stmt = $conn->prepare($sql);
     $stmt->bindParam(':employee_id', $employee_id);
@@ -131,6 +151,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->bindParam(':attachment', $attachment);
     $stmt->bindParam(':status', $status);
     $stmt->bindParam(':approver_id', $approver_id);
+    $stmt->bindParam(':is_hourly', $is_hourly);
+    $stmt->bindParam(':start_time', $start_time);
+    $stmt->bindParam(':end_time', $end_time);
 
     if ($stmt->execute()) {
         header("Location: ../../views/permits/index.php?success=Pengajuan+izin+berhasil+dikirim");

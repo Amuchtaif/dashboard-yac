@@ -13,7 +13,7 @@ $teacher_id = isset($_GET['teacher_id']) ? $_GET['teacher_id'] : null;
 
 try {
     $memorization_records = [];
-    $query = "SELECT m.id, m.student_id, m.teacher_id, m.date, m.surah_start, m.ayat_start, m.surah_end, m.ayat_end, m.juz, m.status, m.notes, m.created_at,
+    $query = "SELECT m.id, m.student_id, m.teacher_id, m.date, m.surah_start, m.ayat_start, m.total_baris, m.surah_end, m.ayat_end, m.juz, m.status, m.notes, m.created_at,
                      s.nama_siswa as student_name, s.kelas, s.tingkat,
                      e.full_name as teacher_name,
                      m.surah_start as surah_name,

@@ -111,14 +111,13 @@ require_once __DIR__ . '/../layouts/header.php';
                         <th scope="col" class="px-3 py-3.5 text-left text-xs font-bold uppercase tracking-wider text-gray-500 min-w-[200px]">Lokasi</th>
                         <th scope="col" class="px-3 py-3.5 text-center text-xs font-bold uppercase tracking-wider text-gray-500 min-w-[80px]">Jumlah</th>
                         <th scope="col" class="px-3 py-3.5 text-center text-xs font-bold uppercase tracking-wider text-gray-500 min-w-[120px]">Kondisi</th>
-                        <th scope="col" class="px-3 py-3.5 text-center text-xs font-bold uppercase tracking-wider text-gray-500 min-w-[120px]">Sumber Dana</th>
-                        <th scope="col" class="px-3 py-3.5 text-center text-xs font-bold uppercase tracking-wider text-gray-500 min-w-[120px]">Tgl Beli</th>
+                        <th scope="col" class="px-3 py-3.5 text-center text-xs font-bold uppercase tracking-wider text-gray-500 min-w-[150px]">Sumber & Tanggal</th>
                         <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6 text-right text-xs font-bold uppercase tracking-wider text-gray-500 min-w-[100px]">Aksi</th>
                     </tr>
                 </thead>
                 <tbody id="items-table-body" class="divide-y divide-gray-200 bg-white">
                     <tr>
-                        <td colspan="8" class="px-6 py-8 text-center text-slate-500">Memuat data...</td>
+                        <td colspan="9" class="px-6 py-8 text-center text-slate-500">Memuat data...</td>
                     </tr>
                 </tbody>
             </table>
@@ -618,10 +617,10 @@ require_once __DIR__ . '/../layouts/header.php';
                     ${getConditionBadge(item.item_condition)}
                 </td>
                 <td class="whitespace-nowrap px-3 py-4 text-center">
-                    <span class="text-xs font-semibold text-slate-600">${item.funding_source || '-'}</span>
-                </td>
-                <td class="whitespace-nowrap px-3 py-4 text-center text-xs font-medium text-slate-500">
-                    ${item.purchase_date ? new Date(item.purchase_date).toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'}) : '-'}
+                    <div class="text-xs font-semibold text-slate-600">${item.funding_source || '-'}</div>
+                    <div class="text-[10px] text-slate-500 mt-0.5">
+                        ${item.purchase_date ? new Date(item.purchase_date).toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'}) : '-'}
+                    </div>
                 </td>
                 <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                     <div class="flex items-center justify-end gap-3 text-gray-400">

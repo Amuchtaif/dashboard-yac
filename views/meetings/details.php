@@ -41,6 +41,24 @@ while ($row = $resPart->fetch_assoc()) {
     $participants[] = $row;
 }
 
+// Fetch Meeting Notes
+$sqlNotes = "SELECT n.*, e.full_name as user_name 
+             FROM meeting_notes n 
+             LEFT JOIN employees e ON n.user_id = e.id 
+             WHERE n.meeting_id = ? 
+             ORDER BY n.created_at ASC";
+$stmtNotes = $mysqli->prepare($sqlNotes);
+$stmtNotes->bind_param("i", $id);
+$stmtNotes->execute();
+$resNotes = $stmtNotes->get_result();
+$notes = [];
+while ($row = $resNotes->fetch_assoc()) {
+    $notes[] = $row;
+}
+
+$usulan = array_filter($notes, function($n) { return $n['type'] === 'usulan'; });
+$notulen = array_filter($notes, function($n) { return $n['type'] === 'notulen'; });
+
 include '../layouts/header.php';
 ?>
 
@@ -218,6 +236,67 @@ include '../layouts/header.php';
                     </table>
                 </div>
             </div>
+
+            <!-- Usulan & Notulen -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Usulan Card -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-indigo-50/30">
+                        <h2 class="text-lg font-semibold text-slate-900 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                            </svg>
+                            Usulan Rapat
+                        </h2>
+                        <button onclick="openNoteModal('usulan')" class="text-indigo-600 hover:text-indigo-800 text-sm font-medium transition-colors hover:bg-indigo-100/50 px-2 py-1 rounded">
+                            + Tambah
+                        </button>
+                    </div>
+                    <div class="p-6 space-y-4 max-h-[400px] overflow-y-auto">
+                        <?php if (empty($usulan)): ?>
+                            <p class="text-center text-slate-400 text-sm py-4">Belum ada usulan.</p>
+                        <?php endif; ?>
+                        <?php foreach ($usulan as $u): ?>
+                            <div class="bg-slate-50 rounded-lg p-4 border border-slate-100 hover:border-indigo-200 transition-colors">
+                                <div class="flex justify-between items-start mb-2">
+                                    <span class="text-xs font-semibold text-indigo-600"><?= htmlspecialchars($u['user_name']) ?></span>
+                                    <span class="text-[10px] text-slate-400"><?= date('d/m H:i', strtotime($u['created_at'])) ?></span>
+                                </div>
+                                <p class="text-sm text-slate-700 whitespace-pre-wrap"><?= htmlspecialchars($u['content']) ?></p>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+
+                <!-- Notulen Card -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-emerald-50/30">
+                        <h2 class="text-lg font-semibold text-slate-900 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            Notulen Rapat
+                        </h2>
+                        <button onclick="openNoteModal('notulen')" class="text-emerald-600 hover:text-emerald-800 text-sm font-medium transition-colors hover:bg-emerald-100/50 px-2 py-1 rounded">
+                            + Tambah
+                        </button>
+                    </div>
+                    <div class="p-6 space-y-4 max-h-[400px] overflow-y-auto">
+                        <?php if (empty($notulen)): ?>
+                            <p class="text-center text-slate-400 text-sm py-4">Belum ada notulen.</p>
+                        <?php endif; ?>
+                        <?php foreach ($notulen as $n): ?>
+                            <div class="bg-slate-50 rounded-lg p-4 border border-slate-100 hover:border-emerald-200 transition-colors">
+                                <div class="flex justify-between items-start mb-2">
+                                    <span class="text-xs font-semibold text-emerald-600"><?= htmlspecialchars($n['user_name']) ?></span>
+                                    <span class="text-[10px] text-slate-400"><?= date('d/m H:i', strtotime($n['created_at'])) ?></span>
+                                </div>
+                                <p class="text-sm text-slate-700 whitespace-pre-wrap"><?= htmlspecialchars($n['content']) ?></p>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Right Column: QR Code -->
@@ -265,7 +344,92 @@ include '../layouts/header.php';
     </div>
 </div>
 
+<!-- Modal Tambah Catatan -->
+<div id="noteModal" class="fixed inset-0 z-50 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-slate-900 bg-opacity-50 transition-opacity" onclick="closeNoteModal()"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div class="sm:flex sm:items-start">
+                    <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                        <h3 class="text-xl leading-6 font-bold text-slate-900 mb-4" id="noteModalTitle">Tambah Catatan</h3>
+                        <div class="mt-2">
+                            <input type="hidden" id="note_type">
+                            <label for="note_content" class="block text-sm font-medium text-slate-700 mb-2">Konten</label>
+                            <textarea id="note_content" rows="6" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-slate-300 rounded-xl p-3 bg-slate-50" placeholder="Ketik isi catatan di sini..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-slate-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-3">
+                <button type="button" id="submitNoteBtn" onclick="submitNote()" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2.5 bg-indigo-600 text-base font-semibold text-white hover:bg-indigo-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm transition-all">
+                    Simpan Catatan
+                </button>
+                <button type="button" onclick="closeNoteModal()" class="mt-3 w-full inline-flex justify-center rounded-xl border border-slate-300 shadow-sm px-4 py-2.5 bg-white text-base font-medium text-slate-700 hover:bg-slate-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition-all">
+                    Batal
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+let currentNoteType = 'usulan';
+
+function openNoteModal(type) {
+    currentNoteType = type;
+    document.getElementById('noteModalTitle').innerText = type === 'usulan' ? 'Tambah Usulan' : 'Tambah Notulen';
+    document.getElementById('note_type').value = type;
+    document.getElementById('noteModal').classList.remove('hidden');
+    document.getElementById('note_content').focus();
+}
+
+function closeNoteModal() {
+    document.getElementById('noteModal').classList.add('hidden');
+    document.getElementById('note_content').value = '';
+}
+
+async function submitNote() {
+    const content = document.getElementById('note_content').value;
+    if (!content.trim()) {
+        alert('Konten tidak boleh kosong');
+        return;
+    }
+
+    const btn = document.getElementById('submitNoteBtn');
+    const originalText = btn.innerText;
+    btn.innerText = 'Menyimpan...';
+    btn.disabled = true;
+
+    try {
+        const response = await fetch('../../logic/meetings/add_note.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                meeting_id: <?= $id ?>,
+                type: currentNoteType,
+                content: content
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Gagal: ' + (data.message || 'Kesalahan tidak diketahui'));
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
+    } catch (e) {
+        console.error(e);
+        alert('Error terhubung ke server');
+        btn.innerText = originalText;
+        btn.disabled = false;
+    }
+}
+
 async function toggleStatus(id, currentStatus) {
     try {
         const btn = document.activeElement;

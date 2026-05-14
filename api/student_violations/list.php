@@ -1,11 +1,10 @@
-<?php
+﻿<?php
 require_once '../../config/database.php';
 require_once '../../config/app.php';
 require_once '../../config/permission.php';
 
 header('Content-Type: application/json');
 
-// Auth check: support both session and request parameter (for Flutter app)
 $user_id = $_SESSION['user_id'] ?? $_GET['user_id'] ?? $_POST['user_id'] ?? null;
 
 if (!$user_id) {
@@ -21,7 +20,6 @@ if (!hasPermission($user_id, 'can_access_kesantrian')) {
 $db = new Database();
 $conn = $db->getConnection();
 
-// 2. Check if user is a designated officer or admin
 $stmtOfficer = $conn->prepare("SELECT COUNT(*) FROM petugas_pelanggaran WHERE employee_id = ?");
 $stmtOfficer->execute([$user_id]);
 $is_officer = $stmtOfficer->fetchColumn() > 0;
@@ -37,16 +35,16 @@ $kategori_id = $_GET['kategori_id'] ?? '';
 $santri_id = $_GET['santri_id'] ?? '';
 $search = $_GET['search'] ?? '';
 
-$query = "SELECT p.*, s.nama_siswa, k.nama_kategori, k.poin, e.full_name as pelapor_name
+// Added k.category to the SELECT statement
+$query = "SELECT p.*, s.nama_siswa, k.type_name as nama_kategori, k.points as poin, k.category, e.full_name as pelapor_name
           FROM pelanggaran p
           JOIN students s ON p.santri_id = s.id
-          JOIN kategori_pelanggaran k ON p.kategori_id = k.id
+          JOIN boarding_violation_types k ON p.kategori_id = k.id
           JOIN employees e ON p.pelapor = e.id
           WHERE 1=1";
 
 $params = [];
 
-// Jika request DARI mobile app (user_id explicitly passed) dan BUKAN petugas/admin, filter milik sendiri
 if (!$is_officer && isset($_GET['user_id'])) {
     $query .= " AND p.pelapor = ?";
     $params[] = $user_id;

@@ -71,11 +71,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reset_id'])) {
     try {
         $update = $conn->prepare("UPDATE employees SET password = :pass WHERE id = :id");
         $update->execute([':pass' => $hashed, ':id' => $reset_id]);
-        header("Location: reset_password.php?success=Password berhasil direset.&search=" . urlencode($search));
-        exit;
+        redirect("views/employees/reset_password.php?success=Password berhasil direset.&search=" . urlencode($search));
     } catch (PDOException $e) {
-        header("Location: reset_password.php?error=Gagal mereset password.&search=" . urlencode($search));
-        exit;
+        redirect("views/employees/reset_password.php?error=Gagal mereset password.&search=" . urlencode($search));
     }
 }
 
@@ -91,23 +89,6 @@ include '../layouts/header.php';
         </div>
     </div>
 
-    <!-- Alerts -->
-    <?php if (isset($_GET['success'])): ?>
-        <div class="mt-4 bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg text-sm flex items-center gap-2 alert-banner transition-opacity duration-500">
-            <svg class="h-5 w-5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-            </svg>
-            <?php echo htmlspecialchars($_GET['success']); ?>
-        </div>
-    <?php endif; ?>
-    <?php if (isset($_GET['error'])): ?>
-        <div class="mt-4 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm flex items-center gap-2 alert-banner transition-opacity duration-500">
-            <svg class="h-5 w-5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-            </svg>
-            <?php echo htmlspecialchars($_GET['error']); ?>
-        </div>
-    <?php endif; ?>
 
     <!-- Search -->
     <div class="mt-6">
@@ -252,7 +233,7 @@ include '../layouts/header.php';
     <div id="resetModalBackdrop" class="fixed inset-0 bg-slate-900/50 transition-opacity duration-300 opacity-0 backdrop-blur-sm"></div>
     <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
         <div id="resetModalPanel" class="relative transform overflow-hidden rounded-xl bg-white text-left shadow-2xl transition-all duration-300 opacity-0 scale-95 sm:my-8 sm:w-full sm:max-w-md">
-            <form method="POST" action="reset_password.php?search=<?php echo urlencode($search); ?>">
+            <form method="POST" action="<?php url('views/employees/reset_password.php'); ?>?search=<?php echo urlencode($search); ?>">
                 <input type="hidden" name="reset_id" id="resetUserId">
                 <div class="bg-white px-5 pt-5 pb-4">
                     <div class="flex items-start gap-4">

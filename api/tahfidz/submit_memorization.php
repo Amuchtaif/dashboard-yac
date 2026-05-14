@@ -13,8 +13,7 @@ $student_id = isset($input['student_id']) ? $input['student_id'] : null;
 $date = isset($input['date']) ? $input['date'] : date('Y-m-d');
 $surah_start = isset($input['surah_start']) ? $input['surah_start'] : '';
 $ayat_start = isset($input['ayat_start']) ? $input['ayat_start'] : 0;
-$surah_end = isset($input['surah_end']) ? $input['surah_end'] : '';
-$ayat_end = isset($input['ayat_end']) ? $input['ayat_end'] : 0;
+$total_baris = isset($input['total_baris']) ? $input['total_baris'] : 0;
 $juz = isset($input['juz']) ? $input['juz'] : null;
 $status = isset($input['status']) ? $input['status'] : 'Lancar'; // Lancar, Kurang Lancar, Ulang, etc.
 $notes = isset($input['notes']) ? $input['notes'] : '';
@@ -51,14 +50,19 @@ if ($teacher_id && !hasPermission($teacher_id, 'access_tahfidz')) {
 
 try {
     $stmt = $mysqli->prepare("INSERT INTO tahfidz_memorization 
-        (student_id, date, surah_start, ayat_start, surah_end, ayat_end, juz, status, notes, teacher_id) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        (student_id, date, surah_start, ayat_start, total_baris, surah_end, ayat_end, juz, status, notes, teacher_id) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
     
-    $stmt->bind_param("issississi", 
+    // Default surah_end and ayat_end if not provided
+    $surah_end = isset($input['surah_end']) ? $input['surah_end'] : $surah_start;
+    $ayat_end = isset($input['ayat_end']) ? $input['ayat_end'] : $ayat_start;
+
+    $stmt->bind_param("issiiisissi", 
         $student_id, 
         $date, 
         $surah_start, 
         $ayat_start, 
+        $total_baris,
         $surah_end, 
         $ayat_end, 
         $juz, 
@@ -66,6 +70,7 @@ try {
         $notes, 
         $teacher_id
     );
+
 
     if ($stmt->execute()) {
         echo json_encode(["success" => true, "message" => "Memorization record saved successfully"]);

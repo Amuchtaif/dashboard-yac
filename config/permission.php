@@ -46,6 +46,16 @@ if (!function_exists('hasPermission')) {
                 return (bool) $user_perm['is_allowed'];
             }
 
+            // 1.1 Alias Check for user_permissions (to match web admin naming)
+            if ($permission_name === 'create_meeting') {
+                $stmtAlias = $conn->prepare("SELECT is_allowed FROM user_permissions WHERE employee_id = ? AND permission_name = 'access_meeting' LIMIT 1");
+                $stmtAlias->execute([$employee_id]);
+                $alias_perm = $stmtAlias->fetch(PDO::FETCH_ASSOC);
+                if ($alias_perm) {
+                    return (bool) $alias_perm['is_allowed'];
+                }
+            }
+
             // 2. SECOND PRIORITY: Role-based Permissions (Database 'positions')
             $permission_map = [
                 'access_tahfidz' => 'can_access_tahfidz',

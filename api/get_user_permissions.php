@@ -68,6 +68,11 @@ try {
         $stmtTeacher->execute([$user_id]);
         $isTeacher = (int)$stmtTeacher->fetchColumn() > 0;
 
+        // Check if user is Wali Kelas
+        $stmtWali = $db->prepare("SELECT COUNT(*) FROM grade_levels WHERE teacher_id = ? LIMIT 1");
+        $stmtWali->execute([$user_id]);
+        $isWali = (int)$stmtWali->fetchColumn() > 0;
+
         $permissions = [
             "can_create_meeting" => (int)hasPermission($user_id, 'create_meeting'),
             "can_approve_permits" => (int)hasPermission($user_id, 'approve_permits'),
@@ -78,6 +83,7 @@ try {
             "can_access_kabid" => (int)hasPermission($user_id, 'can_access_kabid'),
             "can_access_kesantrian" => (int)hasPermission($user_id, 'can_access_kesantrian'),
             "is_koordinator" => $isKoordinator,
+            "is_wali_kelas" => $isWali,
         ];
         
         echo json_encode([

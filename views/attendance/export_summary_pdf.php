@@ -8,8 +8,8 @@ $db = new Database();
 $conn = $db->getConnection();
 
 // --- Filter Logic ---
-$start_date = isset($_GET['start_date']) ? $_GET['start_date'] : date('Y-m-01');
-$end_date = isset($_GET['end_date']) ? $_GET['end_date'] : date('Y-m-d');
+$start_date = isset($_GET['start_date']) ? $_GET['start_date'] : date('Y-m-26', strtotime('-1 month'));
+$end_date = isset($_GET['end_date']) ? $_GET['end_date'] : date('Y-m-25');
 $division_id = isset($_GET['division_id']) ? $_GET['division_id'] : '';
 $unit_id = isset($_GET['unit_id']) ? $_GET['unit_id'] : '';
 

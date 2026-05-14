@@ -218,6 +218,7 @@ include '../layouts/header.php';
                             <option value="">Jenis Izin: Semua</option>
                             <option value="Sick" <?php echo $permit_type == 'Sick' ? 'selected' : ''; ?>>Sakit</option>
                             <option value="Leave" <?php echo $permit_type == 'Leave' ? 'selected' : ''; ?>>Cuti Tahunan</option>
+                            <option value="Hourly" <?php echo $permit_type == 'Hourly' ? 'selected' : ''; ?>>Izin Sementara (Jam)</option>
                             <option value="Other" <?php echo $permit_type == 'Other' ? 'selected' : ''; ?>>Lainnya</option>
                         </select>
                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
@@ -256,9 +257,9 @@ include '../layouts/header.php';
                     <tr class="text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">
                         <th scope="col" class="px-6 py-4 w-12">No.</th>
                         <th scope="col" class="px-6 py-4 min-w-[200px] text-left">Pegawai</th>
-                        <th scope="col" class="px-6 py-4 min-w-[120px] text-left">Jenis</th>
+                        <th scope="col" class="px-6 py-4 min-w-[250px] text-left">Izin & Alasan</th>
                         <th scope="col" class="px-6 py-4 min-w-[150px] text-left">Periode</th>
-                        <th scope="col" class="px-6 py-4 min-w-[200px] text-left">Alasan</th>
+                        <th scope="col" class="px-6 py-4 min-w-[100px] text-center">Lampiran</th>
                         <th scope="col" class="px-6 py-4 min-w-[120px] text-left">Status</th>
                         <th scope="col" class="px-6 py-4 text-right">Opsi</th>
                     </tr>
@@ -266,7 +267,7 @@ include '../layouts/header.php';
                 <tbody class="divide-y divide-slate-100 bg-white">
                     <?php if (empty($permits)): ?>
                         <tr>
-                            <td colspan="6" class="px-6 py-8 text-center text-slate-500">
+                            <td colspan="7" class="px-6 py-8 text-center text-slate-500">
                                 Tidak ada pengajuan ditemukan.
                             </td>
                         </tr>
@@ -298,7 +299,7 @@ include '../layouts/header.php';
                                 </div>
                             </td>
 
-                            <!-- Type -->
+                            <!-- Type & Reason -->
                             <td class="px-6 py-4">
                                 <?php
                                 $typeClass = '';
@@ -312,6 +313,10 @@ include '../layouts/header.php';
                                         $typeClass = 'bg-purple-50 text-purple-600 border border-purple-100';
                                         $typeLabel = 'CUTI TAHUNAN';
                                         break;
+                                    case 'Hourly':
+                                        $typeClass = 'bg-cyan-50 text-cyan-600 border border-cyan-100';
+                                        $typeLabel = 'IZIN SEMENTARA (JAM)';
+                                        break;
                                     case 'Other':
                                         $typeClass = 'bg-blue-50 text-blue-600 border border-blue-100';
                                         $typeLabel = 'LAINNYA';
@@ -321,34 +326,58 @@ include '../layouts/header.php';
                                         $typeLabel = strtoupper($permit['permit_type']);
                                 }
                                 ?>
-                                <span class="px-2.5 py-1 rounded-md text-xs font-bold <?php echo $typeClass; ?>">
-                                    <?php echo $typeLabel; ?>
-                                </span>
+                                <div class="mb-1">
+                                    <span class="px-2.5 py-1 rounded-md text-[10px] font-bold <?php echo $typeClass; ?>">
+                                        <?php echo $typeLabel; ?>
+                                    </span>
+                                </div>
+                                <p class="text-slate-600 text-xs line-clamp-2"
+                                    title="<?php echo htmlspecialchars($permit['reason']); ?>">
+                                    <?php echo htmlspecialchars($permit['reason']); ?>
+                                </p>
                             </td>
 
                             <!-- Period -->
                             <td class="px-6 py-4">
-                                <div class="text-slate-900 font-medium">
+                                <div class="text-slate-900 font-medium text-xs">
                                     <?php
                                     $startMonth = date('M', strtotime($permit['start_date']));
-                                    $endMonth = date('M', strtotime($permit['end_date']));
                                     echo ($months[$startMonth] ?? $startMonth) . ' ' . date('d', strtotime($permit['start_date']));
-                                    ?> -
-                                    <?php
-                                    echo ($months[$endMonth] ?? $endMonth) . ' ' . date('d', strtotime($permit['end_date']));
+                                    
+                                    if (!$permit['is_hourly'] && $permit['start_date'] !== $permit['end_date']) {
+                                        $endMonth = date('M', strtotime($permit['end_date']));
+                                        echo ' - ' . ($months[$endMonth] ?? $endMonth) . ' ' . date('d', strtotime($permit['end_date']));
+                                    }
                                     ?>
                                 </div>
-                                <div class="text-slate-500 text-xs">
-                                    <?php echo $permit['duration']; ?> hari
+                                <div class="text-slate-500 text-[10px] mt-0.5">
+                                    <?php if ($permit['is_hourly']): ?>
+                                        <span class="flex items-center gap-1">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            <?php echo date('H:i', strtotime($permit['start_time'])); ?> - <?php echo date('H:i', strtotime($permit['end_time'])); ?>
+                                        </span>
+                                    <?php else: ?>
+                                        <?php echo $permit['duration']; ?> hari
+                                    <?php endif; ?>
                                 </div>
                             </td>
 
-                            <!-- Reason -->
-                            <td class="px-6 py-4">
-                                <p class="text-slate-600 truncate w-48"
-                                    title="<?php echo htmlspecialchars($permit['reason']); ?>">
-                                    <?php echo htmlspecialchars($permit['reason']); ?>
-                                </p>
+                            <!-- Attachment -->
+                            <td class="px-6 py-4 text-center">
+                                <?php if (!empty($permit['attachment'])): ?>
+                                    <button type="button" 
+                                       onclick="openImageModal('<?php echo BASE_URL; ?>/uploads/permits/<?php echo $permit['attachment']; ?>')"
+                                       class="inline-flex items-center p-1.5 bg-cyan-50 text-cyan-600 rounded-lg hover:bg-cyan-100 transition-colors"
+                                       title="Lihat Lampiran">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                        </svg>
+                                    </button>
+                                <?php else: ?>
+                                    <span class="text-slate-400 text-xs">-</span>
+                                <?php endif; ?>
                             </td>
 
                             <!-- Status -->
