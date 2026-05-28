@@ -1,7 +1,9 @@
 <?php
 // api/get_approval_list.php
-error_reporting(0);
+ob_start();
+error_reporting(E_ALL);
 ini_set('display_errors', 0);
+
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Methods: GET");
@@ -9,17 +11,18 @@ date_default_timezone_set('Asia/Jakarta');
 
 include_once '../config/database.php';
 
-$database = new Database();
-$conn = $database->getConnection();
-
-if (!isset($_GET['user_id'])) {
-    echo json_encode(["success" => false, "message" => "User ID (Approver) required"]);
-    exit();
-}
-
-$approver_id = $_GET['user_id'];
-
 try {
+    $database = new Database();
+    $conn = $database->getConnection();
+
+    if (!isset($_GET['user_id'])) {
+        ob_clean();
+        echo json_encode(["success" => false, "message" => "User ID (Approver) required"]);
+        exit();
+    }
+
+    $approver_id = $_GET['user_id'];
+
     // 0. Fetch Approver Info (Level)
     $stmtUser = $conn->prepare("
         SELECT p.level 
@@ -31,6 +34,7 @@ try {
     $uData = $stmtUser->fetch(PDO::FETCH_ASSOC);
 
     if (!$uData) {
+        ob_clean();
         echo json_encode(["success" => false, "message" => "User (Approver) not found"]);
         exit();
     }
@@ -38,13 +42,10 @@ try {
     $level = (int) $uData['level'];
 
     // 1. Visibility Filter
-    // Requirement: "level mudir (1) hanya menerima approve izin dari level kabid (2)"
-    // We allow any level 1 user to see all pending from level 2 for shared visibility.
     if ($level === 1) {
         $whereClause = "pos.level = 2";
         $params = [];
     } else {
-        // Normal assigned filter
         $whereClause = "p.approver_id = :aid AND p.employee_id != :aid";
         $params = [':aid' => $approver_id];
     }
@@ -80,10 +81,6 @@ try {
 
     $approvals = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Format data if needed (e.g., combine Unit/Div name)
-    // Detailed Requirement: "Ahmad - Unit Satpam" (or Division if Unit is null)
-    // We can do this in PHP iter to be safe.
-
     $resultData = [];
     foreach ($approvals as $row) {
         $location = $row['unit_name'] ? $row['unit_name'] : $row['division_name'];
@@ -91,12 +88,15 @@ try {
         $resultData[] = $row;
     }
 
+    ob_clean();
     echo json_encode([
         "success" => true,
         "data" => $resultData
     ]);
 
-} catch (PDOException $e) {
-    echo json_encode(["success" => false, "message" => "Database Error: " . $e->getMessage()]);
+} catch (Exception $e) {
+    ob_clean();
+    echo json_encode(["success" => false, "message" => "Error: " . $e->getMessage()]);
 }
+
 ?>

@@ -1,7 +1,9 @@
 <?php
 // api/submit_permit.php
-error_reporting(0);
+ob_start();
+error_reporting(E_ALL);
 ini_set('display_errors', 0);
+
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Methods: POST");
@@ -10,73 +12,88 @@ date_default_timezone_set('Asia/Jakarta');
 include_once '../config/database.php';
 include_once 'AccessToken.php';
 
-$database = new Database();
-$conn = $database->getConnection();
+// Helper function to find approver
+function findBoss($connection, $targetLevel, $colName, $colValue)
+{
+    if (empty($colValue))
+        return false;
 
-// Cek Method
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo json_encode(["success" => false, "message" => "Method not allowed"]);
-    exit();
+    $sql = "SELECT e.id FROM employees e 
+            JOIN positions p ON e.position_id = p.id 
+            WHERE e.$colName = :val AND p.level = :lvl 
+            AND e.status = 'active' 
+            LIMIT 1";
+    $stmt = $connection->prepare($sql);
+    $stmt->execute([':val' => $colValue, ':lvl' => $targetLevel]);
+    $res = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $res ? $res['id'] : false;
 }
 
-// 1. Ambil Data Input
-$user_id = $_POST['user_id'] ?? '';
-$permit_type = $_POST['permit_type'] ?? '';
-$start_date = $_POST['start_date'] ?? '';
-$end_date = $_POST['end_date'] ?? '';
-$reason = $_POST['reason'] ?? '';
-$is_hourly = $_POST['is_hourly'] ?? 0;
-$start_time = $_POST['start_time'] ?? null;
-$end_time = $_POST['end_time'] ?? null;
+try {
+    $database = new Database();
+    $conn = $database->getConnection();
 
-// Validasi
-if (empty($user_id) || empty($permit_type) || empty($start_date) || empty($end_date) || empty($reason)) {
-    echo json_encode(["success" => false, "message" => "Semua kolom wajib diisi."]);
-    exit();
-}
+    // 1. Ambil Data Input
+    $user_id = $_POST['user_id'] ?? '';
+    $permit_type = $_POST['permit_type'] ?? '';
+    $start_date = $_POST['start_date'] ?? '';
+    $end_date = $_POST['end_date'] ?? '';
+    $reason = $_POST['reason'] ?? '';
+    $is_hourly = $_POST['is_hourly'] ?? 0;
+    $start_time = $_POST['start_time'] ?? null;
+    $end_time = $_POST['end_time'] ?? null;
 
-// 2. Handle File Upload
-$attachmentName = null;
-if (isset($_FILES['attachment']) && $_FILES['attachment']['name'] !== '') {
-    if ($_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
-        $fileTmpPath = $_FILES['attachment']['tmp_name'];
-        $fileName = $_FILES['attachment']['name'];
-        $fileNameCmps = explode(".", $fileName);
-        $fileExtension = strtolower(end($fileNameCmps));
+    // Validasi
+    if (empty($user_id) || empty($permit_type) || empty($start_date) || empty($end_date) || empty($reason)) {
+        ob_clean();
+        echo json_encode(["success" => false, "message" => "Semua kolom wajib diisi."]);
+        exit();
+    }
 
-        $allowedfileExtensions = ['jpg', 'jpeg', 'png', 'pdf'];
+    // 2. Handle File Upload
+    $attachmentName = null;
+    if (isset($_FILES['attachment']) && $_FILES['attachment']['name'] !== '') {
+        if ($_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
+            $fileTmpPath = $_FILES['attachment']['tmp_name'];
+            $fileName = $_FILES['attachment']['name'];
+            $fileNameCmps = explode(".", $fileName);
+            $fileExtension = strtolower(end($fileNameCmps));
 
-        if (in_array($fileExtension, $allowedfileExtensions)) {
-            $uploadFileDir = '../uploads/permits/';
-            if (!is_dir($uploadFileDir)) {
-                mkdir($uploadFileDir, 0755, true);
-            }
+            $allowedfileExtensions = ['jpg', 'jpeg', 'png', 'pdf'];
 
-            $newFileName = time() . '_' . rand(1000, 9999) . '.' . $fileExtension;
-            $dest_path = $uploadFileDir . $newFileName;
+            if (in_array($fileExtension, $allowedfileExtensions)) {
+                $uploadFileDir = '../uploads/permits/';
+                if (!is_dir($uploadFileDir)) {
+                    mkdir($uploadFileDir, 0755, true);
+                }
 
-            if (move_uploaded_file($fileTmpPath, $dest_path)) {
-                $attachmentName = $newFileName;
+                $newFileName = time() . '_' . rand(1000, 9999) . '.' . $fileExtension;
+                $dest_path = $uploadFileDir . $newFileName;
+
+                if (move_uploaded_file($fileTmpPath, $dest_path)) {
+                    $attachmentName = $newFileName;
+                } else {
+                    ob_clean();
+                    echo json_encode(["success" => false, "message" => "Gagal memindahkan file ke folder uploads."]);
+                    exit();
+                }
             } else {
-                echo json_encode(["success" => false, "message" => "Gagal memindahkan file ke folder uploads."]);
+                ob_clean();
+                echo json_encode(["success" => false, "message" => "Format file harus JPG, PNG, atau PDF."]);
                 exit();
             }
         } else {
-            echo json_encode(["success" => false, "message" => "Format file harus JPG, PNG, atau PDF."]);
+            $errorMsg = "Gagal upload file (Error: " . $_FILES['attachment']['error'] . ")";
+            if ($_FILES['attachment']['error'] === UPLOAD_ERR_INI_SIZE) $errorMsg = "File terlalu besar (Server Limit).";
+            ob_clean();
+            echo json_encode(["success" => false, "message" => $errorMsg]);
             exit();
         }
-    } else {
-        $errorMsg = "Gagal upload file (Error: " . $_FILES['attachment']['error'] . ")";
-        if ($_FILES['attachment']['error'] === UPLOAD_ERR_INI_SIZE) $errorMsg = "File terlalu besar (Server Limit).";
-        echo json_encode(["success" => false, "message" => $errorMsg]);
-        exit();
     }
-}
 
-// 3. LOGIC HIERARKI APPROVER (REVISI ROBUST / FALLBACK SYSTEM)
-$approver_id = null;
+    // 3. LOGIC HIERARKI APPROVER
+    $approver_id = null;
 
-try {
     // Ambil Data Karyawan Pelapor
     $stmt = $conn->prepare("
         SELECT e.id, e.unit_id, e.division_id, p.level 
@@ -92,47 +109,23 @@ try {
         $unit_id = $empData['unit_id'];
         $division_id = $empData['division_id'];
 
-        // FUNGSI BANTUAN: Cari Atasan
-        // Mencari karyawan dengan Level tertentu di Unit/Divisi tertentu
-        function findBoss($connection, $targetLevel, $colName, $colValue)
-        {
-            if (empty($colValue))
-                return false;
-
-            $sql = "SELECT e.id FROM employees e 
-                    JOIN positions p ON e.position_id = p.id 
-                    WHERE e.$colName = :val AND p.level = :lvl 
-                    AND e.status = 'active' 
-                    LIMIT 1";
-            $stmt = $connection->prepare($sql);
-            $stmt->execute([':val' => $colValue, ':lvl' => $targetLevel]);
-            $res = $stmt->fetch(PDO::FETCH_ASSOC);
-            return $res ? $res['id'] : false;
-        }
-
-        // --- ALUR PENCARIAN ATASAN BERTINGKAT (WATERFALL) ---
         // 1. STAFF / GURU (Level 4 atau 5)
         if ($level >= 4) {
-            // A. Cari Kepala Unit (Level 3) di Unit yang sama
             if (!empty($unit_id)) {
                 $approver_id = findBoss($conn, 3, 'unit_id', $unit_id);
             }
-
-            // B. Jika tidak ada Ka Unit, cari Kabid (Level 2) di Divisi yang sama
             if (!$approver_id && !empty($division_id)) {
                 $approver_id = findBoss($conn, 2, 'division_id', $division_id);
             }
         }
         // 2. KEPALA UNIT (Level 3)
         elseif ($level == 3) {
-            // Cari Kabid (Level 2) di Divisi yang sama
             if (!empty($division_id)) {
                 $approver_id = findBoss($conn, 2, 'division_id', $division_id);
             }
         }
         // 3. KEPALA BIDANG (Level 2)
         elseif ($level == 2) {
-            // Mudir (Level 1) HANYA menerima dari Level 2 (Kabid)
             $stmtMudir = $conn->prepare("
                 SELECT e.id FROM employees e 
                 JOIN positions p ON e.position_id = p.id 
@@ -146,9 +139,8 @@ try {
             }
         }
 
-        // --- PREVENT SELF-APPROVAL ---
         if ($approver_id == $user_id) {
-            $approver_id = null; // Don't let user approve themselves
+            $approver_id = null;
         }
     }
 
@@ -169,46 +161,36 @@ try {
     $stmtInsert->bindParam(':end_time', $end_time);
 
     if ($stmtInsert->execute()) {
-        // --- NOTIFICATION LOGIC (FCM V1 - Using GoogleAccessToken) ---
+        // --- NOTIFICATION LOGIC ---
         function logFCM($msg)
         {
-            file_put_contents('fcm_debug.log', date('Y-m-d H:i:s') . " [PERMIT] - " . $msg . "\n", FILE_APPEND);
+            file_put_contents(__DIR__ . '/fcm_debug.log', date('Y-m-d H:i:s') . " [PERMIT] - " . $msg . "\n", FILE_APPEND);
         }
-
-        logFCM("Starting Notification Process. Approver ID: " . ($approver_id ?? 'NULL'));
 
         if ($approver_id) {
             try {
-                // 1. Get Approver Token
                 $stmtToken = $conn->prepare("SELECT fcm_token FROM employees WHERE id = :aid LIMIT 1");
                 $stmtToken->execute([':aid' => $approver_id]);
                 $tokenRow = $stmtToken->fetch(PDO::FETCH_ASSOC);
 
                 if ($tokenRow && !empty($tokenRow['fcm_token'])) {
                     $targetToken = $tokenRow['fcm_token'];
-                    logFCM("Token found: " . substr($targetToken, 0, 10) . "...");
-
-                    // 2. Get Access Token using shared helper
-                    $serviceAccountPath = 'service-account.json';
+                    $serviceAccountPath = __DIR__ . '/service-account.json';
+                    
                     if (file_exists($serviceAccountPath)) {
                         $googleToken = new GoogleAccessToken($serviceAccountPath);
                         $accessToken = $googleToken->getToken();
 
                         if ($accessToken) {
-                            logFCM("Google Access Token Acquired");
-
                             $credentials = json_decode(file_get_contents($serviceAccountPath), true);
                             $projectId = $credentials['project_id'];
-
-                            // 3. Kirim Notifikasi (FCM V1)
                             $fcmUrl = "https://fcm.googleapis.com/v1/projects/$projectId/messages:send";
                             $newPermitId = $conn->lastInsertId();
 
-                            // Get Employee Name for clearer notification
                             $stmtName = $conn->prepare("SELECT full_name FROM employees WHERE id = :uid LIMIT 1");
                             $stmtName->execute([':uid' => $user_id]);
                             $empName = $stmtName->fetchColumn();
-                            $senderName = $empName ? $empName : "ID: $user_id";
+                            $senderName = $empName ? $empName : "Pegawai";
 
                             $payloadData = [
                                 'message' => [
@@ -221,13 +203,11 @@ try {
                                         'priority' => 'HIGH',
                                         'notification' => [
                                             'channel_id' => 'high_importance_channel',
-                                            'sound' => 'default',
-                                            'default_sound' => true
+                                            'sound' => 'default'
                                         ]
                                     ],
                                     'data' => [
                                         'screen' => 'permit_approval',
-                                        'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
                                         'permit_id' => (string) $newPermitId
                                     ]
                                 ]
@@ -242,43 +222,30 @@ try {
                             ]);
                             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payloadData));
                             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                            $fcmResult = curl_exec($ch);
-                            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-                            if ($httpCode === 200) {
-                                logFCM("FCM sent successfully to approver ID $approver_id");
-                            } else {
-                                logFCM("FCM failed (HTTP $httpCode): $fcmResult");
-                            }
-                        } else {
-                            logFCM("Failed to get Access Token from GoogleAccessToken class");
+                            curl_exec($ch);
+                            curl_close($ch);
                         }
-                    } else {
-                        logFCM("Service Account file not found: $serviceAccountPath");
                     }
-                } else {
-                    logFCM("Approver found but NO TOKEN or Token Empty.");
                 }
             } catch (Exception $e) {
-                logFCM("Exception: " . $e->getMessage());
-                // Silent fail: Notification error should not stop the process
+                // Silent fail for notification
             }
-        } else {
-            logFCM("No Approver ID determined.");
         }
-        // --- END NOTIFICATION ---
 
+        ob_clean();
         echo json_encode([
             "success" => true,
             "message" => "Izin berhasil diajukan! Menunggu approval.",
-            // Debug info (optional, bisa dihapus saat production)
             "debug_approver" => $approver_id
         ]);
     } else {
-        echo json_encode(["success" => false, "message" => "Gagal menyimpan database."]);
+        ob_clean();
+        echo json_encode(["success" => false, "message" => "Gagal menyimpan pengajuan izin."]);
     }
 
-} catch (PDOException $e) {
-    echo json_encode(["success" => false, "message" => "Database Error: " . $e->getMessage()]);
+} catch (Exception $e) {
+    ob_clean();
+    echo json_encode(["success" => false, "message" => "System Error: " . $e->getMessage()]);
 }
+
 ?>

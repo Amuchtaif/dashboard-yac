@@ -1,7 +1,9 @@
 <?php
 // api/get_permits.php
-error_reporting(0);
+ob_start();
+error_reporting(E_ALL);
 ini_set('display_errors', 0);
+
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Methods: GET");
@@ -9,18 +11,17 @@ date_default_timezone_set('Asia/Jakarta');
 
 include_once '../config/database.php';
 
-$database = new Database();
-$conn = $database->getConnection();
-
-if (!isset($_GET['user_id'])) {
-    echo json_encode(["success" => false, "message" => "User ID required"]);
-    exit();
-}
-
-$user_id = $_GET['user_id'];
-
 try {
-    // Check Position Level
+    $database = new Database();
+    $conn = $database->getConnection();
+
+    if (!isset($_GET['user_id'])) {
+        ob_clean();
+        echo json_encode(["success" => false, "message" => "User ID required"]);
+        exit();
+    }
+
+    $user_id = $_GET['user_id'];
     $position_level = isset($_GET['position_level']) ? (int) $_GET['position_level'] : 0;
 
     // Get current month boundaries
@@ -28,7 +29,6 @@ try {
     $lastDayOfMonth = date('Y-m-t 23:59:59');
 
     if ($position_level === 1) {
-        // Level 1 (Director) sees ALL permits for current month
         $query = "SELECT p.*, 
                          e.full_name as employee_name,
                          u.name as unit_name,
@@ -47,7 +47,6 @@ try {
         $stmt->bindParam(':start_date', $firstDayOfMonth);
         $stmt->bindParam(':end_date', $lastDayOfMonth);
     } else {
-        // Normal user (including Level 2/3) sees ONLY their own permits for current month
         $query = "SELECT p.*, 
                          target.full_name as target_approver_name,
                          app.full_name as approver_name 
@@ -64,15 +63,17 @@ try {
     }
 
     $stmt->execute();
-
     $permits = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    ob_clean();
     echo json_encode([
         "success" => true,
         "data" => $permits
     ]);
 
-} catch (PDOException $e) {
-    echo json_encode(["success" => false, "message" => "Database Error: " . $e->getMessage()]);
+} catch (Exception $e) {
+    ob_clean();
+    echo json_encode(["success" => false, "message" => "Error: " . $e->getMessage()]);
 }
+
 ?>

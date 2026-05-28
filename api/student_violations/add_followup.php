@@ -1,9 +1,11 @@
 <?php
+ob_start();
+error_reporting(0);
+ini_set('display_errors', 0);
+
 require_once '../../config/database.php';
 require_once '../../config/app.php';
 require_once '../../config/permission.php';
-
-header('Content-Type: application/json');
 
 $data = json_decode(file_get_contents('php://input'), true);
 
@@ -11,11 +13,15 @@ $data = json_decode(file_get_contents('php://input'), true);
 $user_id = $_SESSION['user_id'] ?? $data['user_id'] ?? $_GET['user_id'] ?? null;
 
 if (!$user_id) {
+    ob_clean();
+    header('Content-Type: application/json');
     echo json_encode(['success' => false, 'message' => 'Unauthorized']);
     exit;
 }
 
 if (!hasPermission($user_id, 'can_access_kesantrian')) {
+    ob_clean();
+    header('Content-Type: application/json');
     echo json_encode(['success' => false, 'message' => 'Access denied']);
     exit;
 }
@@ -24,6 +30,8 @@ $db = new Database();
 $conn = $db->getConnection();
 
 if (!$data) {
+    ob_clean();
+    header('Content-Type: application/json');
     echo json_encode(['success' => false, 'message' => 'Invalid data']);
     exit;
 }
@@ -35,6 +43,8 @@ $tanggal = $data['tanggal'] ?? '';
 $final_status = $data['status'] ?? 'diproses'; // diproses atau selesai
 
 if (!$pelanggaran_id || !$tindakan || !$tanggal) {
+    ob_clean();
+    header('Content-Type: application/json');
     echo json_encode(['success' => false, 'message' => 'Tindakan dan tanggal wajib diisi']);
     exit;
 }
@@ -53,15 +63,22 @@ try {
 
     $conn->commit();
 
+    ob_clean();
+    header('Content-Type: application/json');
     echo json_encode([
         'success' => true,
         'message' => 'Tindak lanjut berhasil ditambahkan',
         'status' => $final_status
     ]);
 } catch (Exception $e) {
-    $conn->rollBack();
+    if ($conn->inTransaction()) {
+        $conn->rollBack();
+    }
+    ob_clean();
+    header('Content-Type: application/json');
     echo json_encode([
         'success' => false,
         'message' => $e->getMessage()
     ]);
 }
+

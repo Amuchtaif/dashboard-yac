@@ -1,9 +1,8 @@
 <?php
 // api/action_permit.php
-
-// 1. NYALAKAN DEBUGGING (Agar error terlihat di Flutter)
+ob_start();
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
+ini_set('display_errors', 0);
 
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
@@ -15,19 +14,20 @@ include_once '../config/database.php';
 // Helper Function untuk kirim respon JSON & STOP script
 function sendResponse($success, $message)
 {
+    ob_clean();
     echo json_encode(["success" => $success, "message" => $message]);
     exit();
-}
-
-// Cek Method
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    sendResponse(false, "Method not allowed");
 }
 
 try {
     // Koneksi Database
     $database = new Database();
     $conn = $database->getConnection();
+
+    // Cek Method
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        sendResponse(false, "Method not allowed");
+    }
 
     // 2. Ambil Input JSON dari Flutter
     $json = file_get_contents("php://input");
@@ -78,7 +78,6 @@ try {
     if ($pData['approver_id'] == $approver_id) {
         $isAuthorized = true;
     } elseif ($uLevel === 1 && $pData['applicant_level'] == 2) {
-        // Mudir (1) is authorized to approve any Kabid (2) request
         $isAuthorized = true;
     }
 
@@ -92,7 +91,6 @@ try {
     }
 
     // 4. EKSEKUSI UPDATE DATABASE
-    // Note: We remove approver_id from WHERE to allow shared level 1 approval
     $sql = "UPDATE permits SET 
             status = :status, 
             approved_by = :aid, 
@@ -108,33 +106,18 @@ try {
     $stmt->bindParam(':pid', $permit_id);
 
     if ($stmt->execute()) {
-        // Cek apakah ada baris yang ter-update
         if ($stmt->rowCount() > 0) {
-
             // --- NOTIFICATION LOGIC ---
-            // Kirim Notif ke Pemohon (Employee)
-            // 1. Ambil employee_id dari permit_id
             $employee_id = $pData['employee_id'];
-
-            // 2. Ambil FCM Token Employee
             $stmtToken = $conn->prepare("SELECT fcm_token FROM employees WHERE id = :eid LIMIT 1");
             $stmtToken->execute([':eid' => $employee_id]);
             $tokenData = $stmtToken->fetch(PDO::FETCH_ASSOC);
 
             if ($tokenData && !empty($tokenData['fcm_token'])) {
                 $targetToken = $tokenData['fcm_token'];
-
-                // --- FCM V1 using GoogleAccessToken helper ---
                 try {
                     require_once 'AccessToken.php';
-
-                    // Log helper
-                    function logPermitAction($msg)
-                    {
-                        file_put_contents('fcm_debug.log', date('Y-m-d H:i:s') . " [PERMIT_ACTION] - " . $msg . "\n", FILE_APPEND);
-                    }
-
-                    $serviceAccountPath = 'service-account.json';
+                    $serviceAccountPath = __DIR__ . '/service-account.json';
 
                     if (file_exists($serviceAccountPath)) {
                         $googleToken = new GoogleAccessToken($serviceAccountPath);
@@ -143,8 +126,6 @@ try {
                         if ($accessToken) {
                             $credentials = json_decode(file_get_contents($serviceAccountPath), true);
                             $projectId = $credentials['project_id'];
-
-                            // Send Notification to Employee
                             $fcmUrl = "https://fcm.googleapis.com/v1/projects/$projectId/messages:send";
 
                             $payloadData = [
@@ -158,13 +139,11 @@ try {
                                         'priority' => 'HIGH',
                                         'notification' => [
                                             'channel_id' => 'high_importance_channel',
-                                            'sound' => 'default',
-                                            'default_sound' => true
+                                            'sound' => 'default'
                                         ]
                                     ],
                                     'data' => [
                                         'screen' => 'permit',
-                                        'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
                                         'permit_id' => (string) $permit_id
                                     ]
                                 ]
@@ -179,40 +158,25 @@ try {
                             ]);
                             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payloadData));
                             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                            $fcmResult = curl_exec($ch);
-                            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-                            if ($httpCode === 200) {
-                                logPermitAction("FCM sent to employee ID $employee_id ($newStatus)");
-                            } else {
-                                logPermitAction("FCM failed for employee ID $employee_id: $fcmResult");
-                            }
-                        } else {
-                            logPermitAction("Failed to get access token");
+                            curl_exec($ch);
+                            curl_close($ch);
                         }
-                    } else {
-                        logPermitAction("Service account not found");
                     }
                 } catch (Exception $e) {
-                    // Silent fail (allow API to succeed even if notif fails)
+                    // Silent fail for notification
                 }
             }
-            // --- END NOTE ---
-
             sendResponse(true, "Berhasil memproses izin: " . $newStatus);
         } else {
-            // Jika rowCount 0, berarti ID izin tidak ditemukan atau data tidak berubah
             sendResponse(true, "Data disimpan (Tidak ada perubahan status)");
         }
     } else {
-        // Ambil error info SQL
         $errorInfo = $stmt->errorInfo();
         sendResponse(false, "Gagal update database: " . $errorInfo[2]);
     }
 
-} catch (PDOException $e) {
-    sendResponse(false, "Database Exception: " . $e->getMessage());
 } catch (Exception $e) {
     sendResponse(false, "System Error: " . $e->getMessage());
 }
+
 ?>
