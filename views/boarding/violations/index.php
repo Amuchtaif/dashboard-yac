@@ -105,13 +105,14 @@ require_once '../../layouts/header.php';
                         <th class="px-6 py-4 min-w-[200px]">Santri</th>
                         <th class="px-6 py-4 min-w-[300px]">Pelanggaran</th>
                         <th class="px-6 py-4 min-w-[200px]">Tanggal & Lokasi</th>
+                        <th class="px-6 py-4 text-center min-w-[120px]">Foto Bukti</th>
                         <th class="px-6 py-4 text-center min-w-[120px]">Status</th>
                         <th class="px-6 py-4 text-center min-w-[150px] border-none">Tindakan</th>
                     </tr>
                 </thead>
                 <tbody id="violation-list" class="divide-y divide-slate-100 text-sm">
                     <tr>
-                        <td colspan="6" class="px-6 py-20 text-center text-slate-400 italic">Memuat data...</td>
+                        <td colspan="7" class="px-6 py-20 text-center text-slate-400 italic">Memuat data...</td>
                     </tr>
                 </tbody>
             </table>
@@ -172,6 +173,20 @@ require_once '../../layouts/header.php';
                         placeholder="Jelaskan kronologi kejadian secara singkat..."></textarea>
                 </div>
 
+                <div class="space-y-2">
+                    <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Foto Bukti (Opsional)</label>
+                    <div id="form-existing-attachment-container" class="hidden flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-2xl">
+                        <img id="form-existing-attachment-preview" src="" class="w-12 h-12 object-cover rounded-lg border border-slate-200">
+                        <div class="flex-1">
+                            <p class="text-xs font-semibold text-slate-600">Foto bukti saat ini</p>
+                            <button type="button" id="form-existing-attachment-link" class="text-[10px] font-bold text-rose-600 hover:text-rose-700">Lihat Foto</button>
+                        </div>
+                    </div>
+                    <input type="file" name="attachment" id="form-attachment" accept="image/*"
+                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all file:mr-4 file:py-1.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-rose-50 file:text-rose-700 hover:file:bg-rose-100">
+                    <p class="text-[10px] text-slate-400 italic ml-1">Unggah foto baru jika ingin mengganti bukti yang lama.</p>
+                </div>
+
                 <div class="pt-6 flex items-center justify-end gap-3 border-t border-slate-100">
                     <button type="button" onclick="closeModal()" class="px-6 py-3 text-sm font-bold text-slate-400 hover:text-slate-600 transition-colors">Batal</button>
                     <button type="submit" class="px-10 py-3 bg-rose-600 text-white text-sm font-bold rounded-2xl shadow-lg shadow-rose-200 hover:bg-rose-700 transition-all transform active:scale-95">Simpan Laporan</button>
@@ -228,7 +243,7 @@ require_once '../../layouts/header.php';
                 renderTable(result.data);
             }
         } catch (e) {
-            list.innerHTML = '<tr><td colspan="6" class="px-6 py-10 text-center text-rose-500 font-bold">Gagal memuat data</td></tr>';
+            list.innerHTML = '<tr><td colspan="7" class="px-6 py-10 text-center text-rose-500 font-bold">Gagal memuat data</td></tr>';
         }
     }
 
@@ -243,7 +258,7 @@ require_once '../../layouts/header.php';
     function renderTable(data) {
         const list = document.getElementById('violation-list');
         if (data.length === 0) {
-            list.innerHTML = '<tr><td colspan="6" class="px-6 py-20 text-center text-slate-400 italic">Tidak ada data ditemukan</td></tr>';
+            list.innerHTML = '<tr><td colspan="7" class="px-6 py-20 text-center text-slate-400 italic">Tidak ada data ditemukan</td></tr>';
             return;
         }
 
@@ -270,6 +285,18 @@ require_once '../../layouts/header.php';
                         <span class="font-semibold text-slate-700">${v.tanggal_pelanggaran}</span>
                         <span class="text-xs text-slate-400">${v.lokasi || '-'}</span>
                     </div>
+                </td>
+                <td class="px-6 py-4 text-center">
+                    ${v.attachment ? `
+                        <div class="flex justify-center">
+                            <img src="${v.attachment_url}" 
+                                 onclick="openImageModal('${v.attachment_url}')"
+                                 class="w-10 h-10 object-cover rounded-xl border border-slate-200 shadow-sm cursor-zoom-in hover:scale-105 transition-all animate-fade-in"
+                                 title="Klik untuk memperbesar">
+                        </div>
+                    ` : `
+                        <span class="text-slate-300 font-mono">-</span>
+                    `}
                 </td>
                 <td class="px-6 py-4 text-center">
                     <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${getStatusClass(v.status)}">
@@ -315,6 +342,8 @@ require_once '../../layouts/header.php';
         document.getElementById('modal-title').textContent = 'Catat Pelanggaran';
         document.getElementById('violation-form').reset();
         document.getElementById('violation-id').value = '';
+        document.getElementById('form-attachment').value = '';
+        document.getElementById('form-existing-attachment-container').classList.add('hidden');
         document.getElementById('modal-violation').classList.remove('hidden');
     }
 
@@ -326,6 +355,16 @@ require_once '../../layouts/header.php';
         document.getElementById('form-tanggal').value = v.tanggal_pelanggaran;
         document.getElementById('form-lokasi').value = v.lokasi || '';
         document.getElementById('form-deskripsi').value = v.deskripsi;
+        document.getElementById('form-attachment').value = '';
+        
+        const existContainer = document.getElementById('form-existing-attachment-container');
+        if (v.attachment) {
+            existContainer.classList.remove('hidden');
+            document.getElementById('form-existing-attachment-preview').src = v.attachment_url;
+            document.getElementById('form-existing-attachment-link').onclick = () => openImageModal(v.attachment_url);
+        } else {
+            existContainer.classList.add('hidden');
+        }
         
         // Refresh hybrid selects if needed
         if (window.initHybridSelects) initHybridSelects();
@@ -368,15 +407,13 @@ require_once '../../layouts/header.php';
     document.getElementById('violation-form').onsubmit = async (e) => {
         e.preventDefault();
         const formData = new FormData(e.target);
-        const data = Object.fromEntries(formData.entries());
-        const isUpdate = !!data.id;
+        const isUpdate = !!formData.get('id');
         const endpoint = isUpdate ? 'api/student_violations/update.php' : 'api/student_violations/create.php';
 
         try {
             const res = await fetch(`<?php echo url(''); ?>${endpoint}`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+                body: formData
             });
             const result = await res.json();
             if (result.success) {

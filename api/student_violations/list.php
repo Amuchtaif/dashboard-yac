@@ -99,6 +99,11 @@ try {
     $stmt->execute($params);
     $violations = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    // Tambahkan URL lengkap lampiran berkas untuk Flutter
+    foreach ($violations as &$v) {
+        $v['attachment_url'] = !empty($v['attachment']) ? BASE_URL . '/uploads/violations/' . $v['attachment'] : null;
+    }
+
     ob_clean();
     header('Content-Type: application/json');
     echo json_encode([

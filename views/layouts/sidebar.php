@@ -28,15 +28,15 @@ if (!function_exists('isActive')) {
     function isActive($path)
     {
         return isUrlActive($path)
-            ? 'bg-cyan-50 text-cyan-700 font-semibold border-l-[6px] border-cyan-600 rounded-r-3xl'
-            : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 border-l-[6px] border-transparent rounded-r-3xl';
+            ? 'bg-white text-[#2B3990] font-semibold shadow-sm'
+            : 'text-white/80 hover:bg-white/10 hover:text-white';
     }
 }
 
 if (!function_exists('getIconClass')) {
     function getIconClass($path)
     {
-        return isUrlActive($path) ? 'text-cyan-600' : 'text-slate-400 group-hover:text-slate-600';
+        return isUrlActive($path) ? 'text-[#2B3990]' : 'text-white/70 group-hover:text-white';
     }
 }
 
@@ -77,22 +77,22 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 ?>
 <!-- Sidebar Container -->
 <aside id="main-sidebar"
-    class="w-64 bg-white border-r border-slate-200 flex flex-col shadow-xl md:shadow-sm z-50 md:z-20 h-full fixed left-0 top-0 transition-transform duration-300 transform md:translate-x-0 -translate-x-full">
+    class="w-64 bg-[#2B3990] text-white flex flex-col shadow-xl md:shadow-sm z-50 md:z-20 h-full fixed left-0 top-0 transition-transform duration-300 transform md:translate-x-0 -translate-x-full border-r border-white/10">
 
     <!-- Fixed Header inside Sidebar -->
-    <div class="h-16 flex items-center justify-between px-6 border-b border-slate-100 flex-shrink-0">
-        <div class="flex items-center gap-3">
-            <div class="h-8 w-8 flex items-center justify-center">
-                <img src="<?php echo url('public/images/logo.png'); ?>" alt="Logo" class="w-8 h-8">
+    <div class="h-20 flex items-center justify-between px-6 flex-shrink-0">
+        <div class="flex items-center gap-3.5">
+            <div class="h-10 w-10 flex items-center justify-center rounded-xl bg-white/10 p-1.5 shadow-inner backdrop-blur-md transition-all duration-300 hover:scale-105">
+                <img src="<?php echo url('public/images/logo.png'); ?>" alt="Logo" class="w-full h-full object-contain">
             </div>
-            <div>
-                <h2 class="text-[15px] font-bold text-slate-800 leading-none">Dashboard YAC</h2>
-                <span class="text-[12px] text-slate-400 font-medium tracking-wide">Admin Portal</span>
+            <div class="flex flex-col gap-0.5">
+                <h2 class="text-[15px] font-extrabold text-white tracking-wide leading-tight">Dashboard YAC</h2>
+                <span class="text-[10px] text-white/50 font-bold uppercase tracking-wider leading-none">Admin Portal</span>
             </div>
         </div>
 
         <!-- Mobile Close Button -->
-        <button type="button" onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-slate-600 p-1">
+        <button type="button" onclick="toggleSidebar()" class="md:hidden text-white/60 hover:text-white p-1.5 rounded-xl hover:bg-white/10 transition-all duration-200">
             <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                 stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -102,10 +102,10 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
     <!-- Scrollable Navigation (Removed pt-20, using flex-1 for auto height) -->
     <div
-        class="flex-1 overflow-y-auto py-6 px-3 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
-        <nav class="space-y-1">
+        class="flex-1 overflow-y-auto py-6 px-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
+        <nav class="space-y-1.5">
             <a href="<?php url('views/dashboard/index.php'); ?>"
-                class="<?php echo isActive('/views/dashboard/'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                class="<?php echo isActive('/views/dashboard/'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                 <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('/views/dashboard/'); ?> transition-colors"
                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -117,13 +117,13 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
             <!-- Manage Employee Category -->
             <?php if ($can_manage_employees): ?>
                 <div class="pt-4 pb-2">
-                    <p class="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Manajemen Pegawai</p>
+                    <p class="px-3 text-xs font-semibold text-white/40 uppercase tracking-wider">Manajemen Pegawai</p>
                 </div>
 
                 <!-- Employees -->
                 <a href="<?php url('views/employees/index.php'); ?>"
-                    class="<?php echo (isUrlActive('employees') && !isUrlActive('reset_password')) ? 'bg-cyan-50 text-cyan-700 font-semibold border-l-[6px] border-cyan-600 rounded-r-3xl' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 border-l-[6px] border-transparent rounded-r-3xl'; ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo (isUrlActive('employees') && !isUrlActive('reset_password')) ? 'text-cyan-600' : 'text-slate-400 group-hover:text-slate-600'; ?> transition-colors"
+                    class="<?php echo (isUrlActive('employees') && !isUrlActive('reset_password')) ? 'bg-white text-[#2B3990] font-semibold shadow-sm' : 'text-white/80 hover:bg-white/10 hover:text-white'; ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
+                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo (isUrlActive('employees') && !isUrlActive('reset_password')) ? 'text-[#2B3990]' : 'text-white/70 group-hover:text-white'; ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                             d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -133,7 +133,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Bidang Organisasi (Renamed to Bidang to match UI) -->
                 <a href="<?php url('views/departments/index.php'); ?>"
-                    class="<?php echo isActive('departments'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('departments'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('departments'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -144,7 +144,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Units -->
                 <a href="<?php url('views/units/index.php'); ?>"
-                    class="<?php echo isActive('/views/units/'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('/views/units/'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('/views/units/'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -155,7 +155,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Positions -->
                 <a href="<?php url('views/positions/index.php'); ?>"
-                    class="<?php echo isActive('positions'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('positions'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('positions'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -167,7 +167,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Work Schedules -->
                 <a href="<?php url('views/settings/schedules/index.php'); ?>"
-                    class="<?php echo isActive('settings/schedules'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('settings/schedules'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('settings/schedules'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -179,7 +179,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Ramadan Settings -->
                 <a href="<?php url('views/settings/ramadan.php'); ?>"
-                    class="<?php echo isActive('settings/ramadan.php'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('settings/ramadan.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('settings/ramadan.php'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                         <path fill-rule="evenodd"
@@ -191,7 +191,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Shift Exchange -->
                 <a href="<?php url('views/settings/shifts/index.php'); ?>"
-                    class="<?php echo isActive('settings/shifts'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('settings/shifts'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('settings/shifts'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -203,7 +203,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Attendance -->
                 <a href="<?php url('views/attendance/index.php'); ?>"
-                    class="<?php echo isActive('views/attendance/index.php'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('views/attendance/index.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('views/attendance/index.php'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -214,7 +214,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Attendance Summary -->
                 <a href="<?php url('views/attendance/summary.php'); ?>"
-                    class="<?php echo isActive('attendance/summary.php'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('attendance/summary.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('attendance/summary.php'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -226,7 +226,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Daily Recap -->
                 <a href="<?php url('views/attendance/daily_recap.php'); ?>"
-                    class="<?php echo isActive('attendance/daily_recap.php'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('attendance/daily_recap.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('attendance/daily_recap.php'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -238,7 +238,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Kinerja Pegawai -->
                 <a href="<?php url('views/performance/index.php'); ?>"
-                    class="<?php echo isActive('performance'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('performance'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('performance'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -250,7 +250,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Permits -->
                 <a href="<?php url('views/permits/index.php'); ?>"
-                    class="<?php echo isActive('/views/permits/'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('/views/permits/'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('/views/permits/'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -262,7 +262,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Meetings -->
                 <a href="<?php url('views/meetings/index.php'); ?>"
-                    class="<?php echo isActive('meetings'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('meetings'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('meetings'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -274,7 +274,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Organization Chart -->
                 <a href="<?php url('views/organization/chart.php'); ?>"
-                    class="<?php echo isActive('organization'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('organization'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('organization'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -285,7 +285,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Locations Management -->
                 <a href="<?php url('views/settings/locations.php'); ?>"
-                    class="<?php echo isActive('settings/locations.php'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('settings/locations.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('settings/locations.php'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -298,7 +298,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Task Assignments -->
                 <a href="<?php url('views/task_assignments/index.php'); ?>"
-                    class="<?php echo isActive('views/task_assignments/'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('views/task_assignments/'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('views/task_assignments/'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -310,8 +310,8 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Work Reports -->
                 <a href="<?php url('views/work_reports/index.php'); ?>"
-                    class="<?php echo (isUrlActive('work_reports') && !isUrlActive('categories')) ? 'bg-cyan-50 text-cyan-700 font-semibold border-l-[6px] border-cyan-600 rounded-r-3xl' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 border-l-[6px] border-transparent rounded-r-3xl'; ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo (isUrlActive('work_reports') && !isUrlActive('categories')) ? 'text-cyan-600' : 'text-slate-400 group-hover:text-slate-600'; ?> transition-colors"
+                    class="<?php echo (isUrlActive('work_reports') && !isUrlActive('categories')) ? 'bg-white text-[#2B3990] font-semibold shadow-sm' : 'text-white/80 hover:bg-white/10 hover:text-white'; ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
+                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo (isUrlActive('work_reports') && !isUrlActive('categories')) ? 'text-[#2B3990]' : 'text-white/70 group-hover:text-white'; ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -322,7 +322,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Work Report Categories -->
                 <a href="<?php url('views/work_reports/categories.php'); ?>"
-                    class="<?php echo isActive('work_reports/categories'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('work_reports/categories'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('work_reports/categories'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -337,12 +337,12 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
             <!-- Application Management Category -->
             <?php if ($is_admin): ?>
                 <div class="pt-4 pb-2">
-                    <p class="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Manajemen Aplikasi</p>
+                    <p class="px-3 text-xs font-semibold text-white/40 uppercase tracking-wider">Manajemen Aplikasi</p>
                 </div>
 
                 <!-- Access Control (Permissions) -->
                 <a href="<?php url('views/permissions/index.php'); ?>"
-                    class="<?php echo isActive('permissions/index.php'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('permissions/index.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('permissions/index.php'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -353,7 +353,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Web Access Control (Permissions) -->
                 <a href="<?php url('views/permissions/web_permissions.php'); ?>"
-                    class="<?php echo isActive('permissions/web_permissions.php'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('permissions/web_permissions.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('permissions/web_permissions.php'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -364,7 +364,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Reset Password -->
                 <a href="<?php url('views/employees/reset_password.php'); ?>"
-                    class="<?php echo isActive('reset_password'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('reset_password'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('reset_password'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -375,7 +375,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Status Maintenance -->
                 <a href="<?php url('views/settings/maintenance.php'); ?>"
-                    class="<?php echo isActive('settings/maintenance.php'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('settings/maintenance.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('settings/maintenance.php'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -387,7 +387,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
                 <!-- News Management -->
                 <?php if ($can_manage_news): ?>
                     <a href="<?php url('views/news/index.php'); ?>"
-                        class="<?php echo isActive('news'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                        class="<?php echo isActive('news'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                         <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('news'); ?> transition-colors"
                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -402,12 +402,12 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
             <?php if ($can_manage_academic): ?>
                 <div class="pt-4 pb-2">
-                    <p class="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Manajemen Akademik</p>
+                    <p class="px-3 text-xs font-semibold text-white/40 uppercase tracking-wider">Manajemen Akademik</p>
                 </div>
 
                 <!-- Academic Years -->
                 <a href="<?php url('views/academic_years/index.php'); ?>"
-                    class="<?php echo isActive('academic_years'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('academic_years'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('academic_years'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -418,7 +418,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Academic Calendar -->
                 <a href="<?php url('views/calendar/index.php'); ?>"
-                    class="<?php echo isActive('calendar'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('calendar'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('calendar'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -430,7 +430,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Teachers -->
                 <a href="<?php url('views/class_schedules/teachers.php'); ?>"
-                    class="<?php echo isActive('class_schedules/teachers.php'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('class_schedules/teachers.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('class_schedules/teachers.php'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -442,7 +442,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Students -->
                 <a href="<?php url('views/students/index.php'); ?>"
-                    class="<?php echo isActive('students/index'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('students/index'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('students/index'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -455,7 +455,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Data Siswa (Non-Aktif) -->
                 <a href="<?php url('views/students/inactive.php'); ?>"
-                    class="<?php echo isActive('students/inactive'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('students/inactive'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('students/inactive'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/xl" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -467,7 +467,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Batch Promotion -->
                 <a href="<?php url('views/students/promotion.php'); ?>"
-                    class="<?php echo isActive('promotion.php'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('promotion.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('promotion.php'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -478,7 +478,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Education Units -->
                 <a href="<?php url('views/education_units/index.php'); ?>"
-                    class="<?php echo isActive('education_units'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('education_units'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('education_units'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -490,7 +490,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Grade Levels -->
                 <a href="<?php url('views/grade_levels/index.php'); ?>"
-                    class="<?php echo isActive('grade_levels'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('grade_levels'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('grade_levels'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -502,7 +502,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Lesson Periods -->
                 <a href="<?php url('views/lesson_periods/index.php'); ?>"
-                    class="<?php echo isActive('lesson_periods'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('lesson_periods'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('lesson_periods'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -514,7 +514,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Subjects -->
                 <a href="<?php url('views/subjects/index.php'); ?>"
-                    class="<?php echo isActive('subjects'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('subjects'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('subjects'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -526,8 +526,8 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Class Schedules -->
                 <a href="<?php url('views/class_schedules/index.php'); ?>"
-                    class="<?php echo (isUrlActive('tahfidz/halaqah')) ? 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 border-l-[6px] border-transparent rounded-r-3xl' : (isUrlActive('class_schedules') && !isUrlActive('teachers') ? 'bg-cyan-50 text-cyan-700 font-semibold border-l-[6px] border-cyan-600 rounded-r-3xl' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 border-l-[6px] border-transparent rounded-r-3xl'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo (isUrlActive('tahfidz/halaqah')) ? 'text-slate-400 group-hover:text-slate-600' : (isUrlActive('class_schedules') && !isUrlActive('teachers') ? 'text-cyan-600' : 'text-slate-400 group-hover:text-slate-600'); ?> transition-colors"
+                    class="<?php echo (isUrlActive('tahfidz/halaqah')) ? 'text-white/80 hover:bg-white/10 hover:text-white' : (isUrlActive('class_schedules') && !isUrlActive('teachers') ? 'bg-white text-[#2B3990] font-semibold shadow-sm' : 'text-white/80 hover:bg-white/10 hover:text-white'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
+                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo (isUrlActive('tahfidz/halaqah')) ? 'text-white/70 group-hover:text-white' : (isUrlActive('class_schedules') && !isUrlActive('teachers') ? 'text-[#2B3990]' : 'text-white/70 group-hover:text-white'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -538,7 +538,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Class Attendance -->
                 <a href="<?php url('views/class_attendance/index.php'); ?>"
-                    class="<?php echo isActive('views/class_attendance/'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('views/class_attendance/'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('views/class_attendance/'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -550,7 +550,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Student Attendance -->
                 <a href="<?php url('views/student_attendance/index.php'); ?>"
-                    class="<?php echo isActive('views/student_attendance/index.php'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('views/student_attendance/index.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('views/student_attendance/index.php'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -562,7 +562,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Class Journals -->
                 <a href="<?php url('views/class_journals/index.php'); ?>"
-                    class="<?php echo isActive('class_journals'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('class_journals'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('class_journals'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -574,7 +574,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- RPP -->
                 <a href="<?php url('views/rpp/index.php'); ?>"
-                    class="<?php echo isActive('rpp'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('rpp'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('rpp'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -586,7 +586,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Assessment Types -->
                 <a href="<?php url('views/assessment_types/index.php'); ?>"
-                    class="<?php echo isActive('/views/assessment_types/'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('/views/assessment_types/'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('/views/assessment_types/'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -598,7 +598,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Student Assessments -->
                 <a href="<?php url('views/student_assessments/index.php'); ?>"
-                    class="<?php echo isActive('student_assessments'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('student_assessments'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('student_assessments'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/xl" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -615,12 +615,12 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
             <!-- Wali Kelas Menu Category -->
             <?php if ($is_wali_kelas): ?>
                 <div class="pt-4 pb-2">
-                    <p class="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Menu Wali Kelas</p>
+                    <p class="px-3 text-xs font-semibold text-white/40 uppercase tracking-wider">Menu Wali Kelas</p>
                 </div>
 
                 <!-- Daily Student Attendance (Homeroom) -->
                 <a href="<?php url('views/homeroom/attendance.php'); ?>"
-                    class="<?php echo isActive('homeroom/attendance'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('homeroom/attendance'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('homeroom/attendance'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -632,7 +632,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Absensi Per Mapel (Homeroom View) -->
                 <a href="<?php url('views/homeroom/subject_attendance.php'); ?>"
-                    class="<?php echo isActive('homeroom/subject_attendance'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('homeroom/subject_attendance'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('homeroom/subject_attendance'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -644,7 +644,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Attendance Recap (Homeroom View) -->
                 <a href="<?php url('views/homeroom/recap.php'); ?>"
-                    class="<?php echo isActive('homeroom/recap'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('homeroom/recap'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('homeroom/recap'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -656,7 +656,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Class Journals (Homeroom View) -->
                 <a href="<?php url('views/homeroom/journals.php'); ?>"
-                    class="<?php echo isActive('homeroom/journals'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('homeroom/journals'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('homeroom/journals'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -668,7 +668,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Journal Recap (Homeroom View) -->
                 <a href="<?php url('views/homeroom/journal_recap.php'); ?>"
-                    class="<?php echo isActive('homeroom/journal_recap'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('homeroom/journal_recap'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('homeroom/journal_recap'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -680,7 +680,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Class Schedule (Homeroom View) -->
                 <a href="<?php url('views/homeroom/schedule.php'); ?>"
-                    class="<?php echo isActive('homeroom/schedule'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('homeroom/schedule'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('homeroom/schedule'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -692,7 +692,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Student Grades (Homeroom View) -->
                 <a href="<?php url('views/homeroom/grades.php'); ?>"
-                    class="<?php echo isActive('homeroom/grades'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('homeroom/grades'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('homeroom/grades'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/xl" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -706,11 +706,11 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
             <!-- Tahfidz Management -->
             <?php if ($can_manage_tahfidz): ?>
                 <div class="pt-4 pb-2">
-                    <p class="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Manajemen Tahfidz</p>
+                    <p class="px-3 text-xs font-semibold text-white/40 uppercase tracking-wider">Manajemen Tahfidz</p>
                 </div>
 
                 <a href="<?php url('views/tahfidz/dashboard.php'); ?>"
-                    class="<?php echo isActive('tahfidz/dashboard'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('tahfidz/dashboard'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('tahfidz/dashboard'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -722,7 +722,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Double Assignment -->
                 <a href="<?php url('views/assignments/index.php'); ?>"
-                    class="<?php echo isActive('/views/assignments/'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('/views/assignments/'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('/views/assignments/'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -733,7 +733,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Tahfidz Assessment Types -->
                 <a href="<?php url('views/tahfidz/assessment_types.php'); ?>"
-                    class="<?php echo isActive('/tahfidz/assessment_types.php'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('/tahfidz/assessment_types.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('/tahfidz/assessment_types.php'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -745,7 +745,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Tahfidz Assessment History -->
                 <a href="<?php url('views/tahfidz/assessments.php'); ?>"
-                    class="<?php echo isActive('/tahfidz/assessments.php'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('/tahfidz/assessments.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('/tahfidz/assessments.php'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/xl" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -756,7 +756,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
                 </a>
 
                 <a href="<?php url('views/tahfidz/halaqah.php'); ?>"
-                    class="<?php echo isActive('tahfidz/halaqah'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('tahfidz/halaqah'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('tahfidz/halaqah'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -767,7 +767,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
                 </a>
 
                 <a href="<?php url('views/tahfidz/teacher_attendance.php'); ?>"
-                    class="<?php echo isActive('tahfidz/teacher_attendance'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('tahfidz/teacher_attendance'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('tahfidz/teacher_attendance'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -778,7 +778,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
                 </a>
 
                 <a href="<?php url('views/tahfidz/student_attendance.php'); ?>"
-                    class="<?php echo isActive('tahfidz/student_attendance'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('tahfidz/student_attendance'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('tahfidz/student_attendance'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -791,7 +791,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
 
                 <a href="<?php url('views/tahfidz/report.php'); ?>"
-                    class="<?php echo isActive('tahfidz/report'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('tahfidz/report'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('tahfidz/report'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -802,7 +802,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
                 </a>
 
                 <a href="<?php url('views/tahfidz/semester_recap.php'); ?>"
-                    class="<?php echo isActive('tahfidz/semester_recap'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('tahfidz/semester_recap'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('tahfidz/semester_recap'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -817,12 +817,12 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
             <!-- Boarding Management (Kepengasuhan) -->
             <?php if ($can_manage_boarding): ?>
                 <div class="pt-4 pb-2">
-                    <p class="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Kepengasuhan</p>
+                    <p class="px-3 text-xs font-semibold text-white/40 uppercase tracking-wider">Kepengasuhan</p>
                 </div>
 
                 <!-- Data Asrama -->
                 <a href="<?php url('views/boarding/rooms/index.php'); ?>"
-                    class="<?php echo isActive('boarding/rooms'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('boarding/rooms'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('boarding/rooms'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -834,7 +834,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Absensi Asrama -->
                 <a href="<?php url('views/boarding/attendance/index.php'); ?>"
-                    class="<?php echo isActive('boarding/attendance'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('boarding/attendance'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('boarding/attendance'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -846,7 +846,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Kelola Pelanggaran -->
                 <a href="<?php url('views/boarding/violations/index.php'); ?>"
-                    class="<?php echo isActive('boarding/violations/index.php'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('boarding/violations/index.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('boarding/violations/index.php'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -858,7 +858,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Jenis Pelanggaran -->
                 <a href="<?php url('views/boarding/violation_types/index.php'); ?>"
-                    class="<?php echo isActive('boarding/violation_types/index.php'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('boarding/violation_types/index.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('boarding/violation_types/index.php'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -870,7 +870,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Monitoring Perpulangan -->
                 <a href="<?php url('views/boarding/perpulangan/index.php'); ?>"
-                    class="<?php echo isActive('boarding/perpulangan/index.php'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('boarding/perpulangan/index.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('boarding/perpulangan/index.php'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -882,7 +882,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Kelola Liburan -->
                 <a href="<?php url('views/boarding/holidays/index.php'); ?>"
-                    class="<?php echo isActive('boarding/holidays'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('boarding/holidays'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('boarding/holidays'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -894,7 +894,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Kelola Kepulangan Santri -->
                 <a href="<?php url('views/boarding/returns/index.php'); ?>"
-                    class="<?php echo isActive('boarding/returns/index.php'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('boarding/returns/index.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('boarding/returns/index.php'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -906,7 +906,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Kelola Izin Santri -->
                 <a href="<?php url('views/boarding/permits/index.php'); ?>"
-                    class="<?php echo isActive('boarding/permits/index.php'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('boarding/permits/index.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('boarding/permits/index.php'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -918,7 +918,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Monitoring Absensi Makan -->
                 <a href="<?php url('views/meal_attendance/monitor.php'); ?>"
-                    class="<?php echo isActive('meal_attendance/monitor.php'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('meal_attendance/monitor.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('meal_attendance/monitor.php'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -933,12 +933,12 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
             <!-- Manajemen Inventaris -->
             <?php if ($can_manage_inventory): ?>
                 <div class="pt-4 pb-2">
-                    <p class="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Manajemen Inventaris</p>
+                    <p class="px-3 text-xs font-semibold text-white/40 uppercase tracking-wider">Manajemen Inventaris</p>
                 </div>
 
                 <!-- Struktur Lokasi -->
                 <a href="<?php url('views/inventory/locations_tree.php'); ?>"
-                    class="<?php echo isActive('inventory/locations_tree.php'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('inventory/locations_tree.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('inventory/locations_tree.php'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -950,7 +950,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Kelola Inventaris -->
                 <a href="<?php url('views/inventory/items.php'); ?>"
-                    class="<?php echo isActive('inventory/items.php'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('inventory/items.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('inventory/items.php'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -962,7 +962,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 
                 <!-- Monitoring Lokasi -->
                 <a href="<?php url('views/inventory/monitoring.php'); ?>"
-                    class="<?php echo isActive('inventory/monitoring.php'); ?> group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200">
+                    class="<?php echo isActive('inventory/monitoring.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
                     <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('inventory/monitoring.php'); ?> transition-colors"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor">
@@ -977,8 +977,8 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
     </div>
 
     <!-- Small Profile Section (Removed absolute, using flex-shrink-0) -->
-    <div class="p-4 border-t border-slate-100 bg-white flex-shrink-0">
-        <div class="flex items-center gap-3">
+    <div class="px-6 py-5 flex-shrink-0">
+        <div class="flex items-center gap-4">
             <?php
             $profile_name = $_SESSION['user_name'] ?? 'User';
             $profile_photo = $_SESSION['user_photo'] ?? '';
@@ -986,17 +986,17 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
                 ? BASE_URL . '/uploads/profile_photos/' . $profile_photo
                 : "https://ui-avatars.com/api/?name=" . urlencode($profile_name) . "&background=random";
             ?>
-            <img class="h-8 w-8 rounded-full border border-slate-200 object-cover" src="<?php echo $avatar_url; ?>"
+            <img class="h-8 w-8 rounded-full border border-white/10 object-cover" src="<?php echo $avatar_url; ?>"
                 alt="User Profile">
             <div class="flex-1 min-w-0">
-                <p class="text-sm font-semibold text-slate-800 truncate">
+                <p class="text-sm font-semibold text-white truncate">
                     <?php echo htmlspecialchars($profile_name); ?>
                 </p>
-                <p class="text-[11px] text-slate-500 truncate">
+                <p class="text-[11px] text-white/60 truncate">
                     <?php echo htmlspecialchars($_SESSION['position_name'] ?? 'Pegawai'); ?>
                 </p>
             </div>
-            <a href="<?php url('logic/auth/logout.php'); ?>" class="text-slate-400 hover:text-red-500 transition-colors"
+            <a href="<?php url('logic/auth/logout.php'); ?>" class="text-white/60 hover:text-red-400 transition-colors"
                 title="Sign Out">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                     stroke="currentColor" class="w-5 h-5">
@@ -1011,7 +1011,7 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
 <!-- Auto-scroll sidebar to active menu item -->
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        const activeSidebarItem = document.querySelector('aside nav a.bg-cyan-50');
+        const activeSidebarItem = document.querySelector('aside nav a.bg-white');
         if (activeSidebarItem) {
             // Scroll slightly above center to ensure visibility
             activeSidebarItem.scrollIntoView({ behavior: 'smooth', block: 'center' });

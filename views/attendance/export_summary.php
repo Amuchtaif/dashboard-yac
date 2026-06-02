@@ -8,8 +8,17 @@ $db = new Database();
 $conn = $db->getConnection();
 
 // --- Filter Logic ---
-$start_date = isset($_GET['start_date']) ? $_GET['start_date'] : date('Y-m-01');
-$end_date = isset($_GET['end_date']) ? $_GET['end_date'] : date('Y-m-d');
+$today_day = (int)date('d');
+if ($today_day >= 26) {
+    $default_start = date('Y-m-26');
+    $default_end = date('Y-m-25', strtotime('+1 month'));
+} else {
+    $default_start = date('Y-m-26', strtotime('-1 month'));
+    $default_end = date('Y-m-25');
+}
+
+$start_date = isset($_GET['start_date']) ? $_GET['start_date'] : $default_start;
+$end_date = isset($_GET['end_date']) ? $_GET['end_date'] : $default_end;
 $division_id = isset($_GET['division_id']) ? $_GET['division_id'] : '';
 $unit_id = isset($_GET['unit_id']) ? $_GET['unit_id'] : '';
 
@@ -30,6 +39,7 @@ if ($unit_id) {
 $query = "
     SELECT 
         e.id, 
+        e.nik,
         e.full_name, 
         e.email,
         u.name as unit_name, 
@@ -64,12 +74,13 @@ $output = fopen('php://output', 'w');
 fwrite($output, "\xEF\xBB\xBF");
 
 // CSV Header Row
-fputcsv($output, ['No', 'Nama Pegawai', 'Email', 'Unit Kerja', 'Bidang', 'Total Kehadiran']);
+fputcsv($output, ['No', 'NIK', 'Nama Pegawai', 'Email', 'Unit Kerja', 'Bidang', 'Total Kehadiran']);
 
 // Data Rows
 foreach ($summary as $index => $row) {
     fputcsv($output, [
         $index + 1,
+        $row['nik'] ?: '-',
         $row['full_name'],
         $row['email'],
         $row['unit_name'] ?: '-',

@@ -8,8 +8,17 @@ $db = new Database();
 $conn = $db->getConnection();
 
 // --- Filter Logic ---
-$start_date = isset($_GET['start_date']) ? $_GET['start_date'] : date('Y-m-26', strtotime('-1 month'));
-$end_date = isset($_GET['end_date']) ? $_GET['end_date'] : date('Y-m-25');
+$today_day = (int)date('d');
+if ($today_day >= 26) {
+    $default_start = date('Y-m-26');
+    $default_end = date('Y-m-25', strtotime('+1 month'));
+} else {
+    $default_start = date('Y-m-26', strtotime('-1 month'));
+    $default_end = date('Y-m-25');
+}
+
+$start_date = isset($_GET['start_date']) ? $_GET['start_date'] : $default_start;
+$end_date = isset($_GET['end_date']) ? $_GET['end_date'] : $default_end;
 $division_id = isset($_GET['division_id']) ? $_GET['division_id'] : '';
 $unit_id = isset($_GET['unit_id']) ? $_GET['unit_id'] : '';
 
@@ -30,6 +39,7 @@ if ($unit_id) {
 $query = "
     SELECT 
         e.id, 
+        e.nik,
         e.full_name, 
         e.email,
         u.name as unit_name, 
@@ -85,6 +95,7 @@ $summary = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <thead>
             <tr class="bg-slate-50 text-slate-500 font-bold uppercase tracking-widest border-b border-slate-300">
                 <th class="py-4 px-3 text-center border-b border-slate-300 w-12">No.</th>
+                <th class="py-4 px-3 text-left border-b border-slate-300 w-36">NIK</th>
                 <th class="py-4 px-3 text-left border-b border-slate-300">Nama Lengkap</th>
                 <th class="py-4 px-3 text-left border-b border-slate-300">Unit Kerja</th>
                 <th class="py-4 px-3 text-left border-b border-slate-300">Bidang</th>
@@ -95,6 +106,7 @@ $summary = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <?php foreach ($summary as $index => $row): ?>
                 <tr>
                     <td class="py-4 px-3 text-center font-bold text-slate-400"><?php echo $index + 1; ?>.</td>
+                    <td class="py-4 px-3 font-mono text-xs font-semibold text-slate-600"><?php echo htmlspecialchars($row['nik'] ?? '-'); ?></td>
                     <td class="py-4 px-3">
                         <div class="font-bold text-slate-800 text-sm"><?php echo htmlspecialchars($row['full_name']); ?></div>
                         <div class="text-[10px] text-slate-400 font-medium"><?php echo htmlspecialchars($row['email']); ?></div>

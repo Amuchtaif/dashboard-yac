@@ -24,8 +24,12 @@ try {
     if ($division_id === 'pengurus_inti') {
         $sql .= " AND p.level IN (1, 2)";
     } else {
-        // Exclude restricted positions (Kepala Bidang, Admin)
-        $sql .= " AND (p.name IS NULL OR (p.name NOT LIKE '%Kepala Bidang%' AND p.name NOT LIKE '%Administrator%' AND p.name NOT LIKE '%Admin%'))";
+        // By default, query includes all active users across all positions (lintas jabatan).
+        // We support an optional filter to exclude restricted positions (Kepala Bidang, Admin) if explicitly requested.
+        $exclude_restricted = isset($_GET['exclude_restricted']) && $_GET['exclude_restricted'] === 'true';
+        if ($exclude_restricted) {
+            $sql .= " AND (p.name IS NULL OR (p.name NOT LIKE '%Kepala Bidang%' AND p.name NOT LIKE '%Administrator%' AND p.name NOT LIKE '%Admin%'))";
+        }
     }
 
     $params = [];

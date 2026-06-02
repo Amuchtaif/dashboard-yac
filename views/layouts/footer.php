@@ -407,16 +407,16 @@
 <div id="imageModal" class="fixed inset-0 z-[70] hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
     <div id="imageModalBackdrop" class="fixed inset-0 bg-slate-900/90 transition-opacity duration-300 opacity-0 backdrop-blur-md" onclick="closeImageModal()"></div>
     <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-        <div id="imageModalPanel" class="relative transform overflow-hidden rounded-2xl bg-white shadow-2xl transition-all duration-300 opacity-0 scale-95 max-w-4xl w-full">
+        <div id="imageModalPanel" class="relative transform overflow-hidden rounded-2xl bg-white shadow-2xl transition-all duration-300 opacity-0 scale-95 max-w-2xl w-full">
             <div class="absolute top-4 right-4 z-10">
-                <button onclick="closeImageModal()" class="p-2 bg-slate-900/10 hover:bg-slate-900/20 text-slate-800 rounded-full backdrop-blur-md transition-all">
+                <button onclick="closeImageModal()" class="p-2 bg-white/80 hover:bg-white text-slate-800 rounded-full shadow-md backdrop-blur-md transition-all">
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
             <div class="p-2">
-                <img id="modalImage" src="" alt="Lampiran" class="w-full h-auto rounded-xl shadow-inner">
+                <img id="modalImage" src="" alt="Lampiran" class="w-full h-[400px] md:h-[500px] object-contain bg-slate-950 rounded-xl shadow-inner">
             </div>
             <div class="bg-slate-50 px-6 py-4 flex justify-between items-center">
                 <div class="flex items-center gap-2">

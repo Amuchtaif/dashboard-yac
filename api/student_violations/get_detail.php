@@ -78,6 +78,9 @@ try {
         exit;
     }
 
+    // Tambahkan URL lengkap lampiran berkas untuk Flutter
+    $violation['attachment_url'] = !empty($violation['attachment']) ? BASE_URL . '/uploads/violations/' . $violation['attachment'] : null;
+
     // 2. Get Follow-ups
     $stmtFollowup = $conn->prepare("SELECT tl.*, e.full_name as penindak_name
                                    FROM tindak_lanjut tl

@@ -10,8 +10,17 @@ $db = new Database();
 $conn = $db->getConnection();
 
 // --- Filter Logic ---
-$start_date = isset($_GET['start_date']) ? $_GET['start_date'] : date('Y-m-26', strtotime('-1 month'));
-$end_date = isset($_GET['end_date']) ? $_GET['end_date'] : date('Y-m-25');
+$today_day = (int)date('d');
+if ($today_day >= 26) {
+    $default_start = date('Y-m-26');
+    $default_end = date('Y-m-25', strtotime('+1 month'));
+} else {
+    $default_start = date('Y-m-26', strtotime('-1 month'));
+    $default_end = date('Y-m-25');
+}
+
+$start_date = isset($_GET['start_date']) ? $_GET['start_date'] : $default_start;
+$end_date = isset($_GET['end_date']) ? $_GET['end_date'] : $default_end;
 $division_id = isset($_GET['division_id']) ? $_GET['division_id'] : '';
 $unit_id = isset($_GET['unit_id']) ? $_GET['unit_id'] : '';
 
@@ -55,6 +64,7 @@ $total_pages = ceil($total_rows / $limit);
 $query = "
     SELECT 
         e.id, 
+        e.nik,
         e.full_name, 
         e.email,
         u.name as unit_name, 
@@ -266,6 +276,7 @@ include '../layouts/header.php';
                 <thead class="bg-slate-50">
                     <tr class="text-[11px] font-bold text-slate-500 uppercase tracking-widest">
                         <th class="px-6 py-4 w-20 border-b border-slate-200 text-center">No.</th>
+                        <th class="px-6 py-4 min-w-[140px] border-b border-slate-200">NIK</th>
                         <th class="px-6 py-4 min-w-[300px] border-b border-slate-200">Nama Lengkap Pegawai</th>
                         <th class="px-6 py-4 min-w-[180px] border-b border-slate-200 text-center">Bidang</th>
                         <th class="px-6 py-4 min-w-[180px] border-b border-slate-200 text-center">Unit Kerja</th>
@@ -279,6 +290,9 @@ include '../layouts/header.php';
                                 <td
                                     class="px-6 py-5 text-slate-400 font-semibold text-center group-hover:text-cyan-600 transition-colors">
                                     <?php echo $offset + $index + 1; ?>.
+                                </td>
+                                <td class="px-6 py-5 font-mono text-xs font-semibold text-slate-600">
+                                    <?php echo htmlspecialchars($row['nik'] ?? '-'); ?>
                                 </td>
                                 <td class="px-6 py-5">
                                     <div class="flex items-center">
@@ -321,7 +335,7 @@ include '../layouts/header.php';
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="5" class="px-6 py-32 text-center border-none">
+                            <td colspan="6" class="px-6 py-32 text-center border-none">
                                 <div class="flex flex-col items-center justify-center">
                                     <div class="h-16 w-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
                                         <svg class="h-8 w-8 text-slate-300" fill="none" stroke="currentColor"
