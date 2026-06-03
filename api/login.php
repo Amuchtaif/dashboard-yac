@@ -34,6 +34,16 @@ $password = $data->password;
 
 try {
     // Query tetap sama (menggunakan $conn yang sudah didapat dari class)
+    $pos_name_col = 'name';
+    try {
+        $checkCol = $conn->query("SHOW COLUMNS FROM positions LIKE 'position_name'");
+        if ($checkCol && $checkCol->rowCount() > 0) {
+            $pos_name_col = 'position_name';
+        }
+    } catch (Exception $e) {
+        // fallback to 'name'
+    }
+
     $query = "SELECT 
                 e.id, 
                 e.full_name, 
@@ -48,7 +58,7 @@ try {
                 u.name AS unit_name, 
                 d.name AS division_name,
                 p.level AS position_level,
-                p.name AS position_name
+                p.{$pos_name_col} AS position_name
               FROM employees e 
               LEFT JOIN positions p ON e.position_id = p.id
               LEFT JOIN units u ON e.unit_id = u.id 

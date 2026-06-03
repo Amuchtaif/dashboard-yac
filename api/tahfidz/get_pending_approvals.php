@@ -25,8 +25,14 @@ if (!$user_id) {
 // Check if user is Koordinator Tahfidz
 $isKoordinator = false;
 
+$pos_name_col = 'name';
+$checkCol = $mysqli->query("SHOW COLUMNS FROM positions LIKE 'position_name'");
+if ($checkCol && $checkCol->num_rows > 0) {
+    $pos_name_col = 'position_name';
+}
+
 // Direct Query for Position Name
-$stmt = $mysqli->prepare("SELECT p.position_name FROM employees e JOIN positions p ON e.position_id = p.id WHERE e.id = ?");
+$stmt = $mysqli->prepare("SELECT p.{$pos_name_col} AS position_name FROM employees e JOIN positions p ON e.position_id = p.id WHERE e.id = ?");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $res = $stmt->get_result();

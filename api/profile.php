@@ -24,6 +24,16 @@ try {
     $db = new Database();
     $conn = $db->getConnection();
 
+    $pos_name_col = 'name';
+    try {
+        $checkCol = $conn->query("SHOW COLUMNS FROM positions LIKE 'position_name'");
+        if ($checkCol && $checkCol->rowCount() > 0) {
+            $pos_name_col = 'position_name';
+        }
+    } catch (Exception $e) {
+        // fallback to 'name'
+    }
+
     $query = "
         SELECT 
             e.id, 
@@ -40,7 +50,7 @@ try {
             d.schedule_id as division_schedule_id,
             u.name as unit_name,
             u.schedule_id as unit_schedule_id,
-            p.name as position_name
+            p.{$pos_name_col} as position_name
         FROM employees e
         LEFT JOIN divisions d ON e.division_id = d.id
         LEFT JOIN units u ON e.unit_id = u.id

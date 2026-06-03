@@ -26,7 +26,17 @@ if (!function_exists('hasPermission')) {
             $conn = $db->getConnection();
 
             // 0. Preliminary Check: Get Employee Position
-            $stmtEmp = $conn->prepare("SELECT e.position_id, p.name as position_name, p.level FROM employees e LEFT JOIN positions p ON e.position_id = p.id WHERE e.id = ? LIMIT 1");
+            $pos_name_col = 'name';
+            try {
+                $checkCol = $conn->query("SHOW COLUMNS FROM positions LIKE 'position_name'");
+                if ($checkCol && $checkCol->rowCount() > 0) {
+                    $pos_name_col = 'position_name';
+                }
+            } catch (Exception $e) {
+                // fallback to 'name'
+            }
+
+            $stmtEmp = $conn->prepare("SELECT e.position_id, p.{$pos_name_col} as position_name, p.level FROM employees e LEFT JOIN positions p ON e.position_id = p.id WHERE e.id = ? LIMIT 1");
             $stmtEmp->execute([$employee_id]);
             $employee = $stmtEmp->fetch(PDO::FETCH_ASSOC);
 

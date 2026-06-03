@@ -34,11 +34,21 @@ try {
 
     // Query to get user and their position (if any)
     // Using LEFT JOIN so users without a position (e.g., Admin) are still found
+    $pos_name_col = 'name';
+    try {
+        $checkCol = $db->query("SHOW COLUMNS FROM positions LIKE 'position_name'");
+        if ($checkCol && $checkCol->rowCount() > 0) {
+            $pos_name_col = 'position_name';
+        }
+    } catch (Exception $e) {
+        // fallback to 'name'
+    }
+
     $query = "SELECT 
                 e.id as employee_id,
                 e.full_name,
                 p.id as position_id,
-                p.name as position_name,
+                p.{$pos_name_col} as position_name,
                 p.level as position_level,
                 p.can_create_meeting,
                 p.can_approve_permits,
