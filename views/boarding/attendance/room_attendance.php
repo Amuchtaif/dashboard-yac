@@ -89,7 +89,6 @@ include '../../layouts/header.php';
                 </div>
             </div>
         </div>
-        </div>
     </div>
 
     <!-- Summary Cards -->
@@ -201,4 +200,4 @@ include '../../layouts/header.php';
     </div>
 </div>
 
-<?php include '../../layouts/header.php'; ?>
+<?php include '../../layouts/footer.php'; ?>

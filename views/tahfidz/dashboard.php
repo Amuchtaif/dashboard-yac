@@ -14,21 +14,31 @@ $conn = $db->getConnection();
 $is_admin = (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Administrator');
 
 // --- Stats Logic ---
-$today = date('Y-m-d');
-$where_today = "date = '$today'";
+$selected_date = $_GET['date'] ?? date('Y-m-d');
+$date_limit = date('Y-m-d');
+if ($selected_date > $date_limit) {
+    $selected_date = $date_limit;
+}
+$is_today = ($selected_date === $date_limit);
+
+$where_today = "date = :date";
 if (!$is_admin) {
     $where_today .= " AND teacher_id = " . (int)$_SESSION['user_id'];
 }
 
-// Total Setoran Hari Ini
+// Total Setoran
 $todayItemsQuery = "SELECT COUNT(*) FROM tahfidz_memorization WHERE $where_today";
-$todayCount = $conn->query($todayItemsQuery)->fetchColumn();
+$todayCountStmt = $conn->prepare($todayItemsQuery);
+$todayCountStmt->execute(['date' => $selected_date]);
+$todayCount = $todayCountStmt->fetchColumn();
 
-// Total Santri Setor Hari Ini (Distinct)
+// Total Santri Setor (Distinct)
 $todayStudentsQuery = "SELECT COUNT(DISTINCT student_id) FROM tahfidz_memorization WHERE $where_today";
-$todayStudentCount = $conn->query($todayStudentsQuery)->fetchColumn();
+$todayStudentCountStmt = $conn->prepare($todayStudentsQuery);
+$todayStudentCountStmt->execute(['date' => $selected_date]);
+$todayStudentCount = $todayStudentCountStmt->fetchColumn();
 
-// Fetch Recent Setoran Data (Today)
+// Fetch Recent Setoran Data (Selected Date)
 $query = "
     SELECT 
         tm.id, tm.student_id, tm.teacher_id, tm.date, tm.surah_start, tm.ayat_start, tm.surah_end, tm.ayat_end, tm.juz, tm.status, tm.notes, tm.created_at,
@@ -39,7 +49,7 @@ $query = "
     FROM tahfidz_memorization tm
     LEFT JOIN students s ON tm.student_id = s.id
     LEFT JOIN employees e ON tm.teacher_id = e.id
-    WHERE tm.date = '$today'
+    WHERE tm.date = :date
 ";
 
 if (!$is_admin) {
@@ -49,7 +59,7 @@ if (!$is_admin) {
 $query .= " ORDER BY tm.id DESC LIMIT 50";
 
 $stm = $conn->prepare($query);
-$stm->execute();
+$stm->execute(['date' => $selected_date]);
 $activities = $stm->fetchAll(PDO::FETCH_ASSOC);
 
 include '../layouts/header.php';
@@ -60,15 +70,21 @@ include '../layouts/header.php';
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h1 class="text-2xl font-bold text-slate-800">Dashboard Tahfidz</h1>
-            <p class="text-slate-500 mt-1">Monitoring real-time aktivitas setoran hafalan santri hari ini.</p>
+            <p class="text-slate-500 mt-1">Monitoring real-time aktivitas setoran hafalan santri <?php echo $is_today ? 'hari ini' : 'pada tanggal ' . date('d M Y', strtotime($selected_date)); ?>.</p>
         </div>
         <div class="mt-4 sm:mt-0">
-            <span class="inline-flex items-center px-4 py-2 rounded-lg bg-blue-50 text-blue-700 text-sm font-medium">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
-                </svg>
-                <?php echo date('d F Y'); ?>
-            </span>
+            <div class="flex items-center gap-3 bg-white p-2 rounded-xl border border-slate-200 shadow-sm">
+                <label class="text-xs font-bold text-slate-400 uppercase ml-2 flex items-center gap-1.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+                    </svg>
+                    Tanggal:
+                </label>
+                <input type="date" value="<?php echo $selected_date; ?>" 
+                    max="<?php echo date('Y-m-d'); ?>"
+                    onchange="window.location.href='?date=' + this.value"
+                    class="border-none bg-transparent text-sm font-bold text-slate-700 focus:ring-0 cursor-pointer">
+            </div>
         </div>
     </div>
 
@@ -83,7 +99,7 @@ include '../layouts/header.php';
                 </svg>
             </div>
             <div class="relative z-10">
-                <p class="text-sm font-medium text-slate-500 uppercase tracking-wide">Total Setoran Hari Ini</p>
+                <p class="text-sm font-medium text-slate-500 uppercase tracking-wide">Total Setoran <?php echo $is_today ? 'Hari Ini' : date('d M Y', strtotime($selected_date)); ?></p>
                 <div class="mt-2 flex items-baseline">
                     <h3 class="text-3xl font-bold text-slate-800"><?php echo number_format($todayCount); ?></h3>
                     <span class="ml-2 text-sm text-green-600 font-medium">record</span>
@@ -99,7 +115,7 @@ include '../layouts/header.php';
                 </svg>
             </div>
             <div class="relative z-10">
-                <p class="text-sm font-medium text-slate-500 uppercase tracking-wide">Santri Setor Hari Ini</p>
+                <p class="text-sm font-medium text-slate-500 uppercase tracking-wide">Santri Setor <?php echo $is_today ? 'Hari Ini' : date('d M Y', strtotime($selected_date)); ?></p>
                 <div class="mt-2 flex items-baseline">
                     <h3 class="text-3xl font-bold text-slate-800"><?php echo number_format($todayStudentCount); ?></h3>
                     <span class="ml-2 text-sm text-cyan-600 font-medium">santri</span>
@@ -117,7 +133,7 @@ include '../layouts/header.php';
             <h3 class="text-lg font-bold text-slate-800">Aktivitas Terbaru</h3>
             <div class="flex space-x-2">
                  <!-- Actions -->
-                 <button class="text-slate-400 hover:text-slate-600">
+                 <button onclick="window.location.reload()" class="text-slate-400 hover:text-slate-600" title="Refresh Halaman">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                     </svg>
@@ -201,7 +217,7 @@ include '../layouts/header.php';
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-slate-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                                     </svg>
-                                    <p class="text-base font-medium">Belum ada data setoran hari ini</p>
+                                    <p class="text-base font-medium">Belum ada data setoran <?php echo $is_today ? 'hari ini' : 'pada tanggal ' . date('d M Y', strtotime($selected_date)); ?></p>
                                     <p class="text-sm text-slate-400 mt-1">Data akan muncul setelah ada input dari aplikasi mobile</p>
                                 </div>
                             </td>
