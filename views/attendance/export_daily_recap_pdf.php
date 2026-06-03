@@ -157,7 +157,7 @@ $late_employees = $stmt_late->fetchAll(PDO::FETCH_ASSOC);
                             <td class="py-3 px-3 text-center font-bold text-slate-400"><?php echo $index + 1; ?>.</td>
                             <td class="py-3 px-3 font-bold text-slate-800"><?php echo htmlspecialchars($row['full_name']); ?></td>
                             <td class="py-3 px-3 text-slate-600 uppercase tracking-tight"><?php echo htmlspecialchars($row['unit_name'] ?: '-'); ?></td>
-                            <td class="py-3 px-3 text-center font-black text-rose-600 text-sm"><?php echo date('H:i', strtotime($row['check_in_time'])); ?></td>
+                            <td class="py-3 px-3 text-center font-black text-rose-600 text-sm"><?php echo date('H:i:s', strtotime($row['check_in_time'])); ?></td>
                         </tr>
                     <?php endforeach; ?>
                 <?php else: ?>

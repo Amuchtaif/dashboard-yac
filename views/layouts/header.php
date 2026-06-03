@@ -200,10 +200,10 @@
     <?php include __DIR__ . '/sidebar.php'; ?>
 
     <!-- Main Content -->
-    <div class="flex flex-col flex-1 min-w-0 md:pl-64 overflow-hidden">
+    <div class="flex flex-col flex-1 min-w-0 md:pl-64 overflow-hidden relative">
 
         <!-- Top Header Bar -->
-        <header class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-4 md:px-8 z-30 sticky top-0">
+        <header class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-4 md:px-8 z-30 absolute top-0 left-0 md:left-64 right-0 transition-all duration-300">
             <!-- Left Side: Hamburger (Mobile) / Page Title (Desktop) -->
             <div class="flex items-center gap-4">
                 <button type="button" onclick="toggleSidebar()" class="md:hidden text-slate-500 hover:text-slate-700 p-2 rounded-lg hover:bg-slate-50 transition-colors">
@@ -260,11 +260,35 @@
 
                         <!-- Dropdown Menu -->
                         <div id="profile-menu"
-                            class="hidden absolute right-0 mt-3 w-48 origin-top-right rounded-xl bg-white py-2 shadow-xl ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
-                            <a href="#" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 font-medium">Pengaturan</a>
+                            class="hidden absolute right-0 mt-3 w-56 origin-top-right rounded-2xl bg-white p-2 shadow-2xl ring-1 ring-slate-900/5 focus:outline-none z-50 transition-all duration-200 ease-out transform scale-95 opacity-0">
+                            <!-- User Info Header -->
+                            <div class="px-4 py-2.5 border-b border-slate-100 mb-1">
+                                <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Sudah Masuk</p>
+                                <p class="text-sm font-bold text-slate-800 truncate mt-0.5"><?php echo htmlspecialchars($profile_name); ?></p>
+                                <p class="text-[11px] text-slate-500 font-medium truncate"><?php echo htmlspecialchars($_SESSION['position_name'] ?? 'Pegawai'); ?></p>
+                            </div>
+                            <!-- Links -->
+                            <a href="#" class="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-lg font-medium transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-4 h-4 text-slate-400">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                                </svg>
+                                Profil Saya
+                            </a>
+                            <a href="#" class="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-lg font-medium transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-4 h-4 text-slate-400">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.43l-1.003.828c-.293.241-.438.613-.43.992a7.723 7.723 0 010 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.43l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.991l-1.004-.827a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.645-.869l.214-1.28z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                Pengaturan
+                            </a>
                             <div class="border-t border-slate-100 my-1"></div>
                             <a href="<?php url('logic/auth/logout.php'); ?>"
-                                class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-semibold">Keluar</a>
+                                class="flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-rose-50 rounded-lg font-bold transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 text-red-500">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+                                </svg>
+                                Keluar Aplikasi
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -293,9 +317,59 @@
                     setTimeout(() => backdrop.classList.add('hidden'), 300);
                 }
             }
+
+            function toggleProfileDropdown() {
+                const menu = document.getElementById('profile-menu');
+                if (menu.classList.contains('hidden')) {
+                    menu.classList.remove('hidden');
+                    setTimeout(() => {
+                        menu.classList.remove('scale-95', 'opacity-0');
+                        menu.classList.add('scale-100', 'opacity-100');
+                    }, 10);
+                } else {
+                    menu.classList.remove('scale-100', 'opacity-100');
+                    menu.classList.add('scale-95', 'opacity-0');
+                    setTimeout(() => {
+                        menu.classList.add('hidden');
+                    }, 200);
+                }
+            }
+
+            // Close dropdown and sidebar when clicking outside
+            document.addEventListener('click', function (event) {
+                const dropdownContainer = document.getElementById('profile-dropdown-container');
+                const menu = document.getElementById('profile-menu');
+                
+                if (dropdownContainer && !dropdownContainer.contains(event.target)) {
+                    if (menu && !menu.classList.contains('hidden')) {
+                        menu.classList.remove('scale-100', 'opacity-100');
+                        menu.classList.add('scale-95', 'opacity-0');
+                        setTimeout(() => {
+                            menu.classList.add('hidden');
+                        }, 200);
+                    }
+                }
+            });
+
+            // Scroll Header Effect
+            document.addEventListener('DOMContentLoaded', () => {
+                const mainScroll = document.getElementById('main-content-scroll');
+                const mainHeader = document.querySelector('header');
+                if (mainScroll && mainHeader) {
+                    mainScroll.addEventListener('scroll', () => {
+                        if (mainScroll.scrollTop > 10) {
+                            mainHeader.classList.add('bg-white/80', 'backdrop-blur-md', 'shadow-sm', 'border-slate-200/50');
+                            mainHeader.classList.remove('bg-white', 'border-slate-200');
+                        } else {
+                            mainHeader.classList.remove('bg-white/80', 'backdrop-blur-md', 'shadow-sm', 'border-slate-200/50');
+                            mainHeader.classList.add('bg-white', 'border-slate-200');
+                        }
+                    });
+                }
+            });
         </script>
 
-        <main class="flex-1 overflow-y-auto focus:outline-none">
+        <main class="flex-1 overflow-y-auto focus:outline-none pt-16" id="main-content-scroll">
             <div class="pt-6 pb-24 px-4 sm:px-6 lg:px-8">
                 <!-- Global Notifications (Section Bar Style) -->
                 <div id="dynamic-alert-container"></div>

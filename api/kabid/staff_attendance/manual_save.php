@@ -59,7 +59,8 @@ try {
     
     $finalStatus = "Hadir";
     if ($type == 'MASUK') {
-        if ($sched && $time > $sched['start_time']) $finalStatus = "Telat";
+        $start_time_tolerance = $sched ? date('H:i:s', strtotime($sched['start_time'] . ' +1 minute')) : null;
+        if ($sched && $time >= $start_time_tolerance) $finalStatus = "Telat";
         else $finalStatus = "Hadir";
     } else {
         if ($sched && $time < $sched['end_time']) $finalStatus = "Pulang Cepat";

@@ -50,14 +50,14 @@ for ($i = 6; $i >= 0; $i--) {
 }
 
 // --- Recent Activity ---
-// Union query to get both Check In and Check Out events ordered by time
+// Union query to get both Absen Masuk and Absen Keluar events ordered by time
 $activity_query = "
-    SELECT a.user_id, e.full_name, a.time_in as time, 'Check In' as event_type, a.status as status_label, a.status as status_code
+    SELECT a.user_id, e.full_name, a.time_in as time, 'Absen Masuk' as event_type, a.status as status_label, a.status as status_code
     FROM attendances a 
     JOIN employees e ON a.user_id = e.id 
     WHERE a.date = '$today'
     UNION
-    SELECT a.user_id, e.full_name, a.time_out as time, 'Check Out' as event_type, a.status_out as status_label, a.status_out as status_code
+    SELECT a.user_id, e.full_name, a.time_out as time, 'Absen Keluar' as event_type, a.status_out as status_label, a.status_out as status_code
     FROM attendances a 
     JOIN employees e ON a.user_id = e.id 
     WHERE a.date = '$today' AND a.time_out IS NOT NULL
@@ -102,10 +102,54 @@ $statusTextMap = [
     'Rejected' => 'Ditolak'
 ];
 
+// Greeting Logic
+$hour = (int)date('H');
+if ($hour >= 4 && $hour < 11) {
+    $greeting = "Selamat Pagi";
+} elseif ($hour >= 11 && $hour < 15) {
+    $greeting = "Selamat Siang";
+} elseif ($hour >= 15 && $hour < 18) {
+    $greeting = "Selamat Sore";
+} else {
+    $greeting = "Selamat Malam";
+}
+$user_name = $_SESSION['user_name'] ?? 'User';
+
 include '../layouts/header.php';
 ?>
 
 <div class="space-y-6">
+    <!-- Greeting Card -->
+    <div class="bg-white rounded-2xl shadow-sm p-6 border-l-4 border-[#2B3990] relative overflow-hidden transition-all duration-300 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <!-- Decorative subtle pattern/background shape -->
+        <div class="absolute right-0 bottom-0 opacity-[0.03] translate-x-10 translate-y-10 pointer-events-none">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-64 h-64 text-[#2B3990]">
+                <path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z" clip-rule="evenodd" />
+            </svg>
+        </div>
+        
+        <div class="relative z-10">
+            <p class="text-xs font-bold text-[#2B3990] uppercase tracking-wider mb-1">Beranda Dashboard</p>
+            <h1 class="text-xl md:text-2xl font-bold text-slate-800">
+                <?php echo $greeting; ?>, <span class="text-[#2B3990]"><?php echo htmlspecialchars($user_name); ?></span>!
+            </h1>
+            <p class="text-slate-500 text-sm mt-1.5 max-w-xl leading-relaxed">
+                Ahlan wa sahlan di sistem pengelolaan dashboard administrasi Yayasan Assunnah Cirebon.
+            </p>
+        </div>
+        <div class="relative z-10 shrink-0 flex items-center gap-3 bg-slate-50 rounded-xl p-3 border border-slate-100 self-start md:self-auto">
+            <div class="p-2 bg-indigo-50 text-[#2B3990] rounded-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5a2.25 2.25 0 002.25-2.25m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5m-9-6h.008v.008H12v-.008zM12 15h.008v.008H12V15zm0 2.25h.008v.008H12v-.008zM9.75 15h.008v.008H9.75V15zm0 2.25h.008v.008H9.75v-.008zM7.5 15h.008v.008H7.5V15zm0 2.25h.008v.008H7.5v-.008zm6.75-4.5h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V15zm0 2.25h.008v.008h-.008v-.008zm2.25-4.5h.008v.008H16.5v-.008zm0 2.25h.008v.008H16.5V15z" />
+                </svg>
+            </div>
+            <div class="text-left">
+                <p class="text-[10px] text-slate-400 uppercase font-semibold">Hari Ini</p>
+                <p class="text-xs font-bold text-slate-700"><?php echo date('d M Y'); ?></p>
+            </div>
+        </div>
+    </div>
+
     <!-- Stats Grid -->
     <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
 
@@ -343,7 +387,7 @@ include '../layouts/header.php';
         <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 sm:p-6">
             <div class="flex items-center justify-between mb-6">
                 <h3 class="text-base font-bold text-slate-800">Aktivitas Terkini</h3>
-                <a href="#" class="text-xs font-semibold text-cyan-600 hover:text-cyan-700">Lihat Semua</a>
+                <a href="<?php url('views/attendance/index.php'); ?>" class="text-xs font-semibold text-cyan-600 hover:text-cyan-700">Lihat Semua</a>
             </div>
 
             <div class="space-y-6">
@@ -370,13 +414,13 @@ include '../layouts/header.php';
                                 <?php
                                 $statusColor = 'bg-slate-100 text-slate-600';
 
-                                if ($activity['event_type'] == 'Check In') {
+                                if ($activity['event_type'] == 'Absen Masuk') {
                                     if (in_array(strtolower($activity['status_code']), ['hadir', 'present'])) {
                                         $statusColor = 'bg-green-100 text-green-700'; // On Time
                                     } elseif (in_array(strtolower($activity['status_code']), ['late', 'telat'])) {
                                         $statusColor = 'bg-red-100 text-red-700'; // Late
                                     }
-                                } elseif ($activity['event_type'] == 'Check Out') {
+                                } elseif ($activity['event_type'] == 'Absen Keluar') {
                                     if (strtolower($activity['status_code']) == 'pulang') {
                                         $statusColor = 'bg-green-100 text-green-700'; // Normal
                                     } elseif (strtolower($activity['status_code']) == 'pulang cepat') {

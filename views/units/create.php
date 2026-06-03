@@ -67,8 +67,7 @@ include '../layouts/header.php';
                         <label for="name" class="block text-sm font-medium leading-6 text-gray-900">Nama Unit</label>
                         <div class="mt-2">
                             <input type="text" name="name" id="name" required
-                                class="block w-full px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 focus:outline-none transition-all placeholder:text-slate-400 shadow-sm"
-                                placeholder="misal: Tim Payroll">
+                                class="block w-full px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 focus:outline-none transition-all shadow-sm">
                         </div>
                     </div>
 

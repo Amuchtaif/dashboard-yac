@@ -77,7 +77,7 @@ include '../layouts/header.php';
                     <div class="space-y-2">
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest">Pilih Pegawai</label>
                         <div class="relative" id="dropdown-employee">
-                            <input type="hidden" name="employee_id" id="input-employee_id" required>
+                            <input type="hidden" name="employee_id" id="input-employee" required>
                             <button type="button" onclick="toggleCustomDropdown('employee')"
                                 class="flex h-[46px] w-full items-center justify-between rounded-xl border border-slate-300 bg-slate-50 px-4 py-2 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-4 focus:ring-cyan-500/5 transition-all">
                                 <span id="text-employee" class="block truncate text-slate-400 italic">Cari nama pegawai...</span>
@@ -91,7 +91,9 @@ include '../layouts/header.php';
                                 </div>
                                 <ul id="list-employee" class="max-h-60 overflow-y-auto custom-scrollbar">
                                     <?php foreach ($all_employees as $emp): ?>
-                                        <li onclick="selectCustomOption('employee', '<?php echo $emp['id']; ?>', '<?php echo htmlspecialchars($emp['full_name'], ENT_QUOTES); ?>')" 
+                                        <li onclick="selectCustomOption('employee', this)" 
+                                            data-value="<?php echo $emp['id']; ?>" 
+                                            data-text="<?php echo htmlspecialchars($emp['full_name'], ENT_QUOTES); ?>"
                                             class="option-item relative cursor-pointer select-none py-3 px-3 text-slate-600 hover:bg-cyan-50 hover:text-cyan-700 transition-colors border-b border-slate-50 last:border-0"
                                             data-search="<?php echo strtolower(htmlspecialchars($emp['full_name'])); ?> <?php echo strtolower(htmlspecialchars($emp['position_name'])); ?>">
                                             <div class="flex items-center gap-3">
@@ -114,7 +116,7 @@ include '../layouts/header.php';
                     <div class="space-y-2">
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest">Unit Penugasan</label>
                         <div class="relative" id="dropdown-unit">
-                            <input type="hidden" name="unit_id" id="input-unit_id">
+                            <input type="hidden" name="unit_id" id="input-unit">
                             <button type="button" onclick="toggleCustomDropdown('unit')"
                                 class="flex h-[46px] w-full items-center justify-between rounded-xl border border-slate-300 bg-slate-50 px-4 py-2 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-4 focus:ring-cyan-500/5 transition-all">
                                 <span id="text-unit" class="block truncate font-bold text-slate-700">Semua Unit (Umum)</span>
@@ -127,11 +129,15 @@ include '../layouts/header.php';
                                     <input type="text" id="search-unit" onkeyup="filterCustomDropdown('unit')" placeholder="Cari unit..." class="block w-full rounded-lg border-slate-200 py-1.5 pl-3 text-sm focus:border-cyan-500 focus:ring-cyan-500 outline-none">
                                 </div>
                                 <ul id="list-unit" class="max-h-48 overflow-y-auto custom-scrollbar">
-                                    <li onclick="selectCustomOption('unit', '', 'Semua Unit (Umum)')" 
+                                    <li onclick="selectCustomOption('unit', this)" 
+                                        data-value="" 
+                                        data-text="Semua Unit (Umum)"
                                         class="option-item relative cursor-pointer select-none py-3 px-4 text-slate-600 hover:bg-cyan-50 hover:text-cyan-700 transition-colors font-bold text-[13px]" 
                                         data-search="semua unit umum">Semua Unit (Umum)</li>
                                     <?php foreach ($units as $unit): ?>
-                                        <li onclick="selectCustomOption('unit', '<?php echo $unit['id']; ?>', '<?php echo htmlspecialchars($unit['name'], ENT_QUOTES); ?>')" 
+                                        <li onclick="selectCustomOption('unit', this)" 
+                                            data-value="<?php echo $unit['id']; ?>" 
+                                            data-text="<?php echo htmlspecialchars($unit['name'], ENT_QUOTES); ?>"
                                             class="option-item relative cursor-pointer select-none py-3 px-4 text-slate-600 hover:bg-cyan-50 hover:text-cyan-700 transition-colors font-bold text-[13px] border-t border-slate-50" 
                                             data-search="<?php echo strtolower(htmlspecialchars($unit['name'])); ?>">
                                             <?php echo htmlspecialchars($unit['name']); ?>
@@ -250,7 +256,10 @@ include '../layouts/header.php';
         }
     }
 
-    function selectCustomOption(id, value, text) {
+    function selectCustomOption(id, element) {
+        const value = element.getAttribute('data-value');
+        const text = element.getAttribute('data-text');
+
         document.getElementById('input-' + id).value = value;
         const textEl = document.getElementById('text-' + id);
         textEl.innerText = text;
@@ -265,7 +274,7 @@ include '../layouts/header.php';
         const items = list.getElementsByTagName('li');
         for (let i = 0; i < items.length; i++) {
             items[i].classList.remove('bg-cyan-50', 'text-cyan-700', 'ring-1', 'ring-inset', 'ring-cyan-100');
-            if (items[i].getAttribute('onclick').includes("'" + value + "'")) {
+            if (items[i].getAttribute('data-value') === value) {
                 items[i].classList.add('bg-cyan-50', 'text-cyan-700', 'ring-1', 'ring-inset', 'ring-cyan-100');
             }
         }

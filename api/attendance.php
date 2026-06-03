@@ -225,7 +225,8 @@ if ($action === 'get_history') {
             if ($stmt->rowCount() > 0) {
                 echo json_encode(["success" => false, "message" => "Anda sudah absen masuk hari ini!"]);
             } else {
-                $status_in = ($now_time > $jam_masuk_kantor) ? "Telat" : "Hadir";
+                $jam_masuk_toleransi = date('H:i:s', strtotime($jam_masuk_kantor . ' +1 minute'));
+                $status_in = ($now_time >= $jam_masuk_toleransi) ? "Telat" : "Hadir";
                 $insertQuery = "INSERT INTO attendances (user_id, location_id, date, time_in, status, lat_in, long_in) VALUES (:uid, :lid, :date, :time, :stat, :lat, :long)";
                 $stmtInsert = $conn->prepare($insertQuery);
                 $stmtInsert->bindParam(':uid', $user_id);

@@ -15,11 +15,11 @@ require_once __DIR__ . '/../layouts/header.php';
         </div>
         <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
             <div class="flex gap-2 items-center">
-                <a href="<?php echo BASE_URL; ?>/logic/inventory/export_csv.php" class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-100 transition-all">
+                <a href="<?php echo BASE_URL; ?>/logic/inventory/export_excel.php" class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-100 transition-all">
                     <svg class="-ml-1 mr-2 h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                     </svg>
-                    Export CSV
+                    Export Excel
                 </a>
 
                 <a href="<?php echo BASE_URL; ?>/views/inventory/import.php" class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-100 transition-all">

@@ -13,6 +13,7 @@ $conn = $db->getConnection();
 $target_date = isset($_GET['date']) ? $_GET['date'] : date('Y-m-d');
 $division_id = isset($_GET['division_id']) ? $_GET['division_id'] : '';
 $unit_id = isset($_GET['unit_id']) ? $_GET['unit_id'] : '';
+$search = isset($_GET['search']) ? trim($_GET['search']) : '';
 
 // Ambil List Bidang & Unit untuk Filter
 $divisions = $conn->query("SELECT id, name FROM divisions ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
@@ -22,6 +23,10 @@ $units = $conn->query("SELECT id, name FROM units ORDER BY name ASC")->fetchAll(
 $where_emp = " WHERE e.id != 1 AND (e.status = 'active' OR e.status IS NULL) ";
 $params_emp = [':target_date' => $target_date];
 
+if ($search) {
+    $where_emp .= " AND e.full_name LIKE :search ";
+    $params_emp[':search'] = "%$search%";
+}
 if ($division_id) {
     $where_emp .= " AND e.division_id = :division_id ";
     $params_emp[':division_id'] = $division_id;
@@ -101,7 +106,14 @@ include '../layouts/header.php';
 
     <!-- Filter Section -->
     <div class="mb-8 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-        <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
+        <form method="GET" class="grid grid-cols-1 md:grid-cols-5 gap-6 items-end">
+            <!-- Search by Name -->
+            <div>
+                <label class="block text-[11px] font-bold text-slate-400 uppercase mb-2 ml-1 tracking-wider">Nama Pegawai</label>
+                <input type="text" name="search" value="<?php echo htmlspecialchars($search); ?>" placeholder="Cari nama..."
+                    class="block w-full rounded-xl border-slate-200 bg-slate-50 py-2.5 px-4 text-sm focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 focus:bg-white transition-all text-slate-700 font-medium outline-none">
+            </div>
+
             <div>
                 <label class="block text-[11px] font-bold text-slate-400 uppercase mb-2 ml-1 tracking-wider">Tanggal</label>
                 <input type="date" name="date" value="<?php echo $target_date; ?>"
@@ -132,10 +144,18 @@ include '../layouts/header.php';
                 </select>
             </div>
 
-            <div>
-                <button type="submit" class="w-full inline-flex items-center justify-center rounded-xl bg-cyan-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-cyan-600/20 hover:bg-cyan-700 transition-all">
-                    Filter Data
+            <div class="flex gap-2">
+                <button type="submit" class="flex-1 inline-flex items-center justify-center rounded-xl bg-cyan-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-cyan-600/20 hover:bg-cyan-700 transition-all active:scale-[0.98]">
+                    Filter
                 </button>
+                <?php if ($search || $division_id || $unit_id || $target_date != date('Y-m-d')): ?>
+                    <a href="?" class="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-orange-50 text-orange-600 hover:bg-orange-100 transition-all active:scale-95 border border-orange-100 shrink-0" title="Bersihkan Filter">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+                            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                            <path d="M3 3v5h5"/>
+                        </svg>
+                    </a>
+                <?php endif; ?>
             </div>
         </form>
     </div>
@@ -220,7 +240,7 @@ include '../layouts/header.php';
                                     </td>
                                     <td class="px-6 py-4 text-center">
                                         <span class="inline-flex items-center rounded-xl bg-rose-50 px-3 py-1 text-xs font-black text-rose-700 ring-1 ring-inset ring-rose-500/20">
-                                            <?php echo date('H:i', strtotime($row['check_in_time'])); ?>
+                                            <?php echo date('H:i:s', strtotime($row['check_in_time'])); ?>
                                         </span>
                                     </td>
                                 </tr>

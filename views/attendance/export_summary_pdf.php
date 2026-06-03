@@ -21,11 +21,16 @@ $start_date = isset($_GET['start_date']) ? $_GET['start_date'] : $default_start;
 $end_date = isset($_GET['end_date']) ? $_GET['end_date'] : $default_end;
 $division_id = isset($_GET['division_id']) ? $_GET['division_id'] : '';
 $unit_id = isset($_GET['unit_id']) ? $_GET['unit_id'] : '';
+$search = isset($_GET['search']) ? trim($_GET['search']) : '';
 
 // Build WHERE Clause
 $where = " WHERE e.id != 1 AND (e.status = 'active' OR e.status IS NULL) ";
 $params = [':start_date' => $start_date, ':end_date' => $end_date];
 
+if ($search) {
+    $where .= " AND e.full_name LIKE :search ";
+    $params[':search'] = "%$search%";
+}
 if ($division_id) {
     $where .= " AND e.division_id = :division_id ";
     $params[':division_id'] = $division_id;

@@ -199,14 +199,14 @@ include '../layouts/header.php';
                 tahun ajaran aktif.</p>
         </div>
         <div class="mt-4 flex gap-3 md:ml-4 md:mt-0">
-            <button type="submit" form="filter-form" formaction="<?php url('logic/students/export_csv.php'); ?>"
+            <button type="submit" form="filter-form" formaction="<?php url('logic/students/export_excel.php'); ?>"
                 class="inline-flex items-center rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:outline-none transition-colors">
                 <svg class="-ml-1 mr-2 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none"
                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round"
                         d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
                 </svg>
-                Export CSV
+                Export Excel
             </button>
             <a href="<?php url('views/students/import.php'); ?>"
                 class="inline-flex items-center rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:outline-none transition-colors">

@@ -23,6 +23,7 @@ $start_date = isset($_GET['start_date']) ? $_GET['start_date'] : $default_start;
 $end_date = isset($_GET['end_date']) ? $_GET['end_date'] : $default_end;
 $division_id = isset($_GET['division_id']) ? $_GET['division_id'] : '';
 $unit_id = isset($_GET['unit_id']) ? $_GET['unit_id'] : '';
+$search = isset($_GET['search']) ? trim($_GET['search']) : '';
 
 // --- Pagination Logic ---
 $limit = isset($_GET['limit']) && in_array((int) $_GET['limit'], [10, 20, 50, 100]) ? (int) $_GET['limit'] : 10;
@@ -39,6 +40,10 @@ $units = $conn->query("SELECT id, name FROM units ORDER BY name ASC")->fetchAll(
 $where = " WHERE e.id != 1 AND (e.status = 'active' OR e.status IS NULL) ";
 $params = [':start_date' => $start_date, ':end_date' => $end_date];
 
+if ($search) {
+    $where .= " AND e.full_name LIKE :search ";
+    $params[':search'] = "%$search%";
+}
 if ($division_id) {
     $where .= " AND e.division_id = :division_id ";
     $params[':division_id'] = $division_id;
@@ -184,10 +189,19 @@ include '../layouts/header.php';
 
     <!-- Filter Section Card -->
     <div class="mb-8 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm transition-all hover:shadow-md">
-        <form method="GET" class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-6 items-end">
+        <form method="GET" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6 items-end">
             <!-- Hidden Page Param -->
             <input type="hidden" name="page" value="1">
             <input type="hidden" name="limit" value="<?php echo $limit; ?>">
+
+            <!-- Search -->
+            <div>
+                <label class="block text-[11px] font-bold text-slate-400 uppercase mb-2 ml-1 tracking-wider">Nama Pegawai</label>
+                <div class="relative group">
+                    <input type="text" name="search" value="<?php echo htmlspecialchars($search); ?>" placeholder="Cari nama..."
+                        class="block w-full rounded-xl border-slate-200 bg-slate-50 py-2.5 px-4 text-sm focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 focus:bg-white transition-all text-slate-700 font-medium outline-none">
+                </div>
+            </div>
 
             <!-- Start Date -->
             <div>
@@ -256,15 +270,23 @@ include '../layouts/header.php';
             </div>
 
             <!-- Submit Button -->
-            <div>
+            <div class="flex gap-2">
                 <button type="submit"
-                    class="w-full inline-flex items-center justify-center rounded-xl bg-cyan-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-cyan-600/20 hover:bg-cyan-700 hover:shadow-cyan-600/40 focus:ring-4 focus:ring-cyan-600/20 transition-all active:scale-[0.98]">
+                    class="flex-1 inline-flex items-center justify-center rounded-xl bg-cyan-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-cyan-600/20 hover:bg-cyan-700 hover:shadow-cyan-600/40 focus:ring-4 focus:ring-cyan-600/20 transition-all active:scale-[0.98]">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentcolor" viewBox="0 0 24 24" stroke-width="2.5">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                     </svg>
                     Filter
                 </button>
+                <?php if ($search || $division_id || $unit_id || $start_date != $default_start || $end_date != $default_end): ?>
+                    <a href="?" class="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-orange-50 text-orange-600 hover:bg-orange-100 transition-all active:scale-95 border border-orange-100 shrink-0" title="Bersihkan Filter">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+                            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                            <path d="M3 3v5h5"/>
+                        </svg>
+                    </a>
+                <?php endif; ?>
             </div>
         </form>
     </div>

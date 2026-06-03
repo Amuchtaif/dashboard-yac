@@ -10,6 +10,7 @@ $db = new Database();
 $conn = $db->getConnection();
 
 // --- Filter & Search ---
+$search = isset($_GET['search']) && $_GET['search'] !== '' ? trim($_GET['search']) : null;
 $division_id = isset($_GET['division_id']) && $_GET['division_id'] !== '' ? (int)$_GET['division_id'] : null;
 $start_date = isset($_GET['start_date']) && $_GET['start_date'] !== '' ? $_GET['start_date'] : null;
 $end_date = isset($_GET['end_date']) && $_GET['end_date'] !== '' ? $_GET['end_date'] : null;
@@ -32,6 +33,10 @@ $offset = ($page - 1) * $limit;
 $where = " WHERE (e.status = 'active' OR e.status IS NULL) ";
 $params = [];
 
+if ($search) {
+    $where .= " AND e.full_name LIKE :search ";
+    $params[':search'] = "%$search%";
+}
 if ($division_id) {
     $where .= " AND e.division_id = :division_id ";
     $params[':division_id'] = $division_id;
@@ -99,8 +104,21 @@ include '../layouts/header.php';
             <input type="hidden" name="limit" value="<?php echo $limit; ?>">
             <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
                 
+                <!-- Nama Karyawan Filter (Pencarian Nama) -->
+                <div class="md:col-span-3">
+                    <label for="search" class="block text-xs font-bold text-slate-500 uppercase mb-2 ml-1">Nama Pegawai</label>
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400 group-focus-within:text-cyan-500 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+                                <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <input type="text" name="search" id="search" value="<?php echo htmlspecialchars($search ?? ''); ?>" placeholder="Cari nama..." class="block w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl focus:ring-4 focus:ring-cyan-500/10 focus:border-cyan-500 focus:bg-white transition-all outline-none">
+                    </div>
+                </div>
+
                 <!-- Division Filter (Bidang) -->
-                <div class="md:col-span-4">
+                <div class="md:col-span-3">
                     <label for="division_id" class="block text-xs font-bold text-slate-500 uppercase mb-2 ml-1">Bidang</label>
                     <div class="relative group">
                         <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400 group-focus-within:text-cyan-500 transition-colors">
@@ -126,7 +144,7 @@ include '../layouts/header.php';
                 </div>
 
                 <!-- Date Range Filters -->
-                <div class="md:col-span-5">
+                <div class="md:col-span-4">
                     <label class="block text-xs font-bold text-slate-500 uppercase mb-2 ml-1">Rentang Tanggal</label>
                     <div class="flex items-center gap-3">
                         <div class="relative w-full group">
@@ -150,14 +168,14 @@ include '../layouts/header.php';
                 </div>
 
                 <!-- Action Buttons -->
-                <div class="md:col-span-3 flex items-end gap-2">
+                <div class="md:col-span-2 flex items-end gap-2">
                     <button type="submit" class="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-cyan-600/20 hover:bg-cyan-700 hover:shadow-cyan-600/40 focus:ring-4 focus:ring-cyan-500/30 transition-all active:scale-95">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
                             <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd" />
                         </svg>
                         Terapkan
                     </button>
-                    <?php if ($division_id || $start_date || $end_date): ?>
+                    <?php if ($search || $division_id || $start_date || $end_date): ?>
                         <a href="?" class="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-orange-50 text-orange-600 hover:bg-orange-100 transition-all active:scale-95 border border-orange-100" title="Bersihkan Filter">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
                                 <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
@@ -210,7 +228,7 @@ include '../layouts/header.php';
                                         </td>
                                         <td class="whitespace-nowrap px-3 py-4 text-sm">
                                             <div class="font-bold text-slate-700">
-                                                <?php echo date('H:i', strtotime($log['time_in'])); ?>
+                                                <?php echo date('H:i:s', strtotime($log['time_in'])); ?>
                                             </div>
                                             <span class="inline-flex items-center rounded-lg px-2 py-0.5 text-[10px] font-bold <?php echo ($log['status'] === 'Hadir') ? 'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20' : 'bg-rose-50 text-rose-700 ring-1 ring-inset ring-rose-600/20'; ?>">
                                                 <?php echo htmlspecialchars($log['status']); ?>
@@ -219,7 +237,7 @@ include '../layouts/header.php';
                                         <td class="whitespace-nowrap px-3 py-4 text-sm">
                                             <?php if ($log['time_out']): ?>
                                                 <div class="font-bold text-slate-700">
-                                                    <?php echo date('H:i', strtotime($log['time_out'])); ?>
+                                                    <?php echo date('H:i:s', strtotime($log['time_out'])); ?>
                                                 </div>
                                                 <span class="inline-flex items-center rounded-lg px-2 py-0.5 text-[10px] font-bold <?php echo ($log['status_out'] === 'Pulang') ? 'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20' : 'bg-rose-50 text-rose-700 ring-1 ring-inset ring-rose-600/20'; ?>">
                                                     <?php echo htmlspecialchars($log['status_out'] ?? 'Pulang'); ?>
@@ -255,8 +273,9 @@ include '../layouts/header.php';
                     <!-- Pagination -->
                     <?php
                     // Helper to build URL with current filters
-                    function buildUrl($p, $l, $d, $s, $e) {
+                    function buildUrl($p, $l, $d, $s, $e, $search = null) {
                         return "?page=$p&limit=$l" . 
+                               ($search ? "&search=" . urlencode($search) : "") .
                                ($d ? "&division_id=$d" : "") . 
                                ($s ? "&start_date=$s" : "") . 
                                ($e ? "&end_date=$e" : "");
@@ -270,10 +289,10 @@ include '../layouts/header.php';
                             </p>
                             <div class="flex gap-2">
                                 <?php if ($page > 1): ?>
-                                    <a href="<?php echo buildUrl($page - 1, $limit, $division_id, $start_date, $end_date); ?>" class="rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 transition-all">Prev</a>
+                                    <a href="<?php echo buildUrl($page - 1, $limit, $division_id, $start_date, $end_date, $search); ?>" class="rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 transition-all">Prev</a>
                                 <?php endif; ?>
                                 <?php if ($page < $total_pages): ?>
-                                    <a href="<?php echo buildUrl($page + 1, $limit, $division_id, $start_date, $end_date); ?>" class="rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 transition-all">Next</a>
+                                    <a href="<?php echo buildUrl($page + 1, $limit, $division_id, $start_date, $end_date, $search); ?>" class="rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 transition-all">Next</a>
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -282,7 +301,7 @@ include '../layouts/header.php';
                         <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
                             <div class="flex items-center gap-4">
                                 <div class="relative group">
-                                    <select onchange="window.location.href='<?php echo buildUrl(1, '', $division_id, $start_date, $end_date); ?>'.replace('limit=', 'limit='+this.value)"
+                                    <select onchange="window.location.href='<?php echo buildUrl(1, '', $division_id, $start_date, $end_date, $search); ?>'.replace('limit=', 'limit='+this.value)"
                                         class="block rounded-xl border-slate-200 py-1.5 pl-3 pr-8 text-slate-700 text-xs font-bold bg-slate-50 group-hover:bg-white focus:ring-4 focus:ring-cyan-500/10 focus:border-cyan-500 transition-all appearance-none cursor-pointer">
                                         <?php foreach ([10, 20, 50, 100] as $val): ?>
                                             <option value="<?php echo $val; ?>" <?php echo $limit == $val ? 'selected' : ''; ?>>
@@ -304,7 +323,7 @@ include '../layouts/header.php';
                                 <nav class="isolate inline-flex -space-x-px rounded-xl shadow-sm border border-slate-200 overflow-hidden" aria-label="Pagination">
                                     <!-- Prev -->
                                     <?php if ($page > 1): ?>
-                                        <a href="<?php echo buildUrl($page - 1, $limit, $division_id, $start_date, $end_date); ?>"
+                                        <a href="<?php echo buildUrl($page - 1, $limit, $division_id, $start_date, $end_date, $search); ?>"
                                             class="relative inline-flex items-center px-3 py-2 text-slate-400 hover:bg-slate-50 focus:z-20 transition-colors">
                                             <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                                                 <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
@@ -320,7 +339,7 @@ include '../layouts/header.php';
                                     for ($i = 1; $i <= $total_pages; $i++) {
                                         if ($i == 1 || $i == $total_pages || ($i >= $initial_num && $i < $condition_limit_num)) {
                                             ?>
-                                            <a href="<?php echo buildUrl($i, $limit, $division_id, $start_date, $end_date); ?>"
+                                            <a href="<?php echo buildUrl($i, $limit, $division_id, $start_date, $end_date, $search); ?>"
                                                 class="relative inline-flex items-center px-4 py-2 text-sm font-bold <?php echo ($i == $page) ? 'bg-cyan-600 text-white' : 'text-slate-700 hover:bg-slate-50'; ?> border-x border-slate-100 transition-colors">
                                                 <?php echo $i; ?>
                                             </a>
@@ -335,7 +354,7 @@ include '../layouts/header.php';
 
                                     <!-- Next -->
                                     <?php if ($page < $total_pages): ?>
-                                        <a href="<?php echo buildUrl($page + 1, $limit, $division_id, $start_date, $end_date); ?>"
+                                        <a href="<?php echo buildUrl($page + 1, $limit, $division_id, $start_date, $end_date, $search); ?>"
                                             class="relative inline-flex items-center px-3 py-2 text-slate-400 hover:bg-slate-50 focus:z-20 transition-colors">
                                             <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                                                 <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
