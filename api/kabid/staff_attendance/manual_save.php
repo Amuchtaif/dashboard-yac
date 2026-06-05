@@ -14,7 +14,7 @@ try {
     $json = file_get_contents("php://input");
     $data = json_decode($json);
 
-    if (!isset($data->kabid_id) || !isset($data->staff_id) || !isset($data->type) || !isset($data->date) || !isset($data->time)) {
+    if (!is_object($data) || !isset($data->kabid_id) || !isset($data->staff_id) || !isset($data->type) || !isset($data->date) || !isset($data->time)) {
         echo json_encode(["success" => false, "message" => "Parameter tidak lengkap."]);
         exit();
     }
@@ -24,7 +24,7 @@ try {
     $type = strtoupper($data->type); // MASUK / PULANG
     $date = $data->date;
     $time = $data->time;
-    $note = $data->note ?? '';
+    $note = isset($data->note) ? $data->note : '';
 
     // 1. Verifikasi Staf adalah bawahan dengan kriteria:
     // - Division ID Sama
@@ -33,12 +33,14 @@ try {
     $stmtDiv->execute([$kabid_id]);
     $kabid = $stmtDiv->fetch(PDO::FETCH_ASSOC);
 
+    $kabid_division_id = ($kabid && isset($kabid['division_id'])) ? $kabid['division_id'] : 0;
+
     $stmtVal = $conn->prepare("
         SELECT e.id FROM employees e
         INNER JOIN positions p ON e.position_id = p.id
         WHERE e.id = ? AND e.division_id = ?
     ");
-    $stmtVal->execute([$staff_id, $kabid['division_id'] ?? 0]);
+    $stmtVal->execute([$staff_id, $kabid_division_id]);
     $isValidSubordinate = $stmtVal->fetch();
 
     if (!$kabid || !$isValidSubordinate) {
@@ -51,19 +53,21 @@ try {
     $stmtStaff->execute([$staff_id]);
     $staff = $stmtStaff->fetch(PDO::FETCH_ASSOC);
 
+    $schedule_id = ($staff && isset($staff['schedule_id']) && $staff['schedule_id'] !== null) ? $staff['schedule_id'] : 1;
+
     // 2. Tentukan Status Berdasarkan Jadwal (Hadir / Telat / Pulang / Pulang Cepat)
     $dayName = date('l', strtotime($date));
     $stmtSched = $conn->prepare("SELECT start_time, end_time FROM work_schedule_details WHERE schedule_id = ? AND day_name = ?");
-    $stmtSched->execute([$staff['schedule_id'] ?: 1, $dayName]);
+    $stmtSched->execute([$schedule_id, $dayName]);
     $sched = $stmtSched->fetch(PDO::FETCH_ASSOC);
     
     $finalStatus = "Hadir";
     if ($type == 'MASUK') {
-        $start_time_tolerance = $sched ? date('H:i:s', strtotime($sched['start_time'] . ' +1 minute')) : null;
-        if ($sched && $time >= $start_time_tolerance) $finalStatus = "Telat";
+        $start_time_tolerance = ($sched && !empty($sched['start_time'])) ? date('H:i:s', strtotime($sched['start_time'] . ' +1 minute')) : null;
+        if ($sched && $start_time_tolerance && $time >= $start_time_tolerance) $finalStatus = "Telat";
         else $finalStatus = "Hadir";
     } else {
-        if ($sched && $time < $sched['end_time']) $finalStatus = "Pulang Cepat";
+        if ($sched && !empty($sched['end_time']) && $time < $sched['end_time']) $finalStatus = "Pulang Cepat";
         else $finalStatus = "Pulang";
     }
 
@@ -76,7 +80,7 @@ try {
     if ($type == 'MASUK') {
         if ($existing) {
             // Update time_in jika sudah ada tetapi time_in masih kosong (jarang terjadi tapi mungkin)
-            $update = $conn->prepare("UPDATE attendances SET time_in = ?, status = ?, note = ?, updated_at = NOW() WHERE id = ?");
+            $update = $conn->prepare("UPDATE attendances SET time_in = ?, status = ?, note = ? WHERE id = ?");
             $update->execute([$time, $finalStatus, $note, $existing['id']]);
         } else {
             // INSERT
@@ -86,7 +90,7 @@ try {
     } else {
         // TYPE: PULANG
         if ($existing) {
-            $update = $conn->prepare("UPDATE attendances SET time_out = ?, status_out = ?, note = ?, updated_at = NOW() WHERE id = ?");
+            $update = $conn->prepare("UPDATE attendances SET time_out = ?, status_out = ?, note = ? WHERE id = ?");
             $update->execute([$time, $finalStatus, $note, $existing['id']]);
         } else {
             // INSERT PULANG (langsung pasang status masuk 'Tanpa Data' atau biarkan krn hanya input pulang)

@@ -144,6 +144,21 @@ try {
         }
     }
 
+    // Fallback to Mudir (Level 1) if approver_id is still empty/null
+    if (empty($approver_id)) {
+        $stmtMudir = $conn->prepare("
+            SELECT e.id FROM employees e 
+            JOIN positions p ON e.position_id = p.id 
+            WHERE p.level = 1 AND e.status = 'active' 
+            LIMIT 1
+        ");
+        $stmtMudir->execute();
+        $mudir = $stmtMudir->fetch(PDO::FETCH_ASSOC);
+        if ($mudir && $mudir['id'] != $user_id) {
+            $approver_id = $mudir['id'];
+        }
+    }
+
     // 4. INSERT DATA
     $sql = "INSERT INTO permits (employee_id, permit_type, start_date, end_date, reason, attachment, status, approver_id, is_hourly, start_time, end_time) 
             VALUES (:uid, :type, :sdate, :edate, :reason, :attach, 'Pending', :app_id, :is_hourly, :start_time, :end_time)";
@@ -162,9 +177,16 @@ try {
 
     if ($stmtInsert->execute()) {
         // --- NOTIFICATION LOGIC ---
-        function logFCM($msg)
-        {
-            file_put_contents(__DIR__ . '/fcm_debug.log', date('Y-m-d H:i:s') . " [PERMIT] - " . $msg . "\n", FILE_APPEND);
+        if (!function_exists('logFCM')) {
+            function logFCM($msg)
+            {
+                $logFile = __DIR__ . '/fcm_debug.log';
+                $formattedMsg = date('Y-m-d H:i:s') . " [PERMIT] - " . $msg . "\n";
+                @file_put_contents($logFile, $formattedMsg, FILE_APPEND);
+                if (!is_writable($logFile) || !file_exists($logFile)) {
+                    error_log("[FCM PERMIT] " . $msg);
+                }
+            }
         }
 
         if ($approver_id) {
@@ -222,13 +244,24 @@ try {
                             ]);
                             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payloadData));
                             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                            curl_exec($ch);
+                            $response = curl_exec($ch);
+                            if ($response === false) {
+                                logFCM("Curl error: " . curl_error($ch));
+                            } else {
+                                logFCM("FCM response: " . $response);
+                            }
                             curl_close($ch);
+                        } else {
+                            logFCM("GoogleAccessToken returned null token");
                         }
+                    } else {
+                        logFCM("Service account file not found at: " . $serviceAccountPath);
                     }
+                } else {
+                    logFCM("Token empty or tokenRow not found for approver ID: " . $approver_id);
                 }
             } catch (Exception $e) {
-                // Silent fail for notification
+                logFCM("Exception: " . $e->getMessage());
             }
         }
 

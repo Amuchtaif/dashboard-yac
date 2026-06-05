@@ -2,6 +2,8 @@
 // api/get_notifications.php
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
 
 include_once '../config/database.php';
 
@@ -58,7 +60,7 @@ try {
                   FROM permits p
                   WHERE p.employee_id = :uid 
                   AND p.status IN ('Approved', 'Rejected')
-                  AND (p.approved_at >= DATE_SUB(NOW(), INTERVAL 3 DAY) OR p.created_at >= DATE_SUB(NOW(), INTERVAL 3 DAY))
+                  AND (p.approved_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) OR p.created_at >= DATE_SUB(NOW(), INTERVAL 14 DAY))
                   ORDER BY p.approved_at DESC";
 
     $stmt2 = $conn->prepare($sqlUpdate);

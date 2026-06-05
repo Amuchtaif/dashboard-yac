@@ -108,6 +108,18 @@ try {
     if ($stmt->execute()) {
         if ($stmt->rowCount() > 0) {
             // --- NOTIFICATION LOGIC ---
+            if (!function_exists('logFCM')) {
+                function logFCM($msg)
+                {
+                    $logFile = __DIR__ . '/fcm_debug.log';
+                    $formattedMsg = date('Y-m-d H:i:s') . " [ACTION] - " . $msg . "\n";
+                    @file_put_contents($logFile, $formattedMsg, FILE_APPEND);
+                    if (!is_writable($logFile) || !file_exists($logFile)) {
+                        error_log("[FCM ACTION] " . $msg);
+                    }
+                }
+            }
+
             $employee_id = $pData['employee_id'];
             $stmtToken = $conn->prepare("SELECT fcm_token FROM employees WHERE id = :eid LIMIT 1");
             $stmtToken->execute([':eid' => $employee_id]);
@@ -158,13 +170,24 @@ try {
                             ]);
                             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payloadData));
                             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                            curl_exec($ch);
+                            $response = curl_exec($ch);
+                            if ($response === false) {
+                                logFCM("Curl error: " . curl_error($ch));
+                            } else {
+                                logFCM("FCM response: " . $response);
+                            }
                             curl_close($ch);
+                        } else {
+                            logFCM("GoogleAccessToken returned null token");
                         }
+                    } else {
+                        logFCM("Service account file not found at: " . $serviceAccountPath);
                     }
                 } catch (Exception $e) {
-                    // Silent fail for notification
+                    logFCM("Exception: " . $e->getMessage());
                 }
+            } else {
+                logFCM("Token empty or tokenData not found for employee ID: " . $employee_id);
             }
             sendResponse(true, "Berhasil memproses izin: " . $newStatus);
         } else {
