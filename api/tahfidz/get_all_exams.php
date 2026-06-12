@@ -3,10 +3,16 @@
 
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Methods: GET");
+header("Access-Control-Allow-Methods: GET, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With, ngrok-skip-browser-warning");
 
-require_once '../../config/app.php';
-require_once '../../config/db_mysqli.php';
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
+
+require_once __DIR__ . '/../../config/app.php';
+require_once __DIR__ . '/../../config/db_mysqli.php';
 
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
@@ -34,7 +40,7 @@ $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $res = $stmt->get_result();
 if ($row = $res->fetch_assoc()) {
-    if (stripos($row['position_name'], 'Koordinator Tahfidz') !== false) {
+    if (stripos($row['position_name'] ?? '', 'Koordinator Tahfidz') !== false) {
         $isKoordinator = true;
     }
 }

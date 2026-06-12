@@ -85,6 +85,7 @@ $employees = $stmt->fetchAll(PDO::FETCH_ASSOC);
 $divisions = $conn->query("SELECT id, name FROM divisions ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
 $units_all = $conn->query("SELECT id, name, division_id FROM units ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
 $positions = $conn->query("SELECT id, name FROM positions ORDER BY level ASC")->fetchAll(PDO::FETCH_ASSOC);
+$schedules = $conn->query("SELECT id, name FROM work_schedules ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 // Reusable Filter Query for CRUD redirects
 $current_filters = $_GET;
@@ -327,34 +328,34 @@ include '../layouts/header.php';
 
     <!-- Bulk Action Bar (Hidden by default) -->
     <div id="bulk-action-bar"
-        class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[92%] sm:w-auto min-w-0 md:min-w-[600px] max-w-4xl bg-white/90 backdrop-blur-md border border-cyan-100 p-3 md:p-4 rounded-2xl shadow-2xl flex flex-col md:flex-row gap-4 md:gap-6 items-center justify-between transition-all duration-300 transform translate-y-0">
+        class="opacity-0 pointer-events-none translate-y-10 fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[92%] lg:w-auto min-w-0 lg:min-w-[800px] max-w-5xl bg-white/95 backdrop-blur-md border border-slate-200/80 shadow-[0_20px_50px_rgba(15,118,110,0.15)] p-3.5 md:p-4 rounded-2xl flex flex-col lg:flex-row gap-4 lg:gap-6 items-center justify-between transition-all duration-500 ease-out transform">
 
-        <div class="flex items-center gap-4 md:border-r md:border-slate-200 md:pr-6 w-full md:w-auto">
-            <div class="bg-cyan-100 p-2 rounded-full">
-                <svg class="h-5 w-5 text-cyan-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        <div class="flex items-center gap-4 lg:border-r lg:border-slate-200 lg:pr-6 w-full lg:w-auto">
+            <div class="bg-cyan-50 text-cyan-600 p-2.5 rounded-xl flex items-center justify-center">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round"
                         d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
             </div>
             <div>
-                <p class="font-bold text-slate-800 text-sm"><span id="selected-count"
-                        class="text-cyan-600 text-lg">0</span> Pengguna Terpilih</p>
-                <p class="text-xs text-slate-500">Lakukan aksi massal</p>
+                <p class="font-extrabold text-slate-800 text-sm"><span id="selected-count"
+                        class="text-cyan-600 font-black text-lg bg-cyan-100/50 px-2 py-0.5 rounded-lg mr-1.5">0</span> Pengguna Terpilih</p>
+                <p class="text-xs text-slate-500 font-medium">Lakukan aksi massal</p>
             </div>
         </div>
 
         <form action="../../logic/employees/bulk_update.php" method="POST"
-            class="flex flex-col sm:flex-row gap-3 w-full items-center">
+            class="flex flex-col lg:flex-row gap-3 w-full lg:w-auto items-center">
             <!-- Hidden inputs for selected IDs -->
             <div id="bulk-ids-container"></div>
             <input type="hidden" name="return_filters" value="<?php echo htmlspecialchars($filter_qs); ?>">
 
-            <div class="flex gap-2">
+            <div class="flex flex-wrap gap-2.5 justify-center lg:justify-start">
                 <!-- Division Dropdown -->
                 <div class="relative group" id="bulk-division-container">
                     <input type="hidden" name="division_id" id="bulk-division-input">
                     <button type="button" onclick="toggleBulkDropdown('division')"
-                        class="flex w-40 items-center justify-between rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500">
+                        class="flex w-40 items-center justify-between rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 hover:border-slate-300 px-3.5 py-2.5 text-sm font-medium text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200 transition-all">
                         <span id="bulk-division-text" class="block truncate">Bidang</span>
                         <svg class="h-4 w-4 text-slate-400 transition-transform duration-200" id="bulk-division-arrow"
                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -362,14 +363,14 @@ include '../layouts/header.php';
                         </svg>
                     </button>
                     <div id="bulk-division-menu"
-                        class="hidden absolute bottom-full left-0 mb-2 w-full origin-bottom-left rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50 max-h-60 overflow-y-auto">
+                        class="hidden absolute bottom-full left-0 mb-2 w-full origin-bottom-left rounded-xl bg-white shadow-2xl border border-slate-100 ring-0 focus:outline-none z-50 max-h-60 overflow-y-auto">
                         <ul class="py-1">
                             <li onclick="selectBulkOption('division', '', 'Ubah Divisi')"
-                                class="cursor-pointer px-4 py-2 text-sm text-slate-500 hover:bg-slate-50 hover:text-cyan-700">
+                                class="cursor-pointer px-3 py-2 text-sm text-slate-400 hover:bg-slate-50 hover:text-slate-600 rounded-lg m-1 transition-colors">
                                 Ubah Bidang</li>
                             <?php foreach ($divisions as $div): ?>
                                 <li onclick="selectBulkOption('division', '<?php echo $div['id']; ?>', '<?php echo htmlspecialchars($div['name'], ENT_QUOTES); ?>')"
-                                    class="cursor-pointer px-4 py-2 text-sm text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
+                                    class="cursor-pointer px-3 py-2 text-sm text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 rounded-lg m-1 transition-colors">
                                     <?php echo htmlspecialchars($div['name']); ?>
                                 </li>
                             <?php endforeach; ?>
@@ -381,7 +382,7 @@ include '../layouts/header.php';
                 <div class="relative group" id="bulk-unit-container">
                     <input type="hidden" name="unit_id" id="bulk-unit-input">
                     <button type="button" onclick="toggleBulkDropdown('unit')"
-                        class="flex w-40 items-center justify-between rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500">
+                        class="flex w-40 items-center justify-between rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 hover:border-slate-300 px-3.5 py-2.5 text-sm font-medium text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200 transition-all">
                         <span id="bulk-unit-text" class="block truncate">Unit</span>
                         <svg class="h-4 w-4 text-slate-400 transition-transform duration-200" id="bulk-unit-arrow"
                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -389,13 +390,13 @@ include '../layouts/header.php';
                         </svg>
                     </button>
                     <div id="bulk-unit-menu"
-                        class="hidden absolute bottom-full left-0 mb-2 w-full origin-bottom-left rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50 max-h-60 overflow-y-auto">
+                        class="hidden absolute bottom-full left-0 mb-2 w-full origin-bottom-left rounded-xl bg-white shadow-2xl border border-slate-100 ring-0 focus:outline-none z-50 max-h-60 overflow-y-auto">
                         <ul class="py-1" id="bulk-unit-list">
                             <li onclick="selectBulkOption('unit', '', 'Change Unit')"
-                                class="cursor-pointer px-4 py-2 text-sm text-slate-500 hover:bg-slate-50 hover:text-cyan-700">
+                                class="cursor-pointer px-3 py-2 text-sm text-slate-400 hover:bg-slate-50 hover:text-slate-600 rounded-lg m-1 transition-colors">
                                 Ubah Unit</li>
                             <li onclick="selectBulkOption('unit', 'NULL', 'Tidak Ada Unit')"
-                                class="cursor-pointer px-4 py-2 text-sm text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
+                                class="cursor-pointer px-3 py-2 text-sm text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 rounded-lg m-1 transition-colors">
                                 Tidak Ada Unit</li>
                         </ul>
                     </div>
@@ -405,7 +406,7 @@ include '../layouts/header.php';
                 <div class="relative group" id="bulk-position-container">
                     <input type="hidden" name="position_id" id="bulk-position-input">
                     <button type="button" onclick="toggleBulkDropdown('position')"
-                        class="flex w-40 items-center justify-between rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500">
+                        class="flex w-40 items-center justify-between rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 hover:border-slate-300 px-3.5 py-2.5 text-sm font-medium text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200 transition-all">
                         <span id="bulk-position-text" class="block truncate">Jabatan</span>
                         <svg class="h-4 w-4 text-slate-400 transition-transform duration-200" id="bulk-position-arrow"
                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -413,14 +414,14 @@ include '../layouts/header.php';
                         </svg>
                     </button>
                     <div id="bulk-position-menu"
-                        class="hidden absolute bottom-full left-0 mb-2 w-full origin-bottom-left rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50 max-h-60 overflow-y-auto">
+                        class="hidden absolute bottom-full left-0 mb-2 w-full origin-bottom-left rounded-xl bg-white shadow-2xl border border-slate-100 ring-0 focus:outline-none z-50 max-h-60 overflow-y-auto">
                         <ul class="py-1">
                             <li onclick="selectBulkOption('position', '', 'Ubah Jabatan')"
-                                class="cursor-pointer px-4 py-2 text-sm text-slate-500 hover:bg-slate-50 hover:text-cyan-700">
+                                class="cursor-pointer px-3 py-2 text-sm text-slate-400 hover:bg-slate-50 hover:text-slate-600 rounded-lg m-1 transition-colors">
                                 Ubah Jabatan</li>
                             <?php foreach ($positions as $pos): ?>
                                 <li onclick="selectBulkOption('position', '<?php echo $pos['id']; ?>', '<?php echo htmlspecialchars($pos['name'], ENT_QUOTES); ?>')"
-                                    class="cursor-pointer px-4 py-2 text-sm text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
+                                    class="cursor-pointer px-3 py-2 text-sm text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 rounded-lg m-1 transition-colors">
                                     <?php echo htmlspecialchars($pos['name']); ?>
                                 </li>
                             <?php endforeach; ?>
@@ -428,8 +429,38 @@ include '../layouts/header.php';
                     </div>
                 </div>
 
+                <!-- Schedule Dropdown -->
+                <div class="relative group" id="bulk-schedule-container">
+                    <input type="hidden" name="schedule_id" id="bulk-schedule-input">
+                    <button type="button" onclick="toggleBulkDropdown('schedule')"
+                        class="flex w-40 items-center justify-between rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 hover:border-slate-300 px-3.5 py-2.5 text-sm font-medium text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200 transition-all">
+                        <span id="bulk-schedule-text" class="block truncate">Jam Kerja</span>
+                        <svg class="h-4 w-4 text-slate-400 transition-transform duration-200" id="bulk-schedule-arrow"
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <div id="bulk-schedule-menu"
+                        class="hidden absolute bottom-full left-0 mb-2 w-full origin-bottom-left rounded-xl bg-white shadow-2xl border border-slate-100 ring-0 focus:outline-none z-50 max-h-60 overflow-y-auto">
+                        <ul class="py-1">
+                            <li onclick="selectBulkOption('schedule', '', 'Jam Kerja')"
+                                class="cursor-pointer px-3 py-2 text-sm text-slate-400 hover:bg-slate-50 hover:text-slate-600 rounded-lg m-1 transition-colors">
+                                Ubah Jam Kerja</li>
+                            <li onclick="selectBulkOption('schedule', 'NULL', 'Ikuti Aturan Default')"
+                                class="cursor-pointer px-3 py-2 text-sm text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 rounded-lg m-1 transition-colors">
+                                Ikuti Aturan Default</li>
+                            <?php foreach ($schedules as $sched): ?>
+                                <li onclick="selectBulkOption('schedule', '<?php echo $sched['id']; ?>', '<?php echo htmlspecialchars($sched['name'], ENT_QUOTES); ?>')"
+                                    class="cursor-pointer px-3 py-2 text-sm text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 rounded-lg m-1 transition-colors">
+                                    <?php echo htmlspecialchars($sched['name']); ?>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
+                </div>
+
                 <button type="submit"
-                    class="rounded-lg bg-cyan-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-600 transition-all">
+                    class="rounded-xl bg-cyan-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-cyan-600/10 hover:bg-cyan-500 hover:shadow-cyan-500/20 active:scale-95 transition-all">
                     Terapkan
                 </button>
             </div>
@@ -437,7 +468,7 @@ include '../layouts/header.php';
 
         <!-- Close Button -->
         <button type="button" onclick="clearSelection()"
-            class="absolute -top-2 -right-2 bg-white text-slate-400 hover:text-red-500 rounded-full p-1 shadow-md border border-slate-100">
+            class="absolute -top-2.5 -right-2.5 bg-white text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-full p-1.5 shadow-md border border-slate-100 transition-all transform hover:scale-105 active:scale-95">
             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -681,9 +712,11 @@ include '../layouts/header.php';
 
         // Show/Hide Bar
         if (selectedIds.size > 0) {
-            bulkActionBar.classList.remove('hidden');
+            bulkActionBar.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-10');
+            bulkActionBar.classList.add('opacity-100', 'translate-y-0');
         } else {
-            bulkActionBar.classList.add('hidden');
+            bulkActionBar.classList.remove('opacity-100', 'translate-y-0');
+            bulkActionBar.classList.add('opacity-0', 'pointer-events-none', 'translate-y-10');
         }
 
         // Update Hidden Inputs
@@ -801,9 +834,9 @@ include '../layouts/header.php';
         // Clear list and add default
         unitList.innerHTML = `
             <li onclick="selectBulkOption('unit', '', 'Ubah Unit')" 
-                class="cursor-pointer px-4 py-2 text-sm text-slate-500 hover:bg-slate-50 hover:text-cyan-700 transition-colors">Ubah Unit</li>
+                class="cursor-pointer px-3 py-2 text-sm text-slate-400 hover:bg-slate-50 hover:text-slate-600 rounded-lg m-1 transition-colors">Ubah Unit</li>
             <li onclick="selectBulkOption('unit', 'NULL', 'Tidak Ada Unit')" 
-                class="cursor-pointer px-4 py-2 text-sm text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">Tidak Ada Unit</li>
+                class="cursor-pointer px-3 py-2 text-sm text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 rounded-lg m-1 transition-colors">Tidak Ada Unit</li>
         `;
 
         if (divisionId) {
@@ -812,7 +845,7 @@ include '../layouts/header.php';
                 .then(data => {
                     data.forEach(unit => {
                         const li = document.createElement('li');
-                        li.className = "cursor-pointer px-4 py-2 text-sm text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors";
+                        li.className = "cursor-pointer px-3 py-2 text-sm text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 rounded-lg m-1 transition-colors";
                         li.textContent = unit.name;
                         li.onclick = () => selectBulkOption('unit', unit.id, unit.name);
                         unitList.appendChild(li);

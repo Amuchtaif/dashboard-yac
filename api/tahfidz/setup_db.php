@@ -4,8 +4,17 @@
 
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With, ngrok-skip-browser-warning");
 
-include_once '../../config/database.php';
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
+
+include_once __DIR__ . '/../../config/database.php';
+
+$messages = [];
 
 try {
     $database = new Database();
@@ -30,7 +39,7 @@ try {
         -- FOREIGN KEY (`student_id`) REFERENCES `students`(`id`) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
     $conn->exec($sql);
-    echo "Table 'tahfidz_attendance' created or already exists.\n";
+    $messages[] = "Table 'tahfidz_attendance' created or already exists.";
 
     // 3. Table for Teacher Attendance (Absensi Pengampu)
     // Assuming teachers are in 'employees' table
@@ -47,7 +56,7 @@ try {
         -- FOREIGN KEY (`teacher_id`) REFERENCES `employees`(`id`) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
     $conn->exec($sql);
-    echo "Table 'tahfidz_teacher_attendance' created or already exists.\n";
+    $messages[] = "Table 'tahfidz_teacher_attendance' created or already exists.";
 
     // 4. Table for Setoran Tahfidz (Memorization)
     $sql = "CREATE TABLE IF NOT EXISTS `tahfidz_memorization` (
@@ -66,7 +75,7 @@ try {
         PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
     $conn->exec($sql);
-    echo "Table 'tahfidz_memorization' created or already exists.\n";
+    $messages[] = "Table 'tahfidz_memorization' created or already exists.";
 
     // 5. Table for Penilaian Tahfidz (Assessment)
     $sql = "CREATE TABLE IF NOT EXISTS `tahfidz_assessments` (
@@ -84,11 +93,19 @@ try {
         PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
     $conn->exec($sql);
-    echo "Table 'tahfidz_assessments' created or already exists.\n";
+    $messages[] = "Table 'tahfidz_assessments' created or already exists.";
     
-    echo "All Tahfidz tables setup completed successfully.";
+    echo json_encode([
+        "success" => true,
+        "messages" => $messages,
+        "detail" => "All Tahfidz tables setup completed successfully."
+    ]);
 
 } catch(PDOException $e) {
-    echo "Error: " . $e->getMessage();
+    http_response_code(500);
+    echo json_encode([
+        "success" => false,
+        "message" => "Error: " . $e->getMessage()
+    ]);
 }
 ?>

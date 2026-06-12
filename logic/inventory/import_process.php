@@ -2,6 +2,9 @@
 // logic/inventory/import_process.php
 require_once '../../config/database.php';
 require_once '../../config/app.php';
+require_once BASE_PATH . '/vendor/autoload.php';
+
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 check_login();
 
@@ -9,66 +12,13 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_FILES['csv_file'])) {
     redirect('views/inventory/items.php');
 }
 
-ini_set('auto_detect_line_endings', true);
-
 $file = $_FILES['csv_file']['tmp_name'];
-$content = file_get_contents($file);
+$originalName = $_FILES['csv_file']['name'];
+$extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
 
-if ($content === false) {
-    redirect("views/inventory/items.php?error=" . urlencode("Gagal membaca file."));
+if (!is_uploaded_file($file)) {
+    redirect("views/inventory/items.php?error=" . urlencode("Gagal membaca file unggahan."));
 }
-
-// =====================
-// NORMALIZE ENCODING
-// =====================
-$encoding = mb_detect_encoding($content, 'UTF-8, UTF-16LE, UTF-16BE, ISO-8859-1, Windows-1252', true);
-if ($encoding && $encoding !== 'UTF-8') {
-    $content = mb_convert_encoding($content, 'UTF-8', $encoding);
-}
-
-// Remove BOM
-$content = preg_replace('/^\xEF\xBB\xBF/', '', $content);
-
-// Normalisasi line ending
-$content = str_replace(["\r\n", "\r"], "\n", $content);
-
-// =====================
-// HANDLE STREAM
-// =====================
-$handle = fopen('php://temp', 'r+');
-fwrite($handle, $content);
-rewind($handle);
-
-// =====================
-// DETECT DELIMITER (REAL PARSING)
-// =====================
-$testComma = fgetcsv($handle, 0, ',');
-rewind($handle);
-$testSemicolon = fgetcsv($handle, 0, ';');
-rewind($handle);
-
-$delimiter = (count($testSemicolon) > count($testComma)) ? ';' : ',';
-
-// =====================
-// READ HEADER
-// =====================
-$header = fgetcsv($handle, 0, $delimiter);
-
-// fallback delimiter
-if (!$header || count($header) < 2) {
-    rewind($handle);
-    $delimiter = ($delimiter === ',') ? ';' : ',';
-    $header = fgetcsv($handle, 0, $delimiter);
-}
-
-// final check
-if (!$header || count($header) < 2) {
-    fclose($handle);
-    redirect("views/inventory/items.php?error=" . urlencode("Header CSV tidak terbaca."));
-}
-
-// DEBUG HEADER (aktifkan kalau perlu)
-// error_log("HEADER => " . json_encode($header));
 
 // =====================
 // DB INIT
@@ -81,43 +31,62 @@ $rowNum = 1;
 $skippedInfo = [];
 
 try {
+    // =====================
+    // LOAD WITH SPREADSHEET
+    // =====================
+    if ($extension === 'csv') {
+        $reader = IOFactory::createReader('Csv');
+        // Auto-detect delimiter: check for semicolon or comma
+        $reader->setDelimiter(',');
+        $firstLine = fgets(fopen($file, 'r'));
+        if ($firstLine !== false && strpos($firstLine, ';') !== false && strpos($firstLine, ',') === false) {
+            $reader->setDelimiter(';');
+        }
+        $spreadsheet = $reader->load($file);
+    } else {
+        // XLSX or XLS
+        $spreadsheet = IOFactory::load($file);
+    }
+
+    $worksheet = $spreadsheet->getActiveSheet();
+    $rows = $worksheet->toArray(null, true, true, false);
+
+    if (empty($rows) || count($rows) <= 1) {
+        redirect("views/inventory/items.php?error=" . urlencode("File kosong atau tidak memiliki data."));
+    }
+
     $conn->beginTransaction();
 
-    while (($data = fgetcsv($handle, 0, $delimiter)) !== FALSE) {
-        $rowNum++;
+    foreach ($rows as $index => $data) {
+        $rowNum = $index + 1;
+
+        // Skip header row
+        if ($rowNum === 1) {
+            continue;
+        }
 
         // =====================
         // CLEAN DATA
         // =====================
         if (is_array($data)) {
             $data = array_map(function ($v) {
-                return trim(str_replace(["\r", "\n"], '', $v));
+                return $v !== null ? trim(str_replace(["\r", "\n"], '', (string)$v)) : '';
             }, $data);
         }
 
         // =====================
-        // SKIP EMPTY
+        // SKIP EMPTY ROWS
         // =====================
-        if (!$data || (count($data) === 1 && $data[0] === '')) {
+        if (empty($data) || (count($data) === 1 && $data[0] === '')) {
             continue;
         }
 
-        // =====================
-        // FALLBACK PARSE (INI KUNCI)
-        // =====================
-        if (count($data) === 1) {
-            $rawLine = $data[0];
-
-            // coba parse ulang
-            $parsed = str_getcsv($rawLine, $delimiter);
-
-            if (count($parsed) > 1) {
-                $data = $parsed;
-            }
+        // Check if important fields are completely blank
+        $name = trim($data[2] ?? '');
+        $fullLocName = trim($data[3] ?? '');
+        if ($name === '' && $fullLocName === '') {
+            continue; // Skip empty trailing rows
         }
-
-        // DEBUG (aktifkan kalau perlu)
-        // error_log("ROW $rowNum => " . json_encode($data) . " | COUNT=" . count($data));
 
         // =====================
         // VALIDASI MINIMAL
@@ -131,8 +100,6 @@ try {
         // MAPPING DATA
         // =====================
         $codeFromCsv = trim($data[1] ?? '');
-        $name = trim($data[2] ?? '');
-        $fullLocName = trim($data[3] ?? '');
         $qty = is_numeric(trim($data[4] ?? '')) ? (int) $data[4] : 1;
         $unit = trim($data[5] ?? '') ?: 'Unit';
         $condition = trim($data[6] ?? '') ?: 'Baik';
@@ -218,7 +185,6 @@ try {
     }
 
     $conn->commit();
-    fclose($handle);
 
     if ($successCount > 0) {
         redirect("views/inventory/items.php?success=" . urlencode("Berhasil impor $successCount data."));
@@ -228,11 +194,9 @@ try {
     }
 
 } catch (Exception $e) {
-    if ($conn->inTransaction())
+    if ($conn->inTransaction()) {
         $conn->rollBack();
-    if (isset($handle))
-        fclose($handle);
-
+    }
     redirect("views/inventory/items.php?error=" . urlencode("Error: " . $e->getMessage()));
 }
 ?>

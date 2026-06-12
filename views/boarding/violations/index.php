@@ -9,7 +9,7 @@ $page_title = "Manajemen Pelanggaran Santri";
 $db = new Database();
 $conn = $db->getConnection();
 
-$categories = $conn->query("SELECT * FROM kategori_pelanggaran ORDER BY poin ASC")->fetchAll(PDO::FETCH_ASSOC);
+$categories = $conn->query("SELECT id, type_name as nama_kategori, points as poin, category FROM boarding_violation_types ORDER BY category ASC, type_name ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 require_once '../../layouts/header.php';
 ?>
@@ -251,8 +251,7 @@ require_once '../../layouts/header.php';
         document.getElementById('stat-total').textContent = data.length;
         document.getElementById('stat-process').textContent = data.filter(v => v.status === 'diproses').length;
         document.getElementById('stat-done').textContent = data.filter(v => v.status === 'selesai').length;
-        const heavyId = <?php echo json_encode(array_values(array_filter($categories, fn($c) => strtolower($c['nama_kategori']) === 'berat'))[0]['id'] ?? 0); ?>;
-        document.getElementById('stat-heavy').textContent = data.filter(v => parseInt(v.kategori_id) === heavyId).length;
+        document.getElementById('stat-heavy').textContent = data.filter(v => v.category === 'Berat').length;
     }
 
     function renderTable(data) {

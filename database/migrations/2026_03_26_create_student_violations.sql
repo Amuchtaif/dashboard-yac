@@ -18,7 +18,7 @@ CREATE TABLE pelanggaran (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (santri_id) REFERENCES students(id) ON DELETE CASCADE,
-    FOREIGN KEY (kategori_id) REFERENCES kategori_pelanggaran(id) ON DELETE CASCADE,
+    FOREIGN KEY (kategori_id) REFERENCES boarding_violation_types(id) ON DELETE CASCADE,
     FOREIGN KEY (pelapor) REFERENCES employees(id) ON DELETE CASCADE
 );
 

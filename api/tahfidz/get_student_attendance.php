@@ -1,14 +1,22 @@
 <?php
 // api/tahfidz/get_student_attendance.php
 
-header("Access-Control-Allow-Origin: *");
-header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Methods: GET");
+if (!headers_sent()) {
+    header("Access-Control-Allow-Origin: *");
+    header("Content-Type: application/json; charset=UTF-8");
+    header("Access-Control-Allow-Methods: GET, OPTIONS");
+    header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With, ngrok-skip-browser-warning");
+}
+
+if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
 
 // Include database connection
 // Adjust path if necessary based on your folder structure
 // Assuming this file is in api/tahfidz/ and config is in config/
-include_once '../../config/db_mysqli.php';
+include_once __DIR__ . '/../../config/db_mysqli.php';
 
 $date = isset($_GET['date']) ? $_GET['date'] : null;
 $student_id = isset($_GET['student_id']) ? $_GET['student_id'] : null;
@@ -17,53 +25,94 @@ $group_id = isset($_GET['group_id']) ? $_GET['group_id'] : null;
 
 try {
     $attendance_records = [];
-    $query = "SELECT ta.*, s.nama_siswa as student_name, s.kelas, s.tingkat 
-              FROM tahfidz_attendance ta 
-              LEFT JOIN students s ON ta.student_id = s.id ";
-
-    // Join halaqah tables if filtering by group
-    if ($group_id) {
-        $query .= " INNER JOIN halaqah_members hm ON hm.student_id = ta.student_id 
-                     INNER JOIN halaqah_groups hg ON hm.group_id = hg.id ";
-    }
-
-    $query .= " WHERE 1=1";
-
     $params = [];
     $types = "";
 
-    if ($date) {
-        $query .= " AND ta.date = ?";
-        $params[] = $date;
-        $types .= "s";
-    }
-
-    if ($student_id) {
-        $query .= " AND ta.student_id = ?";
-        $params[] = $student_id;
-        $types .= "i";
-    }
-
-    if ($session) {
-        $query .= " AND ta.session = ?";
-        $params[] = $session;
-        $types .= "s";
-    }
-
     if ($group_id) {
-        $query .= " AND hg.id = ?";
-        $params[] = $group_id;
-        $types .= "i";
-    }
+        // Jika date dan session tidak disertakan, berikan nilai default untuk mencegah data duplikat/tidak relevan bergabung
+        if (!$date) {
+            $date = date('Y-m-d');
+        }
+        if (!$session) {
+            $current_hour = (int)date('H');
+            $session = ($current_hour >= 12) ? 'Sore' : 'Pagi';
+        }
 
-    $query .= " ORDER BY ta.date DESC, s.nama_siswa ASC";
+        // Ambil semua santri anggota kelompok halaqah, lalu LEFT JOIN ke data absensi mereka
+        $query = "SELECT 
+                    ta.id,
+                    s.id as student_id,
+                    ta.date,
+                    ta.status,
+                    ta.session,
+                    ta.teacher_id,
+                    ta.created_at,
+                    s.nama_siswa as student_name,
+                    s.kelas,
+                    s.tingkat
+                  FROM halaqah_members hm
+                  INNER JOIN students s ON hm.student_id = s.id
+                  LEFT JOIN tahfidz_attendance ta ON ta.student_id = s.id 
+                      AND ta.date = ? 
+                      AND ta.session = ?
+                  WHERE hm.group_id = ?
+                  ORDER BY s.nama_siswa ASC";
+        
+        $params[] = $date;
+        $params[] = $session;
+        $params[] = $group_id;
+        $types .= "ssi";
+
+    } else {
+        $query = "SELECT ta.*, s.nama_siswa as student_name, s.kelas, s.tingkat 
+                  FROM tahfidz_attendance ta 
+                  LEFT JOIN students s ON ta.student_id = s.id 
+                  WHERE 1=1";
+
+        if ($date) {
+            $query .= " AND ta.date = ?";
+            $params[] = $date;
+            $types .= "s";
+        }
+
+        if ($student_id) {
+            $query .= " AND ta.student_id = ?";
+            $params[] = $student_id;
+            $types .= "i";
+        }
+
+        if ($session) {
+            $query .= " AND ta.session = ?";
+            $params[] = $session;
+            $types .= "s";
+        }
+
+        $query .= " ORDER BY ta.date DESC, s.nama_siswa ASC";
+    }
 
     if (isset($mysqli)) {
         $stmt = $mysqli->prepare($query);
-        if ($params) {
-            $stmt->bind_param($types, ...$params);
+        if (!$stmt) {
+            throw new Exception("Gagal mempersiapkan query (prepare failed): " . $mysqli->error);
         }
-        $stmt->execute();
+
+        if (!empty($params)) {
+            // PHP 8.1+ mendukung eksekusi dengan parameter array secara langsung
+            if (defined('PHP_VERSION_ID') && PHP_VERSION_ID >= 80100) {
+                $stmt->execute($params);
+            } else {
+                $bind_names = [];
+                $bind_names[] = $types;
+                for ($i = 0; $i < count($params); $i++) {
+                    $bind_names[] = &$params[$i];
+                }
+                call_user_func_array([$stmt, 'bind_param'], $bind_names);
+                $stmt->execute();
+            }
+        } else {
+            $stmt->execute();
+        }
+
         $result = $stmt->get_result();
         
         while ($row = $result->fetch_assoc()) {
@@ -76,7 +125,7 @@ try {
             "data" => $attendance_records
         ]);
     } else {
-        throw new Exception("Database connection failed");
+        throw new Exception("Koneksi database gagal");
     }
 
 } catch (Exception $e) {

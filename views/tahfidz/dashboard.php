@@ -62,6 +62,203 @@ $stm = $conn->prepare($query);
 $stm->execute(['date' => $selected_date]);
 $activities = $stm->fetchAll(PDO::FETCH_ASSOC);
 
+// --- Active Academic Year Target stats ---
+$active_ay_query = "SELECT * FROM academic_years WHERE is_active = 1 LIMIT 1";
+$active_ay_stmt = $conn->query($active_ay_query);
+$active_ay = $active_ay_stmt->fetch(PDO::FETCH_ASSOC);
+
+$stats_achieved = 0;
+$stats_not_achieved = 0;
+$class_stats = [];
+$unit_stats = [];
+$top_rankings = [];
+$has_active_ay = (bool)$active_ay;
+
+if ($has_active_ay) {
+    $ay_name = $active_ay['name'];
+    $ay_records = $conn->prepare("SELECT * FROM academic_years WHERE name = :name");
+    $ay_records->execute([':name' => $ay_name]);
+    $all_semesters = $ay_records->fetchAll(PDO::FETCH_ASSOC);
+
+    $sem1_start = null; $sem1_end = null; $sem1_id = null;
+    $sem2_start = null; $sem2_end = null; $sem2_id = null;
+    foreach ($all_semesters as $ay) {
+        if ($ay['semester'] === 'Ganjil') {
+            $sem1_start = $ay['start_date'];
+            $sem1_end = $ay['end_date'];
+            $sem1_id = $ay['id'];
+        } else {
+            $sem2_start = $ay['start_date'];
+            $sem2_end = $ay['end_date'];
+            $sem2_id = $ay['id'];
+        }
+    }
+
+    // Fetch active students in MTs and MA
+    $students_query = "SELECT id, nama_siswa, kelas, tingkat FROM students WHERE status = 'Aktif' AND (tingkat IN ('MTS', 'MA', 'Mts', 'Ma') OR tingkat IS NULL)";
+    $students_stmt = $conn->query($students_query);
+    $all_students = $students_stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Fetch boarding student ids
+    $boarding_student_ids = $conn->query("SELECT student_id FROM boarding_room_members")->fetchAll(PDO::FETCH_COLUMN);
+    $boarding_student_set = array_flip($boarding_student_ids);
+
+    // Fetch targets map
+    $sem_ids = array_filter([$sem1_id, $sem2_id]);
+    $targets_map = [];
+    if (!empty($sem_ids)) {
+        $targets_stmt = $conn->query("SELECT * FROM target_hafalan WHERE status_aktif = 'Aktif' AND tahun_ajaran_id IN (" . implode(',', $sem_ids) . ")");
+        $raw_targets = $targets_stmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($raw_targets as $t) {
+            $ta = $t['tahun_ajaran_id'];
+            $u = $t['unit_id'];
+            $p = $t['program_id'] ?? 'NULL';
+            $k = $t['kelas_id'];
+            $targets_map[$ta][$u][$p][$k] = (float)$t['target_juz'];
+        }
+    }
+
+    // Fetch sum lines for Ganjil and Genap
+    $sem1_lines = [];
+    if ($sem1_start && $sem1_end) {
+        $stmt1 = $conn->prepare("SELECT student_id, SUM(total_baris) as total FROM tahfidz_memorization WHERE date BETWEEN :start AND :end GROUP BY student_id");
+        $stmt1->execute([':start' => $sem1_start, ':end' => $sem1_end]);
+        $sem1_lines = $stmt1->fetchAll(PDO::FETCH_KEY_PAIR);
+    }
+
+    $sem2_lines = [];
+    if ($sem2_start && $sem2_end) {
+        $stmt2 = $conn->prepare("SELECT student_id, SUM(total_baris) as total FROM tahfidz_memorization WHERE date BETWEEN :start AND :end GROUP BY student_id");
+        $stmt2->execute([':start' => $sem2_start, ':end' => $sem2_end]);
+        $sem2_lines = $stmt2->fetchAll(PDO::FETCH_KEY_PAIR);
+    }
+
+    $rankings = [];
+
+    foreach ($all_students as $student) {
+        $sid = $student['id'];
+        
+        // Resolve Class number
+        $kelas_num = null;
+        if (!empty($student['kelas']) && preg_match('/^(\d+)/', $student['kelas'], $matches)) {
+            $kelas_num = (int)$matches[1];
+        }
+
+        // Resolve Unit (MTs = 5, MA = 6)
+        $tingkat = strtoupper(trim($student['tingkat'] ?? ''));
+        $unit_id = null;
+        $unit_name = '';
+        if (strpos($tingkat, 'MTS') !== false) {
+            $unit_id = 5;
+            $unit_name = 'MTs';
+        } elseif (strpos($tingkat, 'MA') !== false) {
+            $unit_id = 6;
+            $unit_name = 'MA';
+        }
+
+        // Fallback for Unit ID based on Class Number if tingkat is empty
+        if (!$unit_id && $kelas_num) {
+            if ($kelas_num >= 7 && $kelas_num <= 9) {
+                $unit_id = 5;
+                $unit_name = 'MTs';
+            } elseif ($kelas_num >= 10 && $kelas_num <= 12) {
+                $unit_id = 6;
+                $unit_name = 'MA';
+            }
+        }
+        
+        if (!$unit_id || !$kelas_num) continue;
+
+        // Resolve Program
+        $program = 'Fullday';
+        if ($unit_id === 5) {
+            $program = isset($boarding_student_set[$sid]) ? 'Boarding' : 'Fullday';
+        }
+
+        // Resolve Target
+        $target_sem1 = null;
+        if ($sem1_id) {
+            $p_key = ($unit_id === 5) ? $program : 'NULL';
+            if (isset($targets_map[$sem1_id][$unit_id][$p_key][$kelas_num])) {
+                $target_sem1 = $targets_map[$sem1_id][$unit_id][$p_key][$kelas_num];
+            }
+        }
+        
+        $target_sem2 = null;
+        if ($sem2_id) {
+            $p_key = ($unit_id === 5) ? $program : 'NULL';
+            if (isset($targets_map[$sem2_id][$unit_id][$p_key][$kelas_num])) {
+                $target_sem2 = $targets_map[$sem2_id][$unit_id][$p_key][$kelas_num];
+            }
+        }
+
+        $target_overall = null;
+        if ($active_ay['semester'] === 'Ganjil') {
+            $target_overall = $target_sem1;
+        } else {
+            $target_overall = $target_sem2;
+        }
+
+        if ($target_overall === null) continue;
+
+        // Get actual lines
+        $s1_count = $sem1_lines[$sid] ?? 0;
+        $s2_count = $sem2_lines[$sid] ?? 0;
+        $total_juz = ($s1_count + $s2_count) / 300;
+
+        $is_achieved = ($total_juz >= $target_overall);
+        if ($is_achieved) {
+            $stats_achieved++;
+        } else {
+            $stats_not_achieved++;
+        }
+
+        // Aggregate class stats
+        if (!isset($class_stats[$kelas_num])) {
+            $class_stats[$kelas_num] = ['total' => 0, 'achieved' => 0];
+        }
+        $class_stats[$kelas_num]['total']++;
+        if ($is_achieved) {
+            $class_stats[$kelas_num]['achieved']++;
+        }
+
+        // Aggregate unit stats
+        if (!isset($unit_stats[$unit_name])) {
+            $unit_stats[$unit_name] = ['total' => 0, 'achieved' => 0];
+        }
+        $unit_stats[$unit_name]['total']++;
+        if ($is_achieved) {
+            $unit_stats[$unit_name]['achieved']++;
+        }
+
+        // Calculate progress percentage
+        $progress = 0;
+        if ($target_overall > 0) {
+            $progress = ($total_juz / $target_overall) * 100;
+        }
+
+        $rankings[] = [
+            'name' => $student['nama_siswa'],
+            'class' => $student['kelas'] ?? '-',
+            'unit' => $unit_name,
+            'progress' => $progress,
+            'hafalan' => $total_juz,
+            'target' => $target_overall
+        ];
+    }
+
+    // Sort rankings: progress DESC, then hafalan DESC
+    usort($rankings, function($a, $b) {
+        if (abs($a['progress'] - $b['progress']) < 0.0001) {
+            return $b['hafalan'] <=> $a['hafalan'];
+        }
+        return $b['progress'] <=> $a['progress'];
+    });
+
+    $top_rankings = array_slice($rankings, 0, 10);
+    ksort($class_stats); // Sort classes by number
+}
+
 include '../layouts/header.php';
 ?>
 
@@ -123,9 +320,170 @@ include '../layouts/header.php';
             </div>
         </div>
 
-        <!-- Placeholders for other stats if needed -->
-        <!-- Just filling column 3 and 4 with placeholders to match 4-col layout request kind of but simpler -->
+        <!-- Mencapai Target Card -->
+        <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow p-6 border border-slate-100 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10">
+                 <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <div class="relative z-10">
+                <p class="text-sm font-medium text-slate-500 uppercase tracking-wide">Mencapai Target</p>
+                <div class="mt-2 flex items-baseline">
+                    <h3 class="text-3xl font-bold text-slate-800"><?php echo $has_active_ay ? number_format($stats_achieved) : '-'; ?></h3>
+                    <span class="ml-2 text-sm text-emerald-600 font-medium">santri</span>
+                </div>
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1"><?php echo $has_active_ay ? htmlspecialchars($active_ay['name'] . ' - ' . $active_ay['semester']) : 'Tahun Ajaran Inaktif'; ?></p>
+            </div>
+        </div>
+
+        <!-- Belum Mencapai Target Card -->
+        <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow p-6 border border-slate-100 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10">
+                 <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <div class="relative z-10">
+                <p class="text-sm font-medium text-slate-500 uppercase tracking-wide">Belum Mencapai Target</p>
+                <div class="mt-2 flex items-baseline">
+                    <h3 class="text-3xl font-bold text-slate-800"><?php echo $has_active_ay ? number_format($stats_not_achieved) : '-'; ?></h3>
+                    <span class="ml-2 text-sm text-rose-600 font-medium">santri</span>
+                </div>
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1"><?php echo $has_active_ay ? htmlspecialchars($active_ay['name'] . ' - ' . $active_ay['semester']) : 'Tahun Ajaran Inaktif'; ?></p>
+            </div>
+        </div>
     </div>
+
+    <!-- Active Academic Year Insights -->
+    <?php if (!$has_active_ay): ?>
+        <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-amber-700 text-sm font-semibold flex items-center gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-500 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+            </svg>
+            <span>Perhatian: Tidak ada Tahun Ajaran yang diatur sebagai Aktif saat ini. Pengukuran target hafalan dinonaktifkan. Silakan aktifkan tahun ajaran di halaman Kelola Tahun Ajaran.</span>
+        </div>
+    <?php else: ?>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- Unit & Class Target Achievements -->
+            <div class="lg:col-span-5 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col">
+                <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                    <h3 class="text-base font-bold text-slate-800">Ketercapaian Target Hafalan</h3>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Persentase Ketercapaian per Unit & Kelas</p>
+                </div>
+                <div class="p-6 space-y-6 flex-1 overflow-y-auto">
+                    <!-- Unit Stats -->
+                    <div class="space-y-4">
+                        <h4 class="text-xs font-extrabold text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2">Berdasarkan Unit Pendidikan</h4>
+                        <?php if (empty($unit_stats)): ?>
+                            <p class="text-xs text-slate-400 italic">Belum ada data unit</p>
+                        <?php else: ?>
+                            <?php foreach ($unit_stats as $unit => $c): 
+                                $pct = $c['total'] > 0 ? ($c['achieved'] / $c['total']) * 100 : 0;
+                            ?>
+                                <div class="space-y-1.5">
+                                    <div class="flex justify-between text-xs font-bold">
+                                        <span class="text-slate-700">Unit <?php echo htmlspecialchars($unit); ?></span>
+                                        <span class="text-slate-500"><?php echo round($pct, 1); ?>% <span class="text-[10px] font-medium text-slate-400">(<?php echo $c['achieved']; ?>/<?php echo $c['total']; ?> santri)</span></span>
+                                    </div>
+                                    <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden shadow-inner">
+                                        <div class="bg-gradient-to-r from-cyan-500 to-blue-600 h-full rounded-full transition-all duration-500" style="width: <?php echo $pct; ?>%"></div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
+
+                    <!-- Class Stats -->
+                    <div class="space-y-4 pt-2">
+                        <h4 class="text-xs font-extrabold text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2">Berdasarkan Kelas</h4>
+                        <?php if (empty($class_stats)): ?>
+                            <p class="text-xs text-slate-400 italic">Belum ada data kelas</p>
+                        <?php else: ?>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <?php foreach ($class_stats as $kelas => $c): 
+                                    $pct = $c['total'] > 0 ? ($c['achieved'] / $c['total']) * 100 : 0;
+                                ?>
+                                    <div class="space-y-1.5">
+                                        <div class="flex justify-between text-xs font-bold">
+                                            <span class="text-slate-700">Kelas <?php echo htmlspecialchars($kelas); ?></span>
+                                            <span class="text-slate-500"><?php echo round($pct, 0); ?>% <span class="text-[9px] font-medium text-slate-400">(<?php echo $c['achieved']; ?>/<?php echo $c['total']; ?>)</span></span>
+                                        </div>
+                                        <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden shadow-inner">
+                                            <div class="bg-gradient-to-r from-blue-400 to-indigo-500 h-full rounded-full transition-all duration-500" style="width: <?php echo $pct; ?>%"></div>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rankings (Top 10) -->
+            <div class="lg:col-span-7 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col">
+                <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+                    <div>
+                        <h3 class="text-base font-bold text-slate-800">Ranking Perkembangan Hafalan</h3>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Top 10 Santri Berdasarkan Progress Capaian Target</p>
+                    </div>
+                    <span class="h-6 px-2.5 rounded-full bg-cyan-100 text-cyan-700 text-[10px] font-black uppercase tracking-wider flex items-center">TA Aktif</span>
+                </div>
+                <div class="overflow-x-auto flex-1">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-100 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
+                                <th class="px-4 py-3 text-center w-12">Rank</th>
+                                <th class="px-4 py-3">Santri</th>
+                                <th class="px-4 py-3 text-center">Hafalan</th>
+                                <th class="px-4 py-3 text-center">Target</th>
+                                <th class="px-4 py-3">Progress</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50">
+                            <?php if (empty($top_rankings)): ?>
+                                <tr>
+                                    <td colspan="5" class="px-4 py-8 text-center text-slate-400 italic">Belum ada data progress santri.</td>
+                                </tr>
+                            <?php else: ?>
+                                <?php foreach ($top_rankings as $idx => $r): 
+                                    $rank = $idx + 1;
+                                    $badgeClass = 'bg-slate-100 text-slate-500';
+                                    if ($rank === 1) $badgeClass = 'bg-yellow-100 text-yellow-700 border border-yellow-200';
+                                    elseif ($rank === 2) $badgeClass = 'bg-slate-200 text-slate-700 border border-slate-300';
+                                    elseif ($rank === 3) $badgeClass = 'bg-amber-100 text-amber-800 border border-amber-250';
+                                ?>
+                                    <tr class="hover:bg-slate-50/50 transition-colors">
+                                        <td class="px-4 py-2.5 text-center font-black">
+                                            <span class="inline-flex items-center justify-center h-5 w-5 rounded-full text-[10px] <?php echo $badgeClass; ?>">
+                                                <?php echo $rank; ?>
+                                            </span>
+                                        </td>
+                                        <td class="px-4 py-2.5">
+                                            <p class="font-bold text-slate-800"><?php echo htmlspecialchars($r['name']); ?></p>
+                                            <p class="text-[9px] text-slate-450 font-semibold">Kelas <?php echo htmlspecialchars($r['class']); ?> • <?php echo htmlspecialchars($r['unit']); ?></p>
+                                        </td>
+                                        <td class="px-4 py-2.5 text-center font-bold text-slate-900"><?php echo number_format($r['hafalan'], 1, ',', '.'); ?> Juz</td>
+                                        <td class="px-4 py-2.5 text-center font-semibold text-slate-500"><?php echo number_format($r['target'], 1, ',', '.'); ?> Juz</td>
+                                        <td class="px-4 py-2.5">
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-16 bg-slate-100 rounded-full h-1.5 overflow-hidden shadow-inner flex-shrink-0">
+                                                    <div class="bg-gradient-to-r from-cyan-500 to-blue-500 h-full rounded-full" style="width: <?php echo min(100, $r['progress']); ?>%"></div>
+                                                </div>
+                                                <span class="font-black text-slate-700 text-[10px]"><?php echo round($r['progress'], 0); ?>%</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    <?php endif; ?>
 
     <!-- Data Table -->
     <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">

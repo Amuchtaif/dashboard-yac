@@ -1,7 +1,16 @@
 <?php
 ob_start();
-error_reporting(0);
+error_reporting(E_ALL);
 ini_set('display_errors', 0);
+
+header("Access-Control-Allow-Origin: *");
+header("Content-Type: application/json; charset=UTF-8");
+header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS, PUT, DELETE");
+
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
+    exit(0);
+}
 
 require_once '../../config/database.php';
 require_once '../../config/app.php';
@@ -36,10 +45,10 @@ if (!$data) {
     exit;
 }
 
-$pelanggaran_id = $data['pelanggaran_id'] ?? '';
-$tindakan = $data['tindakan'] ?? '';
-$catatan = $data['catatan'] ?? '';
-$tanggal = $data['tanggal'] ?? '';
+$pelanggaran_id = $data['pelanggaran_id'] ?? $data['violation_id'] ?? '';
+$tindakan = $data['tindakan'] ?? $data['action'] ?? '';
+$catatan = $data['catatan'] ?? $data['notes'] ?? $data['note'] ?? '';
+$tanggal = $data['tanggal'] ?? $data['date'] ?? '';
 $final_status = $data['status'] ?? 'diproses'; // diproses atau selesai
 
 if (!$pelanggaran_id || !$tindakan || !$tanggal) {
@@ -70,12 +79,11 @@ try {
         'message' => 'Tindak lanjut berhasil ditambahkan',
         'status' => $final_status
     ]);
-} catch (Exception $e) {
+} catch (Throwable $e) {
     if ($conn->inTransaction()) {
         $conn->rollBack();
     }
     ob_clean();
-    header('Content-Type: application/json');
     echo json_encode([
         'success' => false,
         'message' => $e->getMessage()

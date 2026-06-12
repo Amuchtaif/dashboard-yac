@@ -3,11 +3,17 @@
 
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Methods: POST");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With, ngrok-skip-browser-warning");
 
-include_once '../../config/db_mysqli.php';
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
 
-$input = json_decode(file_get_contents("php://input"), true);
+include_once __DIR__ . '/../../config/db_mysqli.php';
+
+$input = json_decode(file_get_contents("php://input"), true) ?? [];
 
 $student_id = isset($input['student_id']) ? $input['student_id'] : null;
 $assessment_date = isset($input['assessment_date']) ? $input['assessment_date'] : date('Y-m-d');
@@ -22,7 +28,7 @@ $comments = isset($input['comments']) ? $input['comments'] : '';
 $teacher_id = isset($input['teacher_id']) ? $input['teacher_id'] : null;
 
 // Check Permission
-include_once '../../config/permission.php';
+include_once __DIR__ . '/../../config/permission.php';
 if ($teacher_id && !hasPermission($teacher_id, 'access_tahfidz')) {
     http_response_code(403);
     echo json_encode(["success" => false, "message" => "Forbidden: Anda tidak memiliki akses Tahfidz."]);

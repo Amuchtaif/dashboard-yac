@@ -3,13 +3,19 @@
 
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Methods: POST");
+header("Access-Control-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With, ngrok-skip-browser-warning");
 
-include_once '../../config/db_mysqli.php';
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
+
+include_once __DIR__ . '/../../config/db_mysqli.php';
 
 date_default_timezone_set('Asia/Jakarta');
 
-$input = json_decode(file_get_contents("php://input"), true);
+$input = json_decode(file_get_contents("php://input"), true) ?? [];
 $teacher_id = isset($input['teacher_id']) ? $input['teacher_id'] : null;
 $action = isset($input['action']) ? $input['action'] : 'check_in'; // check_in, check_out
 
@@ -26,7 +32,7 @@ if (!$teacher_id) {
 }
 
 // Check Permission
-include_once '../../config/permission.php';
+include_once __DIR__ . '/../../config/permission.php';
 if (!hasPermission($teacher_id, 'access_tahfidz')) {
     echo json_encode(["success" => false, "message" => "Akses Ditolak: Anda tidak memiliki izin untuk membuka/menutup halaqoh."]);
     exit;

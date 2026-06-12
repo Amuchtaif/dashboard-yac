@@ -11,6 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // or empty string '' if we want to "No Change"
     $unit_id = $_POST['unit_id'] ?? '';
     $position_id = $_POST['position_id'] ?? '';
+    $schedule_id = $_POST['schedule_id'] ?? '';
     $return_filters = $_POST['return_filters'] ?? '';
     $redirect_qs = $return_filters ? "&" . $return_filters : "";
 
@@ -46,6 +47,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($position_id !== '') {
             $update_parts[] = "position_id = ?";
             $execute_params[] = $position_id;
+        }
+
+        // SCHEDULE UPDATE
+        if ($schedule_id !== '') {
+            if ($schedule_id === 'NULL') {
+                $update_parts[] = "schedule_id = NULL";
+            } else {
+                $update_parts[] = "schedule_id = ?";
+                $execute_params[] = $schedule_id;
+            }
         }
 
         if (!empty($update_parts)) {

@@ -743,6 +743,17 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
                     Kelola Penilaian Tahfidz
                 </a>
 
+                <a href="<?php url('views/tahfidz/target_hafalan.php'); ?>"
+                    class="<?php echo isActive('tahfidz/target_hafalan'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
+                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('tahfidz/target_hafalan'); ?> transition-colors"
+                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m11.314 11.314l.707.707M12 5a7 7 0 100 14 7 7 0 000-14zm0 3a4 4 0 100 8 4 4 0 000-8zm0 2a2 2 0 100 4 2 2 0 000-4z" />
+                    </svg>
+                    Kelola Target Hafalan
+                </a>
+
                 <!-- Tahfidz Assessment History -->
                 <a href="<?php url('views/tahfidz/assessments.php'); ?>"
                     class="<?php echo isActive('/tahfidz/assessments.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
@@ -811,6 +822,8 @@ if ($stmt_wk->fetchColumn() || $is_admin) {
                     </svg>
                     Rekap Semester
                 </a>
+
+                
                 <?php
             endif; ?>
 

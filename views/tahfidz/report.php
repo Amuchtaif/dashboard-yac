@@ -23,7 +23,7 @@ $is_admin = (isset($_SESSION['position_name']) && $_SESSION['position_name'] ===
 // --- Build Query ---
 $query = "
     SELECT 
-        tm.id, tm.student_id, tm.teacher_id, tm.date, tm.surah_start, tm.ayat_start, tm.surah_end, tm.ayat_end, tm.juz, tm.status, tm.notes, tm.created_at,
+        tm.id, tm.student_id, tm.teacher_id, tm.date, tm.surah_start, tm.ayat_start, tm.surah_end, tm.ayat_end, tm.juz, tm.total_baris, tm.status, tm.notes, tm.created_at,
         s.nama_siswa AS student_name,
         s.kelas AS student_class,
         s.tingkat AS student_level,
@@ -196,7 +196,8 @@ include '../layouts/header.php';
                         <th class="px-6 py-3 w-16 text-center">No</th>
                         <th class="px-6 py-3 min-w-[150px]">Tanggal Waktu</th>
                         <th class="px-6 py-3 min-w-[200px]">Nama Santri</th>
-                        <th class="px-6 py-3 min-w-[250px]">Capaian Hafalan</th>
+                        <th class="px-6 py-3 min-w-[220px]">Capaian Hafalan</th>
+                        <th class="px-6 py-3 min-w-[110px] text-center">Jumlah Baris</th>
                         <th class="px-6 py-3 min-w-[120px]">Status</th>
                         <th class="px-6 py-3 min-w-[180px]">Catatan</th>
                         <th class="px-6 py-3 min-w-[180px]">Pengampu</th>
@@ -228,11 +229,9 @@ include '../layouts/header.php';
                                 <span class="mx-1 text-slate-300">s.d</span>
                                 <?php echo htmlspecialchars($row['surah_end']); ?>:<?php echo $row['ayat_end']; ?>
                             </div>
-                            <div class="mt-1">
-                                <span class="bg-slate-100 text-slate-500 px-2 py-0.5 rounded text-[10px] font-bold ring-1 ring-slate-200 uppercase tracking-tighter">
-                                    Juz <?php echo htmlspecialchars($row['juz'] ?? '-'); ?>
-                                </span>
-                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-center font-bold text-slate-700">
+                            <?php echo htmlspecialchars($row['total_baris'] ?? '0'); ?>
                         </td>
                         <td class="px-6 py-4">
                             <?php
@@ -255,7 +254,7 @@ include '../layouts/header.php';
                     </tr>
                     <?php endforeach; else: ?>
                     <tr>
-                        <td colspan="7" class="px-6 py-8 text-center text-slate-500">
+                        <td colspan="8" class="px-6 py-8 text-center text-slate-500">
                             Tidak ada data hafalan pada periode ini.
                         </td>
                     </tr>

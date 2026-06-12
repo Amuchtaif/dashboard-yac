@@ -3,6 +3,15 @@ ob_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
 
+header("Access-Control-Allow-Origin: *");
+header("Content-Type: application/json; charset=UTF-8");
+header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS, PUT, DELETE");
+
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
+    exit(0);
+}
+
 require_once '../../config/database.php';
 require_once '../../config/app.php';
 require_once '../../config/permission.php';
@@ -14,7 +23,7 @@ $data = is_array($json_data) ? $json_data : [];
 $input = array_merge($data, $_POST);
 
 // Auth check: support both session and request parameter (for Flutter app)
-$user_id = $_SESSION['user_id'] ?? $input['user_id'] ?? $_GET['user_id'] ?? null;
+$user_id = $_SESSION['user_id'] ?? $input['user_id'] ?? $input['employee_id'] ?? $_GET['user_id'] ?? null;
 
 if (!$user_id) {
     ob_clean();
@@ -44,11 +53,11 @@ try {
         exit;
     }
 
-    $santri_id = $input['santri_id'] ?? '';
-    $kategori_id = $input['kategori_id'] ?? '';
-    $deskripsi = $input['deskripsi'] ?? '';
-    $tanggal_raw = $input['tanggal'] ?? '';
-    $lokasi = $input['lokasi'] ?? '';
+    $santri_id = $input['santri_id'] ?? $input['student_id'] ?? '';
+    $kategori_id = $input['kategori_id'] ?? $input['category_id'] ?? '';
+    $deskripsi = $input['deskripsi'] ?? $input['description'] ?? '';
+    $tanggal_raw = $input['tanggal'] ?? $input['date'] ?? $input['tanggal_pelanggaran'] ?? '';
+    $lokasi = $input['lokasi'] ?? $input['location'] ?? '';
     $status = $input['status'] ?? 'dilaporkan';
 
     if (!$santri_id || !$deskripsi || !$tanggal_raw || !$kategori_id) {
@@ -70,11 +79,18 @@ try {
 
     // Penanganan Berkas Unggahan (Attachment)
     $attachment = null;
-    if (isset($_FILES['attachment']) && $_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
-        $fileTmpPath = $_FILES['attachment']['tmp_name'];
-        $fileName = $_FILES['attachment']['name'];
-        $fileNameCmps = explode(".", $fileName);
-        $fileExtension = strtolower(end($fileNameCmps));
+    $fileKey = null;
+    foreach (['attachment', 'image', 'photo'] as $key) {
+        if (isset($_FILES[$key]) && $_FILES[$key]['error'] === UPLOAD_ERR_OK) {
+            $fileKey = $key;
+            break;
+        }
+    }
+
+    if ($fileKey !== null) {
+        $fileTmpPath = $_FILES[$fileKey]['tmp_name'];
+        $fileName = $_FILES[$fileKey]['name'];
+        $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
         
         // Format ekstensi gambar yang diperbolehkan
         $allowedfileExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
@@ -114,7 +130,6 @@ try {
     ]);
 } catch (Throwable $e) {
     ob_clean();
-    header('Content-Type: application/json');
     echo json_encode([
         'success' => false,
         'message' => 'Error: ' . $e->getMessage()

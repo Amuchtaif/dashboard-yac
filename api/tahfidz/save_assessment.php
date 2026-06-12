@@ -1,7 +1,16 @@
 <?php
-header('Content-Type: application/json');
-require_once '../../config/app.php';
-require_once '../../config/database.php';
+header("Access-Control-Allow-Origin: *");
+header("Content-Type: application/json; charset=UTF-8");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With, ngrok-skip-browser-warning");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
+
+require_once __DIR__ . '/../../config/app.php';
+require_once __DIR__ . '/../../config/database.php';
 
 if (!isset($_SESSION['user_id'])) {
     echo json_encode(['success' => false, 'message' => 'Unauthorized']);
@@ -11,7 +20,7 @@ if (!isset($_SESSION['user_id'])) {
 $db = new Database();
 $conn = $db->getConnection();
 
-$data = json_decode(file_get_contents('php://input'), true);
+$data = json_decode(file_get_contents('php://input'), true) ?? [];
 
 if (!$data || empty($data['student_id']) || empty($data['assessment_date'])) {
     echo json_encode(['success' => false, 'message' => 'Data tidak lengkap.']);

@@ -1,7 +1,16 @@
 <?php
 ob_start();
-error_reporting(0);
+error_reporting(E_ALL);
 ini_set('display_errors', 0);
+
+header("Access-Control-Allow-Origin: *");
+header("Content-Type: application/json; charset=UTF-8");
+header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS, PUT, DELETE");
+
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
+    exit(0);
+}
 
 require_once '../../config/database.php';
 require_once '../../config/app.php';
@@ -38,7 +47,6 @@ try {
     ]);
 } catch (Throwable $e) {
     ob_clean();
-    header('Content-Type: application/json');
     echo json_encode([
         'success' => false,
         'message' => $e->getMessage()

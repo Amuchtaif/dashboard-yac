@@ -2,7 +2,13 @@
 // api/tahfidz/verify_teacher_attendance.php
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Methods: POST");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With, ngrok-skip-browser-warning");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
 
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
@@ -17,8 +23,8 @@ if (!isset($mysqli)) {
 }
 
 
-$input = json_decode(file_get_contents("php://input"), true);
-file_put_contents('../../debug_verify_raw.txt', date('H:i:s') . " | Input: " . json_encode($input) . " | Session UID: " . var_export($_SESSION['user_id'] ?? 'NONE', true) . "\n", FILE_APPEND);
+$input = json_decode(file_get_contents("php://input"), true) ?? [];
+file_put_contents(__DIR__ . '/../../debug_verify_raw.txt', date('H:i:s') . " | Input: " . json_encode($input) . " | Session UID: " . var_export($_SESSION['user_id'] ?? 'NONE', true) . "\n", FILE_APPEND);
 $id = isset($input['id']) ? $input['id'] : null; // Attendance ID
 $action = isset($input['action']) ? $input['action'] : null; // 'approve' or 'reject'
 

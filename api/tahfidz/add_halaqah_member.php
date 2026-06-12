@@ -16,7 +16,7 @@ $conn = $database->getConnection();
 
 $data = json_decode(file_get_contents("php://input"));
 
-if (!isset($data->teacher_id) || !isset($data->student_id)) {
+if (!$data || !isset($data->teacher_id) || !isset($data->student_id)) {
     http_response_code(400);
     echo json_encode(["success" => false, "message" => "Teacher ID and Student ID are required"]);
     exit;

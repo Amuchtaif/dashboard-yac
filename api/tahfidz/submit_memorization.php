@@ -3,11 +3,17 @@
 
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Methods: POST");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With, ngrok-skip-browser-warning");
 
-include_once '../../config/db_mysqli.php';
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
 
-$input = json_decode(file_get_contents("php://input"), true);
+include_once __DIR__ . '/../../config/db_mysqli.php';
+
+$input = json_decode(file_get_contents("php://input"), true) ?? [];
 
 $student_id = isset($input['student_id']) ? $input['student_id'] : null;
 $date = isset($input['date']) ? $input['date'] : date('Y-m-d');
@@ -24,7 +30,20 @@ if ($surah_start && $ayat_start) {
     // Only attempt if surah_start is numeric (Surah ID)
     if (is_numeric($surah_start)) {
         $url = "https://api.alquran.cloud/v1/ayah/{$surah_start}:{$ayat_start}";
-        $api_res = @file_get_contents($url);
+        
+        $api_res = null;
+        if (function_exists('curl_init')) {
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            $api_res = curl_exec($ch);
+            curl_close($ch);
+        } else {
+            $api_res = @file_get_contents($url);
+        }
+
         if ($api_res) {
             $api_data = json_decode($api_res, true);
             if (isset($api_data['data']['juz'])) {
@@ -41,7 +60,7 @@ if (!$student_id) {
 }
 
 // Check Permission
-include_once '../../config/permission.php';
+include_once __DIR__ . '/../../config/permission.php';
 if ($teacher_id && !hasPermission($teacher_id, 'access_tahfidz')) {
     http_response_code(403);
     echo json_encode(["success" => false, "message" => "Forbidden: Anda tidak memiliki akses Tahfidz."]);

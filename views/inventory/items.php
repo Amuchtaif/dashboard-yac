@@ -26,7 +26,7 @@ require_once __DIR__ . '/../layouts/header.php';
                     <svg class="-ml-1 mr-2 h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
                     </svg>
-                    Import CSV
+                    Import Excel
                 </a>
 
                 <button onclick="openModal()" class="inline-flex items-center justify-center rounded-lg border border-transparent bg-cyan-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-cyan-100 hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 transition-all ml-2">
@@ -313,6 +313,23 @@ require_once __DIR__ . '/../layouts/header.php';
     </div>
 </div>
 
+<!-- Lightbox Preview Modal -->
+<div id="image-lightbox" class="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex flex-col items-center justify-center hidden opacity-0 transition-opacity duration-300" onclick="closeLightbox()">
+    <!-- Close Button -->
+    <button type="button" class="absolute top-6 right-6 text-white/70 hover:text-white bg-white/10 hover:bg-white/20 p-2.5 rounded-full transition-all active:scale-95 z-[110]" onclick="closeLightbox(); event.stopPropagation();">
+        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+    </button>
+    
+    <!-- Image Wrapper -->
+    <div class="relative max-w-[90vw] max-h-[80vh] flex flex-col items-center" onclick="event.stopPropagation();">
+        <img id="lightbox-img" src="" class="max-w-full max-h-[75vh] rounded-xl object-contain shadow-2xl border border-white/10 transform scale-95 transition-transform duration-300">
+        <!-- Caption -->
+        <p id="lightbox-caption" class="text-white text-sm font-semibold mt-4 text-center tracking-wide drop-shadow-md"></p>
+    </div>
+</div>
+
 <script>
     let locationTreeData = [];
     let currentItems = [];
@@ -594,7 +611,7 @@ require_once __DIR__ . '/../layouts/header.php';
                     ${realIndex}.
                 </td>
                 <td class="whitespace-nowrap px-3 py-4">
-                    <img src="${photoUrl}" class="w-12 h-12 rounded-lg object-cover shadow-sm bg-slate-100 border border-slate-200">
+                    <img src="${photoUrl}" onclick="openLightbox('${photoUrl}', '${(item.name || '').replace(/'/g, "\\'")}')" class="w-12 h-12 rounded-lg object-cover shadow-sm bg-slate-100 border border-slate-200 cursor-zoom-in hover:opacity-80 transition-opacity" title="Klik untuk memperbesar">
                 </td>
                 <td class="whitespace-nowrap px-3 py-4">
                     <div class="font-bold text-gray-900">${item.name}</div>
@@ -983,6 +1000,52 @@ require_once __DIR__ . '/../layouts/header.php';
             reader.readAsDataURL(file);
         }
     });
+
+    // Lightbox Modal Logic
+    function openLightbox(src, name) {
+        const lightbox = document.getElementById('image-lightbox');
+        const img = document.getElementById('lightbox-img');
+        const caption = document.getElementById('lightbox-caption');
+        
+        img.src = src;
+        caption.textContent = name;
+        
+        lightbox.classList.remove('hidden');
+        // Force reflow
+        void lightbox.offsetWidth;
+        
+        lightbox.classList.add('opacity-100');
+        lightbox.classList.remove('opacity-0');
+        img.classList.remove('scale-95');
+        img.classList.add('scale-100');
+        
+        // Add escape key listener
+        document.addEventListener('keydown', handleLightboxEsc);
+    }
+
+    function closeLightbox() {
+        const lightbox = document.getElementById('image-lightbox');
+        const img = document.getElementById('lightbox-img');
+        
+        lightbox.classList.remove('opacity-100');
+        lightbox.classList.add('opacity-0');
+        img.classList.remove('scale-100');
+        img.classList.add('scale-95');
+        
+        document.removeEventListener('keydown', handleLightboxEsc);
+        
+        setTimeout(() => {
+            if (lightbox.classList.contains('opacity-0')) {
+                lightbox.classList.add('hidden');
+            }
+        }, 300);
+    }
+
+    function handleLightboxEsc(e) {
+        if (e.key === 'Escape') {
+            closeLightbox();
+        }
+    }
 
     window.onload = fetchData;
 </script>

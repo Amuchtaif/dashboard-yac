@@ -1,7 +1,16 @@
 <?php
 ob_start();
-error_reporting(0);
+error_reporting(E_ALL);
 ini_set('display_errors', 0);
+
+header("Access-Control-Allow-Origin: *");
+header("Content-Type: application/json; charset=UTF-8");
+header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS, PUT, DELETE");
+
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
+    exit(0);
+}
 
 require_once '../../config/database.php';
 require_once '../../config/app.php';
@@ -52,8 +61,8 @@ try {
 }
 
 $status = $_GET['status'] ?? $data['status'] ?? '';
-$kategori_id = $_GET['kategori_id'] ?? $data['kategori_id'] ?? '';
-$santri_id = $_GET['santri_id'] ?? $data['santri_id'] ?? '';
+$kategori_id = $_GET['kategori_id'] ?? $data['kategori_id'] ?? $_GET['category_id'] ?? $data['category_id'] ?? '';
+$santri_id = $_GET['santri_id'] ?? $data['santri_id'] ?? $_GET['student_id'] ?? $data['student_id'] ?? '';
 $search = $_GET['search'] ?? $data['search'] ?? '';
 
 $query = "SELECT p.*, s.nama_siswa, k.type_name as nama_kategori, k.points as poin, k.category, e.full_name as pelapor_name
@@ -103,17 +112,16 @@ try {
     foreach ($violations as &$v) {
         $v['attachment_url'] = !empty($v['attachment']) ? BASE_URL . '/uploads/violations/' . $v['attachment'] : null;
     }
+    unset($v);
 
     ob_clean();
-    header('Content-Type: application/json');
     echo json_encode([
         'success' => true,
         'message' => 'Data pelanggaran berhasil dimuat',
         'data' => $violations
     ]);
-} catch (Exception $e) {
+} catch (Throwable $e) {
     ob_clean();
-    header('Content-Type: application/json');
     echo json_encode([
         'success' => false,
         'message' => $e->getMessage()

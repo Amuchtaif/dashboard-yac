@@ -33,7 +33,7 @@ include '../layouts/header.php';
                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="m1 9 4-4-4-4" />
                     </svg>
-                    <span class="text-slate-800 font-medium">Import CSV</span>
+                    <span class="text-slate-800 font-medium">Import Excel / CSV</span>
                 </div>
             </li>
         </ol>
@@ -41,7 +41,7 @@ include '../layouts/header.php';
 
     <div class="mb-8">
         <h1 class="text-2xl font-bold text-slate-900">Import Data Inventaris</h1>
-        <p class="mt-2 text-sm text-slate-600">Unggah file CSV untuk mengunggah data barang secara massal ke gudang.</p>
+        <p class="mt-2 text-sm text-slate-600">Unggah file Excel atau CSV untuk mengunggah data barang secara massal ke gudang.</p>
     </div>
 
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
@@ -50,7 +50,7 @@ include '../layouts/header.php';
         <div class="mb-8 p-5 bg-cyan-50 border border-cyan-100 rounded-xl">
             <h3 class="font-semibold text-cyan-800 mb-2 text-sm">Petunjuk Penting:</h3>
             <ul class="list-disc list-inside text-xs text-cyan-700 space-y-2">
-                <li>Pastikan file dalam format <strong>.CSV</strong>.</li>
+                <li>Pastikan file dalam format Excel (<strong>.xlsx</strong> / <strong>.xls</strong>) atau <strong>.csv</strong>.</li>
                 <li>Gunakan header kolom yang sesuai dengan template (No, Kode, Nama, Lokasi, Qty, Satuan, Kondisi, Sumber Dana, Tanggal Pembelian, Deskripsi).</li>
                 <li><strong>Lokasi:</strong> Gunakan nama lokasi yang sudah terdaftar di sistem (misal: "Kantor Bidik"). Jika lokasi tidak ditemukan, data akan dilewati.</li>
                 <li><strong>Kondisi:</strong> Pilih salah satu: "Baik", "Rusak Ringan", atau "Rusak Berat".</li>
@@ -61,7 +61,7 @@ include '../layouts/header.php';
                         <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                         </svg>
-                        Download Template CSV
+                        Download Template Excel
                     </a>
                 </li>
             </ul>
@@ -71,7 +71,7 @@ include '../layouts/header.php';
             class="space-y-6">
 
             <div>
-                <label class="block text-sm font-semibold text-slate-900 mb-2">Pilih File CSV Inventaris</label>
+                <label class="block text-sm font-semibold text-slate-900 mb-2">Pilih File Excel / CSV Inventaris</label>
                 <div class="flex items-center justify-center w-full">
                     <label for="dropzone-file"
                         class="flex flex-col items-center justify-center w-full h-40 border-2 border-slate-300 border-dashed rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 transition-all">
@@ -82,10 +82,10 @@ include '../layouts/header.php';
                                     stroke-width="2"
                                     d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2" />
                             </svg>
-                            <p class="mb-2 text-sm text-slate-500 font-medium">Klik untuk pilih file CSV</p>
+                            <p class="mb-2 text-sm text-slate-500 font-medium">Klik untuk pilih file Excel / CSV</p>
                             <p class="text-xs text-slate-400 uppercase tracking-widest">Atau drag and drop file di sini</p>
                         </div>
-                        <input id="dropzone-file" name="csv_file" type="file" class="hidden" accept=".csv" required />
+                        <input id="dropzone-file" name="csv_file" type="file" class="hidden" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv" required />
                     </label>
                 </div>
             </div>
