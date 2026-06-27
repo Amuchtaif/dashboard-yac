@@ -1,6 +1,13 @@
 <?php
 require_once '../../config/app.php';
 require_once '../../config/database.php';
+require_once BASE_PATH . '/vendor/autoload.php';
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
 
 check_login();
 
@@ -68,32 +75,115 @@ foreach ($params as $key => $val) {
 $stmt->execute();
 $summary = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Headers for CSV Download
-header('Content-Type: text/csv');
-header('Content-Disposition: attachment; filename="rekap_absensi_' . $start_date . '_to_' . $end_date . '.csv"');
+// Create Spreadsheet
+$spreadsheet = new Spreadsheet();
+$sheet = $spreadsheet->getActiveSheet();
+$sheet->setTitle('Rekap Absensi Pegawai');
 
-// Open PHP output stream
-$output = fopen('php://output', 'w');
+// Enable Gridlines
+$sheet->setShowGridlines(true);
 
-// Add BOM for Excel UTF-8 compatibility
-fwrite($output, "\xEF\xBB\xBF");
+// Document Title Block
+$sheet->setCellValue('A1', 'REKAPITULASI TOTAL KEHADIRAN PEGAWAI');
+$sheet->mergeCells('A1:G1');
+$sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('1E293B'));
+$sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-// CSV Header Row
-fputcsv($output, ['No', 'NIK', 'Nama Pegawai', 'Email', 'Unit Kerja', 'Bidang', 'Total Kehadiran']);
+$formatted_start = date('d F Y', strtotime($start_date));
+$formatted_end = date('d F Y', strtotime($end_date));
+$sheet->setCellValue('A2', 'Periode: ' . $formatted_start . ' s/d ' . $formatted_end);
+$sheet->mergeCells('A2:G2');
+$sheet->getStyle('A2')->getFont()->setItalic(true)->setSize(11)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('64748B'));
+$sheet->getStyle('A2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+// Table Headers
+$currRow = 4;
+$sheet->setCellValue('A' . $currRow, 'No');
+$sheet->setCellValue('B' . $currRow, 'NIK');
+$sheet->setCellValue('C' . $currRow, 'Nama Pegawai');
+$sheet->setCellValue('D' . $currRow, 'Email');
+$sheet->setCellValue('E' . $currRow, 'Unit Kerja');
+$sheet->setCellValue('F' . $currRow, 'Bidang');
+$sheet->setCellValue('G' . $currRow, 'Total Kehadiran');
+
+// Header style
+$headerStyle = [
+    'font' => [
+        'bold' => true,
+        'color' => ['rgb' => 'FFFFFF'],
+    ],
+    'alignment' => [
+        'horizontal' => Alignment::HORIZONTAL_CENTER,
+        'vertical' => Alignment::VERTICAL_CENTER,
+    ],
+    'fill' => [
+        'fillType' => Fill::FILL_SOLID,
+        'startColor' => ['rgb' => '0891B2'], // Cyan-600 to match theme
+    ],
+    'borders' => [
+        'allBorders' => [
+            'borderStyle' => Border::BORDER_THIN,
+            'color' => ['rgb' => '22D3EE'], // Cyan-400 border
+        ],
+    ],
+];
+
+$sheet->getStyle("A$currRow:G$currRow")->applyFromArray($headerStyle);
+$sheet->getRowDimension($currRow)->setRowHeight(24);
 
 // Data Rows
-foreach ($summary as $index => $row) {
-    fputcsv($output, [
-        $index + 1,
-        $row['nik'] ?: '-',
-        $row['full_name'],
-        $row['email'],
-        $row['unit_name'] ?: '-',
-        $row['division_name'] ?: '-',
-        $row['total_attendance'] . ' Hari'
-    ]);
+$startDataRow = $currRow + 1;
+$dataStyle = [
+    'borders' => [
+        'allBorders' => [
+            'borderStyle' => Border::BORDER_THIN,
+            'color' => ['rgb' => 'CBD5E1'], // Slate-300 border
+        ],
+    ],
+];
+
+if (count($summary) > 0) {
+    foreach ($summary as $index => $row) {
+        $currRow++;
+        $sheet->setCellValue('A' . $currRow, $index + 1);
+        $sheet->setCellValue('B' . $currRow, $row['nik'] ?: '-');
+        $sheet->setCellValue('C' . $currRow, $row['full_name']);
+        $sheet->setCellValue('D' . $currRow, $row['email']);
+        $sheet->setCellValue('E' . $currRow, $row['unit_name'] ?: '-');
+        $sheet->setCellValue('F' . $currRow, $row['division_name'] ?: '-');
+        $sheet->setCellValue('G' . $currRow, $row['total_attendance'] . ' Hari');
+        
+        $sheet->getRowDimension($currRow)->setRowHeight(20);
+    }
+    
+    // Apply styling to data rows
+    $sheet->getStyle("A$startDataRow:G$currRow")->applyFromArray($dataStyle);
+    
+    // Alignments
+    $sheet->getStyle("A$startDataRow:A$currRow")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+    $sheet->getStyle("B$startDataRow:B$currRow")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+    $sheet->getStyle("G$startDataRow:G$currRow")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+} else {
+    $currRow++;
+    $sheet->setCellValue('A' . $currRow, 'Tidak ada data kehadiran.');
+    $sheet->mergeCells("A$currRow:G$currRow");
+    $sheet->getStyle("A$currRow")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+    $sheet->getStyle("A$currRow")->getFont()->setItalic(true);
+    $sheet->getStyle("A$currRow:G$currRow")->applyFromArray($dataStyle);
+    $sheet->getRowDimension($currRow)->setRowHeight(24);
 }
 
-fclose($output);
+// Auto fit column width
+foreach (range('A', 'G') as $columnID) {
+    $sheet->getColumnDimension($columnID)->setAutoSize(true);
+}
+
+// Set headers for download
+header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+header('Content-Disposition: attachment; filename="rekap_absensi_' . $start_date . '_to_' . $end_date . '.xlsx"');
+header('Cache-Control: max-age=0');
+
+$writer = new Xlsx($spreadsheet);
+$writer->save('php://output');
 exit;
 ?>

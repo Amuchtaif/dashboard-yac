@@ -22,6 +22,7 @@ $offset = ($page - 1) * $limit;
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $division_id = isset($_GET['division_id']) ? $_GET['division_id'] : '';
 $unit_id = isset($_GET['unit_id']) ? $_GET['unit_id'] : '';
+$position_id = isset($_GET['position_id']) ? $_GET['position_id'] : '';
 $status = isset($_GET['status']) ? $_GET['status'] : '';
 
 // Build Where Clause
@@ -39,6 +40,10 @@ if ($division_id) {
 if ($unit_id) {
     $where_clauses[] = "e.unit_id = :unit_id";
     $params[':unit_id'] = $unit_id;
+}
+if ($position_id) {
+    $where_clauses[] = "e.position_id = :position_id";
+    $params[':position_id'] = $position_id;
 }
 if ($status) {
     if ($status === 'active') {
@@ -59,10 +64,11 @@ $total_pages = ceil($total_rows / $limit);
 
 // Fetch Data with Limit/Offset
 $query = "
-    SELECT e.*, d.name as division_name, u.name as unit_name 
+    SELECT e.*, d.name as division_name, u.name as unit_name, p.name as position_name
     FROM employees e 
     LEFT JOIN divisions d ON e.division_id = d.id 
     LEFT JOIN units u ON e.unit_id = u.id
+    LEFT JOIN positions p ON e.position_id = p.id
     WHERE $where_sql
     ORDER BY e.full_name ASC
     LIMIT :limit OFFSET :offset
@@ -268,6 +274,46 @@ include '../layouts/header.php';
                             <li onclick="selectFilterOption('unit', '<?php echo $u['id']; ?>', 'Unit: <?php echo htmlspecialchars($u['name'], ENT_QUOTES); ?>')"
                                 class="cursor-pointer px-4 py-2 text-xs text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
                                 <?php echo htmlspecialchars($u['name']); ?>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Position Filter -->
+            <div class="relative" id="filter-position-container">
+                <input type="hidden" name="position_id" id="filter-position-input" value="<?php echo $position_id; ?>">
+                <button type="button" onclick="toggleDropdown('filter-position')"
+                    class="inline-flex items-center justify-between gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] font-bold text-slate-600 hover:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-colors w-full lg:w-40 h-10">
+                    <span id="filter-position-text" class="truncate">
+                        <?php
+                        $currPos = "Jabatan: Semua";
+                        if ($position_id) {
+                            foreach ($positions as $p) {
+                                if ($p['id'] == $position_id) {
+                                    $currPos = "Jab: " . $p['name'];
+                                    break;
+                                }
+                            }
+                        }
+                        echo htmlspecialchars($currPos);
+                        ?>
+                    </span>
+                    <svg class="h-4 w-4 text-slate-400 transition-transform duration-200" id="filter-position-arrow"
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+                <div id="filter-position-menu"
+                    class="hidden absolute top-full left-0 mt-1 w-56 origin-top-left rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50 max-h-60 overflow-y-auto">
+                    <ul class="py-1">
+                        <li onclick="selectFilterOption('position', '', 'Jabatan: Semua')"
+                            class="cursor-pointer px-4 py-2 text-xs text-slate-500 hover:bg-slate-50 hover:text-cyan-700">
+                            Jabatan: Semua</li>
+                        <?php foreach ($positions as $pos): ?>
+                            <li onclick="selectFilterOption('position', '<?php echo $pos['id']; ?>', 'Jab: <?php echo htmlspecialchars($pos['name'], ENT_QUOTES); ?>')"
+                                class="cursor-pointer px-4 py-2 text-xs text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
+                                <?php echo htmlspecialchars($pos['name']); ?>
                             </li>
                         <?php endforeach; ?>
                     </ul>
@@ -493,6 +539,9 @@ include '../layouts/header.php';
                         <th scope="col" class="px-3 py-3.5 text-left min-w-[200px]">
                             Kontak
                         </th>
+                        <th scope="col" class="px-3 py-3.5 text-left min-w-[150px]">
+                            Jabatan
+                        </th>
                         <th scope="col" class="px-3 py-3.5 text-left min-w-[180px]">
                             Bidang & Unit
                         </th>
@@ -550,6 +599,11 @@ include '../layouts/header.php';
                                     </svg>
                                     <?php echo htmlspecialchars($emp['phone_number'] ?? '-'); ?>
                                 </div>
+                            </td>
+                            <td class="px-3 py-4">
+                                <span class="inline-flex items-center rounded-md bg-cyan-50 px-2 py-1 text-xs font-bold text-cyan-700 ring-1 ring-inset ring-cyan-700/10">
+                                    <?php echo htmlspecialchars($emp['position_name'] ?? '-'); ?>
+                                </span>
                             </td>
                             <td class="px-3 py-4">
                                 <div class="text-sm text-slate-800 font-bold truncate max-w-[140px]"

@@ -12,6 +12,7 @@ $conn = $db->getConnection();
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $division_id = isset($_GET['division_id']) ? $_GET['division_id'] : '';
 $unit_id = isset($_GET['unit_id']) ? $_GET['unit_id'] : '';
+$position_id = isset($_GET['position_id']) ? $_GET['position_id'] : '';
 
 $where_clauses = ["e.id != 1"];
 $params = [];
@@ -27,6 +28,10 @@ if ($division_id) {
 if ($unit_id) {
     $where_clauses[] = "e.unit_id = :unit_id";
     $params[':unit_id'] = $unit_id;
+}
+if ($position_id) {
+    $where_clauses[] = "e.position_id = :position_id";
+    $params[':position_id'] = $position_id;
 }
 // Always filter for active employees as requested
 $where_clauses[] = "(e.status = 'active' OR e.status IS NULL)";
@@ -112,6 +117,15 @@ $employees = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <?php if ($division_id): ?>
             <span class="bg-slate-100 px-2 py-1 rounded">Div ID:
                 <?php echo htmlspecialchars($division_id ?? ''); ?>
+            </span>
+        <?php endif; ?>
+        <?php if ($position_id): 
+            $pos_stmt = $conn->prepare("SELECT name FROM positions WHERE id = ?");
+            $pos_stmt->execute([$position_id]);
+            $pos_name = $pos_stmt->fetchColumn();
+        ?>
+            <span class="bg-slate-100 px-2 py-1 rounded">Jabatan:
+                <?php echo htmlspecialchars($pos_name ?: ''); ?>
             </span>
         <?php endif; ?>
         <span class="bg-slate-100 px-2 py-1 rounded">Status: Active</span>

@@ -20,6 +20,7 @@ $conn = $db->getConnection();
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $division_id = isset($_GET['division_id']) ? $_GET['division_id'] : '';
 $unit_id = isset($_GET['unit_id']) ? $_GET['unit_id'] : '';
+$position_id = isset($_GET['position_id']) ? $_GET['position_id'] : '';
 $where_clauses = ["e.id != 1"];
 $params = [];
 
@@ -34,6 +35,10 @@ if ($division_id) {
 if ($unit_id) {
     $where_clauses[] = "e.unit_id = :unit_id";
     $params[':unit_id'] = $unit_id;
+}
+if ($position_id) {
+    $where_clauses[] = "e.position_id = :position_id";
+    $params[':position_id'] = $position_id;
 }
 
 // Always filter for active employees as requested

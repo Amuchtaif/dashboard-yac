@@ -174,7 +174,7 @@ include '../layouts/header.php';
                         <a href="export_summary.php?<?php echo http_build_query($_GET); ?>" target="_blank"
                             class="group flex items-center px-4 py-2.5 text-sm hover:bg-slate-50 hover:text-cyan-700 transition-colors">
                             <span class="mr-3 text-lg">📊</span>
-                            Excel (CSV)
+                            Excel (.xlsx)
                         </a>
                         <a href="export_summary_pdf.php?<?php echo http_build_query($_GET); ?>" target="_blank"
                             class="group flex items-center px-4 py-2.5 text-sm hover:bg-slate-50 hover:text-cyan-700 transition-colors border-t border-slate-50">
