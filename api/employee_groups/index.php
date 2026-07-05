@@ -23,8 +23,8 @@ $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
 if ($method === 'GET') {
     $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-    $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
-    $offset = ($page - 1) * $limit;
+    $limit_param = $_GET['limit'] ?? '10';
+    $is_all = ($limit_param === 'all' || (int)$limit_param <= 0);
     
     $search = $_GET['search'] ?? '';
     $type = $_GET['type'] ?? '';
@@ -61,17 +61,33 @@ if ($method === 'GET') {
     $stmt->close();
     
     // Fetch data
-    $sql = "SELECT * FROM employee_groups $where ORDER BY created_at DESC LIMIT ? OFFSET ?";
-    $stmt = $mysqli->prepare($sql);
-    
-    $fetch_params = $params;
-    $fetch_params[] = $limit;
-    $fetch_params[] = $offset;
-    $fetch_types = $types . "ii";
-    
-    $stmt->bind_param($fetch_types, ...$fetch_params);
-    $stmt->execute();
-    $result = $stmt->get_result();
+    if ($is_all) {
+        $sql = "SELECT * FROM employee_groups $where ORDER BY position ASC, id ASC";
+        $stmt = $mysqli->prepare($sql);
+        if (!empty($params)) {
+            $stmt->bind_param($types, ...$params);
+        }
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $limit = $total_records;
+        $total_pages = 1;
+    } else {
+        $limit = (int)$limit_param;
+        $offset = ($page - 1) * $limit;
+        
+        $sql = "SELECT * FROM employee_groups $where ORDER BY position ASC, id ASC LIMIT ? OFFSET ?";
+        $stmt = $mysqli->prepare($sql);
+        
+        $fetch_params = $params;
+        $fetch_params[] = $limit;
+        $fetch_params[] = $offset;
+        $fetch_types = $types . "ii";
+        
+        $stmt->bind_param($fetch_types, ...$fetch_params);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $total_pages = ceil($total_records / $limit);
+    }
     
     $groups = [];
     if ($result) {
@@ -82,8 +98,6 @@ if ($method === 'GET') {
             $groups[] = $row;
         }
     }
-    
-    $total_pages = ceil($total_records / $limit);
     
     echo json_encode([
         "status" => "success",
@@ -134,11 +148,19 @@ if ($method === 'GET') {
     
     $mysqli->begin_transaction();
     try {
-        $stmt = $mysqli->prepare("INSERT INTO employee_groups (group_name, group_type, description, is_active) VALUES (?, ?, ?, ?)");
+        // Calculate next position for the new group
+        $pos_res = $mysqli->query("SELECT COALESCE(MAX(position), 0) AS max_pos FROM employee_groups");
+        $next_position = 1;
+        if ($pos_res) {
+            $pos_row = $pos_res->fetch_assoc();
+            $next_position = (int)$pos_row['max_pos'] + 1;
+        }
+
+        $stmt = $mysqli->prepare("INSERT INTO employee_groups (group_name, group_type, description, is_active, position) VALUES (?, ?, ?, ?, ?)");
         if (!$stmt) {
             throw new Exception("Prepare statement failed: " . $mysqli->error);
         }
-        $stmt->bind_param("sssi", $group_name, $group_type, $description, $is_active);
+        $stmt->bind_param("sssii", $group_name, $group_type, $description, $is_active, $next_position);
         if (!$stmt->execute()) {
             throw new Exception("Execute statement failed: " . $stmt->error);
         }

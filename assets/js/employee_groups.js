@@ -24,23 +24,28 @@ function initIndexPage() {
     loadGroups();
 
     // Event Listeners for Filters
-    document.getElementById('searchInput').addEventListener('input', debounce(loadGroups, 500));
-    document.getElementById('filterType').addEventListener('change', loadGroups);
-    document.getElementById('filterStatus').addEventListener('change', loadGroups);
+    document.getElementById('searchInput').addEventListener('input', debounce(() => loadGroups(1), 500));
+    document.getElementById('filterType').addEventListener('change', () => loadGroups(1));
+    document.getElementById('filterStatus').addEventListener('change', () => loadGroups(1));
+    document.getElementById('filterLimit').addEventListener('change', () => loadGroups(1));
 }
 
 function loadGroups(page = 1) {
+    if (typeof page !== 'number') {
+        page = 1;
+    }
     currentPage = page;
     const search = document.getElementById('searchInput').value;
     const type = document.getElementById('filterType').value;
     const status = document.getElementById('filterStatus').value;
+    const currentLimit = document.getElementById('filterLimit')?.value || limit;
     
     const tbody = document.getElementById('groupsTableBody');
     const emptyState = document.getElementById('emptyState');
     const table = document.getElementById('groupsTable');
     
     tbody.innerHTML = `<tr>
-        <td colspan="6" class="p-6">
+        <td colspan="7" class="p-6">
             <div class="animate-pulse flex flex-col gap-4">
                 <div class="h-4 bg-slate-200 rounded w-full"></div>
                 <div class="h-4 bg-slate-200 rounded w-3/4"></div>
@@ -51,12 +56,12 @@ function loadGroups(page = 1) {
     
     table.classList.remove('hidden');
     emptyState.classList.add('hidden');
-
-    let url = `${APP_URL}/api/employee_groups/index.php?page=${page}&limit=${limit}`;
+ 
+    let url = `${APP_URL}/api/employee_groups/index.php?page=${page}&limit=${currentLimit}`;
     if (search) url += `&search=${encodeURIComponent(search)}`;
     if (type) url += `&type=${encodeURIComponent(type)}`;
     if (status) url += `&is_active=${encodeURIComponent(status)}`;
-
+ 
     fetch(url)
         .then(res => res.json())
         .then(res => {
@@ -68,13 +73,98 @@ function loadGroups(page = 1) {
                     emptyState.classList.remove('hidden');
                 }
             } else {
-                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-red-500">Gagal memuat data</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-red-500">Gagal memuat data</td></tr>`;
             }
         })
         .catch(err => {
             console.error(err);
-            tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-red-500">Terjadi kesalahan koneksi</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-red-500">Terjadi kesalahan koneksi</td></tr>`;
         });
+}
+ 
+let dragSrcEl = null;
+
+function handleDragStart(e) {
+    this.classList.add('bg-blue-50', 'border-y-2', 'border-dashed', 'border-blue-400');
+    dragSrcEl = this;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', this.innerHTML);
+}
+
+function handleDragOver(e) {
+    if (e.preventDefault) {
+        e.preventDefault();
+    }
+    e.dataTransfer.dropEffect = 'move';
+    
+    if (this !== dragSrcEl) {
+        const rect = this.getBoundingClientRect();
+        const next = (e.clientY - rect.top) / (rect.bottom - rect.top) > 0.5;
+        const parent = this.parentNode;
+        if (next) {
+            parent.insertBefore(dragSrcEl, this.nextSibling);
+        } else {
+            parent.insertBefore(dragSrcEl, this);
+        }
+    }
+    return false;
+}
+
+function handleDragEnd(e) {
+    document.querySelectorAll('#groupsTableBody tr').forEach(row => {
+        row.classList.remove('bg-blue-50', 'border-y-2', 'border-dashed', 'border-blue-400');
+    });
+}
+
+function handleDrop(e) {
+    if (e.stopPropagation) {
+        e.stopPropagation();
+    }
+    saveNewOrder();
+    return false;
+}
+
+function saveNewOrder() {
+    const rows = document.querySelectorAll('#groupsTableBody tr');
+    const ids = [];
+    rows.forEach(row => {
+        const id = row.getAttribute('data-id');
+        if (id) ids.push(parseInt(id));
+    });
+    
+    if (ids.length === 0) return;
+    
+    fetch(`${APP_URL}/api/employee_groups/reorder.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids })
+    })
+    .then(res => res.json())
+    .then(res => {
+        if (res.status === 'success') {
+            if (typeof showToast === 'function') {
+                showToast('Urutan grup berhasil diperbarui!', 'success');
+            } else {
+                alert('Urutan grup berhasil diperbarui!');
+            }
+        } else {
+            if (typeof showToast === 'function') {
+                showToast(res.message || 'Gagal memperbarui urutan.', 'error');
+            } else {
+                alert(res.message || 'Gagal memperbarui urutan.');
+            }
+            loadGroups(currentPage);
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        if (typeof showToast === 'function') {
+            showToast('Terjadi kesalahan koneksi.', 'error');
+        } else {
+            alert('Terjadi kesalahan koneksi.');
+        }
+        loadGroups(currentPage);
+    });
 }
 
 function renderGroupsTable(data) {
@@ -82,10 +172,15 @@ function renderGroupsTable(data) {
     tbody.innerHTML = '';
     
     if (data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-500">Tidak ada grup ditemukan.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-500">Tidak ada grup ditemukan.</td></tr>`;
         return;
     }
 
+    const search = document.getElementById('searchInput').value;
+    const type = document.getElementById('filterType').value;
+    const status = document.getElementById('filterStatus').value;
+    const isFiltered = !!(search || type || status);
+ 
     data.forEach(group => {
         const typeBadge = group.type === 'dynamic' 
             ? `<span class="inline-flex items-center rounded-md bg-purple-50 px-2 py-1 text-xs font-medium text-purple-700 ring-1 ring-inset ring-purple-700/10">Dynamic</span>`
@@ -94,11 +189,37 @@ function renderGroupsTable(data) {
         const statusBadge = group.is_active == 1
             ? `<span class="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">Aktif</span>`
             : `<span class="inline-flex items-center rounded-md bg-slate-50 px-2 py-1 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-500/10">Tidak Aktif</span>`;
-
+ 
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-slate-50 transition-colors';
+        tr.setAttribute('data-id', group.id);
+        
+        if (!isFiltered) {
+            tr.setAttribute('draggable', 'true');
+            tr.classList.add('cursor-move');
+            tr.addEventListener('dragstart', handleDragStart);
+            tr.addEventListener('dragover', handleDragOver);
+            tr.addEventListener('drop', handleDrop);
+            tr.addEventListener('dragend', handleDragEnd);
+        } else {
+            tr.setAttribute('draggable', 'false');
+        }
+
+        const dragHandleCol = !isFiltered 
+            ? `<td class="whitespace-nowrap py-4 pl-6 pr-3 text-slate-400 cursor-move drag-handle">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9h16.5m-16.5 6.75h16.5" />
+                </svg>
+               </td>`
+            : `<td class="whitespace-nowrap py-4 pl-6 pr-3 text-slate-300 select-none" title="Urutan dinonaktifkan saat filter aktif">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 opacity-30">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9h16.5m-16.5 6.75h16.5" />
+                </svg>
+               </td>`;
+
         tr.innerHTML = `
-            <td class="whitespace-nowrap py-4 pl-6 pr-3 text-sm font-medium text-slate-900">
+            ${dragHandleCol}
+            <td class="whitespace-nowrap py-4 pl-3 pr-3 text-sm font-medium text-slate-900">
                 ${escapeHtml(group.name)}
             </td>
             <td class="whitespace-nowrap px-3 py-4 text-sm text-slate-500">${typeBadge}</td>

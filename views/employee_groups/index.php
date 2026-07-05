@@ -82,6 +82,12 @@ include '../layouts/header.php';
                 <option value="1">Aktif</option>
                 <option value="0">Tidak Aktif</option>
             </select>
+            <select id="filterLimit" class="block w-full rounded-lg border-slate-300 py-2 pl-3 pr-8 text-sm focus:border-cyan-500 focus:ring-cyan-500 bg-white">
+                <option value="10">10 data</option>
+                <option value="25">25 data</option>
+                <option value="50">50 data</option>
+                <option value="all">Semua data</option>
+            </select>
         </div>
     </div>
 
@@ -91,7 +97,8 @@ include '../layouts/header.php';
             <table class="min-w-full divide-y divide-slate-200" id="groupsTable">
                 <thead class="bg-slate-50 border-b border-slate-100">
                     <tr class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                        <th scope="col" class="py-3.5 pl-6 pr-3 text-left">Nama Grup</th>
+                        <th scope="col" class="w-10 pl-6 py-3.5 text-left"></th>
+                        <th scope="col" class="py-3.5 pl-3 pr-3 text-left">Nama Grup</th>
                         <th scope="col" class="px-3 py-3.5 text-left">Jenis</th>
                         <th scope="col" class="px-3 py-3.5 text-left">Status</th>
                         <th scope="col" class="px-3 py-3.5 text-left hidden md:table-cell">Deskripsi</th>
@@ -102,7 +109,7 @@ include '../layouts/header.php';
                 <tbody class="divide-y divide-slate-200 bg-white" id="groupsTableBody">
                     <!-- Skeleton Loader -->
                     <tr id="tableSkeleton">
-                        <td colspan="6" class="p-6">
+                        <td colspan="7" class="p-6">
                             <div class="animate-pulse flex flex-col gap-4">
                                 <div class="h-4 bg-slate-200 rounded w-full"></div>
                                 <div class="h-4 bg-slate-200 rounded w-3/4"></div>
