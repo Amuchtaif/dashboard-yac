@@ -92,6 +92,7 @@ try {
             "can_create_assignment" => (int)hasPermission($user_id, 'manage_assignments'),
             "can_access_kabid" => (int)hasPermission($user_id, 'can_access_kabid'),
             "can_access_kesantrian" => (int)hasPermission($user_id, 'can_access_kesantrian'),
+            "can_manage_activities" => (int)hasPermission($user_id, 'manage_activities'),
             "is_koordinator" => $isKoordinator,
             "is_wali_kelas" => $isWali,
         ];

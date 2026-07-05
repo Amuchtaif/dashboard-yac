@@ -5,6 +5,28 @@ Options -Indexes
     # Aktifkan Rewrite Engine
     RewriteEngine On
 
+    # Custom API routes with ID parameters
+    RewriteRule ^api/tahfidz/entries/([0-9]+)$ api/tahfidz/entries.php?id=$1 [QSA,NC,L]
+    RewriteRule ^api/tahfidz/baselines/([0-9]+)$ api/tahfidz/baselines.php?id=$1 [QSA,NC,L]
+
+    # Amaliyah Admin routes
+    RewriteRule ^api/activity-types/([0-9]+)/status$ api/activity_types.php?id=$1&action=status [QSA,NC,L]
+    RewriteRule ^api/activity-types/([0-9]+)$ api/activity_types.php?id=$1 [QSA,NC,L]
+    RewriteRule ^api/activity-types$ api/activity_types.php [QSA,NC,L]
+    RewriteRule ^api/student-activities/([0-9]+)/attachments/([0-9]+)$ api/attachments.php?activity_id=$1&attachment_id=$2 [QSA,NC,L]
+    RewriteRule ^api/student-activities/([0-9]+)/attachments$ api/attachments.php?activity_id=$1 [QSA,NC,L]
+    RewriteRule ^api/student-activities/([0-9]+)$ api/student_activities.php?id=$1 [QSA,NC,L]
+    RewriteRule ^api/student-activities$ api/student_activities.php [QSA,NC,L]
+
+    # Amaliyah Mobile routes
+    RewriteRule ^api/mobile/activity-types$ api/mobile/activity_types.php [QSA,NC,L]
+    RewriteRule ^api/mobile/students$ api/mobile/students.php [QSA,NC,L]
+    RewriteRule ^api/mobile/student-activities/batch$ api/mobile/student_activities.php?action=batch [QSA,NC,L]
+    RewriteRule ^api/mobile/student-activities/([0-9]+)/attachments/([0-9]+)$ api/mobile/attachments.php?activity_id=$1&attachment_id=$2 [QSA,NC,L]
+    RewriteRule ^api/mobile/student-activities/([0-9]+)/attachments$ api/mobile/attachments.php?activity_id=$1 [QSA,NC,L]
+    RewriteRule ^api/mobile/student-activities/([0-9]+)$ api/mobile/student_activities.php?id=$1 [QSA,NC,L]
+    RewriteRule ^api/mobile/student-activities$ api/mobile/student_activities.php [QSA,NC,L]
+
     # 1. Kecualikan folder 'api' HANYA jika mengakses file langsung
     RewriteCond %{REQUEST_FILENAME} -f
     RewriteCond %{REQUEST_URI} ^/api/ [NC,OR]

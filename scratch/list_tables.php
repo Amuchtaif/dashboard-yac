@@ -1,6 +1,6 @@
 <?php
-require_once 'config/database.php';
-$db = new Database();
-$conn = $db->getConnection();
-$tables = $conn->query('SHOW TABLES')->fetchAll(PDO::FETCH_COLUMN);
-echo implode("\n", $tables);
+require_once __DIR__ . '/../config/db_mysqli.php';
+$res = $mysqli->query('SHOW TABLES');
+while($r = $res->fetch_row()) {
+    echo $r[0] . PHP_EOL;
+}

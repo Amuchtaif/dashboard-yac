@@ -10,18 +10,20 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-if (!isset($_FILES['csv_file']) || $_FILES['csv_file']['error'] !== UPLOAD_ERR_OK) {
+require_once '../../vendor/autoload.php';
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header("Location: " . BASE_URL . "/views/class_schedules/import.php");
+    exit;
+}
+
+$file_key = isset($_FILES['import_file']) ? 'import_file' : 'csv_file';
+if (!isset($_FILES[$file_key]) || $_FILES[$file_key]['error'] !== UPLOAD_ERR_OK) {
     header("Location: " . BASE_URL . "/views/class_schedules/import.php?error=Upload failed or no file selected");
     exit;
 }
 
-$file = $_FILES['csv_file']['tmp_name'];
-$handle = fopen($file, "r");
-
-if ($handle === false) {
-    header("Location: " . BASE_URL . "/views/class_schedules/import.php?error=Could not open file");
-    exit;
-}
+$file = $_FILES[$file_key]['tmp_name'];
 
 $db = new Database();
 $conn = $db->getConnection();
@@ -34,67 +36,29 @@ $rowNumber = 0;
 try {
     $conn->beginTransaction();
 
-    // 1. Get raw content and clean it
-    $content = file_get_contents($file);
+    // Load file using PhpSpreadsheet
+    $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file);
+    $worksheet = $spreadsheet->getActiveSheet();
+    $rows = $worksheet->toArray();
 
-    // Remove UTF-8 BOM if present
-    $bom = pack('H*', 'EFBBBF');
-    $content = preg_replace("/^$bom/", '', $content);
-
-    // 2. Normalize and split into lines
-    $content = str_replace("\r\n", "\n", $content);
-    $content = str_replace("\r", "\n", $content);
-    $lines = explode("\n", $content);
-    $lines = array_filter($lines, function ($l) {
-        return trim($l) !== ''; });
-
-    if (empty($lines)) {
-        throw new Exception("File kosong atau tidak terbaca.");
-    }
-
-    // 3. Detect Delimiter from the first line (header)
-    $headerLine = trim($lines[0]);
-    // If entire line is wrapped in quotes like "A,B,C,D", unwrap it first for detection
-    if (str_starts_with($headerLine, '"') && str_ends_with($headerLine, '"')) {
-        $headerLine = substr($headerLine, 1, -1);
-        $headerLine = str_replace('""', '"', $headerLine);
-    }
-
-    $delimiters = [',', ';', "\t"];
-    $delimiter = ',';
-    $maxCount = -1;
-
-    foreach ($delimiters as $d) {
-        $count = substr_count($headerLine, $d);
-        if ($count > $maxCount) {
-            $maxCount = $count;
-            $delimiter = $d;
-        }
-    }
-
-    // 4. Process each row
-    $startIndex = 1; // Skip header
-    for ($i = $startIndex; $i < count($lines); $i++) {
+    // Loop starts at 1 to skip header row
+    for ($i = 1; $i < count($rows); $i++) {
         $rowNumber = $i + 1;
-        $line = trim($lines[$i]);
-        if (empty($line))
-            continue;
+        $data = $rows[$i];
 
-        // CRITICAL FIX: If Excel wrapped the whole line in quotes: "Day,Unit,Grade..."
-        if (str_starts_with($line, '"') && str_ends_with($line, '"')) {
-            // Check if it's a "faked" CSV line where the whole thing is one quoted string
-            // We strip leading/trailing quote and unescape double-double quotes
-            $testLine = substr($line, 1, -1);
-            $testLine = str_replace('""', '"', $testLine);
-            $data = str_getcsv($testLine, $delimiter);
-        } else {
-            $data = str_getcsv($line, $delimiter);
+        // Skip completely empty rows
+        if (empty($data) || (!isset($data[0]) && !isset($data[1]) && !isset($data[2]))) {
+            continue;
+        }
+
+        // If row is partially filled but missing main columns
+        if (empty($data[0]) && empty($data[1]) && empty($data[2])) {
+            continue;
         }
 
         if (count($data) < 7) {
             $errorCount++;
-            $preview = htmlspecialchars(substr($line, 0, 50));
-            $errors[] = "Baris $rowNumber: Kolom tidak lengkap (Hanya " . count($data) . " kolom). Isi: [$preview]. Pastikan file disimpan sebagai CSV (Comma Delimited).";
+            $errors[] = "Baris $rowNumber: Kolom tidak lengkap (Hanya " . count($data) . " kolom). Pastikan format file sesuai template.";
             continue;
         }
 
@@ -334,10 +298,9 @@ try {
     exit;
 
 } catch (Exception $e) {
-    if ($conn->inTransaction()) {
+    if (isset($conn) && $conn->inTransaction()) {
         $conn->rollBack();
     }
-    fclose($handle);
     header("Location: " . BASE_URL . "/views/class_schedules/import.php?error=" . urlencode('Error Sistem: ' . $e->getMessage()));
     exit;
 }

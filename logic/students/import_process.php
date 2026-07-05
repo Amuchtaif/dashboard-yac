@@ -9,18 +9,20 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-if (!isset($_FILES['csv_file']) || $_FILES['csv_file']['error'] !== UPLOAD_ERR_OK) {
+require_once '../../vendor/autoload.php';
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header("Location: " . BASE_URL . "/views/students/import.php");
+    exit;
+}
+
+$file_key = isset($_FILES['import_file']) ? 'import_file' : 'csv_file';
+if (!isset($_FILES[$file_key]) || $_FILES[$file_key]['error'] !== UPLOAD_ERR_OK) {
     header("Location: " . BASE_URL . "/views/students/import.php?error=Gagal mengunggah file atau tidak ada file yang dipilih");
     exit;
 }
 
-$file = $_FILES['csv_file']['tmp_name'];
-$handle = fopen($file, "r");
-
-if ($handle === false) {
-    header("Location: " . BASE_URL . "/views/students/import.php?error=Tidak dapat membuka file");
-    exit;
-}
+$file = $_FILES[$file_key]['tmp_name'];
 
 $db = new Database();
 $conn = $db->getConnection();
@@ -35,25 +37,32 @@ $active_year_id = 1; // Default Academic Year
 try {
     $conn->beginTransaction();
 
-    // Skip Header Row if desired (assuming user downloads template which has header)
-    // Let's verify header or just skip first row
-    $header = fgetcsv($handle, 1000, ",");
+    // Load file using PhpSpreadsheet
+    $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file);
+    $worksheet = $spreadsheet->getActiveSheet();
+    $rows = $worksheet->toArray();
+
     // Format expected: Nama Siswa, NISN, Kelas
+    // Loop starts at 1 to skip header row
+    for ($i = 1; $i < count($rows); $i++) {
+        $rowNumber = $i + 1;
+        $data = $rows[$i];
 
-    while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
-        $rowNumber++;
-
-        // Basic validation: Check column count (at least 3)
-        if (count($data) < 3) {
-            $errorCount++;
-            $errors[] = "Row $rowNumber: Insufficient columns.";
+        // Skip completely empty rows
+        if (empty($data) || (!isset($data[0]) && !isset($data[1]))) {
             continue;
         }
 
-        $nama_siswa = trim($data[0]);
+        $nama_siswa = isset($data[0]) ? trim($data[0]) : '';
+        $nisn = isset($data[1]) ? trim($data[1]) : '';
+        $kelas_nama = isset($data[2]) ? trim($data[2]) : '';
+
+        // If the row is partially filled but missing main columns
+        if (empty($nama_siswa) && empty($nisn)) {
+            continue;
+        }
+
         $nama_siswa = ucwords(strtolower($nama_siswa));
-        $nisn = trim($data[1]);
-        $kelas_nama = trim($data[2]);
 
         if (empty($nama_siswa) || empty($nisn)) {
             $errorCount++;
@@ -120,7 +129,6 @@ try {
     }
 
     $conn->commit();
-    fclose($handle);
 
     $msg = "Impor Berhasil! Memproses: $successCount siswa.";
     if ($errorCount > 0) {
@@ -131,10 +139,9 @@ try {
     exit;
 
 } catch (Exception $e) {
-    if ($conn->inTransaction()) {
+    if (isset($conn) && $conn->inTransaction()) {
         $conn->rollBack();
     }
-    fclose($handle);
     error_log($e->getMessage());
     header("Location: " . BASE_URL . "/views/students/import.php?error=" . urlencode('Kesalahan Sistem: ' . $e->getMessage()));
     exit;

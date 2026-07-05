@@ -112,6 +112,15 @@ include '../layouts/header.php';
             <h1 class="text-2xl font-bold text-slate-800"><?php echo $page_title; ?></h1>
             <p class="text-slate-500 mt-1">Pantau riwayat perolehan nilai siswa secara real-time.</p>
         </div>
+        <div class="mt-4 sm:mt-0 flex gap-2">
+            <a href="../../logic/student_assessments/export_excel.php?<?php echo http_build_query($_GET); ?>" 
+                class="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-emerald-600/20 hover:bg-emerald-700 active:scale-95 transition-all">
+                <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Export Excel
+            </a>
+        </div>
     </div>
 
     <!-- Filter Bar (Custom Searchable Dropdowns Like Jurnal Kelas) -->

@@ -147,14 +147,14 @@ include '../layouts/header.php';
                                 placeholder="••••••••">
                         </div>
 
-                        <!-- Gender Mock (Aligned) -->
+                        <!-- Gender (Aligned) -->
                         <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">Gender</label>
-                            <select
+                            <label for="gender" class="block text-sm font-semibold text-slate-700 mb-1">Gender <span class="text-red-500">*</span></label>
+                            <select name="gender" id="gender" required
                                 class="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all text-slate-600">
-                                <option>Select Gender</option>
-                                <option>Male</option>
-                                <option>Female</option>
+                                <option value="">Select Gender</option>
+                                <option value="Male">Male (Ikhwan)</option>
+                                <option value="Female">Female (Akhwat)</option>
                             </select>
                         </div>
 

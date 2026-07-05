@@ -34,7 +34,7 @@ include '../layouts/header.php';
                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="m1 9 4-4-4-4" />
                     </svg>
-                    <span class="text-slate-800 font-medium">Import CSV</span>
+                    <span class="text-slate-800 font-medium">Import Excel</span>
                 </div>
             </li>
         </ol>
@@ -42,7 +42,7 @@ include '../layouts/header.php';
 
     <div class="mb-8">
         <h1 class="text-2xl font-bold text-slate-900">Import Data Siswa</h1>
-        <p class="mt-2 text-sm text-slate-600">Unggah file CSV untuk menambahkan atau memperbarui data siswa secara
+        <p class="mt-2 text-sm text-slate-600">Unggah file Excel untuk menambahkan atau memperbarui data siswa secara
             massal.</p>
     </div>
 
@@ -52,14 +52,14 @@ include '../layouts/header.php';
         <div class="mb-8 p-4 bg-cyan-50 border border-cyan-100 rounded-lg">
             <h3 class="font-semibold text-cyan-800 mb-2">Petunjuk:</h3>
             <ul class="list-disc list-inside text-sm text-cyan-700 space-y-1">
-                <li>Gunakan format file <strong>.CSV</strong> (Comma Separated Values).</li>
+                <li>Gunakan format file Excel (<strong>.xlsx</strong> / <strong>.xls</strong>).</li>
                 <li>Struktur kolom wajib: <strong>Nama Siswa, NISN, Kelas</strong>.</li>
                 <li>Jika NISN sudah ada, data siswa akan diperbarui.</li>
                 <li>Jika Kelas belum ada di sistem, kelas baru akan dibuat otomatis.</li>
                 <li>
                     <a href="<?php url('logic/students/download_template.php'); ?>"
                         class="underline font-bold hover:text-cyan-900">
-                        Unduh Template CSV
+                        Unduh Template Excel
                     </a>
                 </li>
             </ul>
@@ -69,7 +69,7 @@ include '../layouts/header.php';
             class="space-y-6">
 
             <div>
-                <label class="block text-sm font-semibold text-slate-900 mb-2">Pilih File CSV</label>
+                <label class="block text-sm font-semibold text-slate-900 mb-2">Pilih File Excel</label>
                 <div class="flex items-center justify-center w-full">
                     <label for="dropzone-file"
                         class="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-300 border-dashed rounded-lg cursor-pointer bg-slate-50 dark:hover:bg-bray-800 hover:bg-slate-100 transition-all">
@@ -82,9 +82,9 @@ include '../layouts/header.php';
                             </svg>
                             <p class="mb-2 text-sm text-slate-500"><span class="font-semibold">Klik untuk unggah</span>
                                 atau seret file ke sini</p>
-                            <p class="text-xs text-slate-500">Max. 2MB</p>
+                            <p class="text-xs text-slate-500">Excel (.xlsx, .xls). Max. 2MB</p>
                         </div>
-                        <input id="dropzone-file" name="csv_file" type="file" class="hidden" accept=".csv" required />
+                        <input id="dropzone-file" name="import_file" type="file" class="hidden" accept=".xlsx, .xls" required />
                     </label>
                 </div>
             </div>

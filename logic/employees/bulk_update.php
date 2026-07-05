@@ -12,6 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $unit_id = $_POST['unit_id'] ?? '';
     $position_id = $_POST['position_id'] ?? '';
     $schedule_id = $_POST['schedule_id'] ?? '';
+    $gender = $_POST['gender'] ?? '';
     $return_filters = $_POST['return_filters'] ?? '';
     $redirect_qs = $return_filters ? "&" . $return_filters : "";
 
@@ -57,6 +58,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $update_parts[] = "schedule_id = ?";
                 $execute_params[] = $schedule_id;
             }
+        }
+
+        // GENDER UPDATE
+        if ($gender !== '') {
+            $update_parts[] = "gender = ?";
+            $execute_params[] = $gender;
         }
 
         if (!empty($update_parts)) {

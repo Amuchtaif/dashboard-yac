@@ -34,7 +34,7 @@ include '../layouts/header.php';
                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="m1 9 4-4-4-4" />
                     </svg>
-                    <span class="text-slate-800 font-medium">Import CSV</span>
+                    <span class="text-slate-800 font-medium">Import Excel</span>
                 </div>
             </li>
         </ol>
@@ -42,7 +42,7 @@ include '../layouts/header.php';
 
     <div class="mb-8">
         <h1 class="text-2xl font-bold text-slate-900">Import Jadwal Pelajaran</h1>
-        <p class="mt-2 text-sm text-slate-600">Unggah file CSV untuk mengunggah jadwal pelajaran secara massal.</p>
+        <p class="mt-2 text-sm text-slate-600">Unggah file Excel untuk mengunggah jadwal pelajaran secara massal.</p>
     </div>
 
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
@@ -51,7 +51,7 @@ include '../layouts/header.php';
         <div class="mb-8 p-4 bg-cyan-50 border border-cyan-100 rounded-lg">
             <h3 class="font-semibold text-cyan-800 mb-2 text-sm">Petunjuk:</h3>
             <ul class="list-disc list-inside text-xs text-cyan-700 space-y-2">
-                <li>Gunakan format file <strong>.CSV</strong>.</li>
+                <li>Gunakan format file Excel (<strong>.xlsx</strong> / <strong>.xls</strong>).</li>
                 <li>Struktur kolom: <strong>Hari, Unit, Kelas, Mapel, Guru, Jam Ke Mulai, Jam Ke Selesai, Tahun Akademik</strong>.</li>
                 <li><strong>Hari</strong> diisi dalam Bahasa Inggris (Monday, Tuesday, dst).</li>
                 <li><strong>Jam Ke</strong> diisi dengan angka urutan jam pelajaran (misal: 1, 2, dst).</li>
@@ -62,7 +62,7 @@ include '../layouts/header.php';
                         <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                         </svg>
-                        Unduh Template CSV
+                        Unduh Template Excel
                     </a>
                 </li>
             </ul>
@@ -72,7 +72,7 @@ include '../layouts/header.php';
             class="space-y-6">
 
             <div>
-                <label class="block text-sm font-semibold text-slate-900 mb-2">Pilih File CSV</label>
+                <label class="block text-sm font-semibold text-slate-900 mb-2">Pilih File Excel</label>
                 <div class="flex items-center justify-center w-full">
                     <label for="dropzone-file"
                         class="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-300 border-dashed rounded-lg cursor-pointer bg-slate-50 hover:bg-slate-100 transition-all">
@@ -85,9 +85,9 @@ include '../layouts/header.php';
                             </svg>
                             <p class="mb-2 text-sm text-slate-500"><span class="font-semibold">Klik untuk unggah</span>
                                 atau seret file ke sini</p>
-                            <p class="text-xs text-slate-500">Max. 2MB</p>
+                            <p class="text-xs text-slate-500">Excel (.xlsx, .xls). Max. 2MB</p>
                         </div>
-                        <input id="dropzone-file" name="csv_file" type="file" class="hidden" accept=".csv" required />
+                        <input id="dropzone-file" name="import_file" type="file" class="hidden" accept=".xlsx, .xls" required />
                     </label>
                 </div>
             </div>

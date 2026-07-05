@@ -505,6 +505,34 @@ include '../layouts/header.php';
                     </div>
                 </div>
 
+                <!-- Gender Dropdown -->
+                <div class="relative group" id="bulk-gender-container">
+                    <input type="hidden" name="gender" id="bulk-gender-input">
+                    <button type="button" onclick="toggleBulkDropdown('gender')"
+                        class="flex w-40 items-center justify-between rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 hover:border-slate-300 px-3.5 py-2.5 text-sm font-medium text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200 transition-all">
+                        <span id="bulk-gender-text" class="block truncate">Gender</span>
+                        <svg class="h-4 w-4 text-slate-400 transition-transform duration-200" id="bulk-gender-arrow"
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <div id="bulk-gender-menu"
+                        class="hidden absolute bottom-full left-0 mb-2 w-full origin-bottom-left rounded-xl bg-white shadow-2xl border border-slate-100 ring-0 focus:outline-none z-50 max-h-60 overflow-y-auto">
+                        <ul class="py-1">
+                            <li onclick="selectBulkOption('gender', '', 'Gender')"
+                                class="cursor-pointer px-3 py-2 text-sm text-slate-400 hover:bg-slate-50 hover:text-slate-600 rounded-lg m-1 transition-colors">
+                                Ubah Gender</li>
+                            <li onclick="selectBulkOption('gender', 'Male', 'Laki-laki')"
+                                class="cursor-pointer px-3 py-2 text-sm text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 rounded-lg m-1 transition-colors">
+                                Laki-laki</li>
+                            <li onclick="selectBulkOption('gender', 'Female', 'Perempuan')"
+                                class="cursor-pointer px-3 py-2 text-sm text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 rounded-lg m-1 transition-colors">
+                                Perempuan</li>
+                        </ul>
+                    </div>
+                </div>
+
+
                 <button type="submit"
                     class="rounded-xl bg-cyan-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-cyan-600/10 hover:bg-cyan-500 hover:shadow-cyan-500/20 active:scale-95 transition-all">
                     Terapkan
@@ -538,6 +566,9 @@ include '../layouts/header.php';
                         </th>
                         <th scope="col" class="px-3 py-3.5 text-left min-w-[200px]">
                             Kontak
+                        </th>
+                        <th scope="col" class="px-3 py-3.5 text-left w-24">
+                            Gender
                         </th>
                         <th scope="col" class="px-3 py-3.5 text-left min-w-[150px]">
                             Jabatan
@@ -599,6 +630,18 @@ include '../layouts/header.php';
                                     </svg>
                                     <?php echo htmlspecialchars($emp['phone_number'] ?? '-'); ?>
                                 </div>
+                            </td>
+                            <td class="whitespace-nowrap px-3 py-4 text-sm text-slate-500 font-medium">
+                                <?php 
+                                $genderVal = $emp['gender'] ?? '';
+                                if ($genderVal === 'Male') {
+                                    echo '<span class="inline-flex items-center rounded-md bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">Laki-laki</span>';
+                                } elseif ($genderVal === 'Female') {
+                                    echo '<span class="inline-flex items-center rounded-md bg-pink-50 px-2.5 py-0.5 text-xs font-medium text-pink-700 ring-1 ring-inset ring-pink-700/10">Perempuan</span>';
+                                } else {
+                                    echo '<span class="inline-flex items-center rounded-md bg-slate-50 px-2.5 py-0.5 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-500/10">-</span>';
+                                }
+                                ?>
                             </td>
                             <td class="px-3 py-4">
                                 <span class="inline-flex items-center rounded-md bg-cyan-50 px-2 py-1 text-xs font-bold text-cyan-700 ring-1 ring-inset ring-cyan-700/10">

@@ -239,6 +239,34 @@ $return_filters_qs = http_build_query($return_filters);
                                 placeholder="••••••••">
                         </div>
 
+                        <!-- Gender (Custom Dropdown) -->
+                        <div class="relative group" id="container-gender">
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Gender <span class="text-red-500">*</span></label>
+                            <input type="hidden" name="gender" id="input-gender" value="<?php echo htmlspecialchars($employee['gender'] ?? ''); ?>" required>
+                            <button type="button" onclick="toggleFormDropdown('gender')"
+                                class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all">
+                                <span id="text-gender" class="block truncate">
+                                    <?php
+                                    $genderVal = $employee['gender'] ?? '';
+                                    if ($genderVal === 'Male') echo 'Laki-laki';
+                                    elseif ($genderVal === 'Female') echo 'Perempuan';
+                                    else echo 'Pilih Gender';
+                                    ?>
+                                </span>
+                                <svg class="h-4 w-4 text-slate-400 transition-transform duration-200" id="arrow-gender" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                            <div id="menu-gender" class="hidden absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                                <ul class="py-1">
+                                    <li onclick="selectFormOption('gender', '', 'Pilih Gender')" class="cursor-pointer select-none py-2 pl-3 pr-9 text-slate-500 hover:bg-slate-50">Pilih Gender</li>
+                                    <li onclick="selectFormOption('gender', 'Male', 'Laki-laki')" class="cursor-pointer select-none py-2 pl-3 pr-9 text-slate-900 hover:bg-cyan-50 hover:text-cyan-700">Laki-laki</li>
+                                    <li onclick="selectFormOption('gender', 'Female', 'Perempuan')" class="cursor-pointer select-none py-2 pl-3 pr-9 text-slate-900 hover:bg-cyan-50 hover:text-cyan-700">Perempuan</li>
+                                </ul>
+                            </div>
+                        </div>
+
+
                         <!-- Address (Full Width) -->
                         <div class="md:col-span-2">
                             <label for="address" class="block text-sm font-semibold text-slate-700 mb-1">Alamat <span

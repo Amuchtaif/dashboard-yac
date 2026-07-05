@@ -15,6 +15,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $unit_id = $_POST['unit_id'] ?: null;
     $position_id = $_POST['position_id'] ?: null;
     $schedule_id = !empty($_POST['schedule_id']) ? $_POST['schedule_id'] : null;
+    $gender = $_POST['gender'] ?: null;
     $return_filters = isset($_POST['return_filters']) ? $_POST['return_filters'] : '';
     $redirect_qs = $return_filters ? "&" . $return_filters : "";
     
@@ -37,7 +38,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 
-    if (!empty($full_name) && !empty($email) && !empty($password) && !empty($phone) && !empty($address) && !empty($nik)) {
+    if (!empty($full_name) && !empty($email) && !empty($password) && !empty($phone) && !empty($address) && !empty($nik) && !empty($gender)) {
         $db = new Database();
         $conn = $db->getConnection();
 
@@ -52,7 +53,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
         try {
-            $stmt = $conn->prepare("INSERT INTO employees (nik, full_name, email, phone_number, address, password, division_id, unit_id, schedule_id, position_id, profile_photo) VALUES (:nik, :name, :email, :phone, :address, :pass, :div, :unit, :sched, :pos, :photo)");
+            $stmt = $conn->prepare("INSERT INTO employees (nik, full_name, email, phone_number, address, password, division_id, unit_id, schedule_id, position_id, profile_photo, gender) VALUES (:nik, :name, :email, :phone, :address, :pass, :div, :unit, :sched, :pos, :photo, :gender)");
             $stmt->bindParam(':nik', $nik);
             $stmt->bindParam(':name', $full_name);
             $stmt->bindParam(':email', $email);
@@ -64,7 +65,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt->bindParam(':sched', $schedule_id);
             $stmt->bindParam(':pos', $position_id);
             $stmt->bindParam(':photo', $profile_photo);
+            $stmt->bindParam(':gender', $gender);
             $stmt->execute();
+
 
             header("Location: ../../views/employees/index.php?success=Data pegawai berhasil ditambahkan" . $redirect_qs);
         } catch (PDOException $e) {

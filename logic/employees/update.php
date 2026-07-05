@@ -16,11 +16,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $unit_id = $_POST['unit_id'] ?: null;
     $position_id = $_POST['position_id'] ?: null;
     $schedule_id = !empty($_POST['schedule_id']) ? $_POST['schedule_id'] : null;
+    $gender = $_POST['gender'] ?: null;
     $remove_photo = isset($_POST['remove_photo']) && $_POST['remove_photo'] == "1";
     $return_filters = isset($_POST['return_filters']) ? $_POST['return_filters'] : '';
     $redirect_qs = $return_filters ? "&" . $return_filters : "";
 
-    if (!empty($full_name) && !empty($email) && !empty($id) && !empty($nik)) {
+    if (!empty($full_name) && !empty($email) && !empty($id) && !empty($nik) && !empty($gender)) {
         $db = new Database();
         $conn = $db->getConnection();
 
@@ -78,6 +79,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 ':pos' => $position_id,
                 ':sched' => $schedule_id,
                 ':photo' => $profile_photo,
+                ':gender' => $gender,
                 ':id' => $id
             ];
 
@@ -94,7 +96,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             unit_id = :unit, 
                             position_id = :pos, 
                             schedule_id = :sched,
-                            profile_photo = :photo 
+                            profile_photo = :photo,
+                            gender = :gender
                         WHERE id = :id";
                 $params[':pass'] = $hashed_password;
             } else {
@@ -108,7 +111,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             unit_id = :unit, 
                             position_id = :pos, 
                             schedule_id = :sched,
-                            profile_photo = :photo 
+                            profile_photo = :photo,
+                            gender = :gender
                         WHERE id = :id";
             }
 
