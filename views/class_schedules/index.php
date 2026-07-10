@@ -22,11 +22,28 @@ $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $unit_id = isset($_GET['unit_id']) ? $_GET['unit_id'] : '';
 $grade_id = isset($_GET['grade_id']) ? $_GET['grade_id'] : '';
 $day = isset($_GET['day']) ? $_GET['day'] : '';
+$ay_id = isset($_GET['ay_id']) ? $_GET['ay_id'] : '';
 
 $is_admin = (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Administrator');
 
+// --- Fetch Active Academic Year ---
+$active_year_query = "SELECT id FROM academic_years WHERE is_active = 1 LIMIT 1";
+$active_year_stmt = $conn->query($active_year_query);
+$active_year_id = $active_year_stmt->fetchColumn();
+
+if (empty($ay_id)) {
+    $selected_year_id = $active_year_id;
+} else {
+    $selected_year_id = $ay_id;
+}
+
 $where_clauses = [];
 $params = [];
+
+if ($selected_year_id) {
+    $where_clauses[] = "cs.academic_year_id = :selected_year_id";
+    $params[':selected_year_id'] = $selected_year_id;
+}
 
 if (!$is_admin) {
     $where_clauses[] = "cs.employee_id = :current_user_id";
@@ -58,6 +75,7 @@ $where_sql = count($where_clauses) > 0 ? "WHERE " . implode(" AND ", $where_clau
 // --- Data Master untuk Filter ---
 $units = $conn->query("SELECT id, name FROM education_units ORDER BY FIELD(name, 'Playgroup', 'TKIT', 'SDIT', 'MTs', 'Idad Lughoh', 'MA', 'Mahad Aly') ASC, name ASC")->fetchAll(PDO::FETCH_ASSOC);
 $grades = $conn->query("SELECT id, name, education_unit_id FROM grade_levels ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
+$academic_years = $conn->query("SELECT id, name, semester, is_active FROM academic_years ORDER BY start_date DESC")->fetchAll(PDO::FETCH_ASSOC);
 
 // Map Hari ke Bahasa Indonesia
 $indo_days = [
@@ -175,7 +193,7 @@ include '../layouts/header.php';
     <!-- Filter Bar -->
     <form id="filterForm" class="mt-8 bg-white p-6 rounded-xl border border-slate-200 shadow-sm" method="GET">
         <input type="hidden" name="limit" id="input-limit" value="<?php echo $limit; ?>">
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 items-end">
             <!-- Search -->
             <div class="relative">
                 <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
@@ -188,6 +206,38 @@ include '../layouts/header.php';
                 <input type="text" name="search" value="<?php echo htmlspecialchars($search); ?>"
                     class="block w-full rounded-lg border-slate-200 pl-10 text-sm focus:border-cyan-500 focus:ring-cyan-500 bg-slate-50 border placeholder:text-slate-400 text-slate-600 py-2.5"
                     placeholder="Cari guru, mapel...">
+            </div>
+
+            <!-- Custom Academic Year Dropdown -->
+            <div class="relative" id="container-ay_id">
+                <input type="hidden" name="ay_id" id="input-ay_id" value="<?php echo $selected_year_id; ?>">
+                <button type="button" onclick="toggleFormDropdown('ay_id')"
+                    class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-slate-50 px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all">
+                    <span id="text-ay_id" class="block truncate">
+                        <?php 
+                        $ayTitle = "Pilih Tahun Ajaran";
+                        foreach($academic_years as $ay) {
+                            if($ay['id'] == $selected_year_id) {
+                                $ayTitle = $ay['name'] . ' - ' . $ay['semester'] . ($ay['is_active'] == 1 ? ' (Aktif)' : '');
+                                break;
+                            }
+                        }
+                        echo htmlspecialchars($ayTitle);
+                        ?>
+                    </span>
+                    <svg id="arrow-ay_id" class="h-4 w-4 text-slate-400 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+                <div id="menu-ay_id" class="hidden absolute z-30 mt-1 max-h-60 w-full overflow-auto rounded-xl bg-white py-1 text-base shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                    <ul id="list-ay_id">
+                        <?php foreach ($academic_years as $ay): ?>
+                            <li onclick="selectFilterOption('ay_id', '<?php echo $ay['id']; ?>', '<?php echo htmlspecialchars($ay['name'] . ' - ' . $ay['semester'] . ($ay['is_active'] == 1 ? ' (Aktif)' : ''), ENT_QUOTES); ?>')" class="relative cursor-pointer select-none py-2 pl-3 pr-9 text-slate-600 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
+                                <?php echo htmlspecialchars($ay['name'] . ' - ' . $ay['semester'] . ($ay['is_active'] == 1 ? ' (Aktif)' : '')); ?>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
             </div>
 
             <!-- Custom Education Unit Dropdown -->

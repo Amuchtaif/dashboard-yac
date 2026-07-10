@@ -28,31 +28,42 @@ if (!$group || (!$is_admin && $group['teacher_id'] != $_SESSION['user_id'])) {
 
 $page_title = "Anggota Halaqah - " . $group['group_name'];
 
+// --- Fetch Active Academic Year ---
+$active_year_query = "SELECT id FROM academic_years WHERE is_active = 1 LIMIT 1";
+$active_year_stmt = $conn->query($active_year_query);
+$active_year_id = $active_year_stmt->fetchColumn();
+
 // Fetch members
 $members_query = "
-    SELECT hm.*, s.nama_siswa, s.nomor_induk as student_nik, s.kelas as class_name
+    SELECT hm.*, s.nama_siswa, s.nomor_induk as student_nik, gl.name as class_name
     FROM halaqah_members hm
     JOIN students s ON hm.student_id = s.id
+    JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = ?
+    JOIN grade_levels gl ON sch.class_id = gl.id
     WHERE hm.group_id = ?
     ORDER BY s.nama_siswa ASC
 ";
 $members_stmt = $conn->prepare($members_query);
-$members_stmt->execute([$group_id]);
+$members_stmt->execute([$active_year_id, $group_id]);
 $members = $members_stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Fetch students not in ANY halaqah group for adding
-// Note: We follow the room_members.php logic of excluding some units if needed, 
-// but here we just strictly exclude those already in THIS group or ANY group (optional).
-// For now, let's strictly exclude those already in THIS group.
+// Only select active students placed in the active academic year
 $available_students_query = "
-    SELECT id, nama_siswa, nomor_induk, kelas
-    FROM students 
-    WHERE status = 'Aktif'
-    AND id NOT IN (SELECT student_id FROM halaqah_members)
-    ORDER BY nama_siswa ASC
+    SELECT s.id, s.nama_siswa, s.nomor_induk, gl.name as kelas
+    FROM students s
+    JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = ?
+    JOIN grade_levels gl ON sch.class_id = gl.id
+    WHERE s.status = 'Aktif'
+    AND s.id NOT IN (
+        SELECT hm.student_id 
+        FROM halaqah_members hm
+        JOIN student_class_history sch2 ON hm.student_id = sch2.student_id AND sch2.academic_year_id = ?
+    )
+    ORDER BY s.nama_siswa ASC
 ";
 $available_stmt = $conn->prepare($available_students_query);
-$available_stmt->execute();
+$available_stmt->execute([$active_year_id, $active_year_id]);
 $available_students = $available_stmt->fetchAll(PDO::FETCH_ASSOC);
 
 include '../layouts/header.php';

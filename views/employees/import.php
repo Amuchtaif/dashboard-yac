@@ -169,7 +169,7 @@ unset($_SESSION['import_errors']);
                             <h4 class="font-bold text-slate-800 mb-1">Input Data Sesuai Aturan</h4>
                             <ul class="list-disc list-inside space-y-1 mt-1 text-[11px] text-slate-500">
                                 <li><strong class="text-slate-700">NIK & Email:</strong> Harus unik di sistem.</li>
-                                <li><strong class="text-slate-700">Wajib Diisi:</strong> NIK, Nama, Email, Telp, Alamat, ID Bidang, ID Jabatan, Password.</li>
+                                <li><strong class="text-slate-700">Wajib Diisi:</strong> NIK, Nama, Email, Telp, Alamat, Jenis Kelamin (L/P), ID Bidang, ID Jabatan, Password.</li>
                                 <li><strong class="text-slate-700">Boleh Kosong:</strong> ID Unit, ID Jadwal.</li>
                             </ul>
                         </div>

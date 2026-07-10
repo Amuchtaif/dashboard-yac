@@ -61,7 +61,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES['import_file'])) {
     $file_emails = [];
 
     // Columns index mapping:
-    // A: No, B: NIK, C: Nama Lengkap, D: Email, E: No. Telepon, F: Alamat, G: ID Bidang, H: ID Unit, I: ID Jabatan, J: ID Jadwal Kerja, K: Password
+    // A: No, B: NIK, C: Nama Lengkap, D: Email, E: No. Telepon, F: Alamat, G: Gender, H: ID Bidang, I: ID Unit, J: ID Jabatan, K: ID Jadwal Kerja, L: Password
     foreach ($rows as $index => $row) {
         $row_index++;
         if ($row_index === 1) {
@@ -75,14 +75,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES['import_file'])) {
         $email = isset($row['D']) ? trim((string)$row['D']) : '';
         $phone = isset($row['E']) ? trim((string)$row['E']) : '';
         $address = isset($row['F']) ? trim((string)$row['F']) : '';
-        $division_id = isset($row['G']) && trim((string)$row['G']) !== '' ? (int)$row['G'] : null;
-        $unit_id = isset($row['H']) && trim((string)$row['H']) !== '' ? (int)$row['H'] : null;
-        $position_id = isset($row['I']) && trim((string)$row['I']) !== '' ? (int)$row['I'] : null;
-        $schedule_id = isset($row['J']) && trim((string)$row['J']) !== '' ? (int)$row['J'] : null;
-        $password = isset($row['K']) ? trim((string)$row['K']) : '';
+        $gender_raw = isset($row['G']) ? trim((string)$row['G']) : '';
+        $division_id = isset($row['H']) && trim((string)$row['H']) !== '' ? (int)$row['H'] : null;
+        $unit_id = isset($row['I']) && trim((string)$row['I']) !== '' ? (int)$row['I'] : null;
+        $position_id = isset($row['J']) && trim((string)$row['J']) !== '' ? (int)$row['J'] : null;
+        $schedule_id = isset($row['K']) && trim((string)$row['K']) !== '' ? (int)$row['K'] : null;
+        $password = isset($row['L']) ? trim((string)$row['L']) : '';
 
         // Skip completely empty rows
-        if (empty($nik) && empty($full_name) && empty($email) && empty($phone) && empty($address) && empty($password)) {
+        if (empty($nik) && empty($full_name) && empty($email) && empty($phone) && empty($address) && empty($gender_raw) && empty($password)) {
             continue;
         }
 
@@ -106,6 +107,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES['import_file'])) {
         if (empty($address)) {
             $row_errors[] = "Alamat wajib diisi.";
         }
+        
+        // Gender validation and mapping
+        $gender = null;
+        if (empty($gender_raw)) {
+            $row_errors[] = "Jenis Kelamin wajib diisi.";
+        } else {
+            $gender_lower = strtolower($gender_raw);
+            if (in_array($gender_lower, ['l', 'laki-laki', 'laki laki', 'male', 'm'])) {
+                $gender = 'Male';
+            } elseif (in_array($gender_lower, ['p', 'perempuan', 'female', 'f'])) {
+                $gender = 'Female';
+            } else {
+                $row_errors[] = "Jenis Kelamin tidak valid (Harus Male/Female atau Laki-laki/Perempuan).";
+            }
+        }
+
         if ($division_id === null) {
             $row_errors[] = "ID Bidang wajib diisi.";
         }
@@ -163,6 +180,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES['import_file'])) {
                 'email' => $email,
                 'phone' => $phone,
                 'address' => $address,
+                'gender' => $gender,
                 'division_id' => $division_id,
                 'unit_id' => $unit_id,
                 'position_id' => $position_id,
@@ -184,9 +202,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES['import_file'])) {
 
         $stmt = $conn->prepare("
             INSERT INTO employees 
-            (nik, full_name, email, phone_number, address, password, division_id, unit_id, position_id, schedule_id) 
+            (nik, full_name, email, phone_number, address, gender, password, division_id, unit_id, position_id, schedule_id) 
             VALUES 
-            (:nik, :name, :email, :phone, :address, :pass, :div, :unit, :pos, :sched)
+            (:nik, :name, :email, :phone, :address, :gender, :pass, :div, :unit, :pos, :sched)
         ");
 
         foreach ($to_import as $emp) {
@@ -196,6 +214,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES['import_file'])) {
                 ':email' => $emp['email'],
                 ':phone' => $emp['phone'],
                 ':address' => $emp['address'],
+                ':gender' => $emp['gender'],
                 ':pass' => $emp['password'],
                 ':div' => $emp['division_id'],
                 ':unit' => $emp['unit_id'],

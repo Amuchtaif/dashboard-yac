@@ -64,6 +64,7 @@ $headers = [
     'Email (Wajib, Unik)', 
     'No. Telepon (Wajib)', 
     'Alamat (Wajib)', 
+    'Jenis Kelamin (L/P - Wajib)',
     'ID Bidang (Wajib)', 
     'ID Unit (Boleh Kosong)', 
     'ID Jabatan (Wajib)', 
@@ -89,6 +90,7 @@ $samples = [
         'email' => 'ahmaddani@example.com',
         'phone' => '081234567890',
         'address' => 'Jl. Merdeka No. 10, Jakarta',
+        'gender' => 'L',
         'division_id' => 1,
         'unit_id' => 1,
         'position_id' => 2,
@@ -98,15 +100,16 @@ $samples = [
     [
         'no' => 2,
         'nik' => '1234567890123457',
-        'name' => 'Budi Santoso',
-        'email' => 'budisantoso@example.com',
+        'name' => 'Siti Aminah',
+        'email' => 'sitiaminah@example.com',
         'phone' => '081234567891',
         'address' => 'Jl. Sudirman No. 25, Bandung',
+        'gender' => 'P',
         'division_id' => 2,
         'unit_id' => '',
         'position_id' => 3,
         'schedule_id' => '',
-        'password' => 'BudiSandi456'
+        'password' => 'SitiSandi456'
     ],
 ];
 
@@ -118,11 +121,12 @@ foreach ($samples as $s) {
     $sheet1->setCellValue('D' . $rowNum, $s['email']);
     $sheet1->setCellValueExplicit('E' . $rowNum, $s['phone'], \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
     $sheet1->setCellValue('F' . $rowNum, $s['address']);
-    $sheet1->setCellValue('G' . $rowNum, $s['division_id']);
-    $sheet1->setCellValue('H' . $rowNum, $s['unit_id']);
-    $sheet1->setCellValue('I' . $rowNum, $s['position_id']);
-    $sheet1->setCellValue('J' . $rowNum, $s['schedule_id']);
-    $sheet1->setCellValue('K' . $rowNum, $s['password']);
+    $sheet1->setCellValue('G' . $rowNum, $s['gender']);
+    $sheet1->setCellValue('H' . $rowNum, $s['division_id']);
+    $sheet1->setCellValue('I' . $rowNum, $s['unit_id']);
+    $sheet1->setCellValue('J' . $rowNum, $s['position_id']);
+    $sheet1->setCellValue('K' . $rowNum, $s['schedule_id']);
+    $sheet1->setCellValue('L' . $rowNum, $s['password']);
     
     $sheet1->getRowDimension($rowNum)->setRowHeight(20);
     $rowNum++;
@@ -132,7 +136,7 @@ foreach ($samples as $s) {
 foreach (range('A', $highestColumn) as $columnID) {
     $sheet1->getColumnDimension($columnID)->setAutoSize(true);
 }
-$sheet1->getStyle('A2:K' . ($rowNum - 1))->applyFromArray($dataStyle);
+$sheet1->getStyle('A2:L' . ($rowNum - 1))->applyFromArray($dataStyle);
 
 
 // -------------------------------------------------------------

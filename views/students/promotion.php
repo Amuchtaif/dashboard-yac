@@ -252,12 +252,28 @@ include '../layouts/header.php';
     <?php if ($source_class_id && $source_year_id): ?>
         <form id="target-form" method="POST" action="<?php url('logic/students/promotion_process.php'); ?>">
             <!-- Pass student_ids is done via checkboxes below -->
+            <input type="hidden" name="source_class_id" value="<?php echo htmlspecialchars($source_class_id); ?>">
+            <input type="hidden" name="source_year_id" value="<?php echo htmlspecialchars($source_year_id); ?>">
 
-            <!-- Step 2: Target Selection -->
+            <!-- Step 2: Target Selection & Action -->
             <div class="bg-cyan-50 rounded-xl shadow-sm border border-cyan-100 p-6 mb-8">
-                <h3 class="text-lg font-bold text-cyan-900 mb-4 border-b border-cyan-200 pb-2">2. Pilih Kelas Tujuan & Tahun
-                    Baru</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <h3 id="step-2-title" class="text-lg font-bold text-cyan-900 mb-4 border-b border-cyan-200 pb-2">2. Pilih Kelas Tujuan & Tahun Baru</h3>
+                
+                <div class="mb-6">
+                    <label class="block text-sm font-semibold text-cyan-900 mb-2">Pilihan Tindakan</label>
+                    <div class="flex flex-wrap gap-4">
+                        <label class="inline-flex items-center cursor-pointer bg-white px-4 py-2 rounded-lg border border-cyan-200 shadow-sm transition-all hover:bg-slate-50">
+                            <input type="radio" name="action_type" value="promote" checked onchange="handleActionChange(this.value)" class="h-4 w-4 text-cyan-600 focus:ring-cyan-500 border-gray-300">
+                            <span class="ml-2 text-sm font-medium text-slate-800">Kenaikan Kelas</span>
+                        </label>
+                        <label class="inline-flex items-center cursor-pointer bg-white px-4 py-2 rounded-lg border border-cyan-200 shadow-sm transition-all hover:bg-slate-50">
+                            <input type="radio" name="action_type" value="graduate" onchange="handleActionChange(this.value)" class="h-4 w-4 text-cyan-600 focus:ring-cyan-500 border-gray-300">
+                            <span class="ml-2 text-sm font-medium text-slate-800">Kelulusan Siswa</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="target-selection-fields" class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                     <!-- Custom Target Class Dropdown -->
                     <div class="relative group" id="target-class-container">
@@ -322,7 +338,7 @@ include '../layouts/header.php';
             <!-- Step 3: Student Selection Table -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8">
                 <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-gray-50">
-                    <h3 class="text-base font-bold text-slate-800">3. Pilih Siswa untuk Dipromosikan</h3>
+                    <h3 id="step-3-title" class="text-base font-bold text-slate-800">3. Pilih Siswa untuk Dipromosikan</h3>
                     <div class="text-sm text-slate-500">
                         Total Siswa Ditemukan: <span class="font-bold text-slate-900">
                             <?php echo count($students); ?>
@@ -373,7 +389,7 @@ include '../layouts/header.php';
                     </div>
 
                     <div class="px-6 py-4 bg-gray-50 border-t border-slate-200 flex justify-end">
-                        <button type="submit"
+                        <button type="submit" id="submit-btn"
                             class="inline-flex justify-center rounded-lg bg-cyan-600 px-6 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-cyan-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-600 transition-all transform active:scale-95">
                             Proses Kenaikan Kelas
                         </button>
@@ -387,6 +403,41 @@ include '../layouts/header.php';
             </div>
         </form>
     <?php endif; ?>
+</div>
+
+<!-- Custom Graduation Confirmation Modal -->
+<div id="graduateConfirmModal" class="fixed inset-0 z-[60] hidden overflow-y-auto" aria-labelledby="graduate-modal-title" role="dialog" aria-modal="true">
+    <!-- Backdrop -->
+    <div id="graduateModalBackdrop" class="fixed inset-0 bg-slate-900/50 transition-opacity duration-300 opacity-0 backdrop-blur-sm"></div>
+
+    <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <!-- Modal Panel -->
+        <div id="graduateModalPanel" class="relative transform overflow-hidden rounded-xl bg-white text-left shadow-2xl transition-all duration-300 opacity-0 scale-95 sm:my-8 sm:w-full sm:max-w-lg">
+            <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                <div class="sm:flex sm:items-start">
+                    <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-cyan-100 sm:mx-0 sm:h-10 sm:w-10">
+                        <svg class="h-6 w-6 text-cyan-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                        </svg>
+                    </div>
+                    <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+                        <h3 class="text-lg font-bold leading-6 text-slate-900" id="graduate-modal-title">Konfirmasi Kelulusan Siswa</h3>
+                        <div class="mt-2 text-sm text-slate-500" id="graduate-modal-message">
+                            Apakah Anda yakin ingin meluluskan siswa-siswa yang dipilih? Status siswa akan diubah menjadi "Lulus".
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-slate-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 gap-2">
+                <button type="button" id="confirmGraduateBtn" class="inline-flex w-full justify-center rounded-lg bg-cyan-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 sm:w-auto transition-all transform active:scale-95">
+                    Ya, Luluskan
+                </button>
+                <button type="button" onclick="closeGraduateModal()" class="mt-3 inline-flex w-full justify-center rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 sm:mt-0 sm:w-auto transition-all">
+                    Batal
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -413,6 +464,25 @@ include '../layouts/header.php';
         toggleDropdown(name);
     }
 
+    // Handle change of Action (Kenaikan Kelas vs Kelulusan)
+    function handleActionChange(action) {
+        const targetFields = document.getElementById('target-selection-fields');
+        const submitBtn = document.getElementById('submit-btn');
+        const step2Title = document.getElementById('step-2-title');
+        const step3Title = document.getElementById('step-3-title');
+        
+        if (action === 'promote') {
+            targetFields.classList.remove('hidden');
+            submitBtn.innerText = 'Proses Kenaikan Kelas';
+            step2Title.innerText = '2. Pilih Kelas Tujuan & Tahun Baru';
+            step3Title.innerText = '3. Pilih Siswa untuk Dipromosikan';
+        } else {
+            targetFields.classList.add('hidden');
+            submitBtn.innerText = 'Proses Kelulusan Siswa';
+            step2Title.innerText = '2. Pilihan Kelulusan';
+            step3Title.innerText = '3. Pilih Siswa untuk Diluluskan';
+        }
+    }
 
     // Toggle All Checkboxes
     const selectAllInfo = document.getElementById('select-all');
@@ -420,6 +490,82 @@ include '../layouts/header.php';
         selectAllInfo.addEventListener('change', function () {
             const checkboxes = document.querySelectorAll('.student-checkbox');
             checkboxes.forEach(cb => cb.checked = this.checked);
+        });
+    }
+
+    // Modal control functions
+    function openGraduateModal(studentCount) {
+        document.getElementById('graduate-modal-message').innerText = `Apakah Anda yakin ingin meluluskan ${studentCount} siswa yang dipilih? Tindakan ini akan mengubah status siswa menjadi "Lulus".`;
+        
+        const modal = document.getElementById('graduateConfirmModal');
+        const backdrop = document.getElementById('graduateModalBackdrop');
+        const panel = document.getElementById('graduateModalPanel');
+
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            backdrop.classList.remove('opacity-0');
+            panel.classList.remove('opacity-0', 'scale-95');
+        }, 10);
+    }
+
+    function closeGraduateModal() {
+        const modal = document.getElementById('graduateConfirmModal');
+        const backdrop = document.getElementById('graduateModalBackdrop');
+        const panel = document.getElementById('graduateModalPanel');
+
+        backdrop.classList.add('opacity-0');
+        panel.classList.add('opacity-0', 'scale-95');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
+    }
+
+    // Add form submit validation and confirmation interception
+    let isConfirmed = false;
+    const targetForm = document.getElementById('target-form');
+    if (targetForm) {
+        targetForm.addEventListener('submit', function (e) {
+            const action = document.querySelector('input[name="action_type"]:checked').value;
+            const checkboxes = document.querySelectorAll('.student-checkbox:checked');
+            
+            if (checkboxes.length === 0) {
+                alert('Pilih minimal satu siswa.');
+                e.preventDefault();
+                return false;
+            }
+
+            if (action === 'promote') {
+                const targetClass = document.getElementById('target-class-input').value;
+                const targetYear = document.getElementById('target-year-input').value;
+                if (!targetClass) {
+                    alert('Pilih kelas tujuan.');
+                    e.preventDefault();
+                    return false;
+                }
+                if (!targetYear) {
+                    alert('Pilih tahun ajaran baru.');
+                    e.preventDefault();
+                    return false;
+                }
+            } else if (action === 'graduate') {
+                if (!isConfirmed) {
+                    e.preventDefault();
+                    openGraduateModal(checkboxes.length);
+                    return false;
+                }
+            }
+        });
+    }
+
+    // Listen to confirm button in Modal
+    const confirmBtn = document.getElementById('confirmGraduateBtn');
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', function() {
+            isConfirmed = true;
+            closeGraduateModal();
+            if (targetForm) {
+                targetForm.submit();
+            }
         });
     }
 </script>

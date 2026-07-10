@@ -14,6 +14,12 @@ $is_admin = (isset($_SESSION['position_name']) && $_SESSION['position_name'] ===
 
 // --- Fetch Data ---
 // 1. Fetch Halaqah Groups with Teachers
+
+// --- Fetch Active Academic Year ---
+$active_year_query = "SELECT id FROM academic_years WHERE is_active = 1 LIMIT 1";
+$active_year_stmt = $conn->query($active_year_query);
+$active_year_id = $active_year_stmt->fetchColumn();
+
 $where_clauses = ["1=1"];
 $params = [];
 
@@ -26,14 +32,16 @@ $where_sql = implode(" AND ", $where_clauses);
 
 $groups_query = "
     SELECT hg.*, e.full_name as teacher_name,
-    (SELECT COUNT(*) FROM halaqah_members WHERE group_id = hg.id) as member_count
+    (SELECT COUNT(*) FROM halaqah_members hm 
+     JOIN student_class_history sch ON hm.student_id = sch.student_id AND sch.academic_year_id = :active_year_id
+     WHERE hm.group_id = hg.id) as member_count
     FROM halaqah_groups hg
     JOIN employees e ON hg.teacher_id = e.id
     WHERE $where_sql
     ORDER BY LENGTH(hg.group_name) ASC, hg.group_name ASC
 ";
 $groups_stmt = $conn->prepare($groups_query);
-$groups_stmt->execute($params);
+$groups_stmt->execute(array_merge($params, [':active_year_id' => $active_year_id]));
 $groups = $groups_stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // 2. Fetch All Teachers (for group creation)
