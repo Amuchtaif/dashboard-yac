@@ -24,6 +24,12 @@ $academic_years = $conn->query("SELECT id, name, semester FROM academic_years OR
 $source_unit_id = $_GET['source_unit_id'] ?? '';
 $source_class_id = $_GET['source_class_id'] ?? '';
 $source_year_id = $_GET['source_year_id'] ?? '';
+$search = trim($_GET['search'] ?? '');
+
+// Reusable Filter Query for redirect
+$current_filters = $_GET;
+unset($current_filters['success'], $current_filters['error']);
+$filter_qs = http_build_query($current_filters);
 
 // --- Filtered Classes for Source Dropdown ---
 $source_classes = [];
@@ -36,24 +42,52 @@ if ($source_unit_id) {
     $source_classes = $classes;
 }
 
-// --- Fetch Students if Source Class & Year Selected ---
+// --- Fetch Students if Filtered or Searched ---
 $students = [];
-if ($source_class_id && $source_year_id) {
+if ($source_class_id || $source_unit_id || $source_year_id || !empty($search)) {
+    // Get active academic year id
+    $active_year_id = $conn->query("SELECT id FROM academic_years WHERE is_active = 1 LIMIT 1")->fetchColumn();
+    $join_year_id = $source_year_id ?: $active_year_id;
+
+    $where_clauses = ["s.status = 'Aktif'"];
+    $params = [':join_year_id' => $join_year_id];
+    
+    if ($source_class_id) {
+        $where_clauses[] = "sch.class_id = :class_id";
+        $params[':class_id'] = $source_class_id;
+    }
+    if ($source_unit_id) {
+        $where_clauses[] = "gl.education_unit_id = :unit_id";
+        $params[':unit_id'] = $source_unit_id;
+    }
+    if (!empty($search)) {
+        $where_clauses[] = "s.nama_siswa LIKE :search";
+        $params[':search'] = '%' . $search . '%';
+    }
+    
+    $where_sql = implode(' AND ', $where_clauses);
+    
     $sql = "
         SELECT 
             s.id, 
             s.nama_siswa, 
             s.nomor_induk,
-            s.status
+            s.status,
+            gl.id as class_id,
+            gl.name as class_name,
+            ay.id as academic_year_id,
+            ay.name as academic_year_name,
+            ay.semester as academic_year_semester
         FROM students s
-        JOIN student_class_history sch ON s.id = sch.student_id
-        WHERE sch.class_id = :class_id 
-          AND sch.academic_year_id = :year_id
-          AND s.status = 'Aktif'
+        LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = :join_year_id
+        LEFT JOIN grade_levels gl ON sch.class_id = gl.id
+        LEFT JOIN academic_years ay ON sch.academic_year_id = ay.id
+        WHERE $where_sql
         ORDER BY s.nama_siswa ASC
     ";
+    
     $stmt = $conn->prepare($sql);
-    $stmt->execute([':class_id' => $source_class_id, ':year_id' => $source_year_id]);
+    $stmt->execute($params);
     $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
@@ -113,7 +147,7 @@ include '../layouts/header.php';
     <!-- Step 1: Source Selection Form -->
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
         <h3 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">1. Pilih Kelas Asal (Sumber)</h3>
-        <form id="source-form" method="GET" action="" class="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
+        <form id="source-form" method="GET" action="" class="grid grid-cols-1 md:grid-cols-5 gap-6 items-end">
 
             <!-- Custom Source Unit Dropdown -->
             <div class="relative group" id="source-unit-container">
@@ -240,6 +274,14 @@ include '../layouts/header.php';
                 </div>
             </div>
 
+            <!-- Search Input -->
+            <div class="relative">
+                <label for="search-input" class="block text-sm font-medium text-slate-700 mb-1">Cari Nama Siswa</label>
+                <input type="text" name="search" id="search-input" value="<?php echo htmlspecialchars($search); ?>"
+                    class="block w-full rounded-md border-slate-300 px-3 py-2 text-sm text-slate-600 bg-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 shadow-sm border"
+                    placeholder="Nama siswa...">
+            </div>
+
             <div>
                 <button type="submit"
                     class="w-full inline-flex justify-center rounded-lg bg-slate-800 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-800 transition-colors h-10 items-center">
@@ -249,11 +291,12 @@ include '../layouts/header.php';
         </form>
     </div>
 
-    <?php if ($source_class_id && $source_year_id): ?>
+    <?php if ($source_class_id || $source_unit_id || $source_year_id || !empty($search)): ?>
         <form id="target-form" method="POST" action="<?php url('logic/students/promotion_process.php'); ?>">
             <!-- Pass student_ids is done via checkboxes below -->
             <input type="hidden" name="source_class_id" value="<?php echo htmlspecialchars($source_class_id); ?>">
             <input type="hidden" name="source_year_id" value="<?php echo htmlspecialchars($source_year_id); ?>">
+            <input type="hidden" name="redirect_params" value="<?php echo htmlspecialchars($filter_qs); ?>">
 
             <!-- Step 2: Target Selection & Action -->
             <div class="bg-cyan-50 rounded-xl shadow-sm border border-cyan-100 p-6 mb-8">
@@ -339,10 +382,10 @@ include '../layouts/header.php';
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8">
                 <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-gray-50">
                     <h3 id="step-3-title" class="text-base font-bold text-slate-800">3. Pilih Siswa untuk Dipromosikan</h3>
-                    <div class="text-sm text-slate-500">
-                        Total Siswa Ditemukan: <span class="font-bold text-slate-900">
-                            <?php echo count($students); ?>
-                        </span>
+                    <div class="text-sm text-slate-500 flex items-center gap-4">
+                        <span>Total Siswa Ditemukan: <span class="font-bold text-slate-900"><?php echo count($students); ?></span></span>
+                        <span class="border-l border-slate-300 pl-4 font-semibold text-slate-600">Siswa Terpilih: <span id="selected-count-display" class="font-bold text-cyan-600">0</span></span>
+                        <button type="button" onclick="clearAllSelections()" class="text-xs text-red-500 hover:text-red-700 underline font-medium">Clear All</button>
                     </div>
                 </div>
 
@@ -355,19 +398,25 @@ include '../layouts/header.php';
                                         <input type="checkbox" id="select-all" checked
                                             class="h-4 w-4 rounded border-gray-300 text-cyan-600 focus:ring-cyan-500 cursor-pointer">
                                     </th>
-                                    <th scope="col" class="px-6 py-3 text-left min-w-[250px]">
+                                    <th scope="col" class="px-6 py-3 text-left min-w-[200px]">
                                         Nama Siswa</th>
-                                    <th scope="col" class="px-6 py-3 text-left min-w-[150px]">
+                                    <th scope="col" class="px-6 py-3 text-left min-w-[120px]">
                                         NISN</th>
+                                    <th scope="col" class="px-6 py-3 text-left min-w-[120px]">
+                                        Kelas Asal</th>
                                     <th scope="col" class="px-6 py-3 text-left min-w-[150px]">
-                                        Status Saat Ini</th>
+                                        Tahun Ajaran Asal</th>
+                                    <th scope="col" class="px-6 py-3 text-left min-w-[100px]">
+                                        Status</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
                                 <?php foreach ($students as $s): ?>
                                     <tr class="hover:bg-slate-50">
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <input type="checkbox" name="student_ids[]" value="<?php echo $s['id']; ?>" checked
+                                            <input type="checkbox" value="<?php echo $s['id']; ?>"
+                                                data-class-id="<?php echo $s['class_id'] ?? ''; ?>"
+                                                data-year-id="<?php echo $s['academic_year_id'] ?? ''; ?>"
                                                 class="student-checkbox h-4 w-4 rounded border-gray-300 text-cyan-600 focus:ring-cyan-500 cursor-pointer">
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
@@ -375,6 +424,12 @@ include '../layouts/header.php';
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             <?php echo htmlspecialchars($s['nomor_induk']); ?>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <?php echo htmlspecialchars($s['class_name'] ?? 'Belum ada kelas'); ?>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <?php echo htmlspecialchars($s['academic_year_name'] ? $s['academic_year_name'] . ' - ' . $s['academic_year_semester'] : '-'); ?>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             <span
@@ -397,7 +452,7 @@ include '../layouts/header.php';
 
                 <?php else: ?>
                     <div class="p-12 text-center text-slate-500 italic">
-                        Tidak ada siswa aktif ditemukan di kelas dan tahun ajaran ini.
+                        Tidak ada siswa aktif ditemukan yang cocok dengan kriteria filter/pencarian Anda.
                     </div>
                 <?php endif; ?>
             </div>
@@ -441,6 +496,96 @@ include '../layouts/header.php';
 </div>
 
 <script>
+
+    // --- Selections Management (sessionStorage) ---
+    function getSelections() {
+        try {
+            return JSON.parse(sessionStorage.getItem('promotion_selections') || '{}');
+        } catch(e) {
+            return {};
+        }
+    }
+
+    function saveSelections(selections) {
+        sessionStorage.setItem('promotion_selections', JSON.stringify(selections));
+    }
+
+    function updateSelectedCountDisplay() {
+        const selections = getSelections();
+        const count = Object.keys(selections).length;
+        const el = document.getElementById('selected-count-display');
+        if (el) {
+            el.textContent = count;
+        }
+        
+        // Sync the select-all checkbox state
+        const checkboxes = document.querySelectorAll('.student-checkbox');
+        const selectAllInfo = document.getElementById('select-all');
+        if (selectAllInfo && checkboxes.length > 0) {
+            let allChecked = true;
+            checkboxes.forEach(cb => {
+                if (!cb.checked) allChecked = false;
+            });
+            selectAllInfo.checked = allChecked;
+        }
+    }
+
+    function clearAllSelections() {
+        saveSelections({});
+        document.querySelectorAll('.student-checkbox').forEach(cb => cb.checked = false);
+        updateSelectedCountDisplay();
+    }
+
+    // Initialize selections on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        // Clear selections if it was a success redirect
+        if (urlParams.has('success')) {
+            sessionStorage.removeItem('promotion_selections');
+        }
+
+        const selections = getSelections();
+        const checkboxes = document.querySelectorAll('.student-checkbox');
+
+        // If selections is empty, initialize it with whatever is checked by default in the list
+        if (Object.keys(selections).length === 0) {
+            checkboxes.forEach(cb => {
+                if (cb.checked) {
+                    selections[cb.value] = {
+                        class_id: cb.dataset.classId || '',
+                        year_id: cb.dataset.yearId || ''
+                    };
+                }
+            });
+            saveSelections(selections);
+        } else {
+            // Otherwise, sync the checkboxes with saved selections
+            checkboxes.forEach(cb => {
+                cb.checked = !!selections[cb.value];
+            });
+        }
+
+        updateSelectedCountDisplay();
+
+        // Listen for individual checkbox changes
+        document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('student-checkbox')) {
+                const cb = e.target;
+                const studentId = cb.value;
+                const currentSelections = getSelections();
+                if (cb.checked) {
+                    currentSelections[studentId] = {
+                        class_id: cb.dataset.classId || '',
+                        year_id: cb.dataset.yearId || ''
+                    };
+                } else {
+                    delete currentSelections[studentId];
+                }
+                saveSelections(currentSelections);
+                updateSelectedCountDisplay();
+            }
+        });
+    });
 
     // --- Filter Option Selection (Source Form) ---
     // Updates input and submits the Source Form to reload page
@@ -489,7 +634,21 @@ include '../layouts/header.php';
     if (selectAllInfo) {
         selectAllInfo.addEventListener('change', function () {
             const checkboxes = document.querySelectorAll('.student-checkbox');
-            checkboxes.forEach(cb => cb.checked = this.checked);
+            const selections = getSelections();
+            checkboxes.forEach(cb => {
+                cb.checked = this.checked;
+                const studentId = cb.value;
+                if (this.checked) {
+                    selections[studentId] = {
+                        class_id: cb.dataset.classId || '',
+                        year_id: cb.dataset.yearId || ''
+                    };
+                } else {
+                    delete selections[studentId];
+                }
+            });
+            saveSelections(selections);
+            updateSelectedCountDisplay();
         });
     }
 
@@ -506,6 +665,38 @@ include '../layouts/header.php';
             backdrop.classList.remove('opacity-0');
             panel.classList.remove('opacity-0', 'scale-95');
         }, 10);
+    }
+
+    // Helper to generate hidden fields right before submitting
+    function prepareFormSubmission() {
+        // Clear any existing hidden inputs we created
+        document.querySelectorAll('.dynamic-student-id').forEach(el => el.remove());
+
+        const selections = getSelections();
+        const selectedIds = Object.keys(selections);
+
+        selectedIds.forEach(id => {
+            const sIdInput = document.createElement('input');
+            sIdInput.type = 'hidden';
+            sIdInput.name = 'student_ids[]';
+            sIdInput.value = id;
+            sIdInput.className = 'dynamic-student-id';
+            targetForm.appendChild(sIdInput);
+
+            const classIdInput = document.createElement('input');
+            classIdInput.type = 'hidden';
+            classIdInput.name = `student_source_class[${id}]`;
+            classIdInput.value = selections[id].class_id || '';
+            classIdInput.className = 'dynamic-student-id';
+            targetForm.appendChild(classIdInput);
+
+            const yearIdInput = document.createElement('input');
+            yearIdInput.type = 'hidden';
+            yearIdInput.name = `student_source_year[${id}]`;
+            yearIdInput.value = selections[id].year_id || '';
+            yearIdInput.className = 'dynamic-student-id';
+            targetForm.appendChild(yearIdInput);
+        });
     }
 
     function closeGraduateModal() {
@@ -526,9 +717,10 @@ include '../layouts/header.php';
     if (targetForm) {
         targetForm.addEventListener('submit', function (e) {
             const action = document.querySelector('input[name="action_type"]:checked').value;
-            const checkboxes = document.querySelectorAll('.student-checkbox:checked');
+            const selections = getSelections();
+            const selectedIds = Object.keys(selections);
             
-            if (checkboxes.length === 0) {
+            if (selectedIds.length === 0) {
                 alert('Pilih minimal satu siswa.');
                 e.preventDefault();
                 return false;
@@ -550,10 +742,12 @@ include '../layouts/header.php';
             } else if (action === 'graduate') {
                 if (!isConfirmed) {
                     e.preventDefault();
-                    openGraduateModal(checkboxes.length);
+                    openGraduateModal(selectedIds.length);
                     return false;
                 }
             }
+
+            prepareFormSubmission();
         });
     }
 
@@ -564,6 +758,7 @@ include '../layouts/header.php';
             isConfirmed = true;
             closeGraduateModal();
             if (targetForm) {
+                prepareFormSubmission();
                 targetForm.submit();
             }
         });

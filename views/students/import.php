@@ -7,6 +7,18 @@ check_permission('manage_academic');
 
 $page_title = "Import Siswa";
 
+$db = new Database();
+$conn = $db->getConnection();
+
+// Fetch Education Units
+$education_units = $conn->query("SELECT id, name FROM education_units ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
+
+// Fetch Academic Years
+$academic_years = $conn->query("SELECT id, name, semester FROM academic_years ORDER BY start_date DESC")->fetchAll(PDO::FETCH_ASSOC);
+
+// Fetch Active Academic Year
+$active_year_id = $conn->query("SELECT id FROM academic_years WHERE is_active = 1 LIMIT 1")->fetchColumn();
+
 include '../layouts/header.php';
 ?>
 
@@ -67,6 +79,33 @@ include '../layouts/header.php';
 
         <form action="<?php url('logic/students/import_process.php'); ?>" method="POST" enctype="multipart/form-data"
             class="space-y-6">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                    <label for="academic_year_id" class="block text-sm font-semibold text-slate-700 mb-1">Tahun Ajaran</label>
+                    <select name="academic_year_id" id="academic_year_id" required
+                        class="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all bg-white text-slate-700">
+                        <option value="">Pilih Tahun</option>
+                        <?php foreach ($academic_years as $year): ?>
+                            <option value="<?php echo $year['id']; ?>" <?php echo ($year['id'] == $active_year_id) ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars($year['name']); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div>
+                    <label for="unit_id" class="block text-sm font-semibold text-slate-700 mb-1">Unit Pendidikan (Asosiasi Kelas)</label>
+                    <select name="unit_id" id="unit_id" required
+                        class="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all bg-white text-slate-700">
+                        <option value="">Pilih Unit</option>
+                        <?php foreach ($education_units as $unit): ?>
+                            <option value="<?php echo $unit['id']; ?>">
+                                <?php echo htmlspecialchars($unit['name']); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
 
             <div>
                 <label class="block text-sm font-semibold text-slate-900 mb-2">Pilih File Excel</label>

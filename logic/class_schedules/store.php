@@ -5,6 +5,9 @@ require_once '../../config/app.php';
 check_login();
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $redirect_params = isset($_POST['redirect_params']) ? $_POST['redirect_params'] : '';
+    $redirect_qs = $redirect_params ? "&" . $redirect_params : "";
+
     $academic_year_id = $_POST['academic_year_id'];
     $grade_level_id = $_POST['grade_level_id'];
     $employee_id = $_POST['employee_id'];
@@ -17,7 +20,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $db = new Database();
         $conn = $db->getConnection();
         
-        $redirect_params = isset($_POST['redirect_params']) ? $_POST['redirect_params'] : '';
         $redirect_url = "../../views/class_schedules/index.php" . ($redirect_params ? "?$redirect_params" : "");
         $error_redirect_url = "../../views/class_schedules/form.php" . ($redirect_params ? "?$redirect_params" : "");
 

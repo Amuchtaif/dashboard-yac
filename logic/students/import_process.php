@@ -32,7 +32,13 @@ $errorCount = 0;
 $errors = [];
 $rowNumber = 0;
 
-$active_year_id = 1; // Default Academic Year
+$academic_year_id = $_POST['academic_year_id'] ?? null;
+$unit_id = $_POST['unit_id'] ?? null;
+
+if (empty($academic_year_id) || empty($unit_id)) {
+    header("Location: " . BASE_URL . "/views/students/import.php?error=" . urlencode("Harap pilih Tahun Ajaran dan Unit Pendidikan"));
+    exit;
+}
 
 try {
     $conn->beginTransaction();
@@ -91,18 +97,17 @@ try {
         // --- Step B: Class Logic ---
         $class_id = null;
         if (!empty($kelas_nama)) {
-            // Check if class exists
-            $stmtClass = $conn->prepare("SELECT id FROM grade_levels WHERE name = :name LIMIT 1");
-            $stmtClass->execute([':name' => $kelas_nama]);
+            // Check if class exists in the selected Unit
+            $stmtClass = $conn->prepare("SELECT id FROM grade_levels WHERE name = :name AND education_unit_id = :unit_id LIMIT 1");
+            $stmtClass->execute([':name' => $kelas_nama, ':unit_id' => $unit_id]);
             $existingClass = $stmtClass->fetch(PDO::FETCH_ASSOC);
 
             if ($existingClass) {
                 $class_id = $existingClass['id'];
             } else {
-                // Create Class - "Unassigned" Unit logic?
-                // For now, insert with minimal info
-                $stmtNewClass = $conn->prepare("INSERT INTO grade_levels (name, level, created_at, updated_at) VALUES (:name, 0, NOW(), NOW())");
-                $stmtNewClass->execute([':name' => $kelas_nama]);
+                // Create Class under the selected Unit
+                $stmtNewClass = $conn->prepare("INSERT INTO grade_levels (name, level, education_unit_id, created_at, updated_at) VALUES (:name, 0, :unit_id, NOW(), NOW())");
+                $stmtNewClass->execute([':name' => $kelas_nama, ':unit_id' => $unit_id]);
                 $class_id = $conn->lastInsertId();
             }
         }
@@ -111,7 +116,7 @@ try {
         if ($class_id) {
             // Check existing placement for this year
             $stmtHistCheck = $conn->prepare("SELECT id FROM student_class_history WHERE student_id = :sid AND academic_year_id = :yid");
-            $stmtHistCheck->execute([':sid' => $student_id, ':yid' => $active_year_id]);
+            $stmtHistCheck->execute([':sid' => $student_id, ':yid' => $academic_year_id]);
             $hist = $stmtHistCheck->fetch(PDO::FETCH_ASSOC);
 
             if ($hist) {
@@ -121,7 +126,7 @@ try {
             } else {
                 // Insert
                 $stmtHistInsert = $conn->prepare("INSERT INTO student_class_history (student_id, class_id, academic_year_id, status, created_at, updated_at) VALUES (:sid, :cid, :yid, 'ACTIVE', NOW(), NOW())");
-                $stmtHistInsert->execute([':sid' => $student_id, ':cid' => $class_id, ':yid' => $active_year_id]);
+                $stmtHistInsert->execute([':sid' => $student_id, ':cid' => $class_id, ':yid' => $academic_year_id]);
             }
         }
 

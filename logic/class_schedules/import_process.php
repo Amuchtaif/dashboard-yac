@@ -38,9 +38,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+$return_filters = isset($_POST['return_filters']) ? $_POST['return_filters'] : '';
+$redirect_qs_amp = $return_filters ? "&" . $return_filters : "";
+
 $file_key = isset($_FILES['import_file']) ? 'import_file' : 'csv_file';
 if (!isset($_FILES[$file_key]) || $_FILES[$file_key]['error'] !== UPLOAD_ERR_OK) {
-    header("Location: " . BASE_URL . "/views/class_schedules/import.php?error=Upload failed or no file selected");
+    header("Location: " . BASE_URL . "/views/class_schedules/import.php?error=" . urlencode("Upload failed or no file selected") . $redirect_qs_amp);
     exit;
 }
 
@@ -83,13 +86,13 @@ try {
             continue;
         }
 
-        $day = trim($data[0]);
-        $unit_name = trim($data[1], " \t\n\r\0\x0B\"");
-        $grade_name = trim($data[2], " \t\n\r\0\x0B\"");
-        $subject_name = trim($data[3], " \t\n\r\0\x0B\"");
-        $teacher_name = trim($data[4], " \t\n\r\0\x0B\"");
-        $start_period = trim($data[5], " \t\n\r\0\x0B\"");
-        $end_period = trim($data[6] ?? $data[5], " \t\n\r\0\x0B\"");
+        $day = trim($data[0] ?? '');
+        $unit_name = trim($data[1] ?? '', " \t\n\r\0\x0B\"");
+        $grade_name = trim($data[2] ?? '', " \t\n\r\0\x0B\"");
+        $subject_name = trim($data[3] ?? '', " \t\n\r\0\x0B\"");
+        $teacher_name = trim($data[4] ?? '', " \t\n\r\0\x0B\"");
+        $start_period = trim($data[5] ?? '', " \t\n\r\0\x0B\"");
+        $end_period = trim($data[6] ?? $data[5] ?? '', " \t\n\r\0\x0B\"");
         $ay_name = trim($data[7] ?? '', " \t\n\r\0\x0B\"");
 
         // 1. Resolve Academic Year
@@ -371,13 +374,13 @@ try {
         $_SESSION['import_errors'] = $errors;
     }
 
-    header("Location: " . BASE_URL . "/views/class_schedules/index.php?success=" . urlencode($msg));
+    header("Location: " . BASE_URL . "/views/class_schedules/index.php?success=" . urlencode($msg) . $redirect_qs_amp);
     exit;
 
 } catch (Exception $e) {
     if (isset($conn) && $conn->inTransaction()) {
         $conn->rollBack();
     }
-    header("Location: " . BASE_URL . "/views/class_schedules/import.php?error=" . urlencode('Error Sistem: ' . $e->getMessage()));
+    header("Location: " . BASE_URL . "/views/class_schedules/import.php?error=" . urlencode('Error Sistem: ' . $e->getMessage()) . $redirect_qs_amp);
     exit;
 }

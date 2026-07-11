@@ -11,10 +11,19 @@ $db = new Database();
 $conn = $db->getConnection();
 
 // Fetch Grade Levels for Dropdown
-$query_grades = "SELECT * FROM grade_levels ORDER BY name ASC";
+$query_grades = "SELECT id, name, education_unit_id FROM grade_levels ORDER BY name ASC";
 $stmt_grades = $conn->prepare($query_grades);
 $stmt_grades->execute();
 $grade_levels = $stmt_grades->fetchAll(PDO::FETCH_ASSOC);
+
+// Fetch Education Units for Dropdown
+$education_units = $conn->query("SELECT id, name FROM education_units ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
+
+// Fetch Academic Years for Dropdown
+$academic_years = $conn->query("SELECT id, name, semester FROM academic_years ORDER BY start_date DESC")->fetchAll(PDO::FETCH_ASSOC);
+
+// Fetch Active Academic Year
+$active_year_id = $conn->query("SELECT id FROM academic_years WHERE is_active = 1 LIMIT 1")->fetchColumn();
 
 include '../layouts/header.php';
 ?>
@@ -128,7 +137,7 @@ include '../layouts/header.php';
                     </div>
                     <h3 class="text-base font-bold text-slate-800 uppercase">Informasi Akademik</h3>
                 </div>
-
+ 
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                     <div>
                         <label for="academic_year_id" class="block text-sm font-semibold text-slate-700 mb-1">Tahun
@@ -143,18 +152,30 @@ include '../layouts/header.php';
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="md:col-span-2"> <!-- Span 2 cols for Class -->
+                    <div>
+                        <label for="unit_id" class="block text-sm font-semibold text-slate-700 mb-1">Unit Pendidikan</label>
+                        <select name="unit_id" id="unit_id"
+                            class="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all bg-white text-slate-700">
+                            <option value="">Semua Unit</option>
+                            <?php foreach ($education_units as $unit): ?>
+                                <option value="<?php echo $unit['id']; ?>">
+                                    <?php echo htmlspecialchars($unit['name']); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div>
                         <label for="class_id" class="block text-sm font-semibold text-slate-700 mb-1">Kelas</label>
                         <select name="class_id" id="class_id" required
                             class="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all bg-white text-slate-700">
                             <option value="">Pilih Kelas</option>
                             <?php foreach ($grade_levels as $grade): ?>
-                                <option value="<?php echo $grade['id']; ?>">
+                                <option value="<?php echo $grade['id']; ?>" data-unit-id="<?php echo $grade['education_unit_id']; ?>">
                                     <?php echo htmlspecialchars($grade['name']); ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
-                        <p class="text-xs text-slate-500 mt-1">Siswa akan otomatis masuk ke history kelas ini.</p>
+                        <p class="text-[10px] text-slate-500 mt-1">Siswa otomatis masuk ke history kelas ini.</p>
                     </div>
                     <div>
                         <label for="status" class="block text-sm font-semibold text-slate-700 mb-1">Status</label>
@@ -261,5 +282,39 @@ include '../layouts/header.php';
         </form>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const unitSelect = document.getElementById('unit_id');
+    const classSelect = document.getElementById('class_id');
+    if (unitSelect && classSelect) {
+        const classOptions = Array.from(classSelect.querySelectorAll('option'));
+
+        unitSelect.addEventListener('change', function() {
+            const selectedUnitId = this.value;
+            const currentSelectedValue = classSelect.value;
+            
+            // Clear existing options except the placeholder
+            classSelect.innerHTML = '';
+            
+            // Re-append matching options
+            classOptions.forEach(opt => {
+                if (opt.value === '') {
+                    classSelect.appendChild(opt);
+                } else if (!selectedUnitId || opt.dataset.unitId == selectedUnitId) {
+                    classSelect.appendChild(opt);
+                }
+            });
+            
+            // Restore selection if it's still available in the filtered list
+            if (Array.from(classSelect.options).some(opt => opt.value === currentSelectedValue)) {
+                classSelect.value = currentSelectedValue;
+            } else {
+                classSelect.value = '';
+            }
+        });
+    }
+});
+</script>
 
 <?php include '../layouts/footer.php'; ?>

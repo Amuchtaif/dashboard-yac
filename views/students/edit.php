@@ -46,10 +46,13 @@ if ($active_year_id) {
 }
 
 // Fetch Grade Levels for Dropdown
-$query_grades = "SELECT * FROM grade_levels ORDER BY name ASC";
+$query_grades = "SELECT id, name, education_unit_id FROM grade_levels ORDER BY name ASC";
 $stmt_grades = $conn->prepare($query_grades);
 $stmt_grades->execute();
 $grade_levels = $stmt_grades->fetchAll(PDO::FETCH_ASSOC);
+
+// Fetch Education Units for Dropdown
+$education_units = $conn->query("SELECT id, name FROM education_units ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 $page_title = "Edit Data Siswa";
 include '../layouts/header.php';
@@ -191,21 +194,34 @@ include '../layouts/header.php';
                         </select>
                     </div>
 
-                    <div class="md:col-span-2"> <!-- Span 2 cols for Class -->
+                    <div>
+                        <label for="unit_id" class="block text-sm font-semibold text-slate-700 mb-1">Unit Pendidikan</label>
+                        <select name="unit_id" id="unit_id"
+                            class="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all bg-white text-slate-700">
+                            <option value="">Semua Unit</option>
+                            <?php foreach ($education_units as $unit): ?>
+                                <option value="<?php echo $unit['id']; ?>">
+                                    <?php echo htmlspecialchars($unit['name']); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div>
                         <label for="class_id" class="block text-sm font-semibold text-slate-700 mb-1">Kelas (Tahun Ajaran Aktif)</label>
                         <?php if($active_year_id): ?>
                             <select name="class_id" id="class_id"
                                 class="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all bg-white text-slate-700">
                                 <option value="">Pilih Kelas</option>
                                 <?php foreach ($grade_levels as $grade): ?>
-                                    <option value="<?php echo $grade['id']; ?>" <?php echo ($grade['id'] == $current_class_id) ? 'selected' : ''; ?>>
+                                    <option value="<?php echo $grade['id']; ?>" data-unit-id="<?php echo $grade['education_unit_id']; ?>" <?php echo ($grade['id'] == $current_class_id) ? 'selected' : ''; ?>>
                                         <?php echo htmlspecialchars($grade['name']); ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
-                            <p class="text-xs text-slate-500 mt-1">Mengubah ini akan memperbarui penempatan kelas siswa di tahun ajaran aktif.</p>
+                            <p class="text-[10px] text-slate-500 mt-1">Memperbarui penempatan kelas siswa di tahun ajaran aktif.</p>
                         <?php else: ?>
-                            <p class="text-red-500 text-sm">Tidak ada tahun ajaran aktif. Silakan aktifkan tahun ajaran terlebih dahulu untuk mengatur kelas.</p>
+                            <p class="text-red-500 text-sm">Tahun ajaran tidak aktif. Silakan aktifkan tahun ajaran terlebih dahulu.</p>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -310,5 +326,50 @@ include '../layouts/header.php';
         </form>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const unitSelect = document.getElementById('unit_id');
+    const classSelect = document.getElementById('class_id');
+    if (unitSelect && classSelect) {
+        const classOptions = Array.from(classSelect.querySelectorAll('option'));
+
+        // Pre-select Unit if a class is already selected
+        const selectedClassOption = classSelect.querySelector('option[selected]');
+        if (selectedClassOption && selectedClassOption.dataset.unitId) {
+            unitSelect.value = selectedClassOption.dataset.unitId;
+            // Filter class options immediately
+            filterClasses(selectedClassOption.dataset.unitId);
+        }
+
+        unitSelect.addEventListener('change', function() {
+            filterClasses(this.value);
+        });
+
+        function filterClasses(selectedUnitId) {
+            const currentSelectedValue = classSelect.value;
+            
+            // Clear existing options except the placeholder
+            classSelect.innerHTML = '';
+            
+            // Re-append matching options
+            classOptions.forEach(opt => {
+                if (opt.value === '') {
+                    classSelect.appendChild(opt);
+                } else if (!selectedUnitId || opt.dataset.unitId == selectedUnitId) {
+                    classSelect.appendChild(opt);
+                }
+            });
+            
+            // Restore selection if it's still available in the filtered list
+            if (Array.from(classSelect.options).some(opt => opt.value === currentSelectedValue)) {
+                classSelect.value = currentSelectedValue;
+            } else {
+                classSelect.value = '';
+            }
+        }
+    }
+});
+</script>
 
 <?php include '../layouts/footer.php'; ?>
