@@ -18,6 +18,11 @@ $units = $conn->query("SELECT id, name FROM education_units ORDER BY FIELD(name,
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $unit_id = isset($_GET['unit_id']) ? $_GET['unit_id'] : '';
 
+// Reusable Filter Query for CRUD redirects
+$current_filters = $_GET;
+unset($current_filters['success'], $current_filters['error'], $current_filters['id']);
+$filter_qs = http_build_query($current_filters);
+
 $is_admin = (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Administrator');
 
 $where_clauses = [];
@@ -118,7 +123,7 @@ include '../layouts/header.php';
             <p class="mt-2 text-sm text-slate-500">Kelola data kelas dan wali kelas unit pendidikan.</p>
         </div>
         <div class="mt-4 flex md:ml-4 md:mt-0">
-            <a href="<?php url('views/grade_levels/create.php'); ?>"
+            <a href="<?php url('views/grade_levels/create.php' . (!empty($filter_qs) ? '?' . $filter_qs : '')); ?>"
                 class="inline-flex items-center rounded-lg bg-cyan-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-600 transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                     stroke="currentColor" class="w-5 h-5 mr-2">
@@ -244,7 +249,7 @@ include '../layouts/header.php';
                         </td>
                         <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                             <div class="flex justify-end gap-2">
-                                <a href="<?php url('views/grade_levels/edit.php?id=' . $level['id']); ?>"
+                                <a href="<?php url('views/grade_levels/edit.php?id=' . $level['id'] . (!empty($filter_qs) ? '&' . $filter_qs : '')); ?>"
                                     class="text-indigo-600 hover:text-indigo-900 p-1 hover:bg-indigo-50 rounded transition-colors"
                                     title="Edit">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -254,7 +259,7 @@ include '../layouts/header.php';
                                     </svg>
                                 </a>
                                 <button
-                                    onclick="openDeleteModal('<?php url('logic/grade_levels/delete.php?id=' . $level['id']); ?>')"
+                                    onclick="openDeleteModal('<?php url('logic/grade_levels/delete.php?id=' . $level['id'] . (!empty($filter_qs) ? '&' . $filter_qs : '')); ?>')"
                                     class="text-red-500 hover:text-red-700 p-1 hover:bg-red-50 rounded transition-colors"
                                     title="Delete">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"

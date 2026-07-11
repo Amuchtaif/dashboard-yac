@@ -13,9 +13,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $education_unit_id = $_POST['education_unit_id'];
     // $level = $_POST['level']; // Removed from form
     $teacher_id = !empty($_POST['teacher_id']) ? $_POST['teacher_id'] : null;
+    $return_filters = isset($_POST['return_filters']) ? $_POST['return_filters'] : '';
+    $redirect_qs = $return_filters ? '&' . $return_filters : '';
 
     if (empty($id) || empty($name) || empty($education_unit_id)) {
-        redirect('views/grade_levels/edit.php?id=' . $id . '&error=' . urlencode('Semua field wajib diisi.'));
+        redirect('views/grade_levels/edit.php?id=' . $id . '&error=' . urlencode('Semua field wajib diisi.') . $redirect_qs);
         exit;
     }
 
@@ -33,9 +35,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->bindParam(':id', $id);
 
     if ($stmt->execute()) {
-        redirect('views/grade_levels/index.php?success=' . urlencode('Kelas berhasil diperbarui.'));
+        redirect('views/grade_levels/index.php?success=' . urlencode('Kelas berhasil diperbarui.') . $redirect_qs);
     } else {
-        redirect('views/grade_levels/edit.php?id=' . $id . '&error=' . urlencode('Gagal memperbarui kelas.'));
+        redirect('views/grade_levels/edit.php?id=' . $id . '&error=' . urlencode('Gagal memperbarui kelas.') . $redirect_qs);
     }
 }
 ?>

@@ -31,6 +31,11 @@ $teachers = $conn->query("SELECT id, full_name as name FROM employees WHERE stat
 
 $page_title = "Edit Class";
 
+// Capture return filters
+$return_filters = $_GET;
+unset($return_filters['id'], $return_filters['error'], $return_filters['success']);
+$return_filters_qs = http_build_query($return_filters);
+
 include '../layouts/header.php';
 ?>
 
@@ -49,7 +54,7 @@ include '../layouts/header.php';
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="m1 9 4-4-4-4" />
                         </svg>
-                        <a href="<?php url('views/grade_levels/index.php'); ?>" class="hover:text-slate-800">Manajemen
+                        <a href="<?php url('views/grade_levels/index.php' . (!empty($return_filters_qs) ? '?' . $return_filters_qs : '')); ?>" class="hover:text-slate-800">Manajemen
                             Kelas</a>
                     </div>
                 </li>
@@ -71,6 +76,7 @@ include '../layouts/header.php';
 
     <form action="<?php url('logic/grade_levels/update.php'); ?>" method="POST" class="space-y-6">
         <input type="hidden" name="id" value="<?php echo $level['id']; ?>">
+        <input type="hidden" name="return_filters" value="<?php echo htmlspecialchars($return_filters_qs); ?>">
 
         <!-- Main Card -->
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
@@ -201,7 +207,7 @@ include '../layouts/header.php';
 
             <!-- Footer Action -->
             <div class="flex items-center justify-end gap-3 mt-8 pt-6 border-t border-slate-100">
-                <a href="<?php url('views/grade_levels/index.php'); ?>"
+                <a href="<?php url('views/grade_levels/index.php' . (!empty($return_filters_qs) ? '?' . $return_filters_qs : '')); ?>"
                     class="px-6 py-2.5 rounded-lg border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 transition-colors">
                     Batal
                 </a>

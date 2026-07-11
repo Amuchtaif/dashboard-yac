@@ -12,9 +12,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $education_unit_id = $_POST['education_unit_id'];
     $level = !empty($_POST['level']) ? $_POST['level'] : '-';
     $teacher_id = !empty($_POST['teacher_id']) ? $_POST['teacher_id'] : null;
+    $return_filters = isset($_POST['return_filters']) ? $_POST['return_filters'] : '';
+    $redirect_qs = $return_filters ? '&' . $return_filters : '';
 
     if (empty($name) || empty($education_unit_id)) {
-        redirect('views/grade_levels/create.php?error=' . urlencode('Semua field wajib diisi.'));
+        redirect('views/grade_levels/create.php?error=' . urlencode('Semua field wajib diisi.') . $redirect_qs);
         exit;
     }
 
@@ -30,9 +32,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->bindParam(':capacity', $capacity);
 
     if ($stmt->execute()) {
-        redirect('views/grade_levels/index.php?success=' . urlencode('Kelas berhasil ditambahkan.'));
+        redirect('views/grade_levels/index.php?success=' . urlencode('Kelas berhasil ditambahkan.') . $redirect_qs);
     } else {
-        redirect('views/grade_levels/create.php?error=' . urlencode('Gagal menambahkan kelas.'));
+        redirect('views/grade_levels/create.php?error=' . urlencode('Gagal menambahkan kelas.') . $redirect_qs);
     }
 }
 ?>

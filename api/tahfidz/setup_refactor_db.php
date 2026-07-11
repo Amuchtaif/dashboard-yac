@@ -71,7 +71,7 @@ try {
         `end_surah_id` int(11) DEFAULT NULL,
         `end_ayah` int(11) DEFAULT NULL,
         `line_count` int(11) DEFAULT 0,
-        `score` decimal(5,2) DEFAULT NULL,
+        `score` varchar(50) DEFAULT NULL,
         `notes` text DEFAULT NULL,
         `teacher_id` int(11) DEFAULT NULL,
         `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,

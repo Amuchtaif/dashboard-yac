@@ -11,7 +11,7 @@ $db = new Database();
 $conn = $db->getConnection();
 
 // --- Logika Paginasi ---
-$limit = isset($_GET['limit']) && in_array((int) $_GET['limit'], [10, 50, 100]) ? (int) $_GET['limit'] : 10;
+$limit = isset($_GET['limit']) && in_array((int) $_GET['limit'], [10, 20, 50, 100]) ? (int) $_GET['limit'] : 10;
 $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int) $_GET['page'] : 1;
 if ($page < 1)
     $page = 1;
@@ -72,10 +72,17 @@ if ($day) {
 
 $where_sql = count($where_clauses) > 0 ? "WHERE " . implode(" AND ", $where_clauses) : "";
 
+$current_filters = $_GET;
+unset($current_filters['success'], $current_filters['error'], $current_filters['id']);
+$pagination_params = $current_filters;
+unset($pagination_params['page']);
+$pag_qs = http_build_query($pagination_params);
+
 // --- Data Master untuk Filter ---
 $units = $conn->query("SELECT id, name FROM education_units ORDER BY FIELD(name, 'Playgroup', 'TKIT', 'SDIT', 'MTs', 'Idad Lughoh', 'MA', 'Mahad Aly') ASC, name ASC")->fetchAll(PDO::FETCH_ASSOC);
 $grades = $conn->query("SELECT id, name, education_unit_id FROM grade_levels ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
 $academic_years = $conn->query("SELECT id, name, semester, is_active FROM academic_years ORDER BY start_date DESC")->fetchAll(PDO::FETCH_ASSOC);
+$teachers = $conn->query("SELECT id, full_name FROM employees WHERE status = 'active' ORDER BY full_name ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 // Map Hari ke Bahasa Indonesia
 $indo_days = [
@@ -145,6 +152,15 @@ include '../layouts/header.php';
                         d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244 2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
                 </svg>
                 Hapus Terpilih (<span id="selectedCount">0</span>)
+            </button>
+            <button type="button" id="bulkEditTeacherBtn" onclick="openBulkEditTeacherModal()"
+                class="hidden inline-flex items-center justify-center rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 transition-all">
+                <svg class="-ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
+                </svg>
+                Ubah Guru (<span id="selectedEditCount">0</span>)
             </button>
             <a href="import.php?<?php echo http_build_query($_GET); ?>"
                 class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 transition-colors">
@@ -412,7 +428,7 @@ include '../layouts/header.php';
 
     <!-- Table -->
     <div class="mt-8 flex flex-col">
-        <div class="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+        <div class="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 md:rounded-xl bg-white">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
@@ -502,88 +518,97 @@ include '../layouts/header.php';
                     <?php endforeach; ?>
                 </tbody>
             </table>
-        </div>
-    <!-- Pagination -->
-    <?php if ($total_pages > 1): ?>
-        <div class="mt-8 flex items-center justify-between border-t border-slate-200 bg-white px-4 py-3 sm:px-6 rounded-xl shadow-sm border">
-            <div class="flex flex-1 justify-between sm:hidden">
-                <?php if ($page > 1): ?>
-                    <a href="?<?php echo http_build_query(array_merge($_GET, ['page' => $page - 1])); ?>"
-                        class="relative inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Previous</a>
-                <?php endif; ?>
-                <?php if ($page < $total_pages): ?>
-                    <a href="?<?php echo http_build_query(array_merge($_GET, ['page' => $page + 1])); ?>"
-                        class="relative ml-3 inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Next</a>
-                <?php endif; ?>
-            </div>
-            <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-                <div class="flex items-center gap-4">
-                    <p class="text-sm text-slate-700">
-                        Showing <span class="font-medium"><?php echo $offset + 1; ?></span> to
-                        <span class="font-medium"><?php echo min($offset + $limit, $total_rows); ?></span> of
-                        <span class="font-medium"><?php echo $total_rows; ?></span> results
-                    </p>
-                    
-                    <div class="flex items-center gap-2">
-                        <label class="text-xs text-slate-500">Tampilkan:</label>
-                        <div class="relative w-24" id="container-limit">
-                            <button type="button" onclick="toggleFormDropdown('limit')"
-                                class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-xs text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-all">
-                                <span id="text-limit" class="block truncate"><?php echo $limit; ?></span>
-                                <svg id="arrow-limit" class="h-3 w-3 text-slate-400 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                                </svg>
-                            </button>
-                            <div id="menu-limit" class="hidden absolute bottom-full left-0 z-30 mb-1 w-full rounded-xl bg-white py-1 text-base shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-xs">
-                                <ul id="list-limit">
-                                    <?php foreach ([10, 50, 100] as $l): ?>
-                                        <li onclick="selectFilterOption('limit', '<?php echo $l; ?>', '<?php echo $l; ?>')" 
-                                            class="cursor-pointer select-none py-2 px-3 text-slate-600 hover:bg-cyan-50 hover:text-cyan-700 transition-colors <?php echo $limit == $l ? 'bg-cyan-50 text-cyan-700 font-bold' : ''; ?>">
-                                            <?php echo $l; ?>
-                                        </li>
-                                    <?php endforeach; ?>
-                                </ul>
-                            </div>
+
+            <!-- Pagination -->
+            <?php if ($total_pages > 1): ?>
+                <div class="flex flex-col sm:flex-row items-center justify-between border-t border-slate-200 bg-white px-4 py-4 md:py-3 sm:px-6 gap-4">
+                    <!-- Mobile Pagination Info -->
+                    <div class="flex sm:hidden flex-col items-center gap-2">
+                        <p class="text-xs text-slate-500">
+                            Menampilkan <span class="font-bold text-slate-900"><?php echo $offset + 1; ?></span> - <span
+                                class="font-bold text-slate-900"><?php echo min($offset + $limit, $total_rows); ?></span>
+                            dari <span class="font-bold text-slate-900"><?php echo $total_rows; ?></span>
+                        </p>
+                        <div class="flex gap-2">
+                            <?php if ($page > 1): ?>
+                                <a href="?page=<?php echo $page - 1; ?><?php echo $pag_qs ? '&' . $pag_qs : ''; ?>"
+                                    class="rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50">Prev</a>
+                            <?php endif; ?>
+                            <?php if ($page < $total_pages): ?>
+                                <a href="?page=<?php echo $page + 1; ?><?php echo $pag_qs ? '&' . $pag_qs : ''; ?>"
+                                    class="rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50">Next</a>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <!-- Desktop/Tablet Pagination Info -->
+                    <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                        <div class="flex items-center gap-4">
+                            <select onchange="window.location.href='?page=1&'+(this.value ? 'limit='+this.value : '')+'<?php echo $pag_qs ? '&' . str_replace('limit=' . $limit, '', $pag_qs) : ''; ?>'.replace('&&', '&')"
+                                class="block rounded-lg border-slate-300 py-1.5 pl-3 pr-8 text-slate-900 ring-1 ring-inset ring-slate-100 focus:ring-2 focus:ring-cyan-600 sm:text-xs">
+                                <?php foreach ([10, 20, 50, 100] as $val): ?>
+                                    <option value="<?php echo $val; ?>" <?php echo $limit == $val ? 'selected' : ''; ?>>
+                                        <?php echo $val; ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                            <p class="text-xs text-slate-500">
+                                Menampilkan <span class="font-bold text-slate-900"><?php echo $offset + 1; ?></span> - <span
+                                    class="font-bold text-slate-900"><?php echo min($offset + $limit, $total_rows); ?></span>
+                                dari <span class="font-bold text-slate-900"><?php echo $total_rows; ?></span> data
+                            </p>
+                        </div>
+                        <div>
+                            <nav class="isolate inline-flex -space-x-px rounded-xl shadow-sm border border-slate-200 overflow-hidden"
+                                aria-label="Pagination">
+                                <!-- Prev -->
+                                <?php if ($page > 1): ?>
+                                    <a href="?page=<?php echo $page - 1; ?><?php echo $pag_qs ? '&' . $pag_qs : ''; ?>"
+                                        class="relative inline-flex items-center px-3 py-2 text-slate-400 hover:bg-slate-50 focus:z-20 transition-colors">
+                                        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd"
+                                                d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
+                                                clip-rule="evenodd" />
+                                        </svg>
+                                    </a>
+                                <?php endif; ?>
+
+                                <?php
+                                $range = 1;
+                                for ($i = 1; $i <= $total_pages; $i++) {
+                                    if ($i == 1 || $i == $total_pages || ($i >= $page - $range && $i <= $page + $range)) {
+                                        ?>
+                                        <a href="?page=<?php echo $i; ?><?php echo $pag_qs ? '&' . $pag_qs : ''; ?>"
+                                            class="relative inline-flex items-center px-4 py-2 text-sm font-semibold <?php echo ($i == $page) ? 'bg-cyan-600 text-white' : 'text-slate-900 hover:bg-slate-50'; ?> border-x border-slate-100 transition-colors">
+                                            <?php echo $i; ?>
+                                        </a>
+                                        <?php
+                                    } elseif ($i == 2 || $i == $total_pages - 1) {
+                                        ?>
+                                        <span
+                                            class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-slate-400">...</span>
+                                        <?php
+                                    }
+                                }
+                                ?>
+
+                                <!-- Next -->
+                                <?php if ($page < $total_pages): ?>
+                                    <a href="?page=<?php echo $page + 1; ?><?php echo $pag_qs ? '&' . $pag_qs : ''; ?>"
+                                        class="relative inline-flex items-center px-3 py-2 text-slate-400 hover:bg-slate-50 focus:z-20 transition-colors">
+                                        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd"
+                                                d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
+                                                clip-rule="evenodd" />
+                                        </svg>
+                                    </a>
+                                <?php endif; ?>
+                            </nav>
                         </div>
                     </div>
                 </div>
-                <div>
-                    <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
-                        <?php if ($page > 1): ?>
-                            <a href="?<?php echo http_build_query(array_merge($_GET, ['page' => $page - 1])); ?>"
-                                class="relative inline-flex items-center rounded-l-md px-2 py-2 text-slate-400 ring-1 ring-inset ring-slate-300 hover:bg-slate-50 focus:z-20 focus:outline-offset-0">
-                                <span class="sr-only">Previous</span>
-                                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                    <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01.02 1.06L8.832 10l3.978 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
-                                </svg>
-                            </a>
-                        <?php endif; ?>
-
-                        <?php
-                        $start_page = max(1, $page - 2);
-                        $end_page = min($total_pages, $page + 2);
-                        for ($i = $start_page; $i <= $end_page; $i++):
-                        ?>
-                            <a href="?<?php echo http_build_query(array_merge($_GET, ['page' => $i])); ?>"
-                                class="relative inline-flex items-center px-4 py-2 text-sm font-semibold <?php echo $i == $page ? 'z-10 bg-cyan-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-600' : 'text-slate-900 ring-1 ring-inset ring-slate-300 hover:bg-slate-50 focus:z-20 focus:outline-offset-0'; ?>">
-                                <?php echo $i; ?>
-                            </a>
-                        <?php endfor; ?>
-
-                        <?php if ($page < $total_pages): ?>
-                            <a href="?<?php echo http_build_query(array_merge($_GET, ['page' => $page + 1])); ?>"
-                                class="relative inline-flex items-center rounded-r-md px-2 py-2 text-slate-400 ring-1 ring-inset ring-slate-300 hover:bg-slate-50 focus:z-20 focus:outline-offset-0">
-                                <span class="sr-only">Next</span>
-                                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                    <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.19 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
-                                </svg>
-                            </a>
-                        <?php endif; ?>
-                    </nav>
-                </div>
-            </div>
+            <?php endif; ?>
         </div>
-    <?php endif; ?>
 </div>
 
 <!-- Bulk Delete Confirmation Modal -->
@@ -614,6 +639,72 @@ include '../layouts/header.php';
                     Batal
                 </button>
             </div>
+        </div>
+    </div>
+</div>
+
+</div>
+
+<!-- Bulk Edit Teacher Confirmation Modal -->
+<div id="bulkEditTeacherModal" class="fixed inset-0 z-[60] hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div id="bulkEditTeacherModalBackdrop" class="fixed inset-0 bg-slate-900/50 transition-opacity duration-300 opacity-0 backdrop-blur-sm"></div>
+    <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div id="bulkEditTeacherModalPanel" class="relative transform overflow-visible rounded-xl bg-white text-left shadow-2xl transition-all duration-300 opacity-0 scale-95 sm:my-8 sm:w-full sm:max-w-lg">
+            <form id="bulkEditTeacherForm" method="POST" action="../../logic/class_schedules/bulk_edit_teacher.php?<?php echo http_build_query($_GET); ?>">
+                <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-amber-100 sm:mx-0 sm:h-10 sm:w-10">
+                            <svg class="h-6 w-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
+                            </svg>
+                        </div>
+                        <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
+                            <h3 class="text-lg font-bold leading-6 text-slate-900" id="modal-title">Ubah Guru Terpilih</h3>
+                            <div class="mt-2 text-sm text-slate-500">
+                                Anda akan mengubah guru untuk <span id="bulkEditTeacherCount" class="font-bold text-slate-700"></span> jadwal terpilih.
+                            </div>
+                            
+                            <div class="mt-4 relative" id="container-modal_teacher_id">
+                                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Pilih Guru Baru</label>
+                                <input type="hidden" name="teacher_id" id="input-modal_teacher_id" required>
+                                
+                                <button type="button" onclick="toggleModalTeacherDropdown()"
+                                    class="flex w-full items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all text-left">
+                                    <span id="text-modal_teacher_id" class="block truncate text-slate-400">
+                                        -- Pilih Guru --
+                                    </span>
+                                    <svg id="arrow-modal_teacher_id" class="h-4 w-4 text-slate-400 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                                
+                                <div id="menu-modal_teacher_id" class="hidden absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-xl bg-white py-1 text-base shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-slate-100">
+                                    <div class="sticky top-0 z-10 bg-white px-2 py-1.5">
+                                        <input type="text" id="search-modal_teacher_id" onkeyup="filterModalTeacherDropdown()" placeholder="Cari nama guru..." class="block w-full rounded-md border-slate-200 py-1.5 pl-3 text-sm focus:border-cyan-500 focus:ring-cyan-500">
+                                    </div>
+                                    <ul id="list-modal_teacher_id">
+                                        <?php foreach ($teachers as $teacher): ?>
+                                            <li onclick="selectModalTeacherOption('<?php echo $teacher['id']; ?>', '<?php echo htmlspecialchars($teacher['full_name'], ENT_QUOTES); ?>')" 
+                                                class="relative cursor-pointer select-none py-2.5 pl-3 pr-9 text-slate-600 hover:bg-cyan-50 hover:text-cyan-700 transition-colors text-left">
+                                                <?php echo htmlspecialchars($teacher['full_name']); ?>
+                                            </li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="bulkEditHiddenInputs"></div>
+                <div class="bg-slate-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 gap-2">
+                    <button type="submit" class="inline-flex w-full justify-center rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-amber-500 sm:w-auto transition-all transform active:scale-95">
+                        Simpan Perubahan
+                    </button>
+                    <button type="button" onclick="closeBulkEditTeacherModal()" class="mt-3 inline-flex w-full justify-center rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 sm:mt-0 sm:w-auto transition-all">
+                        Batal
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -656,14 +747,23 @@ include '../layouts/header.php';
         const checkboxes = document.querySelectorAll('.row-checkbox:checked');
         const btn = document.getElementById('bulkDeleteBtn');
         const countSpan = document.getElementById('selectedCount');
+        const editBtn = document.getElementById('bulkEditTeacherBtn');
+        const editCountSpan = document.getElementById('selectedEditCount');
         const selectAllCb = document.getElementById('selectAll');
         const allCheckboxes = document.querySelectorAll('.row-checkbox');
         
         if (checkboxes.length > 0) {
             btn.classList.remove('hidden');
             countSpan.textContent = checkboxes.length;
+            if (editBtn) {
+                editBtn.classList.remove('hidden');
+                editCountSpan.textContent = checkboxes.length;
+            }
         } else {
             btn.classList.add('hidden');
+            if (editBtn) {
+                editBtn.classList.add('hidden');
+            }
         }
 
         if (allCheckboxes.length > 0) {
@@ -695,6 +795,100 @@ include '../layouts/header.php';
         // Hide modal and submit
         closeBulkDeleteModal();
         form.submit();
+    }
+
+    function openBulkEditTeacherModal() {
+        const checkboxes = document.querySelectorAll('.row-checkbox:checked');
+        if (checkboxes.length === 0) return;
+
+        document.getElementById('bulkEditTeacherCount').textContent = checkboxes.length;
+        
+        // Reset modal dropdown value
+        document.getElementById('input-modal_teacher_id').value = '';
+        const textSpan = document.getElementById('text-modal_teacher_id');
+        textSpan.innerText = '-- Pilih Guru --';
+        textSpan.classList.add('text-slate-400');
+        textSpan.classList.remove('text-slate-700');
+        
+        // Hide dropdown menu if open
+        const menu = document.getElementById('menu-modal_teacher_id');
+        if (menu) menu.classList.add('hidden');
+        const arrow = document.getElementById('arrow-modal_teacher_id');
+        if (arrow) arrow.classList.remove('rotate-180');
+
+        // populate hidden inputs in the form
+        const container = document.getElementById('bulkEditHiddenInputs');
+        container.innerHTML = '';
+        checkboxes.forEach(cb => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'ids[]';
+            input.value = cb.value;
+            container.appendChild(input);
+        });
+
+        const modal = document.getElementById('bulkEditTeacherModal');
+        const backdrop = document.getElementById('bulkEditTeacherModalBackdrop');
+        const panel = document.getElementById('bulkEditTeacherModalPanel');
+
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            backdrop.classList.remove('opacity-0');
+            panel.classList.remove('opacity-0', 'scale-95');
+        }, 10);
+    }
+
+    function closeBulkEditTeacherModal() {
+        const modal = document.getElementById('bulkEditTeacherModal');
+        const backdrop = document.getElementById('bulkEditTeacherModalBackdrop');
+        const panel = document.getElementById('bulkEditTeacherModalPanel');
+
+        backdrop.classList.add('opacity-0');
+        panel.classList.add('opacity-0', 'scale-95');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
+    }
+
+    function toggleModalTeacherDropdown() {
+        const menu = document.getElementById('menu-modal_teacher_id');
+        const arrow = document.getElementById('arrow-modal_teacher_id');
+        
+        menu.classList.toggle('hidden');
+        arrow.classList.toggle('rotate-180');
+        
+        if (!menu.classList.contains('hidden')) {
+            document.getElementById('search-modal_teacher_id').focus();
+            document.getElementById('search-modal_teacher_id').value = '';
+            filterModalTeacherDropdown(); // Reset search filter
+        }
+    }
+
+    function selectModalTeacherOption(value, text) {
+        document.getElementById('input-modal_teacher_id').value = value;
+        const textSpan = document.getElementById('text-modal_teacher_id');
+        textSpan.innerText = text;
+        textSpan.classList.remove('text-slate-400');
+        textSpan.classList.add('text-slate-700');
+        
+        document.getElementById('menu-modal_teacher_id').classList.add('hidden');
+        document.getElementById('arrow-modal_teacher_id').classList.remove('rotate-180');
+    }
+
+    function filterModalTeacherDropdown() {
+        const input = document.getElementById('search-modal_teacher_id');
+        const filter = input.value.toLowerCase();
+        const list = document.getElementById('list-modal_teacher_id');
+        const li = list.getElementsByTagName('li');
+
+        for (let i = 0; i < li.length; i++) {
+            const txtValue = li[i].textContent || li[i].innerText;
+            if (txtValue.toLowerCase().indexOf(filter) > -1) {
+                li[i].style.display = "";
+            } else {
+                li[i].style.display = "none";
+            }
+        }
     }
 </script>
 

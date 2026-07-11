@@ -92,7 +92,7 @@ class MemorizationService {
         $end_surah_id = (int)$data['end_surah_id'];
         $end_ayah = (int)$data['end_ayah'];
         $line_count = (int)$data['line_count'];
-        $score = isset($data['score']) ? (float)$data['score'] : null;
+        $score = isset($data['score']) ? $data['score'] : null;
         $notes = isset($data['notes']) ? $data['notes'] : '';
         $teacher_id = isset($data['teacher_id']) ? (int)$data['teacher_id'] : null;
 
@@ -113,7 +113,7 @@ class MemorizationService {
             (student_id, date, entry_type, start_surah_id, start_ayah, end_surah_id, end_ayah, line_count, score, notes, teacher_id, surah_id, surah_start, surah_end, total_baris, status)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         
-        $stmt->bind_param("issiiiiidsiissis",
+        $stmt->bind_param("issiiiiissiissis",
             $student_id,
             $date,
             $entry_type,
@@ -168,7 +168,7 @@ class MemorizationService {
         $end_surah_id = (int)$merged['end_surah_id'];
         $end_ayah = (int)$merged['end_ayah'];
         $line_count = (int)$merged['line_count'];
-        $score = isset($merged['score']) ? (float)$merged['score'] : null;
+        $score = isset($merged['score']) ? $merged['score'] : null;
         $notes = isset($merged['notes']) ? $merged['notes'] : '';
         $teacher_id = isset($merged['teacher_id']) ? (int)$merged['teacher_id'] : null;
 
@@ -188,7 +188,7 @@ class MemorizationService {
             surah_id = ?, surah_start = ?, surah_end = ?, total_baris = ?, status = ?
             WHERE id = ?");
 
-        $stmt->bind_param("ssiiiiidsiissisi",
+        $stmt->bind_param("ssiiiiissiissisi",
             $date,
             $entry_type,
             $start_surah_id,

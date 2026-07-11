@@ -2,6 +2,27 @@
 require_once '../../config/database.php';
 require_once '../../config/app.php';
 
+function cleanNameForMatching($name) {
+    $name = strtolower($name);
+    // Replace punctuation with spaces
+    $name = preg_replace('/[^\w\s]/u', ' ', $name);
+    
+    // Degrees to exclude
+    $degrees = [
+        's', 'pd', 'i', 'kom', 'ag', 'sy', 'se', 'h', 'farm', 'md', 'ma', 'lc', 'st', 'ba', 'dr', 'apt', 'spd', 'mth', 'ss'
+    ];
+    
+    $words = explode(' ', $name);
+    $cleaned_words = [];
+    foreach ($words as $word) {
+        $word = trim($word);
+        if (empty($word)) continue;
+        if (in_array($word, $degrees)) continue;
+        $cleaned_words[] = $word;
+    }
+    return implode(' ', $cleaned_words);
+}
+
 check_login();
 check_permission('manage_academic');
 
@@ -112,6 +133,39 @@ try {
         $stmt = $conn->prepare("SELECT id FROM subjects WHERE name LIKE ? LIMIT 1");
         $stmt->execute(['%' . $subject_name . '%']);
         $subject_id = $stmt->fetchColumn();
+        
+        if (!$subject_id) {
+            // Fuzzy word-based match fallback
+            $search_words = array_filter(explode(' ', strtolower($subject_name)), function($w) {
+                return strlen(trim($w)) > 2;
+            });
+            if (!empty($search_words)) {
+                $all_subjects = $conn->query("SELECT id, name FROM subjects")->fetchAll();
+                $best_subj_match = null;
+                $best_subj_score = 0;
+                foreach ($all_subjects as $subj) {
+                    $subj_name_lower = strtolower($subj['name']);
+                    $matched_words = 0;
+                    foreach ($search_words as $word) {
+                        if (strpos($subj_name_lower, $word) !== false) {
+                            $matched_words++;
+                        }
+                    }
+                    if ($matched_words > 0) {
+                        $score = $matched_words / count($search_words);
+                        if ($score > $best_subj_score) {
+                            $best_subj_score = $score;
+                            $best_subj_match = $subj['id'];
+                        }
+                    }
+                }
+                $threshold = count($search_words) <= 2 ? 1.0 : 0.75;
+                if ($best_subj_score >= $threshold) {
+                    $subject_id = $best_subj_match;
+                }
+            }
+        }
+
         if (!$subject_id) {
             $errorCount++;
             $errors[] = "Baris $rowNumber: Mata Pelajaran '$subject_name' tidak ditemukan.";
@@ -165,6 +219,29 @@ try {
                         ]);
                         $teacher_id = $stmt->fetchColumn();
                     }
+                }
+            }
+
+            if (!$teacher_id) {
+                // Fourth attempt: Levenshtein distance matching (only active employees)
+                $all_teachers = $conn->query("SELECT id, full_name FROM employees WHERE status = 'active'")->fetchAll();
+                $clean_search = cleanNameForMatching($search_name);
+                
+                $best_teacher_match = null;
+                $min_distance = 999;
+                
+                foreach ($all_teachers as $teacher) {
+                    $clean_teacher = cleanNameForMatching($teacher['full_name']);
+                    $dist = levenshtein($clean_search, $clean_teacher);
+                    if ($dist < $min_distance) {
+                        $min_distance = $dist;
+                        $best_teacher_match = $teacher['id'];
+                    }
+                }
+                
+                // Allow distance of <= 2 for cleaned search terms with length > 3
+                if ($best_teacher_match && $min_distance <= 2 && strlen($clean_search) > 3) {
+                    $teacher_id = $best_teacher_match;
                 }
             }
         }
