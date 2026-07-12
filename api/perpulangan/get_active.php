@@ -21,20 +21,28 @@ try {
     $user_id = $_GET['user_id'] ?? $_GET['employee_id'] ?? $_GET['supervisor_id'] ?? $_GET['musrif_id'] ?? null;
     $room_id = isset($_GET['room_id']) ? $_GET['room_id'] : null;
 
+    // Fetch Active Academic Year
+    $active_year_id = $conn->query("SELECT id FROM academic_years WHERE is_active = 1 LIMIT 1")->fetchColumn();
+    if (!$active_year_id) {
+        $active_year_id = 1;
+    }
+
     // Fetch all relevant permits (Pending, Active, and Recent)
     // We use LEFT JOIN so that students without rooms still appear if no filter is applied
     $query = "
-        SELECT bp.id, bp.student_id, s.nama_siswa, s.kelas, s.foto,
+        SELECT bp.id, bp.student_id, s.nama_siswa, gl.name as kelas, s.foto,
                bp.category, bp.reason, bp.start_date, bp.end_date, bp.status, bp.created_at,
                br.room_name as asrama
         FROM boarding_permits bp
         JOIN students s ON bp.student_id = s.id
+        LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = :active_year_id AND sch.status = 'ACTIVE'
+        LEFT JOIN grade_levels gl ON sch.class_id = gl.id
         LEFT JOIN boarding_room_members brm ON s.id = brm.student_id
         LEFT JOIN boarding_rooms br ON brm.room_id = br.id
         WHERE 1=1
     ";
 
-    $params = [];
+    $params = [':active_year_id' => $active_year_id];
     if ($search) {
         $query .= " AND s.nama_siswa LIKE :search";
         $params[':search'] = "%$search%";

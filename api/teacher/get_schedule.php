@@ -31,6 +31,12 @@ if (isset($day_map[$day])) {
 }
 
 try {
+    // Fetch Active Academic Year
+    $active_year_id = $conn->query("SELECT id FROM academic_years WHERE is_active = 1 LIMIT 1")->fetchColumn();
+    if (!$active_year_id) {
+        $active_year_id = 1;
+    }
+
     $sql = "
         SELECT 
             cs.id, 
@@ -48,12 +54,12 @@ try {
         JOIN grade_levels gl ON cs.grade_level_id = gl.id
         LEFT JOIN lesson_periods lp ON cs.lesson_period_id = lp.id
         LEFT JOIN lesson_periods lp_end ON cs.end_lesson_period_id = lp_end.id
-        WHERE cs.employee_id = :employee_id AND cs.day = :day
+        WHERE cs.employee_id = :employee_id AND cs.day = :day AND cs.academic_year_id = :active_year_id
         ORDER BY lp.start_time ASC
     ";
 
     $stmt = $conn->prepare($sql);
-    $stmt->execute([':employee_id' => $employee_id, ':day' => $day]);
+    $stmt->execute([':employee_id' => $employee_id, ':day' => $day, ':active_year_id' => $active_year_id]);
     $schedules = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     echo json_encode([

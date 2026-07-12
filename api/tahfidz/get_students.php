@@ -24,21 +24,26 @@ try {
     
     // 1. Get active academic year
     $activeYear = "";
-    $yearQuery = "SELECT name FROM academic_years WHERE is_active = 1 LIMIT 1";
+    $activeYearId = 0;
+    $yearQuery = "SELECT id, name FROM academic_years WHERE is_active = 1 LIMIT 1";
     $yearResult = $mysqli->query($yearQuery);
     
     if ($yearResult && $yearResult->num_rows > 0) {
         $yearRow = $yearResult->fetch_assoc();
+        $activeYearId = (int)$yearRow['id'];
         $activeYear = $yearRow['name'];
     }
 
     // 2. Fetch all students (filtered by status Aktif and excluding specific units)
     $exclude = ["'TKIT'", "'SDIT'", "'PLAY GROUP'"];
     $exclude_str = implode(',', $exclude);
-    $query = "SELECT * FROM students 
-              WHERE status = 'Aktif' 
-              AND (tingkat NOT IN ($exclude_str) OR tingkat IS NULL)
-              ORDER BY nama_siswa ASC";
+    $query = "SELECT s.*, gl.name as kelas 
+              FROM students s 
+              JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = $activeYearId AND sch.status = 'ACTIVE'
+              JOIN grade_levels gl ON sch.class_id = gl.id
+              WHERE s.status = 'Aktif' 
+              AND (s.tingkat NOT IN ($exclude_str) OR s.tingkat IS NULL)
+              ORDER BY s.nama_siswa ASC";
     $result = $mysqli->query($query);
     
     if ($result) {

@@ -52,18 +52,28 @@ if (!$isKoordinator) {
     exit;
 }
 
-$date = isset($_GET['date']) ? $_GET['date'] : date('Y-m-d');
-
 try {
+    $date = isset($_GET['date']) ? $_GET['date'] : date('Y-m-d');
+    // Get active academic year
+    $activeYearId = 0;
+    $yearQuery = "SELECT id FROM academic_years WHERE is_active = 1 LIMIT 1";
+    $yearResult = $mysqli->query($yearQuery);
+    if ($yearResult && $yearResult->num_rows > 0) {
+        $yearRow = $yearResult->fetch_assoc();
+        $activeYearId = (int)$yearRow['id'];
+    }
+
     // tahfidz_memorization table
     // Assuming structure: id, student_id, teacher_id, date, status, notes
     $query = "SELECT 
                 tm.id, tm.student_id, tm.teacher_id, tm.date, tm.surah_start, tm.ayat_start, tm.surah_end, tm.ayat_end, tm.juz, tm.status, tm.notes, tm.created_at,
                 s.nama_siswa as student_name,
-                s.kelas,
+                gl.name as kelas,
                 e.full_name as teacher_name
               FROM tahfidz_memorization tm
               JOIN students s ON tm.student_id = s.id
+              LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = $activeYearId AND sch.status = 'ACTIVE'
+              LEFT JOIN grade_levels gl ON sch.class_id = gl.id
               LEFT JOIN employees e ON tm.teacher_id = e.id
               WHERE tm.date = ?
               ORDER BY tm.created_at DESC";

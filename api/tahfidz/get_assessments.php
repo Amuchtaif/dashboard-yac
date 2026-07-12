@@ -19,10 +19,21 @@ $date = isset($_GET['date']) ? $_GET['date'] : null; // YYYY-MM-DD
 $teacher_id = isset($_GET['teacher_id']) ? $_GET['teacher_id'] : null;
 
 try {
+    // Get active academic year
+    $activeYearId = 0;
+    $yearQuery = "SELECT id FROM academic_years WHERE is_active = 1 LIMIT 1";
+    $yearResult = $mysqli->query($yearQuery);
+    if ($yearResult && $yearResult->num_rows > 0) {
+        $yearRow = $yearResult->fetch_assoc();
+        $activeYearId = (int)$yearRow['id'];
+    }
+
     $assessments = [];
-    $query = "SELECT a.*, s.nama_siswa as student_name, s.kelas, s.tingkat, e.full_name as teacher_name
+    $query = "SELECT a.*, s.nama_siswa as student_name, gl.name as kelas, s.tingkat, e.full_name as teacher_name
               FROM tahfidz_assessments a
               LEFT JOIN students s ON a.student_id = s.id
+              LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = $activeYearId AND sch.status = 'ACTIVE'
+              LEFT JOIN grade_levels gl ON sch.class_id = gl.id
               LEFT JOIN employees e ON a.teacher_id = e.id
               WHERE 1=1";
 

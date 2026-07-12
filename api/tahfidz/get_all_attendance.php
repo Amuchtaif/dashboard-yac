@@ -55,15 +55,26 @@ if (!$isKoordinator) {
 $date = isset($_GET['date']) ? $_GET['date'] : date('Y-m-d');
 
 try {
+    // Get active academic year
+    $activeYearId = 0;
+    $yearQuery = "SELECT id FROM academic_years WHERE is_active = 1 LIMIT 1";
+    $yearResult = $mysqli->query($yearQuery);
+    if ($yearResult && $yearResult->num_rows > 0) {
+        $yearRow = $yearResult->fetch_assoc();
+        $activeYearId = (int)$yearRow['id'];
+    }
+
     // Join path: Attendance -> Student -> Halaqah Member -> Group -> Teacher
     $query = "SELECT 
                 ta.*,
                 s.nama_siswa as student_name,
-                s.kelas,
+                gl.name as kelas,
                 hg.group_name,
                 e.full_name as teacher_name
               FROM tahfidz_attendance ta
               JOIN students s ON ta.student_id = s.id
+              LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = $activeYearId AND sch.status = 'ACTIVE'
+              LEFT JOIN grade_levels gl ON sch.class_id = gl.id
               LEFT JOIN halaqah_members hm ON s.id = hm.student_id
               LEFT JOIN halaqah_groups hg ON hm.group_id = hg.id
               LEFT JOIN employees e ON hg.teacher_id = e.id

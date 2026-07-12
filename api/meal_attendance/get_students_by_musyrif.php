@@ -68,17 +68,25 @@ try {
     }
     // Actually, let's just use the boolean is_locked for now as a general flag.
 
+    // Fetch Active Academic Year
+    $active_year_id = $conn->query("SELECT id FROM academic_years WHERE is_active = 1 LIMIT 1")->fetchColumn();
+    if (!$active_year_id) {
+        $active_year_id = 1;
+    }
+
     // 2. Get students in this room and their meal attendance status
     $sql = "
         SELECT 
             s.id, 
             s.nama_siswa, 
             s.nomor_induk, 
-            s.kelas,
+            gl.name as kelas,
             ma.id as attendance_id,
             ma.check_time
         FROM students s
         JOIN boarding_room_members brm ON s.id = brm.student_id
+        LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = :active_year_id AND sch.status = 'ACTIVE'
+        LEFT JOIN grade_levels gl ON sch.class_id = gl.id
         LEFT JOIN meal_attendances ma ON s.id = ma.student_id 
             AND ma.meal_type = :meal_type 
             AND ma.date = :date
@@ -89,6 +97,7 @@ try {
     $stmt = $conn->prepare($sql);
     $stmt->execute([
         ':room_id' => $room['id'],
+        ':active_year_id' => $active_year_id,
         ':meal_type' => $meal_type,
         ':date' => $date
     ]);

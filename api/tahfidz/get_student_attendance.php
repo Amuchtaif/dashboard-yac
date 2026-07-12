@@ -24,6 +24,15 @@ $session = isset($_GET['session']) ? $_GET['session'] : null;
 $group_id = isset($_GET['group_id']) ? $_GET['group_id'] : null;
 
 try {
+    // Get active academic year
+    $activeYearId = 0;
+    $yearQuery = "SELECT id FROM academic_years WHERE is_active = 1 LIMIT 1";
+    $yearResult = $mysqli->query($yearQuery);
+    if ($yearResult && $yearResult->num_rows > 0) {
+        $yearRow = $yearResult->fetch_assoc();
+        $activeYearId = (int)$yearRow['id'];
+    }
+
     $attendance_records = [];
     $params = [];
     $types = "";
@@ -48,25 +57,30 @@ try {
                     ta.teacher_id,
                     ta.created_at,
                     s.nama_siswa as student_name,
-                    s.kelas,
+                    gl.name as kelas,
                     s.tingkat
                   FROM halaqah_members hm
                   INNER JOIN students s ON hm.student_id = s.id
+                  LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = ? AND sch.status = 'ACTIVE'
+                  LEFT JOIN grade_levels gl ON sch.class_id = gl.id
                   LEFT JOIN tahfidz_attendance ta ON ta.student_id = s.id 
                       AND ta.date = ? 
                       AND ta.session = ?
                   WHERE hm.group_id = ?
                   ORDER BY s.nama_siswa ASC";
         
+        $params[] = $activeYearId;
         $params[] = $date;
         $params[] = $session;
         $params[] = $group_id;
-        $types .= "ssi";
+        $types .= "issi";
 
     } else {
-        $query = "SELECT ta.*, s.nama_siswa as student_name, s.kelas, s.tingkat 
+        $query = "SELECT ta.*, s.nama_siswa as student_name, gl.name as kelas, s.tingkat 
                   FROM tahfidz_attendance ta 
                   LEFT JOIN students s ON ta.student_id = s.id 
+                  LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = $activeYearId AND sch.status = 'ACTIVE'
+                  LEFT JOIN grade_levels gl ON sch.class_id = gl.id
                   WHERE 1=1";
 
         if ($date) {

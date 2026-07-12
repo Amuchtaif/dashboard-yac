@@ -33,23 +33,31 @@ try {
     $db = new Database();
     $conn = $db->getConnection();
 
+    // Fetch Active Academic Year
+    $active_year_id = $conn->query("SELECT id FROM academic_years WHERE is_active = 1 LIMIT 1")->fetchColumn();
+    if (!$active_year_id) {
+        $active_year_id = 1;
+    }
+
     // Query to get students assigned to this teacher through halaqah_groups and halaqah_members
     // We also fetch total_juz and last_surah from tahfidz_memorization
     $query = "SELECT 
                 s.id, 
                 s.nama_siswa as full_name, 
-                s.kelas,
+                gl.name as kelas,
                 s.tingkat,
                 COALESCE((SELECT COUNT(DISTINCT juz) FROM tahfidz_memorization WHERE student_id = s.id), 0) as total_juz,
                 COALESCE((SELECT surah_end FROM tahfidz_memorization WHERE student_id = s.id ORDER BY date DESC, id DESC LIMIT 1), '-') as last_surah
               FROM halaqah_members hm
               JOIN halaqah_groups hg ON hm.group_id = hg.id
               JOIN students s ON hm.student_id = s.id
+              LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = ? AND sch.status = 'ACTIVE'
+              LEFT JOIN grade_levels gl ON sch.class_id = gl.id
               WHERE hg.teacher_id = ?
               ORDER BY s.nama_siswa ASC";
 
     $stmt = $conn->prepare($query);
-    $stmt->execute([$teacher_id]);
+    $stmt->execute([$active_year_id, $teacher_id]);
     $students = $stmt->fetchAll();
 
     echo json_encode([

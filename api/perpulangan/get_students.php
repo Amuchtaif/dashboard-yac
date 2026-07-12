@@ -24,12 +24,20 @@ try {
         exit;
     }
 
+    // Fetch Active Academic Year
+    $active_year_id = $conn->query("SELECT id FROM academic_years WHERE is_active = 1 LIMIT 1")->fetchColumn();
+    if (!$active_year_id) {
+        $active_year_id = 1;
+    }
+
     // Build query to get students only from the specific room_id, same as boarding
     $query = "
-        SELECT s.id as student_id, s.nama_siswa, s.nomor_induk, s.kelas, s.foto,
+        SELECT s.id as student_id, s.nama_siswa, s.nomor_induk, gl.name as kelas, s.foto,
                br.room_name as asrama
         FROM boarding_room_members brm
         JOIN students s ON brm.student_id = s.id
+        LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = :active_year_id AND sch.status = 'ACTIVE'
+        LEFT JOIN grade_levels gl ON sch.class_id = gl.id
         JOIN boarding_rooms br ON brm.room_id = br.id
         WHERE s.status = 'Aktif' AND brm.room_id = :room_id
         ORDER BY s.nama_siswa ASC
@@ -37,6 +45,7 @@ try {
 
     $stmt = $conn->prepare($query);
     $stmt->bindParam(':room_id', $room_id);
+    $stmt->bindParam(':active_year_id', $active_year_id);
     $stmt->execute();
     $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
 

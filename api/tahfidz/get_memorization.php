@@ -18,14 +18,25 @@ $date = isset($_GET['date']) ? $_GET['date'] : null;
 $teacher_id = isset($_GET['teacher_id']) ? $_GET['teacher_id'] : null;
 
 try {
+    // Get active academic year
+    $activeYearId = 0;
+    $yearQuery = "SELECT id FROM academic_years WHERE is_active = 1 LIMIT 1";
+    $yearResult = $mysqli->query($yearQuery);
+    if ($yearResult && $yearResult->num_rows > 0) {
+        $yearRow = $yearResult->fetch_assoc();
+        $activeYearId = (int)$yearRow['id'];
+    }
+
     $memorization_records = [];
     $query = "SELECT m.id, m.student_id, m.teacher_id, m.date, m.surah_start, m.ayat_start, m.total_baris, m.surah_end, m.ayat_end, m.juz, m.status, m.notes, m.created_at,
-                     s.nama_siswa as student_name, s.kelas, s.tingkat,
+                     s.nama_siswa as student_name, gl.name as kelas, s.tingkat,
                      e.full_name as teacher_name,
                      m.surah_start as surah_name,
                      m.status as quality
               FROM tahfidz_memorization m
               LEFT JOIN students s ON m.student_id = s.id
+              LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = $activeYearId AND sch.status = 'ACTIVE'
+              LEFT JOIN grade_levels gl ON sch.class_id = gl.id
               LEFT JOIN employees e ON m.teacher_id = e.id
               WHERE 1=1";
 

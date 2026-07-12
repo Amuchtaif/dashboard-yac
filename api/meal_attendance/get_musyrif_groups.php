@@ -31,18 +31,26 @@ try {
     $stmt->execute();
     $groups = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    // Fetch Active Academic Year
+    $active_year_id = $conn->query("SELECT id FROM academic_years WHERE is_active = 1 LIMIT 1")->fetchColumn();
+    if (!$active_year_id) {
+        $active_year_id = 1;
+    }
+
     // If detail requested, fetch students for each room
     if (isset($_GET['include_students']) && $_GET['include_students'] == '1') {
         foreach ($groups as &$group) {
             $student_sql = "
-                SELECT s.id, s.nama_siswa, s.nomor_induk, s.kelas
+                SELECT s.id, s.nama_siswa, s.nomor_induk, gl.name as kelas
                 FROM students s
                 JOIN boarding_room_members brm ON s.id = brm.student_id
+                LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = ? AND sch.status = 'ACTIVE'
+                LEFT JOIN grade_levels gl ON sch.class_id = gl.id
                 WHERE brm.room_id = ?
                 ORDER BY s.nama_siswa ASC
             ";
             $s_stmt = $conn->prepare($student_sql);
-            $s_stmt->execute([$group['room_id']]);
+            $s_stmt->execute([$active_year_id, $group['room_id']]);
             $group['students'] = $s_stmt->fetchAll(PDO::FETCH_ASSOC);
         }
     }

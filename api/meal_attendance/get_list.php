@@ -14,6 +14,12 @@ try {
     $date = $_GET['date'] ?? date('Y-m-d');
     $type = $_GET['meal_type'] ?? '';
 
+    // Fetch Active Academic Year
+    $active_year_id = $conn->query("SELECT id FROM academic_years WHERE is_active = 1 LIMIT 1")->fetchColumn();
+    if (!$active_year_id) {
+        $active_year_id = 1;
+    }
+
     $sql = "
         SELECT 
             ma.id, 
@@ -22,13 +28,15 @@ try {
             ma.check_time, 
             s.nama_siswa, 
             s.nomor_induk,
-            s.kelas
+            gl.name as kelas
         FROM meal_attendances ma
         JOIN students s ON ma.student_id = s.id
+        LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = :active_year_id AND sch.status = 'ACTIVE'
+        LEFT JOIN grade_levels gl ON sch.class_id = gl.id
         WHERE ma.date = :date
     ";
 
-    $params = [':date' => $date];
+    $params = [':date' => $date, ':active_year_id' => $active_year_id];
 
     if (!empty($type)) {
         $sql .= " AND ma.meal_type = :type";

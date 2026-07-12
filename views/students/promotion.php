@@ -413,7 +413,7 @@ include '../layouts/header.php';
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
                                 <?php foreach ($students as $s): ?>
-                                    <tr class="hover:bg-slate-50">
+                                    <tr class="student-row hover:bg-slate-50 cursor-pointer">
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <input type="checkbox" value="<?php echo $s['id']; ?>"
                                                 data-class-id="<?php echo $s['class_id'] ?? ''; ?>"
@@ -585,6 +585,20 @@ include '../layouts/header.php';
                 saveSelections(currentSelections);
                 updateSelectedCountDisplay();
             }
+        });
+
+        // Listen for row clicks to toggle checkbox
+        document.querySelectorAll('.student-row').forEach(row => {
+            row.addEventListener('click', function(e) {
+                if (e.target.classList.contains('student-checkbox') || e.target.type === 'checkbox') {
+                    return;
+                }
+                const cb = this.querySelector('.student-checkbox');
+                if (cb) {
+                    cb.checked = !cb.checked;
+                    cb.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            });
         });
     });
 

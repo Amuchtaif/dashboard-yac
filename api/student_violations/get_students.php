@@ -33,12 +33,21 @@ try {
         throw new Exception("Invalid user");
     }
 
+    // Fetch Active Academic Year
+    $active_year_id = $conn->query("SELECT id FROM academic_years WHERE is_active = 1 LIMIT 1")->fetchColumn();
+    if (!$active_year_id) {
+        $active_year_id = 1;
+    }
+
     // Get all active students without unit restrictions
     // Using flexible status filter to handle case variations on hosting
-    $stmt = $conn->prepare("SELECT id, nama_siswa, kelas FROM students 
-                           WHERE status LIKE 'Aktif%' OR status = 'Aktif' OR LOWER(status) = 'aktif'
-                           ORDER BY nama_siswa ASC");
-    $stmt->execute();
+    $stmt = $conn->prepare("SELECT s.id, s.nama_siswa, gl.name as kelas 
+                            FROM students s
+                            LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = :active_year_id AND sch.status = 'ACTIVE'
+                            LEFT JOIN grade_levels gl ON sch.class_id = gl.id
+                            WHERE s.status LIKE 'Aktif%' OR s.status = 'Aktif' OR LOWER(s.status) = 'aktif'
+                            ORDER BY s.nama_siswa ASC");
+    $stmt->execute([':active_year_id' => $active_year_id]);
     $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     ob_clean();

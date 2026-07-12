@@ -23,8 +23,14 @@ try {
         exit;
     }
 
+    // Fetch Active Academic Year
+    $active_year_id = $conn->query("SELECT id FROM academic_years WHERE is_active = 1 LIMIT 1")->fetchColumn();
+    if (!$active_year_id) {
+        $active_year_id = 1;
+    }
+
     $query = "
-        SELECT s.id as student_id, s.nama_siswa, s.nomor_induk, s.kelas,
+        SELECT s.id as student_id, s.nama_siswa, s.nomor_induk, gl.name as kelas,
                (SELECT status FROM boarding_attendances ba 
                 WHERE ba.student_id = s.id AND ba.room_id = brm.room_id AND ba.date = :date 
                 LIMIT 1) as status,
@@ -33,6 +39,8 @@ try {
                 LIMIT 1) as keterangan
         FROM boarding_room_members brm
         JOIN students s ON brm.student_id = s.id
+        LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = :active_year_id AND sch.status = 'ACTIVE'
+        LEFT JOIN grade_levels gl ON sch.class_id = gl.id
         WHERE brm.room_id = :room_id AND s.status = 'Aktif'
         ORDER BY s.nama_siswa ASC
     ";
@@ -40,6 +48,7 @@ try {
     $stmt = $conn->prepare($query);
     $stmt->bindParam(':date', $date);
     $stmt->bindParam(':room_id', $room_id);
+    $stmt->bindParam(':active_year_id', $active_year_id);
     $stmt->execute();
     $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
