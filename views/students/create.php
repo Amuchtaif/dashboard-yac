@@ -11,7 +11,7 @@ $db = new Database();
 $conn = $db->getConnection();
 
 // Fetch Grade Levels for Dropdown
-$query_grades = "SELECT id, name, education_unit_id FROM grade_levels ORDER BY name ASC";
+$query_grades = "SELECT id, name, education_unit_id FROM grade_levels WHERE is_active = 1 ORDER BY name ASC";
 $stmt_grades = $conn->prepare($query_grades);
 $stmt_grades->execute();
 $grade_levels = $stmt_grades->fetchAll(PDO::FETCH_ASSOC);

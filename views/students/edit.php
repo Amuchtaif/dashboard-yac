@@ -45,10 +45,12 @@ if ($active_year_id) {
     }
 }
 
-// Fetch Grade Levels for Dropdown
-$query_grades = "SELECT id, name, education_unit_id FROM grade_levels ORDER BY name ASC";
+$current_class_id_val = $current_class_id ?? 0;
+
+// Fetch Grade Levels for Dropdown (only active classes or student's current class)
+$query_grades = "SELECT id, name, education_unit_id FROM grade_levels WHERE is_active = 1 OR id = :curr_cid ORDER BY name ASC";
 $stmt_grades = $conn->prepare($query_grades);
-$stmt_grades->execute();
+$stmt_grades->execute([':curr_cid' => $current_class_id_val]);
 $grade_levels = $stmt_grades->fetchAll(PDO::FETCH_ASSOC);
 
 // Fetch Education Units for Dropdown

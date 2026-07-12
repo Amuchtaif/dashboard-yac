@@ -14,7 +14,7 @@ $conn = $db->getConnection();
 $units = $conn->query("SELECT id, name FROM education_units ORDER BY id ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 // Fetch all classes first (could filter locally with JS or reload page)
-$classes = $conn->query("SELECT id, name, education_unit_id FROM grade_levels ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
+$classes = $conn->query("SELECT id, name, education_unit_id, is_active FROM grade_levels ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 // Fetch Academic Years from DB
 $academic_years = $conn->query("SELECT id, name, semester FROM academic_years ORDER BY start_date DESC")->fetchAll(PDO::FETCH_ASSOC);
@@ -222,9 +222,9 @@ include '../layouts/header.php';
                             -- Pilih Kelas --
                         </li>
                         <?php foreach ($source_classes as $c): ?>
-                            <li onclick="selectFilterOption('source-class', '<?php echo $c['id']; ?>', '<?php echo htmlspecialchars(addslashes($c['name']), ENT_QUOTES); ?>')"
+                            <li onclick="selectFilterOption('source-class', '<?php echo $c['id']; ?>', '<?php echo htmlspecialchars(addslashes($c['name'] . ($c['is_active'] ? '' : ' (Non-aktif)')), ENT_QUOTES); ?>')"
                                 class="cursor-pointer px-4 py-2 text-sm text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors <?php echo ($source_class_id == $c['id']) ? 'bg-cyan-50 text-cyan-700' : ''; ?>">
-                                <?php echo htmlspecialchars($c['name']); ?>
+                                <?php echo htmlspecialchars($c['name'] . ($c['is_active'] ? '' : ' (Non-aktif)')); ?>
                             </li>
                         <?php endforeach; ?>
                     </ul>
@@ -340,6 +340,7 @@ include '../layouts/header.php';
                                     -- Pilih Kelas Tujuan --
                                 </li>
                                 <?php foreach ($classes as $c): ?>
+                                    <?php if ($c['is_active'] == 0) continue; // Skip inactive classes for target class ?>
                                     <li onclick="selectTargetOption('target-class', '<?php echo $c['id']; ?>', '<?php echo htmlspecialchars(addslashes($c['name']), ENT_QUOTES); ?>')"
                                         class="cursor-pointer px-4 py-2 text-sm text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
                                         <?php echo htmlspecialchars($c['name']); ?>

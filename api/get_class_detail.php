@@ -57,16 +57,26 @@ try {
     $schedules = $stmtSched->fetchAll(PDO::FETCH_ASSOC);
 
     // 3. Get Student List
+    $active_year_id = $db->query("SELECT id FROM academic_years WHERE is_active = 1 LIMIT 1")->fetchColumn();
+    if (!$active_year_id) {
+        $active_year_id = 1;
+    }
+
     $queryStudents = "SELECT 
-                        id, 
-                        nama_siswa, 
-                        nomor_induk as nisn,
-                        foto
-                      FROM students 
-                      WHERE kelas = :kelas_name
-                      ORDER BY nama_siswa ASC";
+                        s.id, 
+                        s.nama_siswa, 
+                        s.nomor_induk as nisn,
+                        s.foto
+                      FROM students s
+                      JOIN student_class_history sch ON s.id = sch.student_id
+                      WHERE sch.class_id = :class_id 
+                        AND sch.academic_year_id = :academic_year_id
+                        AND sch.status = 'ACTIVE'
+                        AND s.status = 'Aktif'
+                      ORDER BY s.nama_siswa ASC";
     $stmtStudents = $db->prepare($queryStudents);
-    $stmtStudents->bindParam(':kelas_name', $classInfo['class_name']);
+    $stmtStudents->bindParam(':class_id', $class_id, PDO::PARAM_INT);
+    $stmtStudents->bindParam(':academic_year_id', $active_year_id, PDO::PARAM_INT);
     $stmtStudents->execute();
     $students = $stmtStudents->fetchAll(PDO::FETCH_ASSOC);
 

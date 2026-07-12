@@ -38,13 +38,15 @@ try {
         exit;
     }
 
-    // Build SQL query to fetch students matching the filters
-    $query = "SELECT s.id as student_id, s.nama_siswa, s.kelas, s.tingkat, s.nomor_induk 
-              FROM students s";
+    // Build SQL query to fetch students matching the filters dynamically via class history
+    $query = "SELECT s.id as student_id, s.nama_siswa, gl.name as kelas, s.tingkat, s.nomor_induk 
+              FROM students s
+              LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = ? AND sch.status = 'ACTIVE'
+              LEFT JOIN grade_levels gl ON sch.class_id = gl.id";
     
     $where = " WHERE s.status = 'Aktif'";
-    $params = [];
-    $types = "";
+    $params = [$academic_year_id];
+    $types = "i";
 
     if ($student_id > 0) {
         $where .= " AND s.id = ?";
@@ -53,7 +55,7 @@ try {
     }
 
     if ($kelas !== null && $kelas !== '') {
-        $where .= " AND s.kelas = ?";
+        $where .= " AND gl.name = ?";
         $params[] = $kelas;
         $types .= "s";
     }

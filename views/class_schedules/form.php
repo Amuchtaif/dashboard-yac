@@ -26,7 +26,8 @@ if ($id) {
 // Fetch Master Data
 $academic_years = $conn->query("SELECT id, name, semester, is_active FROM academic_years ORDER BY name DESC, semester DESC")->fetchAll(PDO::FETCH_ASSOC);
 $education_units = $conn->query("SELECT id, name FROM education_units ORDER BY FIELD(name, 'Playgroup', 'TKIT', 'SDIT', 'MTs', 'Idad Lughoh', 'MA', 'Mahad Aly') ASC, name ASC")->fetchAll(PDO::FETCH_ASSOC);
-$grade_levels = $conn->query("SELECT id, name, education_unit_id FROM grade_levels ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
+$current_sched_class_id = $schedule ? (int)$schedule['grade_level_id'] : 0;
+$grade_levels = $conn->query("SELECT id, name, education_unit_id, is_active FROM grade_levels WHERE is_active = 1 OR id = $current_sched_class_id ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
 $employees = $conn->query("SELECT id, full_name FROM employees WHERE status = 'active' ORDER BY full_name ASC")->fetchAll(PDO::FETCH_ASSOC);
 $subjects = $conn->query("SELECT id, name, code FROM subjects ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
 $lesson_periods = $conn->query("SELECT id, period_number, start_time, end_time, education_unit_id FROM lesson_periods ORDER BY education_unit_id ASC, period_number ASC")->fetchAll(PDO::FETCH_ASSOC);

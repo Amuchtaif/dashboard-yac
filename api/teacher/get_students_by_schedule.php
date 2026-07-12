@@ -41,7 +41,12 @@ try {
     $journal = $j_stmt->fetch(PDO::FETCH_ASSOC);
     $journal_id = $journal ? $journal['id'] : 0;
 
-    // 3. Get Students by matching students.kelas = grade_levels.name (class_name)
+    // 3. Get Students dynamically via student_class_history using grade_level_id and active academic year
+    $active_year_id = $conn->query("SELECT id FROM academic_years WHERE is_active = 1 LIMIT 1")->fetchColumn();
+    if (!$active_year_id) {
+        $active_year_id = 1;
+    }
+
     $s_stmt = $conn->prepare("
         SELECT 
             st.id as student_id, 
@@ -49,12 +54,16 @@ try {
             st.nomor_induk,
             sa.status
         FROM students st 
+        JOIN student_class_history sch ON st.id = sch.student_id
         LEFT JOIN student_attendances sa 
             ON st.id = sa.student_id AND sa.class_journal_id = ?
-        WHERE st.kelas = ?
+        WHERE sch.class_id = ?
+          AND sch.academic_year_id = ?
+          AND sch.status = 'ACTIVE'
+          AND st.status = 'Aktif'
         ORDER BY st.nama_siswa ASC
     ");
-    $s_stmt->execute([$journal_id, $class_name]);
+    $s_stmt->execute([$journal_id, $schedule['grade_level_id'], $active_year_id]);
     $students = $s_stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Fix null status

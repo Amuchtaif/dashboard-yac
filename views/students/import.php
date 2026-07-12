@@ -65,9 +65,9 @@ include '../layouts/header.php';
             <h3 class="font-semibold text-cyan-800 mb-2">Petunjuk:</h3>
             <ul class="list-disc list-inside text-sm text-cyan-700 space-y-1">
                 <li>Gunakan format file Excel (<strong>.xlsx</strong> / <strong>.xls</strong>).</li>
-                <li>Struktur kolom wajib: <strong>Nama Siswa, NISN, Kelas</strong>.</li>
+                <li>Struktur kolom: <strong>Nama Siswa (Kolom A), NISN (Kolom B), Kelas (Kolom C), Tempat Lahir (Kolom D - Opsional), Tanggal Lahir (Kolom E - Opsional, Format: YYYY-MM-DD), Alamat (Kolom F - Opsional)</strong>.</li>
                 <li>Jika NISN sudah ada, data siswa akan diperbarui.</li>
-                <li>Jika Kelas belum ada di sistem, kelas baru akan dibuat otomatis.</li>
+                <li>Jika Kelas belum ada di sistem, kelas baru akan dibuat otomatis di bawah unit pendidikan terpilih.</li>
                 <li>
                     <a href="<?php url('logic/students/download_template.php'); ?>"
                         class="underline font-bold hover:text-cyan-900">

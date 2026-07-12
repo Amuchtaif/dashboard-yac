@@ -80,7 +80,7 @@ $pag_qs = http_build_query($pagination_params);
 
 // --- Data Master untuk Filter ---
 $units = $conn->query("SELECT id, name FROM education_units ORDER BY FIELD(name, 'Playgroup', 'TKIT', 'SDIT', 'MTs', 'Idad Lughoh', 'MA', 'Mahad Aly') ASC, name ASC")->fetchAll(PDO::FETCH_ASSOC);
-$grades = $conn->query("SELECT id, name, education_unit_id FROM grade_levels ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
+$grades = $conn->query("SELECT id, name, education_unit_id, is_active FROM grade_levels ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
 $academic_years = $conn->query("SELECT id, name, semester, is_active FROM academic_years ORDER BY start_date DESC")->fetchAll(PDO::FETCH_ASSOC);
 $teachers = $conn->query("SELECT id, full_name FROM employees WHERE status = 'active' ORDER BY full_name ASC")->fetchAll(PDO::FETCH_ASSOC);
 
@@ -295,7 +295,7 @@ include '../layouts/header.php';
                     <span id="text-grade_id" class="block truncate">
                         <?php 
                         $gradeTitle = "Semua Kelas";
-                        foreach($grades as $g) if($g['id'] == $grade_id) $gradeTitle = $g['name'];
+                        foreach($grades as $g) if($g['id'] == $grade_id) $gradeTitle = $g['name'] . ($g['is_active'] ? '' : ' (Non-aktif)');
                         echo htmlspecialchars($gradeTitle);
                         ?>
                     </span>
@@ -310,11 +310,11 @@ include '../layouts/header.php';
                     <ul id="list-grade_id">
                         <li onclick="selectFilterOption('grade_id', '', 'Semua Kelas')" class="relative cursor-pointer select-none py-2 pl-3 pr-9 text-slate-600 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">Semua Kelas</li>
                         <?php foreach ($grades as $g): ?>
-                            <li onclick="selectFilterOption('grade_id', '<?php echo $g['id']; ?>', '<?php echo htmlspecialchars($g['name'], ENT_QUOTES); ?>')" 
+                            <li onclick="selectFilterOption('grade_id', '<?php echo $g['id']; ?>', '<?php echo htmlspecialchars($g['name'] . ($g['is_active'] ? '' : ' (Non-aktif)'), ENT_QUOTES); ?>')" 
                                 data-unit="<?php echo $g['education_unit_id']; ?>"
                                 class="grade-option relative cursor-pointer select-none py-2 pl-3 pr-9 text-slate-600 hover:bg-cyan-50 hover:text-cyan-700 transition-colors"
                                 <?php echo ($unit_id && $g['education_unit_id'] != $unit_id) ? 'style="display:none"' : ''; ?>>
-                                <?php echo htmlspecialchars($g['name']); ?>
+                                <?php echo htmlspecialchars($g['name'] . ($g['is_active'] ? '' : ' (Non-aktif)')); ?>
                             </li>
                         <?php endforeach; ?>
                     </ul>

@@ -25,11 +25,22 @@ try {
         $room_id = $r_stmt->fetchColumn();
     }
     
+    // Fetch Active Academic Year
+    $active_year_id = $conn->query("SELECT id FROM academic_years WHERE is_active = 1 LIMIT 1")->fetchColumn();
+    if (!$active_year_id) {
+        $active_year_id = 1;
+    }
+
+    $class_id = null;
     // Detect class if wali_kelas_id is provided
     if ($wali_kelas_id) {
-        $c_stmt = $conn->prepare("SELECT name FROM grade_levels WHERE teacher_id = ? LIMIT 1");
+        $c_stmt = $conn->prepare("SELECT id, name FROM grade_levels WHERE teacher_id = ? LIMIT 1");
         $c_stmt->execute([$wali_kelas_id]);
-        $class_name = $c_stmt->fetchColumn();
+        $classInfo = $c_stmt->fetch(PDO::FETCH_ASSOC);
+        if ($classInfo) {
+            $class_id = $classInfo['id'];
+            $class_name = $classInfo['name'];
+        }
     }
 
     // 1. Total students in scope (Global or Room-specific or Class-specific)
@@ -37,12 +48,15 @@ try {
         $qTotal = "SELECT COUNT(student_id) FROM boarding_room_members WHERE room_id = ?";
         $stmtTotal = $conn->prepare($qTotal);
         $stmtTotal->execute([$room_id]);
-    } else if ($class_name) {
-        $qTotal = "SELECT COUNT(id) FROM students WHERE kelas = ?";
+    } else if ($class_id) {
+        $qTotal = "SELECT COUNT(s.id) 
+                   FROM students s 
+                   JOIN student_class_history sch ON s.id = sch.student_id
+                   WHERE sch.class_id = ? AND sch.academic_year_id = ? AND sch.status = 'ACTIVE' AND s.status = 'Aktif'";
         $stmtTotal = $conn->prepare($qTotal);
-        $stmtTotal->execute([$class_name]);
+        $stmtTotal->execute([$class_id, $active_year_id]);
     } else {
-        $qTotal = "SELECT COUNT(*) FROM students";
+        $qTotal = "SELECT COUNT(*) FROM students WHERE status = 'Aktif'";
         $stmtTotal = $conn->prepare($qTotal);
         $stmtTotal->execute();
     }
@@ -56,13 +70,14 @@ try {
                    WHERE ma.meal_type = ? AND ma.date = ? AND brm.room_id = ?";
         $stmtEaten = $conn->prepare($qEaten);
         $stmtEaten->execute([$type, $date, $room_id]);
-    } else if ($class_name) {
+    } else if ($class_id) {
         $qEaten = "SELECT COUNT(ma.id) 
                    FROM meal_attendances ma
+                   JOIN student_class_history sch ON ma.student_id = sch.student_id
                    JOIN students s ON ma.student_id = s.id
-                   WHERE ma.meal_type = ? AND ma.date = ? AND s.kelas = ?";
+                   WHERE ma.meal_type = ? AND ma.date = ? AND sch.class_id = ? AND sch.academic_year_id = ? AND sch.status = 'ACTIVE' AND s.status = 'Aktif'";
         $stmtEaten = $conn->prepare($qEaten);
-        $stmtEaten->execute([$type, $date, $class_name]);
+        $stmtEaten->execute([$type, $date, $class_id, $active_year_id]);
     } else {
         $qEaten = "SELECT COUNT(*) FROM meal_attendances WHERE meal_type = ? AND date = ?";
         $stmtEaten = $conn->prepare($qEaten);
@@ -81,9 +96,10 @@ try {
         $qQueue .= " JOIN boarding_room_members brm ON s.id = brm.student_id 
                      WHERE ma.meal_type = ? AND ma.date = ? AND brm.room_id = ?";
         $pQueue = [$type, $date, $room_id];
-    } else if ($class_name) {
-        $qQueue .= " WHERE ma.meal_type = ? AND ma.date = ? AND s.kelas = ?";
-        $pQueue = [$type, $date, $class_name];
+    } else if ($class_id) {
+        $qQueue .= " JOIN student_class_history sch ON s.id = sch.student_id 
+                     WHERE ma.meal_type = ? AND ma.date = ? AND sch.class_id = ? AND sch.academic_year_id = ? AND sch.status = 'ACTIVE' AND s.status = 'Aktif'";
+        $pQueue = [$type, $date, $class_id, $active_year_id];
     } else {
         $qQueue .= " WHERE ma.meal_type = ? AND ma.date = ?";
         $pQueue = [$type, $date];

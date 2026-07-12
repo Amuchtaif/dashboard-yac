@@ -1,14 +1,14 @@
 <?php
-require_once __DIR__ . '/../config/db_mysqli.php';
-$tables = ['grade_levels', 'class_schedules'];
+require_once __DIR__ . '/../config/database.php';
+$db = new Database();
+$conn = $db->getConnection();
+
+$tables = ['students', 'grade_levels', 'student_class_history'];
 foreach ($tables as $t) {
     echo "=== Table: $t ===\n";
-    $res = $mysqli->query("DESCRIBE `$t`");
-    if ($res) {
-        while ($row = $res->fetch_assoc()) {
-            echo $row['Field'] . " - " . $row['Type'] . "\n";
-        }
-    } else {
-        echo "Error: " . $mysqli->error . "\n";
+    $res = $conn->query("DESCRIBE `$t`")->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($res as $row) {
+        echo $row['Field'] . " - " . $row['Type'] . "\n";
     }
+    echo "\n";
 }

@@ -62,6 +62,9 @@ try {
         $nama_siswa = isset($data[0]) ? trim($data[0]) : '';
         $nisn = isset($data[1]) ? trim($data[1]) : '';
         $kelas_nama = isset($data[2]) ? trim($data[2]) : '';
+        $tempat_lahir = isset($data[3]) && trim($data[3]) !== '' ? trim($data[3]) : null;
+        $tanggal_lahir_raw = isset($data[4]) && trim($data[4]) !== '' ? trim($data[4]) : null;
+        $alamat = isset($data[5]) && trim($data[5]) !== '' ? trim($data[5]) : null;
 
         // If the row is partially filled but missing main columns
         if (empty($nama_siswa) && empty($nisn)) {
@@ -72,8 +75,38 @@ try {
 
         if (empty($nama_siswa) || empty($nisn)) {
             $errorCount++;
-            $errors[] = "Row $rowNumber: Name or NISN empty.";
+            $errors[] = "Baris $rowNumber: Nama atau NISN kosong.";
             continue;
+        }
+
+        // Parse and clean Date
+        $tanggal_lahir = null;
+        if (!empty($tanggal_lahir_raw)) {
+            if (is_numeric($tanggal_lahir_raw)) {
+                // It is a serial Excel date
+                try {
+                    $dt = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($tanggal_lahir_raw);
+                    $tanggal_lahir = $dt->format('Y-m-d');
+                } catch (Exception $e) {
+                    $tanggal_lahir = null;
+                }
+            } else {
+                // Check if YYYY-MM-DD
+                if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $tanggal_lahir_raw)) {
+                    $tanggal_lahir = $tanggal_lahir_raw;
+                } else {
+                    // Try DD-MM-YYYY or DD/MM/YYYY
+                    $date_parsed = str_replace('/', '-', $tanggal_lahir_raw);
+                    $parts = explode('-', $date_parsed);
+                    if (count($parts) === 3) {
+                        if (strlen($parts[0]) === 4) {
+                            $tanggal_lahir = $parts[0] . '-' . sprintf('%02d', $parts[1]) . '-' . sprintf('%02d', $parts[2]);
+                        } else {
+                            $tanggal_lahir = $parts[2] . '-' . sprintf('%02d', $parts[1]) . '-' . sprintf('%02d', $parts[0]);
+                        }
+                    }
+                }
+            }
         }
 
         // --- Step A: Student UPSERT ---
@@ -84,13 +117,35 @@ try {
 
         if ($existingStudent) {
             $student_id = $existingStudent['id'];
-            // Update Name just in case
-            $stmtUpdate = $conn->prepare("UPDATE students SET nama_siswa = :nama, updated_at = NOW() WHERE id = :id");
-            $stmtUpdate->execute([':nama' => $nama_siswa, ':id' => $student_id]);
+            // Update Name, Tempat Lahir, Tanggal Lahir, Alamat if provided
+            $stmtUpdate = $conn->prepare("
+                UPDATE students 
+                SET nama_siswa = :nama,
+                    tempat_lahir = COALESCE(:tempat, tempat_lahir),
+                    tanggal_lahir = COALESCE(:tanggal, tanggal_lahir),
+                    alamat = COALESCE(:alamat, alamat)
+                WHERE id = :id
+            ");
+            $stmtUpdate->execute([
+                ':nama' => $nama_siswa, 
+                ':tempat' => $tempat_lahir,
+                ':tanggal' => $tanggal_lahir,
+                ':alamat' => $alamat,
+                ':id' => $student_id
+            ]);
         } else {
             // Insert New
-            $stmtInsert = $conn->prepare("INSERT INTO students (nama_siswa, nomor_induk, status, created_at, updated_at) VALUES (:nama, :nisn, 'Aktif', NOW(), NOW())");
-            $stmtInsert->execute([':nama' => $nama_siswa, ':nisn' => $nisn]);
+            $stmtInsert = $conn->prepare("
+                INSERT INTO students (nama_siswa, nomor_induk, tempat_lahir, tanggal_lahir, alamat, status, created_at) 
+                VALUES (:nama, :nisn, :tempat, :tanggal, :alamat, 'Aktif', NOW())
+            ");
+            $stmtInsert->execute([
+                ':nama' => $nama_siswa, 
+                ':nisn' => $nisn,
+                ':tempat' => $tempat_lahir,
+                ':tanggal' => $tanggal_lahir,
+                ':alamat' => $alamat
+            ]);
             $student_id = $conn->lastInsertId();
         }
 
@@ -106,7 +161,7 @@ try {
                 $class_id = $existingClass['id'];
             } else {
                 // Create Class under the selected Unit
-                $stmtNewClass = $conn->prepare("INSERT INTO grade_levels (name, level, education_unit_id, created_at, updated_at) VALUES (:name, 0, :unit_id, NOW(), NOW())");
+                $stmtNewClass = $conn->prepare("INSERT INTO grade_levels (name, level, education_unit_id, created_at) VALUES (:name, 0, :unit_id, NOW())");
                 $stmtNewClass->execute([':name' => $kelas_nama, ':unit_id' => $unit_id]);
                 $class_id = $conn->lastInsertId();
             }
@@ -120,12 +175,12 @@ try {
             $hist = $stmtHistCheck->fetch(PDO::FETCH_ASSOC);
 
             if ($hist) {
-                // Update class if different?
-                $stmtHistUpdate = $conn->prepare("UPDATE student_class_history SET class_id = :cid, updated_at = NOW() WHERE id = :hid");
+                // Update class if different
+                $stmtHistUpdate = $conn->prepare("UPDATE student_class_history SET class_id = :cid WHERE id = :hid");
                 $stmtHistUpdate->execute([':cid' => $class_id, ':hid' => $hist['id']]);
             } else {
-                // Insert
-                $stmtHistInsert = $conn->prepare("INSERT INTO student_class_history (student_id, class_id, academic_year_id, status, created_at, updated_at) VALUES (:sid, :cid, :yid, 'ACTIVE', NOW(), NOW())");
+                // Insert with joined_at
+                $stmtHistInsert = $conn->prepare("INSERT INTO student_class_history (student_id, class_id, academic_year_id, status, joined_at, created_at) VALUES (:sid, :cid, :yid, 'ACTIVE', CURDATE(), NOW())");
                 $stmtHistInsert->execute([':sid' => $student_id, ':cid' => $class_id, ':yid' => $academic_year_id]);
             }
         }

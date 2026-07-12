@@ -35,15 +35,21 @@ try {
         exit();
     }
 
+    // Fetch Active Academic Year
+    $active_year_id = $conn->query("SELECT id FROM academic_years WHERE is_active = 1 LIMIT 1")->fetchColumn();
+    if (!$active_year_id) {
+        $active_year_id = 1;
+    }
+
     // 1b. Check if this class has already been filled by anyone for this date and meal_type
     $check_filled_stmt = $conn->prepare("
         SELECT ma.created_by, (SELECT full_name FROM employees WHERE id = ma.created_by) as creator_name
         FROM meal_attendances ma
-        JOIN students s ON ma.student_id = s.id
-        WHERE s.kelas = ? AND ma.date = ? AND ma.meal_type = ?
+        JOIN student_class_history sch ON ma.student_id = sch.student_id
+        WHERE sch.class_id = ? AND sch.academic_year_id = ? AND sch.status = 'ACTIVE' AND ma.date = ? AND ma.meal_type = ?
         LIMIT 1
     ");
-    $check_filled_stmt->execute([$classInfo['class_name'], $date, $meal_type]);
+    $check_filled_stmt->execute([$classInfo['id'], $active_year_id, $date, $meal_type]);
     $filled_res = $check_filled_stmt->fetch(PDO::FETCH_ASSOC);
     
     $is_locked = (bool)$filled_res;
@@ -58,20 +64,23 @@ try {
             s.id, 
             s.nama_siswa, 
             s.nomor_induk, 
-            s.kelas,
+            gl.name as kelas,
             ma.id as attendance_id,
             ma.check_time
         FROM students s
+        JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = :active_year_id AND sch.status = 'ACTIVE'
+        JOIN grade_levels gl ON sch.class_id = gl.id
         LEFT JOIN meal_attendances ma ON s.id = ma.student_id 
             AND ma.meal_type = :meal_type 
             AND ma.date = :date
-        WHERE s.kelas = :class_name AND s.status = 'Aktif'
+        WHERE sch.class_id = :class_id AND s.status = 'Aktif'
         ORDER BY s.nama_siswa ASC
     ";
 
     $stmt = $conn->prepare($sql);
     $stmt->execute([
-        ':class_name' => $classInfo['class_name'],
+        ':class_id' => $classInfo['id'],
+        ':active_year_id' => $active_year_id,
         ':meal_type' => $meal_type,
         ':date' => $date
     ]);

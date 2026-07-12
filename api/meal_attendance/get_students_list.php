@@ -26,23 +26,16 @@ try {
     $where = " WHERE 1=1 ";
     $filterParams = []; // Parameters used in the WHERE clause
 
-    if ($meal_type === 'Pagi' || $meal_type === 'Malam') {
-        $where .= " AND brm.room_id IS NOT NULL ";
+    // Fetch Active Academic Year
+    $active_year_id = $conn->query("SELECT id FROM academic_years WHERE is_active = 1 LIMIT 1")->fetchColumn();
+    if (!$active_year_id) {
+        $active_year_id = 1;
     }
+    $filterParams[':active_year_id'] = $active_year_id;
 
     if ($grade_id) {
-        $g_stmt = $conn->prepare("SELECT name FROM grade_levels WHERE id = ?");
-        $g_stmt->execute([$grade_id]);
-        $grade_name = $g_stmt->fetchColumn();
-
-        if ($grade_name) {
-            $where .= " AND (gl.id = :grade_id OR s.kelas = :grade_name)";
-            $filterParams[':grade_id'] = $grade_id;
-            $filterParams[':grade_name'] = $grade_name;
-        } else {
-            $where .= " AND gl.id = :grade_id";
-            $filterParams[':grade_id'] = $grade_id;
-        }
+        $where .= " AND sch.class_id = :grade_id";
+        $filterParams[':grade_id'] = $grade_id;
     }
 
     if ($room_id) {
@@ -54,7 +47,8 @@ try {
     $count_sql = "
         SELECT COUNT(DISTINCT s.id) 
         FROM students s
-        LEFT JOIN grade_levels gl ON s.kelas = gl.name
+        LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = :active_year_id AND sch.status = 'ACTIVE'
+        LEFT JOIN grade_levels gl ON sch.class_id = gl.id
         LEFT JOIN boarding_room_members brm ON s.id = brm.student_id
         $where
     ";
@@ -69,14 +63,15 @@ try {
             s.id, 
             s.nama_siswa, 
             s.nomor_induk, 
-            s.kelas,
+            gl.name as kelas,
             s.tingkat,
             gl.name as grade_name,
             br.room_name,
             ma.id as attendance_id,
             ma.check_time
         FROM students s
-        LEFT JOIN grade_levels gl ON s.kelas = gl.name
+        LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = :active_year_id AND sch.status = 'ACTIVE'
+        LEFT JOIN grade_levels gl ON sch.class_id = gl.id
         LEFT JOIN boarding_room_members brm ON s.id = brm.student_id
         LEFT JOIN boarding_rooms br ON brm.room_id = br.id
         LEFT JOIN meal_attendances ma ON s.id = ma.student_id 
@@ -108,7 +103,8 @@ try {
             COUNT(*) as total,
             SUM(CASE WHEN ma.id IS NOT NULL THEN 1 ELSE 0 END) as eaten
         FROM students s
-        LEFT JOIN grade_levels gl ON s.kelas = gl.name
+        LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = :active_year_id AND sch.status = 'ACTIVE'
+        LEFT JOIN grade_levels gl ON sch.class_id = gl.id
         LEFT JOIN boarding_room_members brm ON s.id = brm.student_id
         LEFT JOIN meal_attendances ma ON s.id = ma.student_id 
             AND ma.meal_type = :meal_type 

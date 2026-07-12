@@ -82,7 +82,7 @@ include '../layouts/header.php';
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
 
             <div class="space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <!-- Nama Kelas -->
                     <div>
                         <label for="name" class="block text-sm font-semibold text-slate-900 mb-2">Nama Kelas</label>
@@ -99,6 +99,16 @@ include '../layouts/header.php';
                             value="<?php echo htmlspecialchars($level['capacity'] ?? 36); ?>"
                             class="w-full px-4 py-2.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all placeholder:text-slate-400"
                             placeholder="36">
+                    </div>
+
+                    <!-- Status -->
+                    <div>
+                        <label for="is_active" class="block text-sm font-semibold text-slate-900 mb-2">Status</label>
+                        <select name="is_active" id="is_active" required
+                            class="w-full px-4 py-2.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all bg-white text-slate-700">
+                            <option value="1" <?php echo $level['is_active'] == 1 ? 'selected' : ''; ?>>Aktif</option>
+                            <option value="0" <?php echo $level['is_active'] == 0 ? 'selected' : ''; ?>>Non-aktif</option>
+                        </select>
                     </div>
                 </div>
 

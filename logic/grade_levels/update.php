@@ -13,6 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $education_unit_id = $_POST['education_unit_id'];
     // $level = $_POST['level']; // Removed from form
     $teacher_id = !empty($_POST['teacher_id']) ? $_POST['teacher_id'] : null;
+    $is_active = isset($_POST['is_active']) ? (int)$_POST['is_active'] : 1;
     $return_filters = isset($_POST['return_filters']) ? $_POST['return_filters'] : '';
     $redirect_qs = $return_filters ? '&' . $return_filters : '';
 
@@ -24,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $capacity = !empty($_POST['capacity']) ? $_POST['capacity'] : 36;
 
     // Do not update the level column
-    $query = "UPDATE grade_levels SET name = :name, education_unit_id = :education_unit_id, teacher_id = :teacher_id, capacity = :capacity WHERE id = :id";
+    $query = "UPDATE grade_levels SET name = :name, education_unit_id = :education_unit_id, teacher_id = :teacher_id, capacity = :capacity, is_active = :is_active WHERE id = :id";
     $stmt = $conn->prepare($query);
 
     $stmt->bindParam(':name', $name);
@@ -32,6 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // $stmt->bindParam(':level', $level);
     $stmt->bindParam(':teacher_id', $teacher_id);
     $stmt->bindParam(':capacity', $capacity);
+    $stmt->bindParam(':is_active', $is_active);
     $stmt->bindParam(':id', $id);
 
     if ($stmt->execute()) {

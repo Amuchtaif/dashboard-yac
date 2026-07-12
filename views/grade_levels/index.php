@@ -215,6 +215,7 @@ include '../layouts/header.php';
                     <th scope="col" class="py-3.5 pl-4 pr-3 text-left min-w-[150px]">Nama Kelas</th>
                     <th scope="col" class="px-3 py-3.5 text-left min-w-[150px]">Unit</th>
                     <th scope="col" class="px-3 py-3.5 text-left min-w-[200px]">Wali Kelas</th>
+                    <th scope="col" class="px-3 py-3.5 text-left min-w-[100px]">Status</th>
                     <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6 text-right w-32 border-none">Aksi</th>
                 </tr>
             </thead>
@@ -247,8 +248,28 @@ include '../layouts/header.php';
                                 <?php endif; ?>
                             </div>
                         </td>
+                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                            <span class="inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-medium <?php echo $level['is_active'] ? 'bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20' : 'bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20'; ?>">
+                                <?php echo $level['is_active'] ? 'Aktif' : 'Non-aktif'; ?>
+                            </span>
+                        </td>
                         <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                             <div class="flex justify-end gap-2">
+                                <button type="button"
+                                    onclick="openConfirmModal('<?php url('logic/grade_levels/toggle_status.php?id=' . $level['id'] . (!empty($filter_qs) ? '&' . $filter_qs : '')); ?>', '<?php echo $level['is_active'] ? 'Nonaktifkan Kelas' : 'Aktifkan Kelas'; ?>', 'Apakah Anda yakin ingin <?php echo $level['is_active'] ? 'menonaktifkan' : 'mengaktifkan'; ?> kelas &quot;<?php echo htmlspecialchars($level['name']); ?>&quot;?', '<?php echo $level['is_active'] ? 'amber' : 'emerald'; ?>')"
+                                    class="<?php echo $level['is_active'] ? 'text-amber-600 hover:text-amber-900 hover:bg-amber-50' : 'text-emerald-600 hover:text-emerald-900 hover:bg-emerald-50'; ?> p-1 rounded transition-colors"
+                                    title="<?php echo $level['is_active'] ? 'Nonaktifkan Kelas' : 'Aktifkan Kelas'; ?>">
+                                    <?php if ($level['is_active']): ?>
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                          <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
+                                        </svg>
+                                    <?php else: ?>
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                          <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                                          <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        </svg>
+                                    <?php endif; ?>
+                                </button>
                                 <a href="<?php url('views/grade_levels/edit.php?id=' . $level['id'] . (!empty($filter_qs) ? '&' . $filter_qs : '')); ?>"
                                     class="text-indigo-600 hover:text-indigo-900 p-1 hover:bg-indigo-50 rounded transition-colors"
                                     title="Edit">

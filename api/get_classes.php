@@ -12,20 +12,36 @@ try {
     // Search query
     $search = isset($_GET['search']) ? $_GET['search'] : '';
     
+    // Fetch Active Academic Year
+    $active_year_id = $db->query("SELECT id FROM academic_years WHERE is_active = 1 LIMIT 1")->fetchColumn();
+    if (!$active_year_id) {
+        $active_year_id = 1;
+    }
+    
     $query = "SELECT 
                 gl.id, 
                 gl.name as class_name, 
-                gl.category as unit_name,
+                eu.name as unit_name,
                 e.full_name as teacher_name,
-                (SELECT COUNT(*) FROM students s WHERE s.kelas = gl.name AND s.status = 'Aktif') as student_count
+                (SELECT COUNT(*) 
+                 FROM student_class_history sch 
+                 JOIN students s ON sch.student_id = s.id
+                 WHERE sch.class_id = gl.id 
+                   AND sch.academic_year_id = :active_year_id 
+                   AND sch.status = 'ACTIVE'
+                   AND s.status = 'Aktif'
+                ) as student_count
               FROM grade_levels gl
+              LEFT JOIN education_units eu ON gl.education_unit_id = eu.id
               LEFT JOIN employees e ON gl.teacher_id = e.id
-              WHERE gl.name LIKE :search OR gl.category LIKE :search
-              ORDER BY gl.category ASC, gl.name ASC";
+              WHERE gl.is_active = 1 
+                AND (gl.name LIKE :search OR eu.name LIKE :search)
+              ORDER BY eu.name ASC, gl.name ASC";
 
     $stmt = $db->prepare($query);
     $search_param = "%$search%";
     $stmt->bindParam(':search', $search_param);
+    $stmt->bindParam(':active_year_id', $active_year_id, PDO::PARAM_INT);
     $stmt->execute();
     
     $classes = [];
@@ -33,7 +49,7 @@ try {
         $classes[] = [
             "id" => (int)$row['id'],
             "class_name" => $row['class_name'],
-            "unit_name" => $row['unit_name'],
+            "unit_name" => $row['unit_name'] ?? '-',
             "teacher_name" => $row['teacher_name'] ?? 'Belum Ditentukan',
             "student_count" => (int)$row['student_count'],
             "room" => "Ruang " . $row['id'] // Fallback if no room field exists

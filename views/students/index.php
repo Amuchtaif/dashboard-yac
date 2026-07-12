@@ -41,10 +41,10 @@ $units = $units_stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // 2. Fetch Classes (Optional: Filter by Unit if selected)
 if ($unit_id) {
-    $classes_stmt = $conn->prepare("SELECT id, name FROM grade_levels WHERE education_unit_id = :uid ORDER BY name ASC");
+    $classes_stmt = $conn->prepare("SELECT id, name, is_active FROM grade_levels WHERE education_unit_id = :uid ORDER BY name ASC");
     $classes_stmt->execute([':uid' => $unit_id]);
 } else {
-    $classes_stmt = $conn->query("SELECT id, name FROM grade_levels ORDER BY name ASC");
+    $classes_stmt = $conn->query("SELECT id, name, is_active FROM grade_levels ORDER BY name ASC");
 }
 $classes = $classes_stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -296,7 +296,7 @@ include '../layouts/header.php';
                         $class_name = "Kelas: Semua";
                         foreach ($classes as $c) {
                             if ($c['id'] == $class_id)
-                                $class_name = "Kelas: " . $c['name'];
+                                $class_name = "Kelas: " . $c['name'] . ($c['is_active'] ? '' : ' (Non-aktif)');
                         }
                         echo $class_name;
                         ?>
@@ -313,9 +313,9 @@ include '../layouts/header.php';
                             class="cursor-pointer px-4 py-2 text-xs text-slate-500 hover:bg-slate-50 hover:text-cyan-700">
                             Semua Kelas</li>
                         <?php foreach ($classes as $c): ?>
-                            <li onclick="selectFilterOption('class', '<?php echo $c['id']; ?>', 'Kelas: <?php echo $c['name']; ?>')"
+                            <li onclick="selectFilterOption('class', '<?php echo $c['id']; ?>', 'Kelas: <?php echo htmlspecialchars(addslashes($c['name'] . ($c['is_active'] ? '' : ' (Non-aktif)')), ENT_QUOTES); ?>')"
                                 class="cursor-pointer px-4 py-2 text-xs text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
-                                <?php echo htmlspecialchars($c['name']); ?>
+                                <?php echo htmlspecialchars($c['name'] . ($c['is_active'] ? '' : ' (Non-aktif)')); ?>
                             </li>
                         <?php endforeach; ?>
                     </ul>
