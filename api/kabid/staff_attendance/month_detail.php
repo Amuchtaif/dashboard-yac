@@ -57,7 +57,7 @@ try {
         SELECT e.division_id, e.unit_id, p.level 
         FROM employees e 
         INNER JOIN positions p ON e.position_id = p.id 
-        WHERE e.id = ?
+        WHERE e.id = ? AND e.status = 'active'
     ");
     $stmtUser->execute([$user_id]);
     $user = $stmtUser->fetch(PDO::FETCH_ASSOC);

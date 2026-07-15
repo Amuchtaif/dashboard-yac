@@ -15,28 +15,47 @@ $end_date = isset($_GET['end_date']) ? $_GET['end_date'] : date('Y-m-d');
 $unit_filter = isset($_GET['unit']) ? $_GET['unit'] : '';
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 
+// --- Fetch Active Academic Year ---
+$active_year_query = "SELECT id FROM academic_years WHERE is_active = 1 LIMIT 1";
+$active_year_stmt = $conn->query($active_year_query);
+$active_year_id = $active_year_stmt->fetchColumn();
+if (!$active_year_id) {
+    $active_year_id = 1;
+}
+
 // --- Fetch Units for Filter ---
-$units = $conn->query("SELECT DISTINCT tingkat FROM students WHERE tingkat IS NOT NULL AND tingkat != '' ORDER BY tingkat")->fetchAll(PDO::FETCH_COLUMN);
+$units_stmt = $conn->prepare("
+    SELECT DISTINCT s.tingkat 
+    FROM students s
+    JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = :active_year_id AND sch.status = 'ACTIVE'
+    WHERE s.status = 'Aktif' AND s.tingkat IS NOT NULL AND s.tingkat != '' 
+    ORDER BY s.tingkat
+");
+$units_stmt->execute([':active_year_id' => $active_year_id]);
+$units = $units_stmt->fetchAll(PDO::FETCH_COLUMN);
 
 $is_admin = (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Administrator');
 
 // --- Build Query ---
 $query = "
     SELECT 
-        tm.id, tm.student_id, tm.teacher_id, tm.date, tm.surah_start, tm.ayat_start, tm.surah_end, tm.ayat_end, tm.juz, tm.total_baris, tm.status, tm.notes, tm.created_at,
+        tm.id, tm.student_id, tm.teacher_id, tm.date, tm.surah_start, tm.start_ayah AS ayat_start, tm.surah_end, tm.end_ayah AS ayat_end, tm.juz, tm.total_baris, tm.status, tm.entry_type, tm.notes, tm.created_at,
         s.nama_siswa AS student_name,
-        s.kelas AS student_class,
+        COALESCE(gl.name, s.kelas) AS student_class,
         s.tingkat AS student_level,
         e.full_name AS teacher_name
-    FROM tahfidz_memorization tm
+    FROM memorization_entries tm
     LEFT JOIN students s ON tm.student_id = s.id
+    LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = :active_year_id AND sch.status = 'ACTIVE'
+    LEFT JOIN grade_levels gl ON sch.class_id = gl.id
     LEFT JOIN employees e ON tm.teacher_id = e.id
     WHERE tm.date BETWEEN :start_date AND :end_date
 ";
 
 $params = [
     ':start_date' => $start_date,
-    ':end_date' => $end_date
+    ':end_date' => $end_date,
+    ':active_year_id' => $active_year_id
 ];
 
 if (!$is_admin) {
@@ -197,9 +216,8 @@ include '../layouts/header.php';
                         <th class="px-6 py-3 min-w-[150px]">Tanggal Waktu</th>
                         <th class="px-6 py-3 min-w-[200px]">Nama Santri</th>
                         <th class="px-6 py-3 min-w-[220px]">Capaian Hafalan</th>
-                        <th class="px-6 py-3 min-w-[110px] text-center">Jumlah Baris</th>
-                        <th class="px-6 py-3 min-w-[120px]">Status</th>
-                        <th class="px-6 py-3 min-w-[180px]">Catatan</th>
+                        <th class="px-6 py-3 min-w-[180px]">Kategori & Baris</th>
+                        <th class="px-6 py-3 min-w-[200px]">Kelancaran & Catatan</th>
                         <th class="px-6 py-3 min-w-[180px]">Pengampu</th>
                     </tr>
                 </thead>
@@ -230,23 +248,48 @@ include '../layouts/header.php';
                                 <?php echo htmlspecialchars($row['surah_end']); ?>:<?php echo $row['ayat_end']; ?>
                             </div>
                         </td>
-                        <td class="px-6 py-4 text-center font-bold text-slate-700">
-                            <?php echo htmlspecialchars($row['total_baris'] ?? '0'); ?>
+                        <td class="px-6 py-4">
+                            <?php
+                                $categoryColor = 'text-slate-600';
+                                $categoryText = $row['entry_type'] ?? '-';
+                                if ($row['entry_type'] === 'HAFALAN_BARU') {
+                                    $categoryColor = 'text-cyan-700';
+                                    $categoryText = 'Hafalan Baru';
+                                } elseif ($row['entry_type'] === 'MUROJAAH') {
+                                    $categoryColor = 'text-indigo-700';
+                                    $categoryText = 'Murojaah';
+                                } elseif ($row['entry_type'] === 'TASMI') {
+                                    $categoryColor = 'text-purple-700';
+                                    $categoryText = 'Tasmi';
+                                } elseif ($row['entry_type'] === 'UJIAN') {
+                                    $categoryColor = 'text-pink-700';
+                                    $categoryText = 'Ujian';
+                                }
+                            ?>
+                            <div class="flex flex-col gap-1 items-start">
+                                <span class="text-xs font-semibold <?php echo $categoryColor; ?>">
+                                    <?php echo htmlspecialchars($categoryText); ?>
+                                </span>
+                                <span class="text-[10px] text-slate-400 font-bold uppercase tracking-tight mt-0.5"><?php echo htmlspecialchars($row['total_baris'] ?? '0'); ?> Baris</span>
+                            </div>
                         </td>
                         <td class="px-6 py-4">
                             <?php
-                                $statusClass = 'bg-slate-100 text-slate-600';
-                                $s = strtolower($row['status']);
-                                if (strpos($s, 'lancar') !== false) $statusClass = 'bg-green-100 text-green-700';
-                                elseif (strpos($s, 'ulang') !== false) $statusClass = 'bg-red-100 text-red-700';
-                                elseif (strpos($s, 'kurang') !== false) $statusClass = 'bg-yellow-100 text-yellow-700';
+                                $statusColor = 'text-slate-600';
+                                $s = strtolower($row['status'] ?? '');
+                                if (strpos($s, 'kurang') !== false) $statusColor = 'text-amber-600';
+                                elseif (strpos($s, 'lancar') !== false) $statusColor = 'text-green-650';
+                                elseif (strpos($s, 'ulang') !== false || strpos($s, 'tidak') !== false) $statusColor = 'text-red-600';
+                                elseif ($s !== '') $statusColor = 'text-slate-700';
                             ?>
-                            <div class="status-badge inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <?php echo $statusClass; ?>">
-                                <?php echo htmlspecialchars($row['status']); ?>
+                            <div class="flex flex-col gap-1 items-start">
+                                <span class="text-xs font-medium <?php echo $statusColor; ?>">
+                                    <?php echo htmlspecialchars($row['status'] ?: '-'); ?>
+                                </span>
+                                <?php if (!empty($row['notes']) && $row['notes'] !== '-'): ?>
+                                    <span class="text-xs text-slate-500 italic mt-0.5"><?php echo htmlspecialchars($row['notes']); ?></span>
+                                <?php endif; ?>
                             </div>
-                        </td>
-                        <td class="px-6 py-4 text-slate-500 text-xs italic">
-                            <?php echo htmlspecialchars($row['notes'] ?: '-'); ?>
                         </td>
                         <td class="px-6 py-4 text-slate-500 text-xs">
                             <?php echo htmlspecialchars($row['teacher_name'] ?? '-'); ?>
@@ -254,7 +297,7 @@ include '../layouts/header.php';
                     </tr>
                     <?php endforeach; else: ?>
                     <tr>
-                        <td colspan="8" class="px-6 py-8 text-center text-slate-500">
+                        <td colspan="7" class="px-6 py-8 text-center text-slate-500">
                             Tidak ada data hafalan pada periode ini.
                         </td>
                     </tr>

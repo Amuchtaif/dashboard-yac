@@ -113,26 +113,10 @@ class DashboardTahfidzService {
             }
             
             if (!empty($target_units)) {
-                $placeholders = implode(',', array_fill(0, count($target_units), '?'));
-                $stmt = $this->mysqli->prepare("
-                    SELECT DISTINCT hg.id 
-                    FROM halaqah_groups hg
-                    JOIN halaqah_members hm ON hm.group_id = hg.id
-                    JOIN students s ON hm.student_id = s.id
-                    WHERE s.tingkat IN ($placeholders)
-                ");
-                $stmt->execute($target_units);
-                $res = $stmt->get_result();
-                $halaqah_ids = [];
-                while ($row = $res->fetch_assoc()) {
-                    $halaqah_ids[] = (int)$row['id'];
-                }
-                $stmt->close();
-                
                 return [
                     'role' => 'kanit',
                     'units' => $target_units,
-                    'halaqahs' => $halaqah_ids
+                    'halaqahs' => [] // empty means all halaqahs under these units
                 ];
             }
         }
@@ -157,9 +141,23 @@ class DashboardTahfidzService {
 
     // Helper: build scope and filter queries
     private function buildScopeAndFilters($scope, $filters) {
+        $ay = $this->getActiveAcademicYear();
+        $ay_id = $ay ? (int)$ay['id'] : 0;
+
         $where = ["s.tingkat != 'TKIT'"];
         $params = [];
         $types = "";
+
+        // Dynamic active academic year scope constraint
+        if ($ay_id > 0) {
+            $where[] = "s.id IN (
+                SELECT sch_sub.student_id 
+                FROM student_class_history sch_sub 
+                WHERE sch_sub.academic_year_id = ? AND sch_sub.status = 'ACTIVE'
+            )";
+            $params[] = $ay_id;
+            $types .= "i";
+        }
         
         // Apply scope restrictions
         if (!empty($scope['units'])) {
@@ -188,9 +186,21 @@ class DashboardTahfidzService {
         }
         
         if (!empty($filters['kelas'])) {
-            $where[] = "s.kelas = ?";
-            $params[] = $filters['kelas'];
-            $types .= "s";
+            if ($ay_id > 0) {
+                $where[] = "s.id IN (
+                    SELECT sch_sub.student_id 
+                    FROM student_class_history sch_sub 
+                    JOIN grade_levels gl_sub ON sch_sub.class_id = gl_sub.id
+                    WHERE sch_sub.academic_year_id = ? AND sch_sub.status = 'ACTIVE' AND gl_sub.name = ?
+                )";
+                $params[] = $ay_id;
+                $params[] = $filters['kelas'];
+                $types .= "is";
+            } else {
+                $where[] = "s.kelas = ?";
+                $params[] = $filters['kelas'];
+                $types .= "s";
+            }
         }
         
         if (!empty($filters['halaqah_id'])) {
@@ -432,12 +442,15 @@ class DashboardTahfidzService {
         
         $where_clause = !empty($sf['where']) ? " AND " . implode(" AND ", $sf['where']) : "";
         $offset = ($page - 1) * $limit;
+
+        $ay = $this->getActiveAcademicYear();
+        $ay_id = $ay ? (int)$ay['id'] : 0;
         
         $sql = "SELECT 
                     me.id,
                     me.student_id,
                     s.nama_siswa as student_name,
-                    s.kelas as student_class,
+                    COALESCE(gl.name, s.kelas) as student_class,
                     me.date,
                     me.entry_type,
                     me.created_at,
@@ -445,13 +458,15 @@ class DashboardTahfidzService {
                     me.notes
                 FROM memorization_entries me
                 JOIN students s ON me.student_id = s.id
+                LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = ? AND sch.status = 'ACTIVE'
+                LEFT JOIN grade_levels gl ON sch.class_id = gl.id
                 LEFT JOIN employees e ON me.teacher_id = e.id
                 WHERE s.status = 'Aktif'" . $where_clause . " 
                 ORDER BY me.created_at DESC, me.id DESC 
                 LIMIT ? OFFSET ?";
                 
-        $params = array_merge($sf['params'], [(int)$limit, (int)$offset]);
-        $types = $sf['types'] . "ii";
+        $params = array_merge([$ay_id], $sf['params'], [(int)$limit, (int)$offset]);
+        $types = "i" . $sf['types'] . "ii";
         
         $res = $this->queryWithParams($sql, $params, $types);
         $activities = [];
@@ -522,11 +537,12 @@ class DashboardTahfidzService {
         // Sum targets
         $sql = "SELECT SUM(t.target_juz) as sum_target
                 FROM target_hafalan t
-                JOIN students s ON (t.kelas_id = s.kelas OR t.kelas_id = (SELECT id FROM grade_levels WHERE name = s.kelas LIMIT 1) OR t.kelas_id = CAST(s.kelas AS UNSIGNED))
+                JOIN student_class_history sch ON t.kelas_id = sch.class_id AND sch.academic_year_id = ? AND sch.status = 'ACTIVE'
+                JOIN students s ON sch.student_id = s.id
                 WHERE t.tahun_ajaran_id = ? AND s.status = 'Aktif'" . $where_clause;
                 
-        $params_target = array_merge([$ay_id], $sf['params']);
-        $types_target = "i" . $sf['types'];
+        $params_target = array_merge([$ay_id, $ay_id], $sf['params']);
+        $types_target = "ii" . $sf['types'];
         $res_target = $this->queryWithParams($sql, $params_target, $types_target);
         $target_row = $res_target ? $res_target->fetch_assoc() : null;
         $target_juz = $target_row ? (float)$target_row['sum_target'] : 0.0;
@@ -553,15 +569,17 @@ class DashboardTahfidzService {
         $ay = $this->getActiveAcademicYear();
         $ay_id = $ay ? (int)$ay['id'] : 0;
 
+        $start_date = $ay ? $ay['start_date'] : date('Y-01-01');
+
         // Dynamic calculation of total juz per student
         $sql = "SELECT s.id,
                        (COALESCE((SELECT baseline_juz FROM memorization_baselines WHERE student_id = s.id AND academic_year_id = ? LIMIT 1), 0.00) + 
-                        COALESCE((SELECT SUM(line_count) FROM memorization_entries WHERE student_id = s.id AND entry_type = 'HAFALAN_BARU'), 0) / 300.0) as total_juz
+                        COALESCE((SELECT SUM(line_count) FROM memorization_entries WHERE student_id = s.id AND entry_type = 'HAFALAN_BARU' AND date >= ?), 0) / 300.0) as total_juz
                 FROM students s
                 WHERE s.status = 'Aktif'" . $where_clause;
                 
-        $params = array_merge([$ay_id], $sf['params']);
-        $types = "i" . $sf['types'];
+        $params = array_merge([$ay_id, $start_date], $sf['params']);
+        $types = "is" . $sf['types'];
         
         $res = $this->queryWithParams($sql, $params, $types);
         
@@ -706,15 +724,20 @@ class DashboardTahfidzService {
             throw new Exception("Halaqah not found.");
         }
         
+        $ay = $this->getActiveAcademicYear();
+        $ay_id = $ay ? (int)$ay['id'] : 0;
+
         // Students List
         $stmt = $this->mysqli->prepare("
-            SELECT s.id, s.nama_siswa as full_name, s.kelas, s.tingkat
+            SELECT s.id, s.nama_siswa as full_name, COALESCE(gl.name, s.kelas) as kelas, s.tingkat
             FROM halaqah_members hm
             JOIN students s ON hm.student_id = s.id
+            LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = ? AND sch.status = 'ACTIVE'
+            LEFT JOIN grade_levels gl ON sch.class_id = gl.id
             WHERE hm.group_id = ? AND s.status = 'Aktif'
             ORDER BY s.nama_siswa ASC
         ");
-        $stmt->bind_param("i", $halaqah_id);
+        $stmt->bind_param("ii", $ay_id, $halaqah_id);
         $stmt->execute();
         $res = $stmt->get_result();
         $students = [];
@@ -890,10 +913,15 @@ class DashboardTahfidzService {
         
         $where_clause = !empty($where) ? " WHERE " . implode(" AND ", $where) : "";
         $offset = ($page - 1) * $limit;
-        
-        $sql = "SELECT s.id, s.nama_siswa as full_name, s.kelas, s.tingkat,
+        $ay = $this->getActiveAcademicYear();
+        $ay_id = $ay ? (int)$ay['id'] : 0;
+        $start_date = $ay ? $ay['start_date'] : date('Y-01-01');
+
+        $sql = "SELECT s.id, s.nama_siswa as full_name, COALESCE(gl.name, s.kelas) as kelas, s.tingkat,
                        hg.group_name as halaqah_name, e.full_name as teacher_name
                 FROM students s
+                LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = ? AND sch.status = 'ACTIVE'
+                LEFT JOIN grade_levels gl ON sch.class_id = gl.id
                 LEFT JOIN halaqah_members hm ON hm.student_id = s.id
                 LEFT JOIN halaqah_groups hg ON hm.group_id = hg.id
                 LEFT JOIN employees e ON hg.teacher_id = e.id
@@ -901,14 +929,11 @@ class DashboardTahfidzService {
                 ORDER BY s.nama_siswa ASC
                 LIMIT ? OFFSET ?";
                 
-        $params_query = array_merge($params, [(int)$limit, (int)$offset]);
-        $types_query = $types . "ii";
+        $params_query = array_merge([$ay_id], $params, [(int)$limit, (int)$offset]);
+        $types_query = "i" . $types . "ii";
         
         $res = $this->queryWithParams($sql, $params_query, $types_query);
         $santri_list = [];
-        
-        $ay = $this->getActiveAcademicYear();
-        $ay_id = $ay ? (int)$ay['id'] : 0;
         
         if ($res) {
             while ($row = $res->fetch_assoc()) {
@@ -939,9 +964,9 @@ class DashboardTahfidzService {
                         COALESCE((SELECT baseline_juz FROM memorization_baselines WHERE student_id = ? AND academic_year_id = ? LIMIT 1), 0.00) + 
                         (COALESCE(SUM(line_count), 0) / 300.0) as total_juz
                     FROM memorization_entries
-                    WHERE student_id = ? AND entry_type = 'HAFALAN_BARU'
+                    WHERE student_id = ? AND entry_type = 'HAFALAN_BARU' AND date >= ?
                 ");
-                $stmt->bind_param("iii", $student_id, $ay_id, $student_id);
+                $stmt->bind_param("iiis", $student_id, $ay_id, $student_id, $start_date);
                 $stmt->execute();
                 $total_juz_row = $stmt->get_result()->fetch_assoc();
                 $stmt->close();
@@ -968,16 +993,22 @@ class DashboardTahfidzService {
     public function getDetailSantri($user_id, $student_id) {
         $student_id = (int)$student_id;
         
+        $ay = $this->getActiveAcademicYear();
+        $ay_id = $ay ? (int)$ay['id'] : 0;
+        $start_date = $ay ? $ay['start_date'] : date('Y-01-01');
+
         $stmt = $this->mysqli->prepare("
-            SELECT s.id, s.nama_siswa as full_name, s.kelas, s.tingkat, s.status,
+            SELECT s.id, s.nama_siswa as full_name, COALESCE(gl.name, s.kelas) as kelas, s.tingkat, s.status,
                    hg.group_name as halaqah_name, e.full_name as teacher_name
             FROM students s
+            LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = ? AND sch.status = 'ACTIVE'
+            LEFT JOIN grade_levels gl ON sch.class_id = gl.id
             LEFT JOIN halaqah_members hm ON hm.student_id = s.id
             LEFT JOIN halaqah_groups hg ON hm.group_id = hg.id
             LEFT JOIN employees e ON hg.teacher_id = e.id
             WHERE s.id = ? LIMIT 1
         ");
-        $stmt->bind_param("i", $student_id);
+        $stmt->bind_param("ii", $ay_id, $student_id);
         $stmt->execute();
         $profile = $stmt->get_result()->fetch_assoc();
         $stmt->close();
@@ -985,9 +1016,6 @@ class DashboardTahfidzService {
         if (!$profile) {
             throw new Exception("Student not found.");
         }
-        
-        $ay = $this->getActiveAcademicYear();
-        $ay_id = $ay ? (int)$ay['id'] : 0;
         
         // Calculated total juz and baseline
         $stmt = $this->mysqli->prepare("
@@ -1001,9 +1029,9 @@ class DashboardTahfidzService {
         
         // Sum lines for new hafalan
         $stmt = $this->mysqli->prepare("
-            SELECT SUM(line_count) FROM memorization_entries WHERE student_id = ? AND entry_type = 'HAFALAN_BARU'
+            SELECT SUM(line_count) FROM memorization_entries WHERE student_id = ? AND entry_type = 'HAFALAN_BARU' AND date >= ?
         ");
-        $stmt->bind_param("i", $student_id);
+        $stmt->bind_param("is", $student_id, $start_date);
         $stmt->execute();
         $lines_row = $stmt->get_result()->fetch_row();
         $stmt->close();
@@ -1012,7 +1040,7 @@ class DashboardTahfidzService {
         
         // Memorization History (limit 20)
         $stmt = $this->mysqli->prepare("
-            SELECT id, date, entry_type, surah_start, start_ayah, surah_end, end_ayah, line_count, notes, score
+            SELECT id, date, entry_type, surah_start, start_ayah, surah_end, end_ayah, line_count, notes, score, status
             FROM memorization_entries
             WHERE student_id = ?
             ORDER BY date DESC, id DESC
@@ -1067,16 +1095,23 @@ class DashboardTahfidzService {
         
         $where_clause = !empty($sf['where']) ? " AND " . implode(" AND ", $sf['where']) : "";
         
+        $ay = $this->getActiveAcademicYear();
+        $ay_id = $ay ? (int)$ay['id'] : 0;
+
         // Query active students under scope
-        $sql = "SELECT s.id, s.nama_siswa as full_name, s.kelas, s.tingkat,
+        $sql = "SELECT s.id, s.nama_siswa as full_name, COALESCE(gl.name, s.kelas) as kelas, s.tingkat,
                        hg.group_name as halaqah_name, e.full_name as teacher_name
                 FROM students s
+                LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = ? AND sch.status = 'ACTIVE'
+                LEFT JOIN grade_levels gl ON sch.class_id = gl.id
                 LEFT JOIN halaqah_members hm ON hm.student_id = s.id
                 LEFT JOIN halaqah_groups hg ON hm.group_id = hg.id
                 LEFT JOIN employees e ON hg.teacher_id = e.id
                 WHERE s.status = 'Aktif'" . $where_clause;
                 
-        $res = $this->queryWithParams($sql, $sf['params'], $sf['types']);
+        $params_query = array_merge([$ay_id], $sf['params']);
+        $types_query = "i" . $sf['types'];
+        $res = $this->queryWithParams($sql, $params_query, $types_query);
         $attention_needed = [];
         
         if ($res) {
@@ -1232,8 +1267,13 @@ class DashboardTahfidzService {
         
         foreach ($available_units as $unit) {
             // Count students
-            $stmt = $this->mysqli->prepare("SELECT COUNT(*) FROM students WHERE status = 'Aktif' AND tingkat = ?");
-            $stmt->bind_param("s", $unit);
+            $stmt = $this->mysqli->prepare("
+                SELECT COUNT(*) 
+                FROM students s
+                JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = ? AND sch.status = 'ACTIVE'
+                WHERE s.status = 'Aktif' AND s.tingkat = ?
+            ");
+            $stmt->bind_param("is", $ay_id, $unit);
             $stmt->execute();
             $student_count = $stmt->get_result()->fetch_row()[0];
             $stmt->close();
@@ -1244,9 +1284,10 @@ class DashboardTahfidzService {
                 FROM halaqah_groups hg
                 JOIN halaqah_members hm ON hm.group_id = hg.id
                 JOIN students s ON hm.student_id = s.id
+                JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = ? AND sch.status = 'ACTIVE'
                 WHERE s.status = 'Aktif' AND s.tingkat = ?
             ");
-            $stmt->bind_param("s", $unit);
+            $stmt->bind_param("is", $ay_id, $unit);
             $stmt->execute();
             $teacher_count = $stmt->get_result()->fetch_row()[0];
             $stmt->close();
@@ -1257,10 +1298,11 @@ class DashboardTahfidzService {
             $stmt = $this->mysqli->prepare("
                 SELECT SUM(line_count) FROM memorization_entries me
                 JOIN students s ON me.student_id = s.id
+                JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = ? AND sch.status = 'ACTIVE'
                 WHERE s.status = 'Aktif' AND s.tingkat = ? AND me.entry_type = 'HAFALAN_BARU'
                   AND me.date BETWEEN ? AND ?
             ");
-            $stmt->bind_param("sss", $unit, $start_date, $end_date);
+            $stmt->bind_param("isss", $ay_id, $unit, $start_date, $end_date);
             $stmt->execute();
             $total_lines = $stmt->get_result()->fetch_row()[0] ?? 0;
             $stmt->close();
@@ -1288,6 +1330,9 @@ class DashboardTahfidzService {
         
         $rankings = [];
         
+        $start_date = $ay ? $ay['start_date'] : date('Y-01-01');
+        $end_date = $ay ? $ay['end_date'] : date('Y-12-31');
+
         if ($type === 'halaqah') {
             // Rank halaqahs by lines/juz progress
             $sql = "SELECT hg.id, hg.group_name, e.full_name as teacher_name,
@@ -1296,13 +1341,15 @@ class DashboardTahfidzService {
                     JOIN halaqah_members hm ON hm.group_id = hg.id
                     JOIN students s ON hm.student_id = s.id
                     LEFT JOIN employees e ON hg.teacher_id = e.id
-                    LEFT JOIN memorization_entries me ON me.student_id = s.id AND me.entry_type = 'HAFALAN_BARU'
+                    LEFT JOIN memorization_entries me ON me.student_id = s.id AND me.entry_type = 'HAFALAN_BARU' AND me.date BETWEEN ? AND ?
                     WHERE s.status = 'Aktif' " . $where_clause . "
                     GROUP BY hg.id
                     ORDER BY total_lines DESC
                     LIMIT 10";
                     
-            $res = $this->queryWithParams($sql, $sf['params'], $sf['types']);
+            $params = array_merge([$start_date, $end_date], $sf['params']);
+            $types = "ss" . $sf['types'];
+            $res = $this->queryWithParams($sql, $params, $types);
             $rank = 1;
             if ($res) {
                 while ($row = $res->fetch_assoc()) {
@@ -1321,13 +1368,15 @@ class DashboardTahfidzService {
                     JOIN halaqah_groups hg ON hg.teacher_id = e.id
                     JOIN halaqah_members hm ON hm.group_id = hg.id
                     JOIN students s ON hm.student_id = s.id
-                    LEFT JOIN memorization_entries me ON me.teacher_id = e.id
+                    LEFT JOIN memorization_entries me ON me.teacher_id = e.id AND me.date BETWEEN ? AND ?
                     WHERE s.status = 'Aktif' " . $where_clause . "
                     GROUP BY e.id
                     ORDER BY record_count DESC
                     LIMIT 10";
             
-            $res = $this->queryWithParams($sql, $sf['params'], $sf['types']);
+            $params = array_merge([$start_date, $end_date], $sf['params']);
+            $types = "ss" . $sf['types'];
+            $res = $this->queryWithParams($sql, $params, $types);
             $rank = 1;
             if ($res) {
                 while ($row = $res->fetch_assoc()) {
@@ -1352,16 +1401,18 @@ class DashboardTahfidzService {
         $where_clause = !empty($sf['where']) ? " AND " . implode(" AND ", $sf['where']) : "";
         $ay = $this->getActiveAcademicYear();
         
+        $start_date = $ay ? $ay['start_date'] : date('Y-01-01');
+
         // We evaluate attendance completeness and progress target to build a health score
         $sql = "SELECT s.id,
                        (COALESCE((SELECT baseline_juz FROM memorization_baselines WHERE student_id = s.id AND academic_year_id = ? LIMIT 1), 0.00) + 
-                        COALESCE((SELECT SUM(line_count) FROM memorization_entries WHERE student_id = s.id AND entry_type = 'HAFALAN_BARU'), 0) / 300.0) as total_juz
+                        COALESCE((SELECT SUM(line_count) FROM memorization_entries WHERE student_id = s.id AND entry_type = 'HAFALAN_BARU' AND date >= ?), 0) / 300.0) as total_juz
                 FROM students s
                 WHERE s.status = 'Aktif'" . $where_clause;
                 
         $ay_id = $ay ? (int)$ay['id'] : 0;
-        $params = array_merge([$ay_id], $sf['params']);
-        $types = "i" . $sf['types'];
+        $params = array_merge([$ay_id, $start_date], $sf['params']);
+        $types = "is" . $sf['types'];
         
         $res = $this->queryWithParams($sql, $params, $types);
         
@@ -1390,6 +1441,9 @@ class DashboardTahfidzService {
         $scope = $this->resolveScope($user_id);
         $sf = $this->buildScopeAndFilters($scope, $filters);
         
+        $ay = $this->getActiveAcademicYear();
+        $ay_id = $ay ? (int)$ay['id'] : 0;
+
         $where_clause = !empty($sf['where']) ? " AND " . implode(" AND ", $sf['where']) : "";
         $drill_data = [];
         
@@ -1400,8 +1454,13 @@ class DashboardTahfidzService {
                 $available_units = array_intersect($available_units, array_map('strtoupper', $scope['units']));
             }
             foreach ($available_units as $unit) {
-                $stmt = $this->mysqli->prepare("SELECT COUNT(*) FROM students WHERE status = 'Aktif' AND tingkat = ?");
-                $stmt->bind_param("s", $unit);
+                $stmt = $this->mysqli->prepare("
+                    SELECT COUNT(*) 
+                    FROM students s
+                    JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = ? AND sch.status = 'ACTIVE'
+                    WHERE s.status = 'Aktif' AND s.tingkat = ?
+                ");
+                $stmt->bind_param("is", $ay_id, $unit);
                 $stmt->execute();
                 $count = $stmt->get_result()->fetch_row()[0];
                 $stmt->close();
@@ -1416,13 +1475,15 @@ class DashboardTahfidzService {
             // Drill down to Classes of selected Unit (tingkat)
             $unit = strtoupper($parent_id);
             $stmt = $this->mysqli->prepare("
-                SELECT kelas, COUNT(*) as count 
-                FROM students 
-                WHERE status = 'Aktif' AND tingkat = ? 
-                GROUP BY kelas 
-                ORDER BY kelas ASC
+                SELECT gl.name as kelas, COUNT(*) as count 
+                FROM students s
+                JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = ? AND sch.status = 'ACTIVE'
+                JOIN grade_levels gl ON sch.class_id = gl.id
+                WHERE s.status = 'Aktif' AND s.tingkat = ? 
+                GROUP BY gl.name 
+                ORDER BY gl.name ASC
             ");
-            $stmt->bind_param("s", $unit);
+            $stmt->bind_param("is", $ay_id, $unit);
             $stmt->execute();
             $res = $stmt->get_result();
             while ($row = $res->fetch_assoc()) {
@@ -1441,11 +1502,13 @@ class DashboardTahfidzService {
                     FROM halaqah_groups hg
                     JOIN halaqah_members hm ON hm.group_id = hg.id
                     JOIN students s ON hm.student_id = s.id
+                    JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = ? AND sch.status = 'ACTIVE'
+                    JOIN grade_levels gl ON sch.class_id = gl.id
                     LEFT JOIN employees e ON hg.teacher_id = e.id
-                    WHERE s.status = 'Aktif' AND s.kelas = ? " . $where_clause;
+                    WHERE s.status = 'Aktif' AND gl.name = ? " . $where_clause;
                     
-            $params = array_merge([$class_name], $sf['params']);
-            $types = "s" . $sf['types'];
+            $params = array_merge([$ay_id, $class_name], $sf['params']);
+            $types = "is" . $sf['types'];
             
             $res = $this->queryWithParams($sql, $params, $types);
             if ($res) {

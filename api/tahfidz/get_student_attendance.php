@@ -22,6 +22,7 @@ $date = isset($_GET['date']) ? $_GET['date'] : null;
 $student_id = isset($_GET['student_id']) ? $_GET['student_id'] : null;
 $session = isset($_GET['session']) ? $_GET['session'] : null;
 $group_id = isset($_GET['group_id']) ? $_GET['group_id'] : null;
+$teacher_id = isset($_GET['teacher_id']) ? $_GET['teacher_id'] : null;
 
 try {
     // Get active academic year
@@ -99,6 +100,12 @@ try {
             $query .= " AND ta.session = ?";
             $params[] = $session;
             $types .= "s";
+        }
+
+        if ($teacher_id) {
+            $query .= " AND ta.teacher_id = ?";
+            $params[] = $teacher_id;
+            $types .= "i";
         }
 
         $query .= " ORDER BY ta.date DESC, s.nama_siswa ASC";

@@ -13,6 +13,9 @@ try {
     $class_id = $_GET['class_id'] ?? null;
 
     if ($class_id) {
+        // Get active academic year
+        $active_year_id = $db->query("SELECT id FROM academic_years WHERE is_active = 1 LIMIT 1")->fetchColumn();
+
         // Get subjects for this class today and their attendance status
         $dayNum = date('N'); // 1 (Mon) - 7 (Sun)
         $days = [1 => 'Monday', 2 => 'Tuesday', 3 => 'Wednesday', 4 => 'Thursday', 5 => 'Friday', 6 => 'Saturday', 7 => 'Sunday'];
@@ -31,12 +34,15 @@ try {
                   JOIN employees e ON cs.employee_id = e.id
                   LEFT JOIN lesson_periods lp ON cs.lesson_period_id = lp.id
                   LEFT JOIN lesson_periods lp_end ON cs.end_lesson_period_id = lp_end.id
-                  WHERE cs.grade_level_id = :class_id AND cs.day = :today
+                  WHERE cs.grade_level_id = :class_id 
+                    AND cs.day = :today 
+                    AND cs.academic_year_id = :active_year_id
                   ORDER BY lp.start_time ASC";
         
         $stmt = $db->prepare($query);
         $stmt->bindParam(':class_id', $class_id);
         $stmt->bindParam(':today', $today);
+        $stmt->bindParam(':active_year_id', $active_year_id);
         $stmt->execute();
         
         $subjects = [];

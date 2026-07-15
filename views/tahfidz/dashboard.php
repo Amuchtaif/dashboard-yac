@@ -66,22 +66,43 @@ $santri_monitoring = $service->getMonitoringSantri($user_id, $filters, 15, $page
 // Fetch filter dropdown options from DB
 $db_conn = (new Database())->getConnection();
 
-// 1. Available Scoped Units
-$stmt = $db_conn->prepare("SELECT DISTINCT tingkat FROM students WHERE status = 'Aktif' AND tingkat IS NOT NULL AND tingkat != '' AND tingkat != 'TKIT' ORDER BY tingkat ASC");
-$stmt->execute();
+// 1. Available Scoped Units (filtered by active academic year)
+$active_year_id = $ay ? (int)$ay['id'] : 1;
+
+$stmt = $db_conn->prepare("
+    SELECT DISTINCT s.tingkat 
+    FROM students s
+    JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = :active_year_id AND sch.status = 'ACTIVE'
+    WHERE s.status = 'Aktif' AND s.tingkat IS NOT NULL AND s.tingkat != '' AND s.tingkat != 'TKIT' 
+    ORDER BY s.tingkat ASC
+");
+$stmt->execute([':active_year_id' => $active_year_id]);
 $db_units = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
 if (!empty($scope['units'])) {
     $db_units = array_intersect($db_units, $scope['units']);
 }
 
-// 2. Classes based on selected unit
-$classes_query = "SELECT DISTINCT kelas FROM students WHERE status = 'Aktif' AND tingkat != 'TKIT'";
+// 2. Classes based on selected unit (filtered by active academic year)
+$classes_query = "
+    SELECT DISTINCT gl.name as kelas 
+    FROM students s
+    JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = :active_year_id AND sch.status = 'ACTIVE'
+    JOIN grade_levels gl ON sch.class_id = gl.id
+    WHERE s.status = 'Aktif' AND s.tingkat != 'TKIT'
+";
 if ($selected_unit) {
-    $classes_query .= " AND tingkat = " . $db_conn->quote($selected_unit);
+    $classes_query .= " AND s.tingkat = :unit";
 }
-$classes_query .= " ORDER BY kelas ASC";
-$db_classes = $db_conn->query($classes_query)->fetchAll(PDO::FETCH_COLUMN);
+$classes_query .= " ORDER BY gl.name ASC";
+
+$classes_stmt = $db_conn->prepare($classes_query);
+$classes_params = [':active_year_id' => $active_year_id];
+if ($selected_unit) {
+    $classes_params[':unit'] = $selected_unit;
+}
+$classes_stmt->execute($classes_params);
+$db_classes = $classes_stmt->fetchAll(PDO::FETCH_COLUMN);
 
 // 3. Halaqahs
 $halaqahs_query = "SELECT id, group_name FROM halaqah_groups ORDER BY group_name ASC";
@@ -97,25 +118,6 @@ include '../layouts/header.php';
 
 <!-- HTML Interface Layout -->
 <div class="space-y-6 pb-12">
-    <!-- Top Header Title -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between bg-gradient-to-r from-teal-800 to-cyan-900 p-6 rounded-3xl text-white shadow-xl relative overflow-hidden">
-        <div class="absolute right-0 top-0 translate-x-12 -translate-y-12 w-64 h-64 bg-white/5 rounded-full blur-2xl"></div>
-        <div class="relative z-10">
-            <div class="flex items-center gap-2 text-teal-300 text-xs font-bold uppercase tracking-widest mb-1.5">
-                <span class="w-2 h-2 rounded-full bg-teal-400 animate-pulse"></span>
-                Monitoring Tahfidz Eksekutif
-            </div>
-            <h1 class="text-3xl font-extrabold tracking-tight">Dashboard Pimpinan</h1>
-            <p class="text-teal-100/80 text-sm mt-1">Tahun Ajaran: <span class="font-bold"><?= htmlspecialchars($ay['name'] ?? '-') ?></span> • Semester: <span class="font-bold"><?= htmlspecialchars($ay['semester'] ?? '-') ?></span></p>
-        </div>
-        <div class="mt-4 md:mt-0 bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-xl border border-white/10 text-right relative z-10">
-            <p class="text-xs text-teal-200">Health Score Unit</p>
-            <p class="text-2xl font-black text-white"><?= $health['health_score'] ?>%</p>
-            <span class="inline-flex items-center px-2 py-0.5 rounded bg-teal-500/20 text-teal-300 text-[10px] font-bold uppercase mt-1">
-                <?= $health['rating'] ?>
-            </span>
-        </div>
-    </div>
 
     <!-- Global Filter Bar -->
     <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
@@ -596,7 +598,7 @@ if ($detail_student_id > 0):
                                         <th class="px-4 py-2.5">Jenis</th>
                                         <th class="px-4 py-2.5">Hafalan / Surah</th>
                                         <th class="px-4 py-2.5 text-center">Baris</th>
-                                        <th class="px-4 py-2.5 text-center">Nilai</th>
+                                        <th class="px-4 py-2.5 text-center">Kelancaran</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100 font-medium text-slate-700">
@@ -617,7 +619,7 @@ if ($detail_student_id > 0):
                                                     <?= htmlspecialchars($hist['surah_start']) ?> (<?= $hist['start_ayah'] ?>) s.d. <?= htmlspecialchars($hist['surah_end']) ?> (<?= $hist['end_ayah'] ?>)
                                                 </td>
                                                 <td class="px-4 py-3 text-center"><?= $hist['line_count'] ?> baris</td>
-                                                <td class="px-4 py-3 text-center text-teal-600 font-bold"><?= $hist['score'] ?: '-' ?></td>
+                                                <td class="px-4 py-3 text-center text-teal-600 font-bold"><?= htmlspecialchars($hist['status'] ?: ($hist['score'] && $hist['score'] != 0 ? $hist['score'] : '-')) ?></td>
                                             </tr>
                                         <?php endforeach; ?>
                                     <?php else: ?>

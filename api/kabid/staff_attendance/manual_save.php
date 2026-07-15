@@ -29,7 +29,7 @@ try {
     // 1. Verifikasi Staf adalah bawahan dengan kriteria:
     // - Division ID Sama
     // - Level 3 ATAU (Level 4+ dan unit_id Kosong)
-    $stmtDiv = $conn->prepare("SELECT division_id FROM employees WHERE id = ?");
+    $stmtDiv = $conn->prepare("SELECT division_id FROM employees WHERE id = ? AND status = 'active'");
     $stmtDiv->execute([$kabid_id]);
     $kabid = $stmtDiv->fetch(PDO::FETCH_ASSOC);
 
@@ -38,7 +38,7 @@ try {
     $stmtVal = $conn->prepare("
         SELECT e.id FROM employees e
         INNER JOIN positions p ON e.position_id = p.id
-        WHERE e.id = ? AND e.division_id = ?
+        WHERE e.id = ? AND e.division_id = ? AND e.status = 'active'
     ");
     $stmtVal->execute([$staff_id, $kabid_division_id]);
     $isValidSubordinate = $stmtVal->fetch();
@@ -49,7 +49,7 @@ try {
     }
 
     // Ambil detail staf untuk proses selanjutnya
-    $stmtStaff = $conn->prepare("SELECT schedule_id FROM employees WHERE id = ?");
+    $stmtStaff = $conn->prepare("SELECT schedule_id FROM employees WHERE id = ? AND status = 'active'");
     $stmtStaff->execute([$staff_id]);
     $staff = $stmtStaff->fetch(PDO::FETCH_ASSOC);
 

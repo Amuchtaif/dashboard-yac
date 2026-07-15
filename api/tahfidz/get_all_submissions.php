@@ -66,11 +66,11 @@ try {
     // tahfidz_memorization table
     // Assuming structure: id, student_id, teacher_id, date, status, notes
     $query = "SELECT 
-                tm.id, tm.student_id, tm.teacher_id, tm.date, tm.surah_start, tm.ayat_start, tm.surah_end, tm.ayat_end, tm.juz, tm.status, tm.notes, tm.created_at,
+                tm.id, tm.student_id, tm.teacher_id, tm.date, tm.surah_start, tm.start_ayah AS ayat_start, tm.surah_end, tm.end_ayah AS ayat_end, tm.juz, tm.status, tm.notes, tm.created_at,
                 s.nama_siswa as student_name,
                 gl.name as kelas,
                 e.full_name as teacher_name
-              FROM tahfidz_memorization tm
+              FROM memorization_entries tm
               JOIN students s ON tm.student_id = s.id
               LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = $activeYearId AND sch.status = 'ACTIVE'
               LEFT JOIN grade_levels gl ON sch.class_id = gl.id

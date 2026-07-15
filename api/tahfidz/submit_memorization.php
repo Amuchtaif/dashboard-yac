@@ -21,7 +21,7 @@ $surah_start = isset($input['surah_start']) ? $input['surah_start'] : '';
 $ayat_start = isset($input['ayat_start']) ? $input['ayat_start'] : 0;
 $total_baris = isset($input['total_baris']) ? $input['total_baris'] : 0;
 $juz = isset($input['juz']) ? $input['juz'] : null;
-$status = isset($input['status']) ? $input['status'] : 'Lancar'; // Lancar, Kurang Lancar, Ulang, etc.
+$status = isset($input['status']) && !empty($input['status']) ? $input['status'] : (isset($input['score']) && !is_numeric($input['score']) && in_array($input['score'], ['Lancar', 'Kurang', 'Tidak', 'Kurang Lancar', 'Ulang', 'Ziyadah', 'Murajaah']) ? $input['score'] : 'Lancar'); // Lancar, Kurang Lancar, Ulang, etc.
 $notes = isset($input['notes']) ? $input['notes'] : '';
 $teacher_id = isset($input['teacher_id']) ? $input['teacher_id'] : null;
 
@@ -68,28 +68,69 @@ if ($teacher_id && !hasPermission($teacher_id, 'access_tahfidz')) {
 }
 
 try {
-    $stmt = $mysqli->prepare("INSERT INTO tahfidz_memorization 
-        (student_id, date, surah_start, ayat_start, total_baris, surah_end, ayat_end, juz, status, notes, teacher_id) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    
     // Default surah_end and ayat_end if not provided
     $surah_end = isset($input['surah_end']) ? $input['surah_end'] : $surah_start;
     $ayat_end = isset($input['ayat_end']) ? $input['ayat_end'] : $ayat_start;
 
-    $stmt->bind_param("issiiisissi", 
+    // Lookup Surah Names for backward compatibility columns
+    $surah_start_name = "";
+    $surah_end_name = "";
+    $surat_json_path = __DIR__ . '/../quran/surat.json';
+    if (file_exists($surat_json_path)) {
+        $surat_data = json_decode(file_get_contents($surat_json_path), true);
+        if (isset($surat_data['data'])) {
+            foreach ($surat_data['data'] as $surah) {
+                if ($surah['nomor'] == $surah_start) {
+                    $surah_start_name = $surah['namaLatin'];
+                }
+                if ($surah['nomor'] == $surah_end) {
+                    $surah_end_name = $surah['namaLatin'];
+                }
+            }
+        }
+    }
+    if (empty($surah_start_name) && is_numeric($surah_start)) {
+        $surah_start_name = "Surah " . $surah_start;
+    }
+    if (empty($surah_end_name)) {
+        $surah_end_name = $surah_start_name;
+    }
+
+    $entry_type = 'HAFALAN_BARU';
+    if (isset($input['entry_type']) && !empty($input['entry_type'])) {
+        $entry_type = strtoupper($input['entry_type']);
+    } elseif (isset($input['jenis_setoran']) && !empty($input['jenis_setoran'])) {
+        $entry_type = strtoupper($input['jenis_setoran']);
+    } else {
+        $entry_type = (strcasecmp($status, 'Murajaah') === 0) ? 'MUROJAAH' : 'HAFALAN_BARU';
+    }
+
+    $stmt = $mysqli->prepare("INSERT INTO memorization_entries 
+        (student_id, date, entry_type, start_surah_id, start_ayah, end_surah_id, end_ayah, line_count, notes, teacher_id, surah_id, surah_start, surah_end, total_baris, juz, status) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    
+    $start_surah_id = (int)$surah_start;
+    $end_surah_id = (int)$surah_end;
+    $surah_id = $start_surah_id;
+
+    $stmt->bind_param("issiiiiissiissis", 
         $student_id, 
         $date, 
-        $surah_start, 
-        $ayat_start, 
+        $entry_type,
+        $start_surah_id,
+        $ayat_start,
+        $end_surah_id,
+        $ayat_end,
         $total_baris,
-        $surah_end, 
-        $ayat_end, 
-        $juz, 
-        $status, 
-        $notes, 
-        $teacher_id
+        $notes,
+        $teacher_id,
+        $surah_id,
+        $surah_start_name,
+        $surah_end_name,
+        $total_baris,
+        $juz,
+        $status
     );
-
 
     if ($stmt->execute()) {
         echo json_encode(["success" => true, "message" => "Memorization record saved successfully"]);

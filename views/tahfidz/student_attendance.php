@@ -15,8 +15,24 @@ $end_date = isset($_GET['end_date']) ? $_GET['end_date'] : date('Y-m-d');
 $unit_filter = isset($_GET['unit']) ? $_GET['unit'] : '';
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 
-// --- Fetch Units for Filter (filtered by status Aktif)
-$units = $conn->query("SELECT DISTINCT tingkat FROM students WHERE status = 'Aktif' AND tingkat IS NOT NULL AND tingkat != '' ORDER BY tingkat")->fetchAll(PDO::FETCH_COLUMN);
+// --- Fetch Active Academic Year ---
+$active_year_query = "SELECT id FROM academic_years WHERE is_active = 1 LIMIT 1";
+$active_year_stmt = $conn->query($active_year_query);
+$active_year_id = $active_year_stmt->fetchColumn();
+if (!$active_year_id) {
+    $active_year_id = 1;
+}
+
+// --- Fetch Units for Filter (filtered by status Aktif and active academic year)
+$units_stmt = $conn->prepare("
+    SELECT DISTINCT s.tingkat 
+    FROM students s
+    JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = :active_year_id AND sch.status = 'ACTIVE'
+    WHERE s.status = 'Aktif' AND s.tingkat IS NOT NULL AND s.tingkat != '' 
+    ORDER BY s.tingkat
+");
+$units_stmt->execute([':active_year_id' => $active_year_id]);
+$units = $units_stmt->fetchAll(PDO::FETCH_COLUMN);
 
 $is_admin = (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Administrator');
 
@@ -25,18 +41,21 @@ $query = "
     SELECT 
         ta.*,
         s.nama_siswa AS student_name,
-        s.kelas AS student_class,
+        COALESCE(gl.name, s.kelas) AS student_class,
         s.tingkat AS student_level,
         e.full_name AS teacher_name
     FROM tahfidz_attendance ta
     LEFT JOIN students s ON ta.student_id = s.id
+    LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = :active_year_id AND sch.status = 'ACTIVE'
+    LEFT JOIN grade_levels gl ON sch.class_id = gl.id
     LEFT JOIN employees e ON ta.teacher_id = e.id
     WHERE ta.date BETWEEN :start_date AND :end_date
 ";
 
 $params = [
     ':start_date' => $start_date,
-    ':end_date' => $end_date
+    ':end_date' => $end_date,
+    ':active_year_id' => $active_year_id
 ];
 
 if (!$is_admin) {

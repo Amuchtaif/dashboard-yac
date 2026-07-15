@@ -93,6 +93,12 @@ class MemorizationService {
         $end_ayah = (int)$data['end_ayah'];
         $line_count = (int)$data['line_count'];
         $score = isset($data['score']) ? $data['score'] : null;
+        if ($score !== null && !is_numeric($score) && in_array($score, ['Lancar', 'Kurang', 'Tidak', 'Kurang Lancar', 'Ulang', 'Ziyadah', 'Murajaah'])) {
+            if (!isset($data['status']) || empty($data['status'])) {
+                $data['status'] = $score;
+            }
+            $score = null;
+        }
         $notes = isset($data['notes']) ? $data['notes'] : '';
         $teacher_id = isset($data['teacher_id']) ? (int)$data['teacher_id'] : null;
 
@@ -100,12 +106,16 @@ class MemorizationService {
         $surah_start_name = isset($this->quran_data[$start_surah_id]) ? $this->quran_data[$start_surah_id]['namaLatin'] : "";
         $surah_end_name = isset($this->quran_data[$end_surah_id]) ? $this->quran_data[$end_surah_id]['namaLatin'] : "";
 
-        // Status field fallback: map entry_type to old status list: Lancar, Kurang Lancar, Ulang, Ziyadah, Murajaah
+        // Use provided status or fallback to category-based status
         $status = 'Lancar';
-        if ($entry_type === 'MUROJAAH') {
-            $status = 'Murajaah';
-        } elseif ($entry_type === 'HAFALAN_BARU') {
-            $status = 'Ziyadah';
+        if (isset($data['status']) && !empty($data['status'])) {
+            $status = $data['status'];
+        } else {
+            if ($entry_type === 'MUROJAAH') {
+                $status = 'Murajaah';
+            } elseif ($entry_type === 'HAFALAN_BARU') {
+                $status = 'Ziyadah';
+            }
         }
 
         // Insert
@@ -169,6 +179,12 @@ class MemorizationService {
         $end_ayah = (int)$merged['end_ayah'];
         $line_count = (int)$merged['line_count'];
         $score = isset($merged['score']) ? $merged['score'] : null;
+        if ($score !== null && !is_numeric($score) && in_array($score, ['Lancar', 'Kurang', 'Tidak', 'Kurang Lancar', 'Ulang', 'Ziyadah', 'Murajaah'])) {
+            if (!isset($data['status']) || empty($data['status'])) {
+                $data['status'] = $score;
+            }
+            $score = null;
+        }
         $notes = isset($merged['notes']) ? $merged['notes'] : '';
         $teacher_id = isset($merged['teacher_id']) ? (int)$merged['teacher_id'] : null;
 
@@ -176,11 +192,16 @@ class MemorizationService {
         $surah_start_name = isset($this->quran_data[$start_surah_id]) ? $this->quran_data[$start_surah_id]['namaLatin'] : "";
         $surah_end_name = isset($this->quran_data[$end_surah_id]) ? $this->quran_data[$end_surah_id]['namaLatin'] : "";
 
+        // Use provided status or fallback to category-based status
         $status = 'Lancar';
-        if ($entry_type === 'MUROJAAH') {
-            $status = 'Murajaah';
-        } elseif ($entry_type === 'HAFALAN_BARU') {
-            $status = 'Ziyadah';
+        if (isset($data['status']) && !empty($data['status'])) {
+            $status = $data['status'];
+        } else {
+            if ($entry_type === 'MUROJAAH') {
+                $status = 'Murajaah';
+            } elseif ($entry_type === 'HAFALAN_BARU') {
+                $status = 'Ziyadah';
+            }
         }
 
         $stmt = $this->mysqli->prepare("UPDATE memorization_entries SET

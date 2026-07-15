@@ -83,16 +83,31 @@ if (!$group_id && count($groups) > 0) {
 // --- Fetch Students and Memorization Recap ---
 $students_recap = [];
 if ($group_id) {
-    // 1. Get students in this halaqah group (with tingkat for unit resolution)
-    $students_query = "
-        SELECT s.id, s.nama_siswa, s.nomor_induk, s.kelas, s.tingkat
-        FROM students s
-        JOIN halaqah_members hm ON s.id = hm.student_id
-        WHERE hm.group_id = :group_id
-        ORDER BY s.nama_siswa ASC
-    ";
-    $students_stmt = $conn->prepare($students_query);
-    $students_stmt->execute([':group_id' => $group_id]);
+    // 1. Get students in this halaqah group (with tingkat for unit resolution from selected academic year)
+    $selected_ay_id = $sem1_id ?: $sem2_id;
+    if ($selected_ay_id) {
+        $students_query = "
+            SELECT s.id, s.nama_siswa, s.nomor_induk, COALESCE(gl.name, s.kelas) as kelas, s.tingkat
+            FROM students s
+            JOIN halaqah_members hm ON s.id = hm.student_id
+            LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = :ay_id AND sch.status = 'ACTIVE'
+            LEFT JOIN grade_levels gl ON sch.class_id = gl.id
+            WHERE hm.group_id = :group_id
+            ORDER BY s.nama_siswa ASC
+        ";
+        $students_stmt = $conn->prepare($students_query);
+        $students_stmt->execute([':group_id' => $group_id, ':ay_id' => $selected_ay_id]);
+    } else {
+        $students_query = "
+            SELECT s.id, s.nama_siswa, s.nomor_induk, s.kelas, s.tingkat
+            FROM students s
+            JOIN halaqah_members hm ON s.id = hm.student_id
+            WHERE hm.group_id = :group_id
+            ORDER BY s.nama_siswa ASC
+        ";
+        $students_stmt = $conn->prepare($students_query);
+        $students_stmt->execute([':group_id' => $group_id]);
+    }
     $students = $students_stmt->fetchAll(PDO::FETCH_ASSOC);
 
     foreach ($students as $student) {
@@ -179,7 +194,7 @@ if ($group_id) {
         if ($sem1_start && $sem1_end) {
             $s1_stmt = $conn->prepare("
                 SELECT SUM(total_baris) 
-                FROM tahfidz_memorization 
+                FROM memorization_entries 
                 WHERE student_id = :sid AND date BETWEEN :start AND :end
             ");
             $s1_stmt->execute([':sid' => $sid, ':start' => $sem1_start, ':end' => $sem1_end]);
@@ -191,7 +206,7 @@ if ($group_id) {
         if ($sem2_start && $sem2_end) {
             $s2_stmt = $conn->prepare("
                 SELECT SUM(total_baris) 
-                FROM tahfidz_memorization 
+                FROM memorization_entries 
                 WHERE student_id = :sid AND date BETWEEN :start AND :end
             ");
             $s2_stmt->execute([':sid' => $sid, ':start' => $sem2_start, ':end' => $sem2_end]);

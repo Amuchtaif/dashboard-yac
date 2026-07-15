@@ -316,7 +316,38 @@ include '../layouts/header.php';
                     </div>
                 </div>
 
-                <div id="target-selection-fields" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div id="target-selection-fields" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                    <!-- Custom Target Unit Dropdown -->
+                    <div class="relative group" id="target-unit-container">
+                        <label class="block text-sm font-medium text-cyan-900 mb-1">Unit Tujuan</label>
+                        <input type="hidden" id="target-unit-input" value="">
+                        <button type="button" onclick="toggleDropdown('target-unit')"
+                            class="inline-flex items-center justify-between w-full rounded-md border border-cyan-300 px-3 py-2 text-sm font-medium text-slate-600 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-colors shadow-sm">
+                            <span id="target-unit-text" class="truncate">
+                                Pilih Unit Tujuan
+                            </span>
+                            <svg class="h-4 w-4 text-cyan-700 transition-transform duration-200" id="target-unit-arrow"
+                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        <div id="target-unit-menu"
+                            class="hidden absolute top-full left-0 mt-1 w-full origin-top-left rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50 max-h-60 overflow-y-auto">
+                            <ul class="py-1">
+                                <li onclick="selectTargetUnit('', 'Semua Unit Tujuan')"
+                                    class="cursor-pointer px-4 py-2 text-sm text-slate-500 hover:bg-slate-50 hover:text-cyan-700">
+                                    Pilih Unit Tujuan
+                                </li>
+                                <?php foreach ($units as $u): ?>
+                                    <li onclick="selectTargetUnit('<?php echo $u['id']; ?>', '<?php echo htmlspecialchars(addslashes($u['name']), ENT_QUOTES); ?>')"
+                                        class="cursor-pointer px-4 py-2 text-sm text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
+                                        <?php echo htmlspecialchars($u['name']); ?>
+                                    </li>
+                                <?php endforeach; ?>
+                            </ul>
+                        </div>
+                    </div>
 
                     <!-- Custom Target Class Dropdown -->
                     <div class="relative group" id="target-class-container">
@@ -342,7 +373,8 @@ include '../layouts/header.php';
                                 <?php foreach ($classes as $c): ?>
                                     <?php if ($c['is_active'] == 0) continue; // Skip inactive classes for target class ?>
                                     <li onclick="selectTargetOption('target-class', '<?php echo $c['id']; ?>', '<?php echo htmlspecialchars(addslashes($c['name']), ENT_QUOTES); ?>')"
-                                        class="cursor-pointer px-4 py-2 text-sm text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
+                                        data-unit="<?php echo $c['education_unit_id']; ?>"
+                                        class="target-class-option cursor-pointer px-4 py-2 text-sm text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
                                         <?php echo htmlspecialchars($c['name']); ?>
                                     </li>
                                 <?php endforeach; ?>
@@ -622,6 +654,30 @@ include '../layouts/header.php';
 
         // Close dropdown
         toggleDropdown(name);
+    }
+
+    // --- Target Unit Dropdown Selection ---
+    // Resets target class and filters class options by unit
+    function selectTargetUnit(value, text) {
+        document.getElementById('target-unit-input').value = value;
+        document.getElementById('target-unit-text').innerText = text;
+        
+        // Close dropdown
+        toggleDropdown('target-unit');
+        
+        // Reset target class selection
+        document.getElementById('target-class-input').value = '';
+        document.getElementById('target-class-text').innerText = '-- Pilih Kelas Tujuan --';
+
+        // Filter the target class options in the dropdown
+        const options = document.querySelectorAll('.target-class-option');
+        options.forEach(opt => {
+            if (!value || opt.dataset.unit == value) {
+                opt.style.display = 'block';
+            } else {
+                opt.style.display = 'none';
+            }
+        });
     }
 
     // Handle change of Action (Kenaikan Kelas vs Kelulusan)

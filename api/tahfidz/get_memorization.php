@@ -28,12 +28,12 @@ try {
     }
 
     $memorization_records = [];
-    $query = "SELECT m.id, m.student_id, m.teacher_id, m.date, m.surah_start, m.ayat_start, m.total_baris, m.surah_end, m.ayat_end, m.juz, m.status, m.notes, m.created_at,
+    $query = "SELECT m.id, m.student_id, m.teacher_id, m.date, m.surah_start, m.start_ayah AS ayat_start, m.total_baris, m.surah_end, m.end_ayah AS ayat_end, m.juz, m.status, m.notes, m.created_at,
                      s.nama_siswa as student_name, gl.name as kelas, s.tingkat,
                      e.full_name as teacher_name,
                      m.surah_start as surah_name,
                      m.status as quality
-              FROM tahfidz_memorization m
+              FROM memorization_entries m
               LEFT JOIN students s ON m.student_id = s.id
               LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = $activeYearId AND sch.status = 'ACTIVE'
               LEFT JOIN grade_levels gl ON sch.class_id = gl.id
