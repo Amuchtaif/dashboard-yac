@@ -49,6 +49,29 @@ class DashboardTahfidzService {
         $role_name = strtolower($user_info['position_name'] ?? '');
         $level = isset($user_info['level']) ? (int)$user_info['level'] : 99;
         $unit_id = isset($user_info['unit_id']) ? (int)$user_info['unit_id'] : 0;
+
+        $unit_name = '';
+        if ($unit_id > 0) {
+            $stmt = $this->mysqli->prepare("SELECT name FROM units WHERE id = ?");
+            $stmt->bind_param("i", $unit_id);
+            $stmt->execute();
+            $unit_info = $stmt->get_result()->fetch_assoc();
+            $stmt->close();
+            // Normalisasi unit name: uppercase and strip whitespace & quotes to prevent matching bugs
+            $unit_name = strtoupper(str_replace(["'", "`", " "], "", $unit_info['name'] ?? ''));
+        }
+
+        // Override for Kepala Unit Ma'had and Koordinator: sees both MA and MTS
+        $is_koordinator = (strpos($role_name, 'koordinator') !== false);
+        $is_kepala_unit_mahad = (strpos($role_name, 'kepala unit mahad') !== false) || ($level === 3 && strpos($unit_name, 'MAHAD') !== false && strpos($unit_name, 'MAHADALY') === false);
+
+        if ($is_koordinator || $is_kepala_unit_mahad) {
+            return [
+                'role' => 'mudir',
+                'units' => ['MA', 'MTS'],
+                'halaqahs' => []
+            ];
+        }
         
         // Kepala Pondok (Mudir Pondok / Level 1) & Administrator: sees all
         if ($role_name === 'administrator' || $level === 1 || strpos($role_name, 'kepala pondok') !== false) {
@@ -61,25 +84,17 @@ class DashboardTahfidzService {
         
         // Mudir, Kamad, Kanit, and other supervisory roles (Level 2 or 3)
         if ($level === 2 || $level === 3) {
-            $stmt = $this->mysqli->prepare("SELECT name FROM units WHERE id = ?");
-            $stmt->bind_param("i", $unit_id);
-            $stmt->execute();
-            $unit_info = $stmt->get_result()->fetch_assoc();
-            $stmt->close();
-            
-            $unit_name = strtoupper($unit_info['name'] ?? '');
-            
             // Check if unit is a specific school unit
             if (strpos($unit_name, 'MTS') !== false) {
                 return ['role' => 'kamad', 'units' => ['MTS'], 'halaqahs' => []];
+            } else if (strpos($unit_name, 'MAHADALY') !== false) {
+                return ['role' => 'kamad', 'units' => ['MAHAD ALY'], 'halaqahs' => []];
             } else if (strpos($unit_name, 'MA') !== false && strpos($unit_name, 'MAHAD') === false) {
                 return ['role' => 'kamad', 'units' => ['MA'], 'halaqahs' => []];
             } else if (strpos($unit_name, 'SDIT') !== false) {
                 return ['role' => 'kamad', 'units' => ['SDIT'], 'halaqahs' => []];
             } else if (strpos($unit_name, 'TKIT') !== false) {
                 return ['role' => 'kamad', 'units' => ['TKIT'], 'halaqahs' => []];
-            } else if (strpos($unit_name, 'MAHAD ALY') !== false) {
-                return ['role' => 'kamad', 'units' => ['MAHAD ALY'], 'halaqahs' => []];
             } else {
                 // If it is a global management unit like Sub. Kurikulum, let them see MTs and MA (Mudir scope)
                 return [
@@ -92,24 +107,17 @@ class DashboardTahfidzService {
         
         // Kanit Tahfidz / Koordinator level 4 (who has unit set to MTs or MA)
         if ($level === 4 && (strpos($role_name, 'kanit') !== false || strpos($role_name, 'koordinator') !== false)) {
-            $stmt = $this->mysqli->prepare("SELECT name FROM units WHERE id = ?");
-            $stmt->bind_param("i", $unit_id);
-            $stmt->execute();
-            $unit_info = $stmt->get_result()->fetch_assoc();
-            $stmt->close();
-            
-            $unit_name = strtoupper($unit_info['name'] ?? '');
             $target_units = [];
             if (strpos($unit_name, 'MTS') !== false) {
                 $target_units = ['MTS'];
+            } else if (strpos($unit_name, 'MAHADALY') !== false) {
+                $target_units = ['MAHAD ALY'];
             } else if (strpos($unit_name, 'MA') !== false && strpos($unit_name, 'MAHAD') === false) {
                 $target_units = ['MA'];
             } else if (strpos($unit_name, 'SDIT') !== false) {
                 $target_units = ['SDIT'];
             } else if (strpos($unit_name, 'TKIT') !== false) {
                 $target_units = ['TKIT'];
-            } else if (strpos($unit_name, 'MAHAD ALY') !== false) {
-                $target_units = ['MAHAD ALY'];
             }
             
             if (!empty($target_units)) {
@@ -1524,5 +1532,132 @@ class DashboardTahfidzService {
         }
         
         return $drill_data;
+    }
+
+    // API 16: Daily submissions status of teachers (pengampu)
+    public function getDailyPengampuSubmissions($user_id, $filters = []) {
+        $scope = $this->resolveScope($user_id);
+        $sf = $this->buildScopeAndFilters($scope, $filters);
+        
+        $where_clause = !empty($sf['where']) ? " AND " . implode(" AND ", $sf['where']) : "";
+        $target_date = isset($filters['date']) ? $filters['date'] : date('Y-m-d');
+        
+        // Find halaqohs having members matching our scope/filters
+        $sql = "SELECT DISTINCT hg.id, hg.group_name, e.full_name as teacher_name
+                FROM halaqah_groups hg
+                JOIN halaqah_members hm ON hm.group_id = hg.id
+                JOIN students s ON hm.student_id = s.id
+                LEFT JOIN employees e ON hg.teacher_id = e.id
+                WHERE s.status = 'Aktif'" . $where_clause . " 
+                ORDER BY LENGTH(hg.group_name) ASC, hg.group_name ASC";
+                
+        $res = $this->queryWithParams($sql, $sf['params'], $sf['types']);
+        $submissions = [];
+        
+        if ($res) {
+            while ($row = $res->fetch_assoc()) {
+                $group_id = $row['id'];
+                
+                // Member count
+                $stmt = $this->mysqli->prepare("
+                    SELECT COUNT(*) 
+                    FROM halaqah_members hm 
+                    JOIN students s ON hm.student_id = s.id 
+                    WHERE hm.group_id = ? AND s.status = 'Aktif'
+                ");
+                $stmt->bind_param("i", $group_id);
+                $stmt->execute();
+                $member_count = (int)$stmt->get_result()->fetch_row()[0];
+                $stmt->close();
+                
+                // Count how many students have HAFALAN_BARU today
+                $stmt = $this->mysqli->prepare("
+                    SELECT COUNT(DISTINCT me.student_id) 
+                    FROM memorization_entries me
+                    JOIN halaqah_members hm ON me.student_id = hm.student_id
+                    WHERE hm.group_id = ? AND me.date = ? AND me.entry_type = 'HAFALAN_BARU'
+                ");
+                $stmt->bind_param("is", $group_id, $target_date);
+                $stmt->execute();
+                $setoran_count = (int)$stmt->get_result()->fetch_row()[0];
+                $stmt->close();
+                
+                // Count how many students have MUROJAAH today
+                $stmt = $this->mysqli->prepare("
+                    SELECT COUNT(DISTINCT me.student_id) 
+                    FROM memorization_entries me
+                    JOIN halaqah_members hm ON me.student_id = hm.student_id
+                    WHERE hm.group_id = ? AND me.date = ? AND me.entry_type = 'MUROJAAH'
+                ");
+                $stmt->bind_param("is", $group_id, $target_date);
+                $stmt->execute();
+                $murojaah_count = (int)$stmt->get_result()->fetch_row()[0];
+                $stmt->close();
+                
+                // Count how many students have attendance filled today
+                $stmt = $this->mysqli->prepare("
+                    SELECT COUNT(DISTINCT ta.student_id) 
+                    FROM tahfidz_attendance ta
+                    JOIN halaqah_members hm ON ta.student_id = hm.student_id
+                    WHERE hm.group_id = ? AND ta.date = ?
+                ");
+                $stmt->bind_param("is", $group_id, $target_date);
+                $stmt->execute();
+                $attendance_count = (int)$stmt->get_result()->fetch_row()[0];
+                $stmt->close();
+                
+                $submissions[] = [
+                    'group_id' => $group_id,
+                    'group_name' => $row['group_name'],
+                    'teacher_name' => $row['teacher_name'] ?? 'Belum Ditunjuk',
+                    'member_count' => $member_count,
+                    'setoran_count' => $setoran_count,
+                    'murojaah_count' => $murojaah_count,
+                    'attendance_count' => $attendance_count
+                ];
+            }
+        }
+        
+        return $submissions;
+    }
+
+    // API 17: Get daily logs of all memorization entries (setoran & murojaah) today
+    public function getDailyMemorizationLog($user_id, $filters = []) {
+        $scope = $this->resolveScope($user_id);
+        $sf = $this->buildScopeAndFilters($scope, $filters);
+        
+        $where_clause = !empty($sf['where']) ? " AND " . implode(" AND ", $sf['where']) : "";
+        $target_date = isset($filters['date']) ? $filters['date'] : date('Y-m-d');
+        
+        $ay = $this->getActiveAcademicYear();
+        $ay_id = $ay ? (int)$ay['id'] : 0;
+        
+        $sql = "SELECT me.id, me.student_id, s.nama_siswa as student_name, 
+                       COALESCE(gl.name, s.kelas) as kelas, s.tingkat,
+                       hg.group_name as halaqah_name, e.full_name as teacher_name,
+                       me.entry_type, me.surah_start, me.start_ayah, 
+                       me.surah_end, me.end_ayah, me.line_count, me.status as quality, 
+                       me.notes, me.created_at
+                FROM memorization_entries me
+                JOIN students s ON me.student_id = s.id
+                LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = ? AND sch.status = 'ACTIVE'
+                LEFT JOIN grade_levels gl ON sch.class_id = gl.id
+                LEFT JOIN halaqah_members hm ON hm.student_id = s.id
+                LEFT JOIN halaqah_groups hg ON hm.group_id = hg.id
+                LEFT JOIN employees e ON me.teacher_id = e.id
+                WHERE me.date = ?" . $where_clause . " 
+                ORDER BY me.created_at DESC, me.id DESC";
+                
+        $params = array_merge([$ay_id, $target_date], $sf['params']);
+        $types = "is" . $sf['types'];
+        
+        $res = $this->queryWithParams($sql, $params, $types);
+        $log = [];
+        if ($res) {
+            while ($row = $res->fetch_assoc()) {
+                $log[] = $row;
+            }
+        }
+        return $log;
     }
 }

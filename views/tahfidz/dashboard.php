@@ -62,6 +62,8 @@ $rank_pengampu = $service->getRanking($user_id, 'pengampu', 'progress', $filters
 // Paginated lists
 $halaqah_monitoring = $service->getMonitoringHalaqoh($user_id, $filters, $limit, $page);
 $santri_monitoring = $service->getMonitoringSantri($user_id, $filters, 15, $page);
+$pengampu_submissions = $service->getDailyPengampuSubmissions($user_id, $filters);
+$daily_memorization_log = $service->getDailyMemorizationLog($user_id, $filters);
 
 // Fetch filter dropdown options from DB
 $db_conn = (new Database())->getConnection();
@@ -446,6 +448,152 @@ include '../layouts/header.php';
                 </a>
             </div>
         <?php endif; ?>
+    </div>
+
+    <!-- Daily Memorization Entries Activity Log -->
+    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm mb-6">
+        <div class="border-b border-slate-100 pb-4 mb-4">
+            <h4 class="text-sm font-bold text-slate-700 uppercase tracking-tight">Log Aktivitas Setoran Santri Hari Ini</h4>
+            <p class="text-xs text-slate-400 mt-1">Daftar setoran hafalan baru dan murojaah masuk tanggal <span class="font-semibold text-teal-600"><?= date('d-m-Y', strtotime($selected_date)) ?></span></p>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+                <thead>
+                    <tr class="bg-slate-50 text-slate-400 font-bold border-b border-slate-100 uppercase tracking-wider">
+                        <th class="px-4 py-3">Waktu</th>
+                        <th class="px-4 py-3">Nama Santri</th>
+                        <th class="px-4 py-3">Kelas / Halaqah</th>
+                        <th class="px-4 py-3">Pengampu</th>
+                        <th class="px-4 py-3 text-center">Jenis</th>
+                        <th class="px-4 py-3">Rincian Materi</th>
+                        <th class="px-4 py-3 text-center">Kelancaran</th>
+                        <th class="px-4 py-3">Catatan</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-slate-700 font-medium">
+                    <?php if (!empty($daily_memorization_log)): ?>
+                        <?php foreach ($daily_memorization_log as $log_item): 
+                            $time_str = date('H:i', strtotime($log_item['created_at']));
+                            $is_ziyadah = ($log_item['entry_type'] === 'HAFALAN_BARU');
+                            
+                            $type_badge = $is_ziyadah 
+                                ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">Ziyadah</span>'
+                                : '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700">Murojaah</span>';
+                            
+                            $materi_str = htmlspecialchars($log_item['surah_start']) . ': ' . $log_item['start_ayah'];
+                            if (!empty($log_item['surah_end']) && $log_item['surah_end'] !== $log_item['surah_start']) {
+                                $materi_str .= ' s.d. ' . htmlspecialchars($log_item['surah_end']) . ': ' . $log_item['end_ayah'];
+                            } else if (!empty($log_item['end_ayah']) && $log_item['end_ayah'] != $log_item['start_ayah']) {
+                                $materi_str .= '-' . $log_item['end_ayah'];
+                            }
+                            $materi_str .= ' (' . $log_item['line_count'] . ' Baris)';
+                            
+                            $quality_text = ucfirst(strtolower($log_item['quality'] ?? '-'));
+                            $quality_class = "text-slate-500";
+                            if ($quality_text === 'Lancar') $quality_class = "text-green-600 font-bold";
+                            elseif ($quality_text === 'Kurang') $quality_class = "text-amber-600 font-bold";
+                            elseif ($quality_text === 'Tidak') $quality_class = "text-red-600 font-bold";
+                        ?>
+                            <tr class="hover:bg-slate-50/50 transition-colors">
+                                <td class="px-4 py-3.5 text-slate-400 font-mono"><?= $time_str ?></td>
+                                <td class="px-4 py-3.5 font-bold text-slate-800"><?= htmlspecialchars($log_item['student_name']) ?></td>
+                                <td class="px-4 py-3.5">
+                                    <div class="text-slate-600"><?= htmlspecialchars($log_item['kelas']) ?></div>
+                                    <div class="text-[10px] text-teal-600 font-semibold"><?= htmlspecialchars($log_item['halaqah_name'] ?? 'Halaqah -') ?></div>
+                                </td>
+                                <td class="px-4 py-3.5 text-slate-600"><?= htmlspecialchars($log_item['teacher_name'] ?? '-') ?></td>
+                                <td class="px-4 py-3.5 text-center"><?= $type_badge ?></td>
+                                <td class="px-4 py-3.5 text-slate-800 font-medium"><?= $materi_str ?></td>
+                                <td class="px-4 py-3.5 text-center <?= $quality_class ?>"><?= $quality_text ?></td>
+                                <td class="px-4 py-3.5 text-slate-500 italic font-normal max-w-xs truncate" title="<?= htmlspecialchars($log_item['notes'] ?? '') ?>"><?= htmlspecialchars($log_item['notes'] ?? '-') ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="8" class="px-4 py-12 text-center text-slate-400">Belum ada setoran masuk untuk tanggal ini.</td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Daily Teacher Submissions Status Card -->
+    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm mb-6">
+        <div class="border-b border-slate-100 pb-4 mb-4">
+            <h4 class="text-sm font-bold text-slate-700 uppercase tracking-tight">Status Input Setoran & Absensi Pengampu</h4>
+            <p class="text-xs text-slate-400 mt-1">Status pengisian laporan harian tanggal <span class="font-semibold text-teal-600"><?= date('d-m-Y', strtotime($selected_date)) ?></span></p>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+                <thead>
+                    <tr class="bg-slate-50 text-slate-400 font-bold border-b border-slate-100 uppercase tracking-wider">
+                        <th class="px-4 py-3">Nama Pengampu</th>
+                        <th class="px-4 py-3">Halaqah</th>
+                        <th class="px-4 py-3 text-center">Jumlah Santri</th>
+                        <th class="px-4 py-3 text-center">Setoran Baru</th>
+                        <th class="px-4 py-3 text-center">Murojaah</th>
+                        <th class="px-4 py-3 text-center">Absensi Santri</th>
+                        <th class="px-4 py-3 text-center">Status Input</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-slate-700 font-medium">
+                    <?php if (!empty($pengampu_submissions)): ?>
+                        <?php foreach ($pengampu_submissions as $sub): 
+                            $all_setor_done = ($sub['setoran_count'] >= $sub['member_count'] && $sub['member_count'] > 0);
+                            $any_setor_done = ($sub['setoran_count'] > 0 || $sub['murojaah_count'] > 0);
+                            
+                            if ($all_setor_done) {
+                                $status_badge_class = "bg-green-50 text-green-700 border-green-200";
+                                $status_badge_text = "Lengkap";
+                            } elseif ($any_setor_done) {
+                                $status_badge_class = "bg-amber-50 text-amber-700 border-amber-200";
+                                $status_badge_text = "Sebagian";
+                            } else {
+                                $status_badge_class = "bg-slate-50 text-slate-600 border-slate-200";
+                                $status_badge_text = "Belum Menginput";
+                            }
+                            
+                            $absensi_filled = ($sub['attendance_count'] > 0);
+                            $absensi_badge_class = $absensi_filled ? "bg-teal-50 text-teal-700 border-teal-200" : "bg-red-50 text-red-700 border-red-200";
+                            $absensi_badge_text = $absensi_filled ? "Sudah Diisi" : "Belum Diisi";
+                        ?>
+                            <tr class="hover:bg-slate-50/50 transition-colors">
+                                <td class="px-4 py-3.5 font-bold text-slate-800"><?= htmlspecialchars($sub['teacher_name']) ?></td>
+                                <td class="px-4 py-3.5 text-teal-600 font-bold"><?= htmlspecialchars($sub['group_name']) ?></td>
+                                <td class="px-4 py-3.5 text-center font-semibold"><?= $sub['member_count'] ?> Santri</td>
+                                <td class="px-4 py-3.5 text-center">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700">
+                                        <?= $sub['setoran_count'] ?> Santri
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3.5 text-center">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-purple-50 text-purple-700">
+                                        <?= $sub['murojaah_count'] ?> Santri
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3.5 text-center">
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold border <?= $absensi_badge_class ?>">
+                                        <?= $absensi_badge_text ?>
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3.5 text-center">
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold border <?= $status_badge_class ?>">
+                                        <?= $status_badge_text ?>
+                                    </span>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="7" class="px-4 py-12 text-center text-slate-400">Tidak ada data pengampu ditemukan.</td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <!-- Active Student Monitoring List -->

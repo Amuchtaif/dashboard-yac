@@ -54,14 +54,59 @@ $is_admin = (isset($_SESSION['position_name']) && $_SESSION['position_name'] ===
 $where_clauses = ["1=1"]; // Default true
 $params = [];
 
-if (!$is_admin) {
-    $where_clauses[] = "gl.id IN (
-        SELECT id FROM grade_levels WHERE teacher_id = :teacher_id_filter
-        UNION
-        SELECT grade_level_id FROM class_schedules WHERE employee_id = :employee_id_filter
-    )";
-    $params[':teacher_id_filter'] = $_SESSION['user_id'];
-    $params[':employee_id_filter'] = $_SESSION['user_id'];
+// --- Fetch Logged-in User Info for Role-based Scoping ---
+$user_stmt = $conn->prepare("
+    SELECT e.unit_id, p.level, u.name as unit_name
+    FROM employees e 
+    LEFT JOIN positions p ON e.position_id = p.id 
+    LEFT JOIN units u ON e.unit_id = u.id
+    WHERE e.id = :user_id LIMIT 1
+");
+$user_stmt->execute([':user_id' => $_SESSION['user_id']]);
+$user_data = $user_stmt->fetch(PDO::FETCH_ASSOC);
+$user_level = $user_data ? (int)$user_data['level'] : 5;
+$user_unit_name = $user_data ? $user_data['unit_name'] : '';
+
+$mapped_education_unit_ids = [];
+if (!empty($user_unit_name)) {
+    $clean_unit_name = str_replace(["'", " "], ["", ""], strtolower($user_unit_name));
+    $edu_stmt = $conn->query("SELECT id, name FROM education_units");
+    while ($edu_row = $edu_stmt->fetch(PDO::FETCH_ASSOC)) {
+        $clean_edu_name = str_replace(["'", " "], ["", ""], strtolower($edu_row['name']));
+        if (strpos($clean_unit_name, $clean_edu_name) !== false || strpos($clean_edu_name, $clean_unit_name) !== false) {
+            $mapped_education_unit_ids[] = (int)$edu_row['id'];
+        }
+    }
+}
+
+if (!$is_admin && $user_level > 2) {
+    if (!empty($mapped_education_unit_ids)) {
+        // Map education unit names for s.tingkat filter
+        $edu_names_stmt = $conn->prepare("SELECT name FROM education_units WHERE id IN (" . implode(',', $mapped_education_unit_ids) . ")");
+        $edu_names_stmt->execute();
+        $edu_names = $edu_names_stmt->fetchAll(PDO::FETCH_COLUMN);
+        
+        $unit_where_parts = ["gl.education_unit_id IN (" . implode(',', $mapped_education_unit_ids) . ")"];
+        if (!empty($edu_names)) {
+            $placeholders = [];
+            foreach ($edu_names as $idx => $name) {
+                $param_key = ":edu_name_scope_" . $idx;
+                $placeholders[] = $param_key;
+                $params[$param_key] = $name;
+            }
+            $unit_where_parts[] = "s.tingkat IN (" . implode(',', $placeholders) . ")";
+        }
+        $where_clauses[] = "(" . implode(" OR ", $unit_where_parts) . ")";
+    } else {
+        // Teacher/Staff: only see classes they are wali kelas for OR classes they teach
+        $where_clauses[] = "gl.id IN (
+            SELECT id FROM grade_levels WHERE teacher_id = :teacher_id_filter
+            UNION
+            SELECT grade_level_id FROM class_schedules WHERE employee_id = :employee_id_filter
+        )";
+        $params[':teacher_id_filter'] = $_SESSION['user_id'];
+        $params[':employee_id_filter'] = $_SESSION['user_id'];
+    }
 }
 
 if ($search) {

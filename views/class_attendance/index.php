@@ -27,11 +27,59 @@ $day_map = [
 $english_day = date('l', strtotime($date));
 $idn_day = $day_map[$english_day];
 
-// --- Data Master --
-$units = $conn->query("SELECT id, name FROM education_units ORDER BY FIELD(name, 'Playgroup', 'TKIT', 'SDIT', 'MTs', 'Idad Lughoh', 'MA', 'Mahad Aly') ASC, name ASC")->fetchAll(PDO::FETCH_ASSOC);
-$grades = $conn->query("SELECT id, name, education_unit_id FROM grade_levels ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
-
 $is_admin = (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Administrator');
+
+// --- Fetch Logged-in User Info for Role-based Scoping ---
+$user_stmt = $conn->prepare("
+    SELECT e.unit_id, p.level, u.name as unit_name
+    FROM employees e 
+    LEFT JOIN positions p ON e.position_id = p.id 
+    LEFT JOIN units u ON e.unit_id = u.id
+    WHERE e.id = :user_id LIMIT 1
+");
+$user_stmt->execute([':user_id' => $_SESSION['user_id']]);
+$user_data = $user_stmt->fetch(PDO::FETCH_ASSOC);
+$user_level = $user_data ? (int)$user_data['level'] : 5;
+$user_unit_name = $user_data ? $user_data['unit_name'] : '';
+
+$mapped_education_unit_ids = [];
+if (!empty($user_unit_name)) {
+    $clean_unit_name = str_replace(["'", " "], ["", ""], strtolower($user_unit_name));
+    $edu_stmt = $conn->query("SELECT id, name FROM education_units");
+    while ($edu_row = $edu_stmt->fetch(PDO::FETCH_ASSOC)) {
+        $clean_edu_name = str_replace(["'", " "], ["", ""], strtolower($edu_row['name']));
+        if (strpos($clean_unit_name, $clean_edu_name) !== false || strpos($clean_edu_name, $clean_unit_name) !== false) {
+            $mapped_education_unit_ids[] = (int)$edu_row['id'];
+        }
+    }
+}
+
+// --- Data Master --
+if (!$is_admin && $user_level >= 5 && empty($mapped_education_unit_ids)) {
+    $grades_query = "
+        SELECT DISTINCT gl.id, gl.name, gl.education_unit_id 
+        FROM grade_levels gl
+        WHERE gl.teacher_id = :current_user_id
+           OR gl.id IN (SELECT grade_level_id FROM class_schedules WHERE employee_id = :current_user_id)
+        ORDER BY gl.name ASC
+    ";
+    $grades_stmt = $conn->prepare($grades_query);
+    $grades_stmt->execute([':current_user_id' => $_SESSION['user_id']]);
+    $grades = $grades_stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    $unit_ids = array_unique(array_column($grades, 'education_unit_id'));
+    if (!empty($unit_ids)) {
+        $units = $conn->query("SELECT id, name FROM education_units WHERE id IN (" . implode(',', $unit_ids) . ") ORDER BY FIELD(name, 'Playgroup', 'TKIT', 'SDIT', 'MTs', 'Idad Lughoh', 'MA', 'Mahad Aly') ASC, name ASC")->fetchAll(PDO::FETCH_ASSOC);
+    } else {
+        $units = [];
+    }
+} else if (!$is_admin && !empty($mapped_education_unit_ids)) {
+    $units = $conn->query("SELECT id, name FROM education_units WHERE id IN (" . implode(',', $mapped_education_unit_ids) . ") ORDER BY FIELD(name, 'Playgroup', 'TKIT', 'SDIT', 'MTs', 'Idad Lughoh', 'MA', 'Mahad Aly') ASC, name ASC")->fetchAll(PDO::FETCH_ASSOC);
+    $grades = $conn->query("SELECT id, name, education_unit_id FROM grade_levels WHERE education_unit_id IN (" . implode(',', $mapped_education_unit_ids) . ") ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
+} else {
+    $units = $conn->query("SELECT id, name FROM education_units ORDER BY FIELD(name, 'Playgroup', 'TKIT', 'SDIT', 'MTs', 'Idad Lughoh', 'MA', 'Mahad Aly') ASC, name ASC")->fetchAll(PDO::FETCH_ASSOC);
+    $grades = $conn->query("SELECT id, name, education_unit_id FROM grade_levels ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
+}
 
 // --- Fetch Schedules & Attendance ---
 $sql = "
@@ -62,7 +110,9 @@ $sql = "
 
 $params = [':date' => $date, ':day' => $english_day];
 
-if (!$is_admin) {
+$is_teacher_only = (!$is_admin && $user_level >= 5 && empty($mapped_education_unit_ids));
+
+if ($is_teacher_only) {
     $sql .= " AND cs.employee_id = :current_user_id";
     $params[':current_user_id'] = $_SESSION['user_id'];
 }

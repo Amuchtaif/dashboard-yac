@@ -45,9 +45,40 @@ if ($selected_year_id) {
     $params[':selected_year_id'] = $selected_year_id;
 }
 
-if (!$is_admin) {
-    $where_clauses[] = "cs.employee_id = :current_user_id";
-    $params[':current_user_id'] = $_SESSION['user_id'];
+// --- Fetch Logged-in User Info for Role-based Scoping ---
+$user_stmt = $conn->prepare("
+    SELECT e.unit_id, p.level, u.name as unit_name
+    FROM employees e 
+    LEFT JOIN positions p ON e.position_id = p.id 
+    LEFT JOIN units u ON e.unit_id = u.id
+    WHERE e.id = :user_id LIMIT 1
+");
+$user_stmt->execute([':user_id' => $_SESSION['user_id']]);
+$user_data = $user_stmt->fetch(PDO::FETCH_ASSOC);
+$user_level = $user_data ? (int)$user_data['level'] : 5;
+$user_unit_name = $user_data ? $user_data['unit_name'] : '';
+
+$mapped_education_unit_ids = [];
+if (!empty($user_unit_name)) {
+    $clean_unit_name = str_replace(["'", " "], ["", ""], strtolower($user_unit_name));
+    $edu_stmt = $conn->query("SELECT id, name FROM education_units");
+    while ($edu_row = $edu_stmt->fetch(PDO::FETCH_ASSOC)) {
+        $clean_edu_name = str_replace(["'", " "], ["", ""], strtolower($edu_row['name']));
+        if (strpos($clean_unit_name, $clean_edu_name) !== false || strpos($clean_edu_name, $clean_unit_name) !== false) {
+            $mapped_education_unit_ids[] = (int)$edu_row['id'];
+        }
+    }
+}
+
+if (!$is_admin && $user_level > 2) {
+    if (!empty($mapped_education_unit_ids)) {
+        // Scoped to their unit
+        $where_clauses[] = "gl.education_unit_id IN (" . implode(',', $mapped_education_unit_ids) . ")";
+    } else {
+        // Teachers only see schedules they are assigned to
+        $where_clauses[] = "cs.employee_id = :current_user_id";
+        $params[':current_user_id'] = $_SESSION['user_id'];
+    }
 }
 
 if ($search) {

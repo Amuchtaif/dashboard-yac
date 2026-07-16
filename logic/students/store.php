@@ -27,6 +27,42 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     $class_id = trim($_POST['class_id'] ?? ''); 
+
+    $is_admin = (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Administrator');
+    $user_stmt = $conn->prepare("
+        SELECT e.unit_id, p.level, u.name as unit_name
+        FROM employees e 
+        LEFT JOIN positions p ON e.position_id = p.id 
+        LEFT JOIN units u ON e.unit_id = u.id
+        WHERE e.id = :user_id LIMIT 1
+    ");
+    $user_stmt->execute([':user_id' => $_SESSION['user_id']]);
+    $user_data = $user_stmt->fetch(PDO::FETCH_ASSOC);
+    $user_level = $user_data ? (int)$user_data['level'] : 5;
+    $user_unit_name = $user_data ? $user_data['unit_name'] : '';
+
+    $mapped_education_unit_ids = [];
+    if (!empty($user_unit_name)) {
+        $clean_unit_name = str_replace(["'", " "], ["", ""], strtolower($user_unit_name));
+        $edu_stmt = $conn->query("SELECT id, name FROM education_units");
+        while ($edu_row = $edu_stmt->fetch(PDO::FETCH_ASSOC)) {
+            $clean_edu_name = str_replace(["'", " "], ["", ""], strtolower($edu_row['name']));
+            if (strpos($clean_unit_name, $clean_edu_name) !== false || strpos($clean_edu_name, $clean_unit_name) !== false) {
+                $mapped_education_unit_ids[] = (int)$edu_row['id'];
+            }
+        }
+    }
+
+    if (!$is_admin && $user_level > 2 && !empty($mapped_education_unit_ids) && !empty($class_id)) {
+        $class_check = $conn->prepare("SELECT education_unit_id FROM grade_levels WHERE id = :cid");
+        $class_check->execute([':cid' => $class_id]);
+        $edu_unit_id = $class_check->fetchColumn();
+        if (!$edu_unit_id || !in_array((int)$edu_unit_id, $mapped_education_unit_ids)) {
+            header("Location: ../../views/students/create.php?error=Akses+ditolak+Kelas+di+luar+unit+kerja+Anda");
+            exit();
+        }
+    }
+
     $tempat_lahir = trim($_POST['tempat_lahir'] ?? '');
     $tanggal_lahir = trim($_POST['tanggal_lahir'] ?? '');
     $alamat = trim($_POST['alamat'] ?? '');
