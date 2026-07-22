@@ -65,10 +65,12 @@ if ($permit_type) {
 $where_sql = implode(" AND ", $where_clauses);
 
 $query = "
-    SELECT p.*, e.full_name, e.position_id, pos.name as position_name, DATEDIFF(p.end_date, p.start_date) + 1 as duration
+    SELECT p.*, e.full_name, e.position_id, pos.name as position_name, DATEDIFF(p.end_date, p.start_date) + 1 as duration,
+           approver.full_name as approver_name
     FROM permits p
     JOIN employees e ON p.employee_id = e.id
     LEFT JOIN positions pos ON e.position_id = pos.id
+    LEFT JOIN employees approver ON p.approved_by = approver.id
     WHERE $where_sql
     ORDER BY p.created_at DESC
     LIMIT :limit OFFSET :offset
@@ -100,7 +102,7 @@ include '../layouts/header.php';
 <div class="min-h-screen pb-10">
 
     <!-- Top Header Section -->
-    <div class="flex justify-between items-start mb-8 pt-6">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 pt-6 gap-4">
         <div>
             <div class="flex items-center gap-2 text-sm text-slate-500 mb-1">
                 <span>Dashboard</span>
@@ -113,7 +115,7 @@ include '../layouts/header.php';
             <p class="mt-1 text-slate-500">Tinjau dan kelola pengajuan izin dari organisasi Anda.</p>
         </div>
         <a href="<?php url('views/permits/create.php'); ?>"
-            class="bg-cyan-50 text-cyan-700 hover:bg-cyan-100 px-4 py-2 rounded-lg text-sm font-medium flex items-center transition-colors">
+            class="bg-cyan-50 text-cyan-700 hover:bg-cyan-100 px-4 py-2 rounded-lg text-sm font-medium flex items-center transition-colors w-full sm:w-auto justify-center">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
@@ -179,11 +181,11 @@ include '../layouts/header.php';
     </div>
 
     <!-- Main Content Area -->
-    <div class="bg-white border border-slate-200 rounded-xl shadow-sm">
+    <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden w-full max-w-full">
 
         <!-- Tabs -->
-        <div class="border-b border-slate-200 px-6">
-            <nav class="flex space-x-8" aria-label="Tabs">
+        <div class="border-b border-slate-200 px-6 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <nav class="flex space-x-8 -mb-px" aria-label="Tabs">
                 <?php
                 $tabs = [
                     'all' => 'Semua Pengajuan',
@@ -206,15 +208,15 @@ include '../layouts/header.php';
 
         <!-- Toolbar (Filters) -->
         <div
-            class="p-6 flex flex-col sm:flex-row justify-between items-center bg-white border-b border-slate-100 gap-4">
+            class="p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white border-b border-slate-100 gap-4">
             <div class="flex items-center gap-3 w-full sm:w-auto">
-                <form action="" method="GET" class="flex gap-3 items-center">
+                <form action="" method="GET" class="flex flex-wrap gap-3 items-center w-full">
                     <input type="hidden" name="tab" value="<?php echo htmlspecialchars($tab); ?>">
 
                     <!-- Type Filter -->
-                    <div class="relative">
+                    <div class="relative w-full sm:w-auto">
                         <select name="type" onchange="this.form.submit()"
-                            class="appearance-none bg-white border border-slate-300 text-slate-700 py-2 pl-4 pr-10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500">
+                            class="appearance-none bg-white border border-slate-300 text-slate-700 py-2 pl-4 pr-10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 w-full sm:w-48">
                             <option value="">Jenis Izin: Semua</option>
                             <option value="Sick" <?php echo $permit_type == 'Sick' ? 'selected' : ''; ?>>Sakit</option>
                             <option value="Leave" <?php echo $permit_type == 'Leave' ? 'selected' : ''; ?>>Cuti Tahunan</option>
@@ -229,9 +231,9 @@ include '../layouts/header.php';
                     </div>
 
                     <!-- Limit Filter -->
-                    <div class="relative">
+                    <div class="relative w-full sm:w-auto">
                         <select name="limit" onchange="this.form.submit()"
-                            class="appearance-none bg-white border border-slate-300 text-slate-700 py-2 pl-4 pr-10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500">
+                            class="appearance-none bg-white border border-slate-300 text-slate-700 py-2 pl-4 pr-10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 w-full sm:w-32">
                             <option value="10" <?php echo $limit == 10 ? 'selected' : ''; ?>>10 baris</option>
                             <option value="50" <?php echo $limit == 50 ? 'selected' : ''; ?>>50 baris</option>
                             <option value="100" <?php echo $limit == 100 ? 'selected' : ''; ?>>100 baris</option>
@@ -245,7 +247,7 @@ include '../layouts/header.php';
                 </form>
             </div>
 
-            <div class="text-sm text-slate-500">
+            <div class="text-sm text-slate-500 w-full sm:w-auto text-left sm:text-right">
                 Menampilkan <?php echo count($permits); ?> hasil
             </div>
         </div>
@@ -402,6 +404,14 @@ include '../layouts/header.php';
                                     <span class="h-2 w-2 rounded-full bg-<?php echo $statusColor; ?>-500 mr-2"></span>
                                     <?php echo $statusText; ?>
                                 </div>
+                                <?php if (!empty($permit['approver_name']) && $permit['status'] !== 'Pending'): ?>
+                                    <div class="mt-1 flex items-center gap-1 text-[10px] text-slate-500">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                        </svg>
+                                        <span>oleh <span class="font-semibold text-slate-600"><?php echo htmlspecialchars($permit['approver_name']); ?></span></span>
+                                    </div>
+                                <?php endif; ?>
                             </td>
                             <!-- Action -->
                             <td class="px-6 py-4 text-right">

@@ -29,8 +29,32 @@ if ($id) {
     }
 
     try {
+        $old_stmt = $conn->prepare("
+            SELECT lp.period_number, lp.start_time, lp.end_time, eu.name as unit_name 
+            FROM lesson_periods lp 
+            LEFT JOIN education_units eu ON lp.education_unit_id = eu.id 
+            WHERE lp.id = ? LIMIT 1
+        ");
+        $old_stmt->execute([$id]);
+        $old_lp = $old_stmt->fetch(PDO::FETCH_ASSOC);
+
+        $period_num = $old_lp['period_number'] ?? "ID $id";
+        $unit_n = $old_lp['unit_name'] ?? "-";
+
         $stmt = $conn->prepare("DELETE FROM lesson_periods WHERE id = ?");
         $stmt->execute([$id]);
+
+        Logger::activity(
+            'Jam Pelajaran',
+            'DELETE',
+            "Menghapus Jam Ke-$period_num pada unit '$unit_n'",
+            [
+                'table' => 'lesson_periods',
+                'record_id' => $id,
+                'old_data' => $old_lp ?: null
+            ]
+        );
+
         header("Location: " . $redirect_url . "success=" . urlencode("Jam pelajaran berhasil dihapus."));
     } catch (PDOException $e) {
         header("Location: " . $redirect_url . "error=" . urlencode("Kesalahan Database: " . $e->getMessage()));

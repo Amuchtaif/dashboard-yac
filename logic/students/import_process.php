@@ -190,6 +190,16 @@ try {
 
     $conn->commit();
 
+    Logger::activity(
+        'Siswa',
+        'IMPORT',
+        "Mengimpor data siswa: $successCount berhasil, $errorCount gagal",
+        [
+            'table' => 'students',
+            'new_data' => ['success_count' => $successCount, 'error_count' => $errorCount]
+        ]
+    );
+
     $msg = "Impor Berhasil! Memproses: $successCount siswa.";
     if ($errorCount > 0) {
         $msg .= " Dengan $errorCount kesalahan.";

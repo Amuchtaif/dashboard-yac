@@ -37,8 +37,38 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         try {
+            $old_stmt = $conn->prepare("
+                SELECT lp.period_number, lp.start_time, lp.end_time, eu.name as unit_name 
+                FROM lesson_periods lp 
+                LEFT JOIN education_units eu ON lp.education_unit_id = eu.id 
+                WHERE lp.id = ? LIMIT 1
+            ");
+            $old_stmt->execute([$id]);
+            $old_lp = $old_stmt->fetch(PDO::FETCH_ASSOC);
+
             $stmt = $conn->prepare("UPDATE lesson_periods SET education_unit_id = ?, period_number = ?, start_time = ?, end_time = ? WHERE id = ?");
             $stmt->execute([$education_unit_id, $period_number, $start_time, $end_time, $id]);
+
+            $u_stmt = $conn->prepare("SELECT name FROM education_units WHERE id = ? LIMIT 1");
+            $u_stmt->execute([$education_unit_id]);
+            $new_unit_name = $u_stmt->fetchColumn() ?: "ID $education_unit_id";
+
+            Logger::activity(
+                'Jam Pelajaran',
+                'UPDATE',
+                "Mengubah Jam Ke-$period_number ($start_time - $end_time) pada unit '$new_unit_name'",
+                [
+                    'table' => 'lesson_periods',
+                    'record_id' => $id,
+                    'old_data' => $old_lp ?: null,
+                    'new_data' => [
+                        'education_unit' => $new_unit_name,
+                        'period_number' => $period_number,
+                        'start_time' => $start_time,
+                        'end_time' => $end_time
+                    ]
+                ]
+            );
 
             header("Location: " . $redirect_base . "success=" . urlencode("Jam pelajaran berhasil diperbarui"));
         } catch (PDOException $e) {

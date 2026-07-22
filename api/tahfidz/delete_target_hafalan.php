@@ -11,6 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
+require_once __DIR__ . '/../../config/app.php';
 require_once __DIR__ . '/../../config/database.php';
 
 $database = new Database();
@@ -20,11 +21,43 @@ $data = json_decode(file_get_contents("php://input"));
 
 if ($data && !empty($data->id)) {
     try {
+        $target_id = intval($data->id);
+
+        // Fetch target info before deleting
+        $old_stmt = $db->prepare("
+            SELECT th.target_juz, gl.name as class_name, eu.name as unit_name
+            FROM target_hafalan th
+            LEFT JOIN grade_levels gl ON th.kelas_id = gl.id
+            LEFT JOIN education_units eu ON th.unit_id = eu.id
+            WHERE th.id = ? LIMIT 1
+        ");
+        $old_stmt->execute([$target_id]);
+        $old_data = $old_stmt->fetch(PDO::FETCH_ASSOC);
+
+        $kelas_name = $old_data['class_name'] ?? "ID Kelas";
+        $unit_name = $old_data['unit_name'] ?? "ID Unit";
+        $target_juz = $old_data['target_juz'] ?? "0";
+
         $query = "DELETE FROM target_hafalan WHERE id = :id";
         $stmt = $db->prepare($query);
-        $stmt->bindValue(':id', intval($data->id), PDO::PARAM_INT);
+        $stmt->bindValue(':id', $target_id, PDO::PARAM_INT);
         
         if ($stmt->execute()) {
+            Logger::activity(
+                'Tahfidz',
+                'DELETE_TARGET_HAFALAN',
+                "Menghapus target hafalan kelas '$kelas_name' ($unit_name): $target_juz Juz",
+                [
+                    'table' => 'target_hafalan',
+                    'record_id' => $target_id,
+                    'old_data' => [
+                        'kelas' => $kelas_name,
+                        'unit' => $unit_name,
+                        'target_juz' => $target_juz
+                    ]
+                ]
+            );
+
             echo json_encode(["success" => true, "message" => "Target hafalan berhasil dihapus."]);
         } else {
             echo json_encode(["success" => false, "message" => "Gagal menghapus target hafalan."]);

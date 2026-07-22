@@ -67,7 +67,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt->bindParam(':photo', $profile_photo);
             $stmt->bindParam(':gender', $gender);
             $stmt->execute();
+            $new_emp_id = $conn->lastInsertId();
 
+            Logger::activity(
+                'Pegawai',
+                'CREATE',
+                "Menambahkan pegawai baru '$full_name' (NIK: $nik)",
+                [
+                    'table' => 'employees',
+                    'record_id' => $new_emp_id,
+                    'new_data' => [
+                        'nik' => $nik,
+                        'full_name' => $full_name,
+                        'email' => $email,
+                        'phone_number' => $phone,
+                        'division_id' => $division_id,
+                        'unit_id' => $unit_id,
+                        'position_id' => $position_id
+                    ]
+                ]
+            );
 
             header("Location: ../../views/employees/index.php?success=Data pegawai berhasil ditambahkan" . $redirect_qs);
         } catch (PDOException $e) {

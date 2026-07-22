@@ -130,6 +130,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         // 4. Update Student Profile
+        $old_stmt = $conn->prepare("SELECT * FROM students WHERE id = :id LIMIT 1");
+        $old_stmt->execute([':id' => $id]);
+        $old_student_data = $old_stmt->fetch(PDO::FETCH_ASSOC);
+
         $queryStudent = "UPDATE students SET 
             nama_siswa = :nama, 
             nomor_induk = :nisn, 
@@ -178,6 +182,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         $conn->commit();
+
+        Logger::activity(
+            'Siswa',
+            'UPDATE',
+            "Mengubah data siswa '$nama_siswa'",
+            [
+                'table' => 'students',
+                'record_id' => $id,
+                'old_data' => $old_student_data ?: null,
+                'new_data' => [
+                    'nama_siswa' => $nama_siswa,
+                    'nomor_induk' => $nomor_induk,
+                    'status' => $status,
+                    'class_id' => $class_id
+                ]
+            ]
+        );
 
         header("Location: ../../views/students/index.php?success=Data+Siswa+Berhasil+Diperbarui");
         exit();

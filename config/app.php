@@ -1,9 +1,10 @@
 <?php
 date_default_timezone_set('Asia/Jakarta');
+require_once __DIR__ . '/Logger.php';
 // Base URL configuration (AUTO-DETECTED)
 if (!defined('BASE_URL')) {
     $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') ? "https" : "http";
-    $host = $_SERVER['HTTP_HOST'];
+    $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost';
     
     // Normalize path separators for both Windows and Linux
     $docRoot = rtrim(str_replace('\\', '/', $_SERVER['DOCUMENT_ROOT']), '/');

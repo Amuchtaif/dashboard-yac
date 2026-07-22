@@ -11,6 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
+require_once __DIR__ . '/../../config/app.php';
 require_once __DIR__ . '/../../config/database.php';
 
 $database = new Database();
@@ -112,6 +113,35 @@ if (
         }
 
         if ($stmt->execute()) {
+            $k_stmt = $db->prepare("SELECT name FROM grade_levels WHERE id = ? LIMIT 1");
+            $k_stmt->execute([$kelas_id]);
+            $kelas_name = $k_stmt->fetchColumn() ?: "ID $kelas_id";
+
+            $u_stmt = $db->prepare("SELECT name FROM education_units WHERE id = ? LIMIT 1");
+            $u_stmt->execute([$unit_id]);
+            $unit_name = $u_stmt->fetchColumn() ?: "ID $unit_id";
+
+            $log_act = ($id !== null) ? 'UPDATE_TARGET_HAFALAN' : 'CREATE_TARGET_HAFALAN';
+            $verb = ($id !== null) ? 'Mengubah' : 'Menambahkan';
+            $target_rec_id = ($id !== null) ? $id : $db->lastInsertId();
+
+            Logger::activity(
+                'Tahfidz',
+                $log_act,
+                "$verb target hafalan kelas '$kelas_name' ($unit_name): $target_juz Juz",
+                [
+                    'table' => 'target_hafalan',
+                    'record_id' => $target_rec_id,
+                    'new_data' => [
+                        'kelas' => $kelas_name,
+                        'unit' => $unit_name,
+                        'target_juz' => $target_juz,
+                        'status_aktif' => $status_aktif,
+                        'keterangan' => $keterangan
+                    ]
+                ]
+            );
+
             echo json_encode(["success" => true, "message" => "Target hafalan berhasil disimpan."]);
         } else {
             echo json_encode(["success" => false, "message" => "Gagal menyimpan target hafalan."]);

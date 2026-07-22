@@ -27,9 +27,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['position_name'] = $user['position_name'];
             $_SESSION['email'] = $user['email'];
 
+            Logger::auth('LOGIN', 'User logged in successfully');
+
             header("Location: ../../views/dashboard/index.php");
             exit;
         } else {
+            Logger::auth('LOGIN_FAILED', "Failed login attempt for email: $email");
             header("Location: ../../views/auth/login.php?error=Email+atau+password+salah");
             exit;
         }

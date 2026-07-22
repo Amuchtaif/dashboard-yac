@@ -225,6 +225,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES['import_file'])) {
 
         $conn->commit();
         $count = count($to_import);
+
+        Logger::activity(
+            'Pegawai',
+            'IMPORT',
+            "Mengimpor $count data pegawai baru",
+            [
+                'table' => 'employees',
+                'new_data' => ['import_count' => $count]
+            ]
+        );
+
         header("Location: ../../views/employees/index.php?success=Berhasil mengimpor $count data pegawai.");
         exit;
     } catch (\PDOException $e) {

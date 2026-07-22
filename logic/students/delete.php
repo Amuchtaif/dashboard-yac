@@ -70,9 +70,26 @@ if (isset($_GET['id'])) {
             }
         }
 
+        $old_stmt = $conn->prepare("SELECT nama_siswa, status FROM students WHERE id = :id LIMIT 1");
+        $old_stmt->execute([':id' => $id]);
+        $old_student_data = $old_stmt->fetch(PDO::FETCH_ASSOC);
+        $s_name = $old_student_data ? $old_student_data['nama_siswa'] : "ID $id";
+
         $stmt = $conn->prepare("DELETE FROM students WHERE id = :id");
         $stmt->bindParam(':id', $id);
         $stmt->execute();
+
+        Logger::activity(
+            'Siswa',
+            'DELETE',
+            "Menghapus data siswa '$s_name'",
+            [
+                'table' => 'students',
+                'record_id' => $id,
+                'old_data' => $old_student_data ?: null
+            ]
+        );
+
         header("Location: ../../views/students/index.php?success=Siswa+berhasil+dihapus");
     } catch (PDOException $e) {
         header("Location: ../../views/students/index.php?error=Gagal+menghapus+siswa");

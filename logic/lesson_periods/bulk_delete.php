@@ -41,6 +41,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ids']) && is_array($_
         }
     }
 
+    if ($deleted_count > 0) {
+        Logger::activity(
+            'Jam Pelajaran',
+            'BULK_DELETE',
+            "Menghapus massal $deleted_count jam pelajaran",
+            [
+                'table' => 'lesson_periods',
+                'old_data' => ['deleted_count' => $deleted_count, 'failed_count' => $failed_count, 'deleted_ids' => $ids]
+            ]
+        );
+    }
+
     if ($deleted_count > 0 && $failed_count == 0) {
         header("Location: " . $redirect_url . "success=" . urlencode("Berhasil menghapus " . $deleted_count . " jam pelajaran."));
     } else if ($deleted_count > 0 && $failed_count > 0) {

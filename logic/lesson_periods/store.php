@@ -38,6 +38,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         try {
             $stmt = $conn->prepare("INSERT INTO lesson_periods (education_unit_id, period_number, start_time, end_time) VALUES (?, ?, ?, ?)");
             $stmt->execute([$education_unit_id, $period_number, $start_time, $end_time]);
+            $new_period_id = $conn->lastInsertId();
+
+            $u_stmt = $conn->prepare("SELECT name FROM education_units WHERE id = ? LIMIT 1");
+            $u_stmt->execute([$education_unit_id]);
+            $unit_name = $u_stmt->fetchColumn() ?: "ID $education_unit_id";
+
+            Logger::activity(
+                'Jam Pelajaran',
+                'CREATE',
+                "Menambahkan Jam Ke-$period_number ($start_time - $end_time) pada unit '$unit_name'",
+                [
+                    'table' => 'lesson_periods',
+                    'record_id' => $new_period_id,
+                    'new_data' => [
+                        'education_unit' => $unit_name,
+                        'period_number' => $period_number,
+                        'start_time' => $start_time,
+                        'end_time' => $end_time
+                    ]
+                ]
+            );
 
             header("Location: " . $redirect_base . "success=" . urlencode("Jam pelajaran berhasil ditambahkan"));
         } catch (PDOException $e) {

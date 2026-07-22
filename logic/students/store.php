@@ -167,6 +167,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         $conn->commit();
 
+        Logger::activity(
+            'Siswa',
+            'CREATE',
+            "Menambahkan siswa baru '$nama_siswa'",
+            [
+                'table' => 'students',
+                'record_id' => $student_id,
+                'new_data' => [
+                    'nama_siswa' => $nama_siswa,
+                    'nomor_induk' => $nomor_induk,
+                    'academic_year_id' => $academic_year_id,
+                    'class_id' => $class_id
+                ]
+            ]
+        );
+
         header("Location: ../../views/students/index.php?success=Siswa+Berhasil+Ditambahkan");
         exit();
 

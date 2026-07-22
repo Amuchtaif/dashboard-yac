@@ -58,6 +58,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $profile_photo = null;
         }
 
+        $old_stmt = $conn->prepare("SELECT nik, full_name, email, phone_number, division_id, unit_id, position_id FROM employees WHERE id = ? LIMIT 1");
+        $old_stmt->execute([$id]);
+        $old_emp_data = $old_stmt->fetch(PDO::FETCH_ASSOC);
+
         // Check email uniqueness (exclude self)
         $check = $conn->prepare("SELECT id FROM employees WHERE email = ? AND id != ?");
         $check->execute([$email, $id]);
@@ -118,6 +122,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             $stmt = $conn->prepare($sql);
             $stmt->execute($params);
+
+            Logger::activity(
+                'Pegawai',
+                'UPDATE',
+                "Mengubah data pegawai '$full_name' (NIK: $nik)",
+                [
+                    'table' => 'employees',
+                    'record_id' => $id,
+                    'old_data' => $old_emp_data ?: null,
+                    'new_data' => [
+                        'nik' => $nik,
+                        'full_name' => $full_name,
+                        'email' => $email,
+                        'phone_number' => $phone,
+                        'division_id' => $division_id,
+                        'unit_id' => $unit_id,
+                        'position_id' => $position_id
+                    ]
+                ]
+            );
 
             header("Location: ../../views/employees/index.php?success=Data pegawai berhasil diperbarui" . $redirect_qs);
         } catch (PDOException $e) {

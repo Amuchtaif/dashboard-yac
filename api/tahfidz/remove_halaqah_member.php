@@ -9,6 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
+require_once __DIR__ . '/../../config/app.php';
 require_once __DIR__ . '/../../config/database.php';
 
 $database = new Database();
@@ -27,7 +28,7 @@ $student_id = $data->student_id;
 
 try {
     // 1. Find group_id for this teacher
-    $stmt = $conn->prepare("SELECT id FROM halaqah_groups WHERE teacher_id = ? LIMIT 1");
+    $stmt = $conn->prepare("SELECT id, group_name FROM halaqah_groups WHERE teacher_id = ? LIMIT 1");
     $stmt->execute([$teacher_id]);
     $group = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -38,10 +39,26 @@ try {
     }
 
     $group_id = $group['id'];
+    $group_name = $group['group_name'];
+
+    // Fetch student name before deletion
+    $s_stmt = $conn->prepare("SELECT nama_siswa FROM students WHERE id = ? LIMIT 1");
+    $s_stmt->execute([$student_id]);
+    $s_name = $s_stmt->fetchColumn() ?: "ID $student_id";
 
     // 2. Remove student from halaqah
     $stmt_del = $conn->prepare("DELETE FROM halaqah_members WHERE group_id = ? AND student_id = ?");
     $stmt_del->execute([$group_id, $student_id]);
+
+    Logger::activity(
+        'Tahfidz',
+        'REMOVE_HALAQAH_MEMBER',
+        "Menghapus santri '$s_name' dari halaqah binaan '$group_name'",
+        [
+            'table' => 'halaqah_members',
+            'old_data' => ['group_id' => $group_id, 'group_name' => $group_name, 'student_id' => $student_id, 'nama_siswa' => $s_name]
+        ]
+    );
 
     echo json_encode([
         "success" => true,

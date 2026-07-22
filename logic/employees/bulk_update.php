@@ -78,8 +78,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 $stmt = $conn->prepare($sql);
                 $stmt->execute($execute_params);
+
+                $count = count($employee_ids);
+                Logger::activity(
+                    'Pegawai',
+                    'BULK_UPDATE',
+                    "Pembaruan massal data untuk $count pegawai",
+                    [
+                        'table' => 'employees',
+                        'new_data' => [
+                            'employee_count' => $count,
+                            'employee_ids' => $employee_ids,
+                            'division_id' => $division_id,
+                            'unit_id' => $unit_id,
+                            'position_id' => $position_id,
+                            'schedule_id' => $schedule_id,
+                            'gender' => $gender
+                        ]
+                    ]
+                );
+
                 // Redirect with success
-        header("Location: ../../views/employees/index.php?success=Pembaruan+massal+berhasil" . $redirect_qs);
+                header("Location: ../../views/employees/index.php?success=Pembaruan+massal+berhasil" . $redirect_qs);
                 exit();
             } catch (PDOException $e) {
                 // Redirect with error

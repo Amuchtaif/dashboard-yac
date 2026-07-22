@@ -31,6 +31,13 @@ try {
         $stmt = $conn->prepare("INSERT INTO shift_exchanges (requester_id, substitute_id, exchange_date, reason) VALUES (?, ?, ?, ?)");
         $stmt->execute([$requester_id, $substitute_id, $exchange_date, $reason]);
 
+        Logger::activity(
+            'Pegawai',
+            'SHIFT_EXCHANGE',
+            "Pengajuan tukar shift tanggal $exchange_date",
+            ['table' => 'shift_exchanges', 'new_data' => ['requester_id' => $requester_id, 'substitute_id' => $substitute_id, 'date' => $exchange_date, 'reason' => $reason]]
+        );
+
         $_SESSION['success'] = "Permohonan tukar shift berhasil dikirim.";
     }
     elseif ($action === 'process_exchange') {
@@ -41,12 +48,27 @@ try {
         $stmt = $conn->prepare("UPDATE shift_exchanges SET status = ?, approved_by = ? WHERE id = ?");
         $stmt->execute([$status, $approved_by, $id]);
 
+        Logger::activity(
+            'Pegawai',
+            'SHIFT_EXCHANGE_PROCESS',
+            "Memproses permohonan tukar shift ID $id menjadi '$status'",
+            ['table' => 'shift_exchanges', 'record_id' => $id, 'new_data' => ['status' => $status]]
+        );
+
         $_SESSION['success'] = "Pertukaran shift telah " . ($status == 'Disetujui' ? 'disetujui' : 'ditolak') . ".";
     }
     elseif ($action === 'delete_exchange') {
         $id = $_POST['id'] ?? '';
         $stmt = $conn->prepare("DELETE FROM shift_exchanges WHERE id = ?");
         $stmt->execute([$id]);
+
+        Logger::activity(
+            'Pegawai',
+            'DELETE_SHIFT_EXCHANGE',
+            "Menghapus permohonan tukar shift ID $id",
+            ['table' => 'shift_exchanges', 'record_id' => $id]
+        );
+
         $_SESSION['success'] = "Data pertukaran berhasil dihapus.";
     }
 

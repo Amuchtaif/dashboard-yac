@@ -428,7 +428,7 @@ include '../layouts/header.php';
                             <thead class="bg-gray-50">
                                 <tr class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                                     <th scope="col" class="px-6 py-3 text-left w-10">
-                                        <input type="checkbox" id="select-all" checked
+                                        <input type="checkbox" id="select-all"
                                             class="h-4 w-4 rounded border-gray-300 text-cyan-600 focus:ring-cyan-500 cursor-pointer">
                                     </th>
                                     <th scope="col" class="px-6 py-3 text-left min-w-[200px]">
@@ -577,26 +577,20 @@ include '../layouts/header.php';
             sessionStorage.removeItem('promotion_selections');
         }
 
+        const sourceForm = document.getElementById('source-form');
+        if (sourceForm) {
+            sourceForm.addEventListener('submit', function() {
+                sessionStorage.removeItem('promotion_selections');
+            });
+        }
+
         const selections = getSelections();
         const checkboxes = document.querySelectorAll('.student-checkbox');
 
-        // If selections is empty, initialize it with whatever is checked by default in the list
-        if (Object.keys(selections).length === 0) {
-            checkboxes.forEach(cb => {
-                if (cb.checked) {
-                    selections[cb.value] = {
-                        class_id: cb.dataset.classId || '',
-                        year_id: cb.dataset.yearId || ''
-                    };
-                }
-            });
-            saveSelections(selections);
-        } else {
-            // Otherwise, sync the checkboxes with saved selections
-            checkboxes.forEach(cb => {
-                cb.checked = !!selections[cb.value];
-            });
-        }
+        // Sync checkboxes with saved selections
+        checkboxes.forEach(cb => {
+            cb.checked = !!selections[cb.value];
+        });
 
         updateSelectedCountDisplay();
 
@@ -637,6 +631,7 @@ include '../layouts/header.php';
     // --- Filter Option Selection (Source Form) ---
     // Updates input and submits the Source Form to reload page
     function selectFilterOption(name, value, text) {
+        sessionStorage.removeItem('promotion_selections');
         document.getElementById(name + '-input').value = value;
 
         // Update Label

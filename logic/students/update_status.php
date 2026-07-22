@@ -78,6 +78,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
 
+            $old_stmt = $conn->prepare("
+                SELECT s.nama_siswa, s.status, gl.name as class_name 
+                FROM students s 
+                LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.status = 'ACTIVE'
+                LEFT JOIN grade_levels gl ON sch.class_id = gl.id
+                WHERE s.id = :id LIMIT 1
+            ");
+            $old_stmt->execute([':id' => $student_id]);
+            $student_old = $old_stmt->fetch(PDO::FETCH_ASSOC);
+
+            $s_name = $student_old ? $student_old['nama_siswa'] : "ID $student_id";
+            $old_status_label = isset($student_old['status']) ? str_replace('_', ' ', $student_old['status']) : 'Aktif';
+            $class_info = !empty($student_old['class_name']) ? " (Kelas " . $student_old['class_name'] . ")" : "";
+            $new_status_label = str_replace('_', ' ', $status);
+
             $stmt = $conn->prepare("UPDATE students SET status = :status WHERE id = :id");
             $result = $stmt->execute([
                 ':status' => $status,
@@ -85,8 +100,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ]);
 
             if ($result) {
-                $status_msg = str_replace('_', ' ', $status);
-                $_SESSION['success_msg'] = "Status siswa berhasil diubah menjadi: " . ucwords($status_msg);
+                $_SESSION['success_msg'] = "Status siswa berhasil diubah menjadi: " . ucwords($new_status_label);
+
+                Logger::activity(
+                    'Siswa',
+                    'UPDATE_STATUS',
+                    "Mengubah status siswa '$s_name'$class_info dari '$old_status_label' menjadi '$new_status_label'",
+                    [
+                        'table' => 'students',
+                        'record_id' => $student_id,
+                        'old_data' => [
+                            'nama_siswa' => $s_name,
+                            'status' => $old_status_label,
+                            'kelas' => $student_old['class_name'] ?? '-'
+                        ],
+                        'new_data' => [
+                            'nama_siswa' => $s_name,
+                            'status' => $new_status_label
+                        ]
+                    ]
+                );
             } else {
                 $_SESSION['error_msg'] = "Gagal memperbarui status siswa.";
             }
