@@ -34,8 +34,8 @@ if (!$input) {
     exit;
 }
 
-$date = isset($input['date']) ? $input['date'] : date('Y-m-d');
-$session = isset($input['session']) ? $input['session'] : ((int)date('H') >= 12 ? 'Sore' : 'Pagi');
+$date = isset($input['date']) ? substr($input['date'], 0, 10) : date('Y-m-d');
+$session = isset($input['session']) && !empty($input['session']) ? $input['session'] : ((int)date('H') >= 12 ? 'Sore' : 'Pagi');
 $teacher_id = isset($input['teacher_id']) ? $input['teacher_id'] : null;
 $students = isset($input['students']) ? $input['students'] : [];
 
@@ -60,13 +60,13 @@ try {
     $mysqli->begin_transaction();
 
     // Persiapkan statement untuk pengecekan, insert, dan update secara terpisah
-    $check_sql = "SELECT id FROM tahfidz_attendance WHERE student_id = ? AND date = ? AND session = ? LIMIT 1";
+    $check_sql = "SELECT id FROM tahfidz_attendance WHERE student_id = ? AND date = ? LIMIT 1";
     $check_stmt = $mysqli->prepare($check_sql);
     
     $insert_sql = "INSERT INTO tahfidz_attendance (student_id, date, status, session, teacher_id) VALUES (?, ?, ?, ?, ?)";
     $insert_stmt = $mysqli->prepare($insert_sql);
     
-    $update_sql = "UPDATE tahfidz_attendance SET status = ?, teacher_id = ? WHERE id = ?";
+    $update_sql = "UPDATE tahfidz_attendance SET status = ?, session = ?, teacher_id = ? WHERE id = ?";
     $update_stmt = $mysqli->prepare($update_sql);
 
     if (!$check_stmt || !$insert_stmt || !$update_stmt) {
@@ -83,11 +83,11 @@ try {
         $status = $student['status'];
 
         try {
-            // Cek apakah data absensi sudah ada
+            // Cek apakah data absensi sudah ada untuk tanggal tersebut
             if (defined('PHP_VERSION_ID') && PHP_VERSION_ID >= 80100) {
-                $check_stmt->execute([$s_id, $date, $session]);
+                $check_stmt->execute([$s_id, $date]);
             } else {
-                $check_stmt->bind_param("iss", $s_id, $date, $session);
+                $check_stmt->bind_param("is", $s_id, $date);
                 $check_stmt->execute();
             }
             $check_result = $check_stmt->get_result();
@@ -96,9 +96,9 @@ try {
                 // Jika sudah ada, lakukan UPDATE
                 $attendance_id = $check_row['id'];
                 if (defined('PHP_VERSION_ID') && PHP_VERSION_ID >= 80100) {
-                    $update_stmt->execute([$status, $teacher_id, $attendance_id]);
+                    $update_stmt->execute([$status, $session, $teacher_id, $attendance_id]);
                 } else {
-                    $update_stmt->bind_param("sii", $status, $teacher_id, $attendance_id);
+                    $update_stmt->bind_param("ssii", $status, $session, $teacher_id, $attendance_id);
                     $update_stmt->execute();
                 }
                 $success_count++;

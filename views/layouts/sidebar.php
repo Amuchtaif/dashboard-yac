@@ -1102,7 +1102,7 @@ if ($is_admin) {
                 : "https://ui-avatars.com/api/?name=" . urlencode($profile_name) . "&background=random";
             ?>
             <img class="h-8 w-8 rounded-full border border-white/10 object-cover" src="<?php echo $avatar_url; ?>"
-                alt="User Profile">
+                alt="User Profile" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=<?php echo urlencode($profile_name); ?>&background=random';">
             <div class="flex-1 min-w-0">
                 <p class="text-sm font-semibold text-white truncate">
                     <?php echo htmlspecialchars($profile_name); ?>

@@ -10,10 +10,13 @@ $db = new Database();
 $conn = $db->getConnection();
 
 // --- Filter & Search ---
+$default_start = date('Y-m-d', strtotime('-1 month'));
+$default_end = date('Y-m-d');
+
 $search = isset($_GET['search']) && $_GET['search'] !== '' ? trim($_GET['search']) : null;
 $division_id = isset($_GET['division_id']) && $_GET['division_id'] !== '' ? (int)$_GET['division_id'] : null;
-$start_date = isset($_GET['start_date']) && $_GET['start_date'] !== '' ? $_GET['start_date'] : null;
-$end_date = isset($_GET['end_date']) && $_GET['end_date'] !== '' ? $_GET['end_date'] : null;
+$start_date = isset($_GET['start_date']) && $_GET['start_date'] !== '' ? $_GET['start_date'] : $default_start;
+$end_date = isset($_GET['end_date']) && $_GET['end_date'] !== '' ? $_GET['end_date'] : $default_end;
 
 // Ambil List Bidang (Divisions) untuk Filter
 $divisions = $conn->query("SELECT id, name FROM divisions ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
@@ -60,16 +63,80 @@ $total_stmt->execute();
 $total_rows = $total_stmt->fetchColumn();
 $total_pages = ceil($total_rows / $limit);
 
+// Helper Function Hitung Jarak (Haversine)
+if (!function_exists('calcDistanceMeters')) {
+    function calcDistanceMeters($lat1, $lon1, $lat2, $lon2) {
+        if (empty($lat1) || empty($lon1) || empty($lat2) || empty($lon2)) return null;
+        $earthRadius = 6371000;
+        $dLat = deg2rad((float)$lat2 - (float)$lat1);
+        $dLon = deg2rad((float)$lon2 - (float)$lon1);
+        $a = sin($dLat / 2) * sin($dLat / 2) + 
+             cos(deg2rad((float)$lat1)) * cos(deg2rad((float)$lat2)) * 
+             sin($dLon / 2) * sin($dLon / 2);
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+        return round($earthRadius * $c);
+    }
+}
+
+// Check if location_id_out column exists in attendances table, auto-add if missing
+$has_loc_out = false;
+try {
+    $col_check = $conn->query("SHOW COLUMNS FROM attendances LIKE 'location_id_out'")->fetchAll();
+    if (empty($col_check)) {
+        $conn->exec("ALTER TABLE attendances ADD COLUMN location_id_out INT(11) NULL AFTER location_id");
+        $has_loc_out = true;
+    } else {
+        $has_loc_out = true;
+    }
+} catch (Exception $e) {
+    $has_loc_out = false;
+}
+
 // Ambil Data
-$query = "
-    SELECT a.*, e.full_name, e.email, l.name as location_name 
-    FROM attendances a
-    JOIN employees e ON a.user_id = e.id
-    LEFT JOIN locations l ON a.location_id = l.id
-    $where
-    ORDER BY a.date DESC, a.time_in DESC
-    LIMIT :limit OFFSET :offset
-";
+if ($has_loc_out) {
+    $query = "
+        SELECT 
+            a.*, 
+            e.full_name, 
+            e.email, 
+            l.name as location_name, 
+            l.latitude as loc_lat_in,
+            l.longitude as loc_long_in,
+            l.radius_meter as location_radius_in,
+            l_out.name as location_out_name,
+            l_out.latitude as loc_lat_out,
+            l_out.longitude as loc_long_out,
+            l_out.radius_meter as location_radius_out
+        FROM attendances a
+        JOIN employees e ON a.user_id = e.id
+        LEFT JOIN locations l ON a.location_id = l.id
+        LEFT JOIN locations l_out ON a.location_id_out = l_out.id
+        $where
+        ORDER BY a.date DESC, a.time_in DESC
+        LIMIT :limit OFFSET :offset
+    ";
+} else {
+    $query = "
+        SELECT 
+            a.*, 
+            e.full_name, 
+            e.email, 
+            l.name as location_name, 
+            l.latitude as loc_lat_in,
+            l.longitude as loc_long_in,
+            l.radius_meter as location_radius_in,
+            l.name as location_out_name,
+            l.latitude as loc_lat_out,
+            l.longitude as loc_long_out,
+            l.radius_meter as location_radius_out
+        FROM attendances a
+        JOIN employees e ON a.user_id = e.id
+        LEFT JOIN locations l ON a.location_id = l.id
+        $where
+        ORDER BY a.date DESC, a.time_in DESC
+        LIMIT :limit OFFSET :offset
+    ";
+}
 $stmt = $conn->prepare($query);
 $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
 $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
@@ -83,10 +150,19 @@ include '../layouts/header.php';
 ?>
 
 <div class="pb-10">
-    <div class="sm:flex sm:items-center mb-8">
+    <div class="sm:flex sm:items-center sm:justify-between mb-8">
         <div class="sm:flex-auto">
             <h1 class="text-xl font-semibold text-gray-900">Riwayat Absensi</h1>
             <p class="mt-2 text-sm text-gray-700">Log lengkap absen masuk dan pulang pegawai.</p>
+        </div>
+        <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+            <a href="export_excel.php?<?php echo http_build_query(['search' => $search ?? '', 'division_id' => $division_id ?? '', 'start_date' => $start_date ?? '', 'end_date' => $end_date ?? '']); ?>" 
+               class="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-emerald-600/20 hover:bg-emerald-700 hover:shadow-emerald-600/40 focus:ring-4 focus:ring-emerald-500/30 transition-all active:scale-95">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+                    <path fill-rule="evenodd" d="M4.5 2A1.5 1.5 0 003 3.5v13A1.5 1.5 0 004.5 18h11a1.5 1.5 0 001.5-1.5V7.879a1.5 1.5 0 00-.44-1.06L13.18 2.44A1.5 1.5 0 0012.12 2H4.5zm8 1.5L16.5 7H13a.5.5 0 01-.5-.5V3.5zM6 9.5a.75.75 0 01.75-.75h6.5a.75.75 0 010 1.5h-6.5A.75.75 0 016 9.5zm0 3a.75.75 0 01.75-.75h6.5a.75.75 0 010 1.5h-6.5A.75.75 0 016 12.5zm0 3a.75.75 0 01.75-.75h4.5a.75.75 0 010 1.5h-4.5A.75.75 0 016 15.5z" clip-rule="evenodd" />
+                </svg>
+                Export Excel
+            </a>
         </div>
     </div>
 
@@ -175,7 +251,7 @@ include '../layouts/header.php';
                         </svg>
                         Terapkan
                     </button>
-                    <?php if ($search || $division_id || $start_date || $end_date): ?>
+                    <?php if ($search || $division_id || $start_date != $default_start || $end_date != $default_end): ?>
                         <a href="?" class="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-orange-50 text-orange-600 hover:bg-orange-100 transition-all active:scale-95 border border-orange-100" title="Bersihkan Filter">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
                                 <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
@@ -249,16 +325,35 @@ include '../layouts/header.php';
                                             <?php endif; ?>
                                         </td>
                                         <td class="whitespace-nowrap px-3 py-4 text-sm">
-                                            <div class="font-bold text-slate-700">
-                                                <?php echo htmlspecialchars($log['location_name'] ?? '-'); ?>
+                                            <div class="font-bold text-slate-700 flex items-center gap-1.5">
+                                                <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" title="Lokasi Masuk"></span>
+                                                <span class="text-xs text-slate-400 font-semibold uppercase">Masuk:</span>
+                                                <span class="truncate max-w-[160px]"><?php echo htmlspecialchars($log['location_name'] ?? '-'); ?></span>
                                             </div>
-                                            <div class="text-[10px] text-slate-400 font-mono mt-1 leading-tight">
-                                                In: <?php echo number_format((float)($log['lat_in'] ?? 0), 4); ?>, <?php echo number_format((float)($log['long_in'] ?? 0), 4); ?>
-                                                <?php if(!empty($log['lat_out'])): ?>
-                                                    <br>Out: <?php echo number_format((float)($log['lat_out'] ?? 0), 4); ?>, <?php echo number_format((float)($log['long_out'] ?? 0), 4); ?>
-                                                <?php endif; ?>
+                                            <div class="font-bold text-slate-700 flex items-center gap-1.5 mt-1">
+                                                <span class="inline-block w-2 h-2 rounded-full bg-orange-500 flex-shrink-0" title="Lokasi Pulang"></span>
+                                                <span class="text-xs text-slate-400 font-semibold uppercase">Pulang:</span>
+                                                <span class="truncate max-w-[160px]">
+                                                    <?php 
+                                                    if (!empty($log['time_out'])) {
+                                                        echo htmlspecialchars($log['location_out_name'] ?? $log['location_name'] ?? '-');
+                                                    } else {
+                                                        echo '-';
+                                                    }
+                                                    ?>
+                                                </span>
                                             </div>
-                                        </td>
+                                             <?php 
+                                                 $distIn = calcDistanceMeters($log['lat_in'], $log['long_in'], $log['loc_lat_in'], $log['loc_long_in']);
+                                                 $distOut = !empty($log['lat_out']) ? calcDistanceMeters($log['lat_out'], $log['long_out'], $log['loc_lat_out'] ?? $log['loc_lat_in'], $log['loc_long_out'] ?? $log['loc_long_in']) : null;
+                                             ?>
+                                             <div class="text-[10px] text-slate-500 font-medium mt-1.5 leading-tight bg-slate-50 p-1.5 rounded-lg border border-slate-100">
+                                                 <div>Jarak Masuk: <span class="font-bold text-slate-700"><?php echo ($distIn !== null) ? $distIn . ' m' : '-'; ?></span> <span class="text-slate-400 text-[9px]">(Batas: <?php echo $log['location_radius_in'] ?? 300; ?>m)</span></div>
+                                                 <?php if(!empty($log['time_out'])): ?>
+                                                     <div class="mt-0.5">Jarak Pulang: <span class="font-bold text-slate-700"><?php echo ($distOut !== null) ? $distOut . ' m' : '-'; ?></span> <span class="text-slate-400 text-[9px]">(Batas: <?php echo $log['location_radius_out'] ?? $log['location_radius_in'] ?? 300; ?>m)</span></div>
+                                                 <?php endif; ?>
+                                             </div>
+                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>

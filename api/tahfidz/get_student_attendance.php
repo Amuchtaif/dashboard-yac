@@ -18,9 +18,9 @@ if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'OPTIONS
 // Assuming this file is in api/tahfidz/ and config is in config/
 include_once __DIR__ . '/../../config/db_mysqli.php';
 
-$date = isset($_GET['date']) ? $_GET['date'] : null;
+$date = isset($_GET['date']) ? substr($_GET['date'], 0, 10) : null;
 $student_id = isset($_GET['student_id']) ? $_GET['student_id'] : null;
-$session = isset($_GET['session']) ? $_GET['session'] : null;
+$session = isset($_GET['session']) && !empty($_GET['session']) ? $_GET['session'] : null;
 $group_id = isset($_GET['group_id']) ? $_GET['group_id'] : null;
 $teacher_id = isset($_GET['teacher_id']) ? $_GET['teacher_id'] : null;
 
@@ -39,48 +39,72 @@ try {
     $types = "";
 
     if ($group_id) {
-        // Jika date dan session tidak disertakan, berikan nilai default untuk mencegah data duplikat/tidak relevan bergabung
         if (!$date) {
             $date = date('Y-m-d');
         }
-        if (!$session) {
-            $current_hour = (int)date('H');
-            $session = ($current_hour >= 12) ? 'Sore' : 'Pagi';
+
+        if ($session) {
+            $query = "SELECT 
+                        ta.id,
+                        s.id as student_id,
+                        ta.date,
+                        ta.status,
+                        ta.session,
+                        ta.teacher_id,
+                        ta.created_at,
+                        s.nama_siswa as student_name,
+                        COALESCE(gl.name, s.kelas, '-') as kelas,
+                        s.tingkat
+                      FROM halaqah_members hm
+                      INNER JOIN students s ON hm.student_id = s.id
+                      LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = ?
+                      LEFT JOIN grade_levels gl ON sch.class_id = gl.id
+                      LEFT JOIN tahfidz_attendance ta ON ta.id = (
+                          SELECT ta2.id FROM tahfidz_attendance ta2 
+                          WHERE ta2.student_id = s.id AND ta2.date = ? AND ta2.session = ?
+                          ORDER BY ta2.created_at DESC LIMIT 1
+                      )
+                      WHERE hm.group_id = ?
+                      ORDER BY s.nama_siswa ASC";
+            $params[] = $activeYearId;
+            $params[] = $date;
+            $params[] = $session;
+            $params[] = $group_id;
+            $types .= "issi";
+        } else {
+            $query = "SELECT 
+                        ta.id,
+                        s.id as student_id,
+                        ta.date,
+                        ta.status,
+                        ta.session,
+                        ta.teacher_id,
+                        ta.created_at,
+                        s.nama_siswa as student_name,
+                        COALESCE(gl.name, s.kelas, '-') as kelas,
+                        s.tingkat
+                      FROM halaqah_members hm
+                      INNER JOIN students s ON hm.student_id = s.id
+                      LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = ?
+                      LEFT JOIN grade_levels gl ON sch.class_id = gl.id
+                      LEFT JOIN tahfidz_attendance ta ON ta.id = (
+                          SELECT ta2.id FROM tahfidz_attendance ta2 
+                          WHERE ta2.student_id = s.id AND ta2.date = ?
+                          ORDER BY ta2.created_at DESC LIMIT 1
+                      )
+                      WHERE hm.group_id = ?
+                      ORDER BY s.nama_siswa ASC";
+            $params[] = $activeYearId;
+            $params[] = $date;
+            $params[] = $group_id;
+            $types .= "isi";
         }
 
-        // Ambil semua santri anggota kelompok halaqah, lalu LEFT JOIN ke data absensi mereka
-        $query = "SELECT 
-                    ta.id,
-                    s.id as student_id,
-                    ta.date,
-                    ta.status,
-                    ta.session,
-                    ta.teacher_id,
-                    ta.created_at,
-                    s.nama_siswa as student_name,
-                    gl.name as kelas,
-                    s.tingkat
-                  FROM halaqah_members hm
-                  INNER JOIN students s ON hm.student_id = s.id
-                  LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = ? AND sch.status = 'ACTIVE'
-                  LEFT JOIN grade_levels gl ON sch.class_id = gl.id
-                  LEFT JOIN tahfidz_attendance ta ON ta.student_id = s.id 
-                      AND ta.date = ? 
-                      AND ta.session = ?
-                  WHERE hm.group_id = ?
-                  ORDER BY s.nama_siswa ASC";
-        
-        $params[] = $activeYearId;
-        $params[] = $date;
-        $params[] = $session;
-        $params[] = $group_id;
-        $types .= "issi";
-
     } else {
-        $query = "SELECT ta.*, s.nama_siswa as student_name, gl.name as kelas, s.tingkat 
+        $query = "SELECT ta.*, s.nama_siswa as student_name, COALESCE(gl.name, s.kelas, '-') as kelas, s.tingkat 
                   FROM tahfidz_attendance ta 
                   LEFT JOIN students s ON ta.student_id = s.id 
-                  LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = $activeYearId AND sch.status = 'ACTIVE'
+                  LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = $activeYearId
                   LEFT JOIN grade_levels gl ON sch.class_id = gl.id
                   WHERE 1=1";
 

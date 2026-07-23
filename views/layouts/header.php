@@ -249,12 +249,20 @@
                             <?php 
                                 $profile_name = $_SESSION['user_name'] ?? 'User';
                                 $profile_photo = $_SESSION['user_photo'] ?? '';
-                                $avatar_url = !empty($profile_photo) 
-                                    ? BASE_URL . '/public/uploads/employees/' . $profile_photo 
-                                    : "https://ui-avatars.com/api/?name=" . urlencode($profile_name) . "&background=random";
+                                $avatar_url = "https://ui-avatars.com/api/?name=" . urlencode($profile_name) . "&background=random";
+                                if (!empty($profile_photo)) {
+                                    if (defined('BASE_PATH') && file_exists(BASE_PATH . '/uploads/profile_photos/' . $profile_photo)) {
+                                        $avatar_url = BASE_URL . '/uploads/profile_photos/' . $profile_photo;
+                                    } elseif (defined('BASE_PATH') && file_exists(BASE_PATH . '/public/uploads/employees/' . $profile_photo)) {
+                                        $avatar_url = BASE_URL . '/public/uploads/employees/' . $profile_photo;
+                                    } elseif (file_exists(__DIR__ . '/../../uploads/profile_photos/' . $profile_photo)) {
+                                        $avatar_url = BASE_URL . '/uploads/profile_photos/' . $profile_photo;
+                                    }
+                                }
                             ?>
                             <img class="h-8 w-8 rounded-full border border-slate-200 object-cover shadow-sm"
-                                src="<?php echo $avatar_url; ?>" alt="User Profile">
+                                src="<?php echo $avatar_url; ?>" alt="User Profile"
+                                onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=<?php echo urlencode($profile_name); ?>&background=random';">
                             <span class="hidden md:block ml-2 text-sm font-semibold text-slate-700"><?php echo htmlspecialchars($profile_name); ?></span>
                         </button>
 

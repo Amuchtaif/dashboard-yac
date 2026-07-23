@@ -37,10 +37,10 @@ try {
     // 2. Fetch all students (filtered by status Aktif and excluding specific units)
     $exclude = ["'TKIT'", "'SDIT'", "'PLAY GROUP'"];
     $exclude_str = implode(',', $exclude);
-    $query = "SELECT s.*, gl.name as kelas 
+    $query = "SELECT s.*, COALESCE(gl.name, s.kelas, '-') as kelas 
               FROM students s 
-              JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = $activeYearId AND sch.status = 'ACTIVE'
-              JOIN grade_levels gl ON sch.class_id = gl.id
+              LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = $activeYearId
+              LEFT JOIN grade_levels gl ON sch.class_id = gl.id
               WHERE s.status = 'Aktif' 
               AND (s.tingkat NOT IN ($exclude_str) OR s.tingkat IS NULL)
               ORDER BY s.nama_siswa ASC";

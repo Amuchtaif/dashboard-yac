@@ -65,6 +65,22 @@ if (!function_exists('hasPermission')) {
                     return (bool) $alias_perm['is_allowed'];
                 }
             }
+            if ($permission_name === 'can_access_kesantrian') {
+                $stmtAlias = $conn->prepare("SELECT is_allowed FROM user_permissions WHERE employee_id = ? AND permission_name = 'manage_boarding' LIMIT 1");
+                $stmtAlias->execute([$employee_id]);
+                $alias_perm = $stmtAlias->fetch(PDO::FETCH_ASSOC);
+                if ($alias_perm) {
+                    return (bool) $alias_perm['is_allowed'];
+                }
+            }
+            if ($permission_name === 'manage_boarding') {
+                $stmtAlias = $conn->prepare("SELECT is_allowed FROM user_permissions WHERE employee_id = ? AND permission_name = 'can_access_kesantrian' LIMIT 1");
+                $stmtAlias->execute([$employee_id]);
+                $alias_perm = $stmtAlias->fetch(PDO::FETCH_ASSOC);
+                if ($alias_perm) {
+                    return (bool) $alias_perm['is_allowed'];
+                }
+            }
 
             // 2. SECOND PRIORITY: Role-based Permissions (Database 'positions')
             $permission_map = [
@@ -86,12 +102,17 @@ if (!function_exists('hasPermission')) {
 
             if (array_key_exists($permission_name, $permission_map) && !empty($employee['position_id'])) {
                 $column_name = $permission_map[$permission_name];
-                $stmtRole = $conn->prepare("SELECT $column_name FROM positions WHERE id = ? LIMIT 1");
+                $stmtRole = $conn->prepare("SELECT can_manage_boarding, can_access_kesantrian, $column_name FROM positions WHERE id = ? LIMIT 1");
                 $stmtRole->execute([$employee['position_id']]);
                 $role_perm = $stmtRole->fetch(PDO::FETCH_ASSOC);
 
-                if ($role_perm && !empty($role_perm[$column_name])) {
-                    return true;
+                if ($role_perm) {
+                    if (!empty($role_perm[$column_name])) {
+                        return true;
+                    }
+                    if (($permission_name === 'manage_boarding' || $permission_name === 'can_access_kesantrian') && (!empty($role_perm['can_manage_boarding']) || !empty($role_perm['can_access_kesantrian']))) {
+                        return true;
+                    }
                 }
             }
 
@@ -104,9 +125,9 @@ if (!function_exists('hasPermission')) {
             }
 
             // --- KESANTRIAN FALLBACK ---
-            if ($permission_name === 'can_access_kesantrian') {
+            if ($permission_name === 'can_access_kesantrian' || $permission_name === 'manage_boarding') {
                 $posName = strtolower($employee['position_name'] ?? '');
-                if (strpos($posName, 'musyrif') !== false || strpos($posName, 'kesantrian') !== false) return true;
+                if (strpos($posName, 'musyrif') !== false || strpos($posName, 'kesantrian') !== false || strpos($posName, 'pengasuh') !== false) return true;
             }
 
             // --- TEACHING SCHEDULE FALLBACK (Academic & Education) ---
@@ -114,6 +135,19 @@ if (!function_exists('hasPermission')) {
                 $stmtSched = $conn->prepare("SELECT COUNT(*) FROM class_schedules WHERE employee_id = ?");
                 $stmtSched->execute([$employee_id]);
                 if ($stmtSched->fetchColumn() > 0) {
+                    return true;
+                }
+            }
+
+            // --- TAHFIDZ TEACHER FALLBACK ---
+            if ($permission_name === 'access_tahfidz' || $permission_name === 'can_access_tahfidz' || $permission_name === 'manage_tahfidz') {
+                $posName = strtolower($employee['position_name'] ?? '');
+                if (strpos($posName, 'tahfidz') !== false || strpos($posName, 'pengampu') !== false || strpos($posName, 'guru') !== false) {
+                    return true;
+                }
+                $stmtHalaqah = $conn->prepare("SELECT COUNT(*) FROM halaqah_groups WHERE teacher_id = ?");
+                $stmtHalaqah->execute([$employee_id]);
+                if ($stmtHalaqah->fetchColumn() > 0) {
                     return true;
                 }
             }

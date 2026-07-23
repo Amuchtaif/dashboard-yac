@@ -53,7 +53,7 @@ if (!$isKoordinator) {
 }
 
 try {
-    $date = isset($_GET['date']) ? $_GET['date'] : date('Y-m-d');
+    $date = isset($_GET['date']) ? substr($_GET['date'], 0, 10) : date('Y-m-d');
     // Get active academic year
     $activeYearId = 0;
     $yearQuery = "SELECT id FROM academic_years WHERE is_active = 1 LIMIT 1";
@@ -68,11 +68,11 @@ try {
     $query = "SELECT 
                 tm.id, tm.student_id, tm.teacher_id, tm.date, tm.surah_start, tm.start_ayah AS ayat_start, tm.surah_end, tm.end_ayah AS ayat_end, tm.juz, tm.status, tm.notes, tm.created_at,
                 s.nama_siswa as student_name,
-                gl.name as kelas,
+                COALESCE(gl.name, s.kelas, '-') as kelas,
                 e.full_name as teacher_name
               FROM memorization_entries tm
               JOIN students s ON tm.student_id = s.id
-              LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = $activeYearId AND sch.status = 'ACTIVE'
+              LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = $activeYearId
               LEFT JOIN grade_levels gl ON sch.class_id = gl.id
               LEFT JOIN employees e ON tm.teacher_id = e.id
               WHERE tm.date = ?

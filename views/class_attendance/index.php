@@ -13,6 +13,15 @@ $conn = $db->getConnection();
 $date = isset($_GET['date']) ? $_GET['date'] : date('Y-m-d');
 $unit_id = isset($_GET['unit_id']) ? $_GET['unit_id'] : '';
 $grade_id = isset($_GET['grade_id']) ? $_GET['grade_id'] : '';
+$ay_id = isset($_GET['ay_id']) ? $_GET['ay_id'] : '';
+
+// --- Fetch Academic Years ---
+$academic_years = $conn->query("SELECT id, name, semester, is_active FROM academic_years ORDER BY start_date DESC")->fetchAll(PDO::FETCH_ASSOC);
+$active_year_id = $conn->query("SELECT id FROM academic_years WHERE is_active = 1 LIMIT 1")->fetchColumn();
+if (!$active_year_id && !empty($academic_years)) {
+    $active_year_id = $academic_years[0]['id'];
+}
+$selected_year_id = !empty($ay_id) ? $ay_id : $active_year_id;
 
 // Resolve Day Name
 $day_map = [
@@ -60,11 +69,11 @@ if (!$is_admin && $user_level >= 5 && empty($mapped_education_unit_ids)) {
         SELECT DISTINCT gl.id, gl.name, gl.education_unit_id 
         FROM grade_levels gl
         WHERE gl.teacher_id = :current_user_id
-           OR gl.id IN (SELECT grade_level_id FROM class_schedules WHERE employee_id = :current_user_id)
+           OR gl.id IN (SELECT grade_level_id FROM class_schedules WHERE employee_id = :current_user_id AND academic_year_id = :selected_year_id)
         ORDER BY gl.name ASC
     ";
     $grades_stmt = $conn->prepare($grades_query);
-    $grades_stmt->execute([':current_user_id' => $_SESSION['user_id']]);
+    $grades_stmt->execute([':current_user_id' => $_SESSION['user_id'], ':selected_year_id' => $selected_year_id]);
     $grades = $grades_stmt->fetchAll(PDO::FETCH_ASSOC);
     
     $unit_ids = array_unique(array_column($grades, 'education_unit_id'));
@@ -105,10 +114,10 @@ $sql = "
     LEFT JOIN lesson_periods lp_end ON cs.end_lesson_period_id = lp_end.id
     JOIN employees e ON cs.employee_id = e.id
     LEFT JOIN class_journals cj ON cs.id = cj.class_schedule_id AND cj.date = :date
-    WHERE cs.day = :day
+    WHERE cs.day = :day AND cs.academic_year_id = :selected_year_id
 ";
 
-$params = [':date' => $date, ':day' => $english_day];
+$params = [':date' => $date, ':day' => $english_day, ':selected_year_id' => $selected_year_id];
 
 $is_teacher_only = (!$is_admin && $user_level >= 5 && empty($mapped_education_unit_ids));
 
@@ -142,11 +151,23 @@ include '../layouts/header.php';
             <h1 class="text-xl font-bold text-slate-900">Absensi Kelas</h1>
             <p class="mt-2 text-sm text-slate-500">Pantau rekapitulasi kehadiran siswa per kelas dan mata pelajaran.</p>
         </div>
+        <div class="mt-4 sm:ml-16 sm:mt-0 flex items-center space-x-2">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-cyan-100 text-cyan-800">
+                Tahun Ajaran: <?php
+                foreach ($academic_years as $ay) {
+                    if ($ay['id'] == $selected_year_id) {
+                        echo htmlspecialchars($ay['name'] . ' (' . $ay['semester'] . ')');
+                        if ($ay['is_active']) echo ' - Aktif';
+                    }
+                }
+                ?>
+            </span>
+        </div>
     </div>
 
     <!-- Filter Bar -->
     <form id="filterForm" class="mt-8 bg-white p-6 rounded-xl border border-slate-200 shadow-sm" method="GET">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
             <!-- Date -->
             <div class="space-y-1.5">
                 <label for="date"
@@ -156,7 +177,44 @@ include '../layouts/header.php';
                         onchange="this.form.submit()"
                         class="block w-full rounded-lg border-slate-200 text-sm focus:border-cyan-500 focus:ring-cyan-500 bg-slate-50 border text-slate-600 py-2.5 px-4 h-[45px]">
                 </div>
-                <!-- <p class="mt-1.5 text-[11px] font-medium text-cyan-600 bg-cyan-50 px-2 py-0.5 rounded-full inline-block"><?php echo $idn_day; ?></p> -->
+            </div>
+
+            <!-- Academic Year Filter -->
+            <div class="relative space-y-1.5" id="filter-ay-container">
+                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Tahun Ajaran</label>
+                <input type="hidden" name="ay_id" id="filter-ay-input" value="<?php echo htmlspecialchars($selected_year_id); ?>">
+                <button type="button" onclick="toggleDropdown('filter-ay')"
+                    class="inline-flex items-center justify-between gap-2 rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-colors w-full h-[45px]">
+                    <span id="filter-ay-text" class="truncate">
+                        <?php
+                        $ay_name = "Tahun Ajaran Aktif";
+                        foreach ($academic_years as $ay) {
+                            if ($ay['id'] == $selected_year_id) {
+                                $ay_name = $ay['name'] . ' (' . $ay['semester'] . ')';
+                            }
+                        }
+                        echo htmlspecialchars($ay_name);
+                        ?>
+                    </span>
+                    <svg class="h-4 w-4 text-slate-400 transition-transform duration-200" id="filter-ay-arrow"
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+                <div id="filter-ay-menu"
+                    class="hidden absolute top-full left-0 mt-1 w-full min-w-[200px] origin-top-left rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50 max-h-60 overflow-y-auto">
+                    <ul class="py-1">
+                        <?php foreach ($academic_years as $ay): ?>
+                            <li onclick="selectFilterOption('ay', '<?php echo $ay['id']; ?>', '<?php echo htmlspecialchars(addslashes($ay['name'] . ' (' . $ay['semester'] . ')'), ENT_QUOTES); ?>')"
+                                class="cursor-pointer px-4 py-2 text-sm text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
+                                <?php echo htmlspecialchars($ay['name'] . ' (' . $ay['semester'] . ')'); ?>
+                                <?php if ($ay['is_active']): ?>
+                                    <span class="ml-1 px-1.5 py-0.5 text-[10px] bg-emerald-100 text-emerald-700 rounded-full font-bold">Aktif</span>
+                                <?php endif; ?>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
             </div>
 
             <!-- Unit Filter -->

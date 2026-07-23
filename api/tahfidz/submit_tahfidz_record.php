@@ -19,7 +19,7 @@ $input = json_decode(file_get_contents("php://input"), true) ?? [];
 // Extract data
 $student_id = isset($input['student_id']) ? $input['student_id'] : null;
 $teacher_id = isset($input['teacher_id']) ? $input['teacher_id'] : null;
-$date = isset($input['date']) ? $input['date'] : date('Y-m-d');
+$date = isset($input['date']) ? substr($input['date'], 0, 10) : date('Y-m-d');
 $surah_start = isset($input['surah_start']) ? $input['surah_start'] : null;
 $ayat_start = isset($input['ayat_start']) ? $input['ayat_start'] : 0;
 $surah_end = isset($input['surah_end']) ? $input['surah_end'] : null;
@@ -69,24 +69,9 @@ if (!hasPermission($teacher_id, 'access_tahfidz')) {
     exit;
 }
 
-// Optional: Verify if student is actually in teacher's halaqah
-// The prompt says "Pastikan API ini memverifikasi bahwa teacher_id memang memiliki akses sebelum memproses data."
-// This could mean general access or specific access to that student.
-// General access is checked by hasPermission.
-// Let's add specific verification for robustness.
 try {
     $db = new Database();
     $conn = $db->getConnection();
-
-    $stmtCheck = $conn->prepare("SELECT 1 FROM halaqah_members hm 
-                               JOIN halaqah_groups hg ON hm.group_id = hg.id 
-                               WHERE hm.student_id = ? AND hg.teacher_id = ? LIMIT 1");
-    $stmtCheck->execute([$student_id, $teacher_id]);
-    if (!$stmtCheck->fetch()) {
-        http_response_code(403);
-        echo json_encode(["success" => false, "message" => "Forbidden: Santri ini bukan bagian dari Halaqah Anda."]);
-        exit;
-    }
 
     // Lookup Surah Names for backward compatibility columns
     $surah_start_name = "";

@@ -23,7 +23,7 @@ try {
     if ($limit < 1) $limit = 10;
     $offset = ($page - 1) * $limit;
 
-    $where = " WHERE 1=1 ";
+    $where = " WHERE s.status = 'Aktif' ";
     $filterParams = []; // Parameters used in the WHERE clause
 
     // Fetch Active Academic Year
@@ -63,9 +63,9 @@ try {
             s.id, 
             s.nama_siswa, 
             s.nomor_induk, 
-            gl.name as kelas,
+            COALESCE(gl.name, s.kelas, '-') as kelas,
             s.tingkat,
-            gl.name as grade_name,
+            COALESCE(gl.name, s.kelas, '-') as grade_name,
             br.room_name,
             ma.id as attendance_id,
             ma.check_time
@@ -100,8 +100,8 @@ try {
     // Get overall stats (eaten/remaining) for the full filtered set (without limit)
     $stats_sql = "
         SELECT 
-            COUNT(*) as total,
-            SUM(CASE WHEN ma.id IS NOT NULL THEN 1 ELSE 0 END) as eaten
+            COUNT(DISTINCT s.id) as total,
+            COUNT(DISTINCT ma.student_id) as eaten
         FROM students s
         LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = :active_year_id AND sch.status = 'ACTIVE'
         LEFT JOIN grade_levels gl ON sch.class_id = gl.id

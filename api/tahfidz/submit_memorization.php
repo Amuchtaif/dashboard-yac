@@ -16,7 +16,7 @@ include_once __DIR__ . '/../../config/db_mysqli.php';
 $input = json_decode(file_get_contents("php://input"), true) ?? [];
 
 $student_id = isset($input['student_id']) ? $input['student_id'] : null;
-$date = isset($input['date']) ? $input['date'] : date('Y-m-d');
+$date = isset($input['date']) ? substr($input['date'], 0, 10) : date('Y-m-d');
 $surah_start = isset($input['surah_start']) ? $input['surah_start'] : '';
 $ayat_start = isset($input['ayat_start']) ? $input['ayat_start'] : 0;
 $total_baris = isset($input['total_baris']) ? $input['total_baris'] : 0;

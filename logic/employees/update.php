@@ -123,6 +123,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt = $conn->prepare($sql);
             $stmt->execute($params);
 
+            if (isset($_SESSION['user_id']) && $_SESSION['user_id'] == $id) {
+                $_SESSION['user_photo'] = $profile_photo;
+                $_SESSION['user_name'] = $full_name;
+            }
+
             Logger::activity(
                 'Pegawai',
                 'UPDATE',

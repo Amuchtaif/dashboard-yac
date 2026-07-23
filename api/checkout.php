@@ -73,21 +73,51 @@ try {
         throw new Exception("Anda berada di luar radius lokasi (Jarak: " . round($distance, 2) . "m)");
     }
 
-    // 6. Update time_out, lat_out, long_out
+    // 6. Update time_out, lat_out, long_out, location_id_out
     $status_out = "Pulang"; // Default
-    
-    $update_query = "UPDATE attendances SET 
-                    time_out = :time_out, 
-                    lat_out = :lat_out, 
-                    long_out = :long_out, 
-                    status_out = :status_out 
-                    WHERE id = :id";
-    $stmt_update = $db->prepare($update_query);
-    $stmt_update->bindParam(':time_out', $now_time);
-    $stmt_update->bindParam(':lat_out', $latitude);
-    $stmt_update->bindParam(':long_out', $longitude);
-    $stmt_update->bindParam(':status_out', $status_out);
-    $stmt_update->bindParam(':id', $attendance['id']);
+
+    $has_loc_out = false;
+    try {
+        $col_check = $db->query("SHOW COLUMNS FROM attendances LIKE 'location_id_out'")->fetchAll();
+        if (empty($col_check)) {
+            $db->exec("ALTER TABLE attendances ADD COLUMN location_id_out INT(11) NULL AFTER location_id");
+            $has_loc_out = true;
+        } else {
+            $has_loc_out = true;
+        }
+    } catch (Exception $e) {
+        $has_loc_out = false;
+    }
+
+    if ($has_loc_out) {
+        $update_query = "UPDATE attendances SET 
+                        time_out = :time_out, 
+                        lat_out = :lat_out, 
+                        long_out = :long_out, 
+                        status_out = :status_out,
+                        location_id_out = :location_id_out
+                        WHERE id = :id";
+        $stmt_update = $db->prepare($update_query);
+        $stmt_update->bindParam(':time_out', $now_time);
+        $stmt_update->bindParam(':lat_out', $latitude);
+        $stmt_update->bindParam(':long_out', $longitude);
+        $stmt_update->bindParam(':status_out', $status_out);
+        $stmt_update->bindParam(':location_id_out', $location_id);
+        $stmt_update->bindParam(':id', $attendance['id']);
+    } else {
+        $update_query = "UPDATE attendances SET 
+                        time_out = :time_out, 
+                        lat_out = :lat_out, 
+                        long_out = :long_out, 
+                        status_out = :status_out
+                        WHERE id = :id";
+        $stmt_update = $db->prepare($update_query);
+        $stmt_update->bindParam(':time_out', $now_time);
+        $stmt_update->bindParam(':lat_out', $latitude);
+        $stmt_update->bindParam(':long_out', $longitude);
+        $stmt_update->bindParam(':status_out', $status_out);
+        $stmt_update->bindParam(':id', $attendance['id']);
+    }
 
     if ($stmt_update->execute()) {
         echo json_encode([

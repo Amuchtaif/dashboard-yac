@@ -80,6 +80,37 @@ $sudah_percent = $total_for_pie > 0 ? round(($sudah_absen / $total_for_pie) * 10
 $tidak_percent = $total_for_pie > 0 ? round(($tidak_absen / $total_for_pie) * 100) : 0;
 $belum_percent = $total_for_pie > 0 ? round(($belum_absen / $total_for_pie) * 100) : 0;
 
+// --- Employee Attendance Trend Line Chart Data (Last 7 Days) ---
+$line_labels = [];
+$line_hadir_pct = [];
+$line_izin_pct = [];
+$line_alpa_pct = [];
+
+$day_names_id = [
+    'Sun' => 'Ahad', 'Mon' => 'Senin', 'Tue' => 'Selasa', 'Wed' => 'Rabu',
+    'Thu' => 'Kamis', 'Fri' => 'Jumat', 'Sat' => 'Sabtu'
+];
+
+for ($i = 6; $i >= 0; $i--) {
+    $d = date('Y-m-d', strtotime("-$i days"));
+    $short_day = date('D', strtotime($d));
+    $label_date = date('d/m', strtotime($d));
+    $day_str = ($day_names_id[$short_day] ?? $short_day) . ' (' . $label_date . ')';
+
+    $d_hadir = (int)$conn->query("SELECT COUNT(DISTINCT user_id) FROM attendances WHERE date = '$d' AND status IN ('Present', 'Late', 'Hadir', 'hadir', 'Telat')")->fetchColumn();
+    $d_izin = (int)$conn->query("SELECT COUNT(DISTINCT employee_id) FROM permits WHERE status = 'Approved' AND start_date <= '$d' AND end_date >= '$d'")->fetchColumn();
+    $d_alpa = max(0, (int)$active_count - $d_hadir - $d_izin);
+
+    $h_pct = $active_count > 0 ? round(($d_hadir / $active_count) * 100, 1) : 0;
+    $i_pct = $active_count > 0 ? round(($d_izin / $active_count) * 100, 1) : 0;
+    $a_pct = $active_count > 0 ? round(($d_alpa / $active_count) * 100, 1) : 0;
+
+    $line_labels[] = $day_str;
+    $line_hadir_pct[] = $h_pct;
+    $line_izin_pct[] = $i_pct;
+    $line_alpa_pct[] = $a_pct;
+}
+
 // --- Recent Permits (5 entries, current month only) ---
 $current_month_str = date('Y-m');
 $recent_permits_query = "
@@ -300,6 +331,36 @@ include '../layouts/header.php';
         </div>
     </div>
 
+    <!-- Attendance Trend Line Chart Card -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 transition-all duration-300">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-4 border-b border-slate-100 mb-4 gap-3">
+            <div>
+                <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-cyan-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                    </svg>
+                    Tren Persentase Kehadiran Pegawai
+                </h3>
+                <p class="text-xs text-slate-500 mt-0.5">Grafik perbandingan persentase kehadiran (Hadir, Izin, dan Tidak Hadir) harian pegawai (7 Hari Terakhir)</p>
+            </div>
+            <div class="flex items-center gap-2 text-xs font-semibold flex-wrap">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200/50">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Hadir
+                </span>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 text-amber-700 border border-amber-200/50">
+                    <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Izin
+                </span>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-50 text-rose-700 border border-rose-200/50">
+                    <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Tidak Hadir
+                </span>
+            </div>
+        </div>
+        
+        <div class="relative h-72 w-full">
+            <canvas id="attendanceLineChart"></canvas>
+        </div>
+    </div>
+
     <!-- Main Content Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
@@ -448,6 +509,7 @@ include '../layouts/header.php';
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Doughnut Pie Chart
     const ctx = document.getElementById('attendancePieChart').getContext('2d');
     new Chart(ctx, {
         type: 'doughnut',
@@ -466,6 +528,107 @@ document.addEventListener('DOMContentLoaded', function() {
             plugins: {
                 legend: {
                     display: false
+                }
+            }
+        }
+    });
+
+    // Attendance Trend Line Chart
+    const lineCtx = document.getElementById('attendanceLineChart').getContext('2d');
+    new Chart(lineCtx, {
+        type: 'line',
+        data: {
+            labels: <?php echo json_encode($line_labels); ?>,
+            datasets: [
+                {
+                    label: 'Hadir (%)',
+                    data: <?php echo json_encode($line_hadir_pct); ?>,
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.08)',
+                    fill: true,
+                    tension: 0.35,
+                    borderWidth: 3,
+                    pointBackgroundColor: '#10b981',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                },
+                {
+                    label: 'Izin (%)',
+                    data: <?php echo json_encode($line_izin_pct); ?>,
+                    borderColor: '#f59e0b',
+                    backgroundColor: 'rgba(245, 158, 11, 0.08)',
+                    fill: true,
+                    tension: 0.35,
+                    borderWidth: 3,
+                    pointBackgroundColor: '#f59e0b',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                },
+                {
+                    label: 'Tidak Hadir (%)',
+                    data: <?php echo json_encode($line_alpa_pct); ?>,
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.08)',
+                    fill: true,
+                    tension: 0.35,
+                    borderWidth: 3,
+                    pointBackgroundColor: '#ef4444',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    padding: 12,
+                    backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                    titleFont: { size: 13, weight: 'bold' },
+                    bodyFont: { size: 12 },
+                    callbacks: {
+                        label: function(context) {
+                            return ' ' + context.dataset.label + ': ' + context.parsed.y + '%';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: {
+                        stepSize: 20,
+                        callback: function(value) {
+                            return value + '%';
+                        },
+                        font: { size: 11, weight: '500' },
+                        color: '#64748b'
+                    },
+                    grid: {
+                        color: '#f1f5f9'
+                    }
+                },
+                x: {
+                    ticks: {
+                        font: { size: 11, weight: '600' },
+                        color: '#64748b'
+                    },
+                    grid: {
+                        display: false
+                    }
                 }
             }
         }

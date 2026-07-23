@@ -10,19 +10,23 @@ $conn = $db->getConnection();
 // --- ROLE-BASED ACCESS CONTROL ---
 // Get current user info (position and supervised room)
 $user_id = $_SESSION['user_id'];
-$user_stmt = $conn->prepare("SELECT e.id, p.name as position_name, br.id as supervised_room_id FROM employees e JOIN positions p ON e.position_id = p.id LEFT JOIN boarding_rooms br ON br.supervisor_id = e.id WHERE e.id = ?");
+$user_stmt = $conn->prepare("SELECT e.id, p.name as position_name, br.id as supervised_room_id FROM employees e LEFT JOIN positions p ON e.position_id = p.id LEFT JOIN boarding_rooms br ON br.supervisor_id = e.id WHERE e.id = ?");
 $user_stmt->execute([$user_id]);
 $currentUser = $user_stmt->fetch(PDO::FETCH_ASSOC);
 
-$is_admin = ($currentUser['position_name'] === 'Administrator');
-$is_musyrif = (strpos(strtolower($currentUser['position_name']), 'musyrif') !== false);
+$is_admin = (($currentUser['position_name'] ?? '') === 'Administrator' || (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Administrator'));
+$is_musyrif = (strpos(strtolower($currentUser['position_name'] ?? ''), 'musyrif') !== false);
 $supervised_room = $currentUser['supervised_room_id'] ?? null;
 
 // Page Title & Access Control
 $page_title = "Absensi Makan Santri (List)";
-if (!$is_admin && !$is_musyrif && !can('can_access_kesantrian')) {
+if (!$is_admin && !$is_musyrif && !can('can_access_kesantrian') && !can('manage_boarding')) {
     redirect('views/dashboard/index.php?error=tidak diizinkan');
 }
+
+// Fetch Active Academic Year
+$active_year = $conn->query("SELECT id, name, semester FROM academic_years WHERE is_active = 1 LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+$active_year_name = $active_year ? $active_year['name'] . ' (' . $active_year['semester'] . ')' : '-';
 
 // Fetch Filters Data
 $grades = $conn->query("SELECT id, name FROM grade_levels ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
@@ -39,8 +43,10 @@ require_once __DIR__ . '/../layouts/header.php';
             <h2 class="text-xl font-bold text-slate-900">Absensi Makan Santri</h2>
             <p class="mt-2 text-sm text-slate-500">Tandai kehadiran makan santri per kelas atau asrama.</p>
         </div>
-        <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-            <!-- Refresh button removed as per request -->
+        <div class="mt-4 sm:mt-0 flex items-center space-x-2">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-cyan-100 text-cyan-800">
+                Tahun Ajaran: <?php echo htmlspecialchars($active_year_name); ?> - Aktif
+            </span>
         </div>
     </div>
 

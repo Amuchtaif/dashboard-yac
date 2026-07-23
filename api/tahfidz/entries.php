@@ -43,7 +43,7 @@ try {
                 $filters = [
                     'student_id' => isset($_GET['student_id']) ? (int)$_GET['student_id'] : null,
                     'entry_type' => isset($_GET['entry_type']) ? $_GET['entry_type'] : null,
-                    'date' => isset($_GET['date']) ? $_GET['date'] : (isset($_GET['start_date']) ? $_GET['start_date'] : null)
+                    'date' => isset($_GET['date']) ? substr($_GET['date'], 0, 10) : (isset($_GET['start_date']) ? substr($_GET['start_date'], 0, 10) : null)
                 ];
                 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
                 $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;

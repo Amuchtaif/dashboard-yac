@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 include_once __DIR__ . '/../../config/db_mysqli.php';
 
 $student_id = isset($_GET['student_id']) ? $_GET['student_id'] : null;
-$date = isset($_GET['date']) ? $_GET['date'] : null;
+$date = isset($_GET['date']) ? substr($_GET['date'], 0, 10) : null;
 $teacher_id = isset($_GET['teacher_id']) ? $_GET['teacher_id'] : null;
 
 try {
@@ -29,15 +29,17 @@ try {
 
     $memorization_records = [];
     $query = "SELECT m.id, m.student_id, m.teacher_id, m.date, m.surah_start, m.start_ayah AS ayat_start, m.total_baris, m.surah_end, m.end_ayah AS ayat_end, m.juz, m.status, m.notes, m.created_at,
-                     s.nama_siswa as student_name, gl.name as kelas, s.tingkat,
+                     s.nama_siswa as student_name, COALESCE(gl.name, s.kelas, '-') as kelas, s.tingkat,
                      e.full_name as teacher_name,
                      m.surah_start as surah_name,
                      m.status as quality
               FROM memorization_entries m
               LEFT JOIN students s ON m.student_id = s.id
-              LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = $activeYearId AND sch.status = 'ACTIVE'
+              LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = $activeYearId
               LEFT JOIN grade_levels gl ON sch.class_id = gl.id
               LEFT JOIN employees e ON m.teacher_id = e.id
+              LEFT JOIN halaqah_members hm ON s.id = hm.student_id
+              LEFT JOIN halaqah_groups hg ON hm.group_id = hg.id
               WHERE 1=1";
 
     $params = [];
@@ -56,12 +58,13 @@ try {
     }
 
     if ($teacher_id) {
-        $query .= " AND m.teacher_id = ?";
+        $query .= " AND (m.teacher_id = ? OR hg.teacher_id = ?)";
         $params[] = $teacher_id;
-        $types .= "i";
+        $params[] = $teacher_id;
+        $types .= "ii";
     }
 
-    $query .= " ORDER BY m.date DESC, m.created_at DESC";
+    $query .= " GROUP BY m.id ORDER BY m.date DESC, m.created_at DESC";
 
     $stmt = $mysqli->prepare($query);
     if ($params) {
