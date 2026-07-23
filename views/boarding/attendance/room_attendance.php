@@ -32,16 +32,22 @@ if (!$room) {
 
 $page_title = "Absensi ASRAMA - " . $room['room_name'];
 
+// Fetch Active Academic Year
+$active_year = $conn->query("SELECT id, name, semester FROM academic_years WHERE is_active = 1 LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+$active_year_id = $active_year['id'] ?? 0;
+
 $filter = 'all'; // Default to show all students
 
 // Fetch members with their attendance status for the selected date
 $members_query = "
-    SELECT s.id as student_id, s.nama_siswa, s.nomor_induk, s.kelas,
+    SELECT s.id as student_id, s.nama_siswa, s.nomor_induk, COALESCE(gl.name, s.kelas, '-') as kelas,
            ba.status as attendance_status, ba.notes as attendance_notes
     FROM boarding_room_members brm
     JOIN students s ON brm.student_id = s.id
-    LEFT JOIN boarding_attendances ba ON ba.student_id = s.id AND ba.date = ?
-    WHERE brm.room_id = ?
+    LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = :yid
+    LEFT JOIN grade_levels gl ON sch.class_id = gl.id
+    LEFT JOIN boarding_attendances ba ON ba.student_id = s.id AND ba.date = :date
+    WHERE brm.room_id = :room_id AND s.status = 'Aktif'
 ";
 
 if ($filter === 'marked') {
@@ -51,7 +57,7 @@ if ($filter === 'marked') {
 $members_query .= " ORDER BY s.nama_siswa ASC";
 
 $members_stmt = $conn->prepare($members_query);
-$members_stmt->execute([$date, $room_id]);
+$members_stmt->execute([':date' => $date, ':room_id' => $room_id, ':yid' => $active_year_id]);
 $members = $members_stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Calculate Summary

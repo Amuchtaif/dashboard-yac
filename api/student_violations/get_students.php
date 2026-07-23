@@ -41,9 +41,9 @@ try {
 
     // Get all active students without unit restrictions
     // Using flexible status filter to handle case variations on hosting
-    $stmt = $conn->prepare("SELECT s.id, s.nama_siswa, gl.name as kelas 
+    $stmt = $conn->prepare("SELECT s.id, s.nama_siswa, COALESCE(gl.name, s.kelas, '-') as kelas 
                             FROM students s
-                            LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = :active_year_id AND sch.status = 'ACTIVE'
+                            LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = :active_year_id
                             LEFT JOIN grade_levels gl ON sch.class_id = gl.id
                             WHERE s.status LIKE 'Aktif%' OR s.status = 'Aktif' OR LOWER(s.status) = 'aktif'
                             ORDER BY s.nama_siswa ASC");

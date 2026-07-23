@@ -8,17 +8,35 @@ $page_title = "Kelola Kepulangan Santri";
 $db = new Database();
 $conn = $db->getConnection();
 
+// Fetch Active Academic Year
+$active_year = $conn->query("SELECT id, name, semester FROM academic_years WHERE is_active = 1 LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+$active_year_id = $active_year['id'] ?? 0;
+
 // Fetch returns
 $returns_query = "
-    SELECT br.*, s.nama_siswa, s.kelas
+    SELECT br.*, s.nama_siswa, COALESCE(gl.name, s.kelas, '-') as kelas
     FROM boarding_returns br
     JOIN students s ON br.student_id = s.id
+    LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = :yid
+    LEFT JOIN grade_levels gl ON sch.class_id = gl.id
     ORDER BY br.return_date DESC, br.created_at DESC
 ";
-$returns = $conn->query($returns_query)->fetchAll(PDO::FETCH_ASSOC);
+$returns_stmt = $conn->prepare($returns_query);
+$returns_stmt->execute([':yid' => $active_year_id]);
+$returns = $returns_stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // For adding return tracking (filtered by status Aktif)
-$all_students = $conn->query("SELECT id, nama_siswa, kelas FROM students WHERE status = 'Aktif' ORDER BY nama_siswa ASC")->fetchAll(PDO::FETCH_ASSOC);
+$all_students_query = "
+    SELECT s.id, s.nama_siswa, COALESCE(gl.name, s.kelas, '-') as kelas
+    FROM students s
+    LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = :yid
+    LEFT JOIN grade_levels gl ON sch.class_id = gl.id
+    WHERE s.status = 'Aktif'
+    ORDER BY s.nama_siswa ASC
+";
+$all_students_stmt = $conn->prepare($all_students_query);
+$all_students_stmt->execute([':yid' => $active_year_id]);
+$all_students = $all_students_stmt->fetchAll(PDO::FETCH_ASSOC);
 
 include '../../layouts/header.php';
 ?>

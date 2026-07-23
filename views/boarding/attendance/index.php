@@ -10,16 +10,20 @@ $conn = $db->getConnection();
 
 $date = isset($_GET['date']) ? $_GET['date'] : date('Y-m-d');
 
+// Fetch Active Academic Year
+$active_year = $conn->query("SELECT id, name, semester FROM academic_years WHERE is_active = 1 LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+
 // Fetch rooms with attendance status for the selected date
 $rooms_query = "
     SELECT 
         br.id, 
         br.room_name, 
         (SELECT GROUP_CONCAT(e.full_name SEPARATOR ', ') FROM boarding_room_supervisors brs JOIN employees e ON brs.supervisor_id = e.id WHERE brs.room_id = br.id) as supervisor_name,
-        COUNT(DISTINCT brm.student_id) as total_students,
+        COUNT(DISTINCT CASE WHEN s.status = 'Aktif' THEN brm.student_id END) as total_students,
         COUNT(DISTINCT ba.id) as total_attendance_count
     FROM boarding_rooms br
     LEFT JOIN boarding_room_members brm ON brm.room_id = br.id
+    LEFT JOIN students s ON brm.student_id = s.id
     LEFT JOIN boarding_attendances ba ON ba.room_id = br.id AND ba.date = ?
     GROUP BY br.id, br.room_name
     ORDER BY CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(br.room_name, ' (', 1), ' ', -1) AS UNSIGNED) ASC, br.room_name ASC
@@ -27,9 +31,6 @@ $rooms_query = "
 $stmt = $conn->prepare($rooms_query);
 $stmt->execute([$date]);
 $rooms = $stmt->fetchAll(PDO::FETCH_ASSOC);
-  
-// For debugging in UI (remove after fixed)
-// echo "<!-- DEBUG: Date is $date, Rooms count: " . count($rooms) . " -->";
 
 include '../../layouts/header.php';
 ?>
@@ -38,7 +39,14 @@ include '../../layouts/header.php';
     <!-- Header -->
     <div class="sm:flex sm:items-center sm:justify-between">
         <div>
-            <h1 class="text-2xl font-bold text-slate-800">Absensi Asrama</h1>
+            <div class="flex items-center gap-3">
+                <h1 class="text-2xl font-bold text-slate-800">Absensi Asrama</h1>
+                <?php if ($active_year): ?>
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        TA: <?php echo htmlspecialchars($active_year['name'] . ' (' . $active_year['semester'] . ')'); ?>
+                    </span>
+                <?php endif; ?>
+            </div>
             <p class="text-slate-500 mt-1">Pilih asrama untuk melihat data absensi santri.</p>
         </div>
         <div class="mt-4 sm:mt-0">

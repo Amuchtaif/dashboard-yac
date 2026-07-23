@@ -30,25 +30,28 @@ if (!$room) {
 
 $page_title = "Penempatan Santri - " . $room['room_name'];
 
+// Fetch Active Academic Year
+$active_year = $conn->query("SELECT id, name, semester FROM academic_years WHERE is_active = 1 LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+$active_year_id = $active_year['id'] ?? 0;
+
 // Fetch members
 $members_query = "
-    SELECT brm.*, s.nama_siswa, s.nomor_induk as student_nik, s.kelas as class_name
+    SELECT brm.*, s.nama_siswa, s.nomor_induk as student_nik, COALESCE(gl.name, s.kelas, '-') as class_name
     FROM boarding_room_members brm
     JOIN students s ON brm.student_id = s.id
-    WHERE brm.room_id = ?
+    LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = :yid
+    LEFT JOIN grade_levels gl ON sch.class_id = gl.id
+    WHERE brm.room_id = :room_id AND s.status = 'Aktif'
     ORDER BY s.nama_siswa ASC
 ";
 $members_stmt = $conn->prepare($members_query);
-$members_stmt->execute([$room_id]);
+$members_stmt->execute([':room_id' => $room_id, ':yid' => $active_year_id]);
 $members = $members_stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Fetch students not in ANY room for adding
 // Exclude TKIT, SDIT, and Playgroup units
-$active_year_query = "SELECT id FROM academic_years WHERE is_active = 1 LIMIT 1";
-$active_year_id = $conn->query($active_year_query)->fetchColumn();
-
 $available_students_query = "
-    SELECT s.id, s.nama_siswa, s.nomor_induk, s.kelas
+    SELECT s.id, s.nama_siswa, s.nomor_induk, COALESCE(gl.name, s.kelas, '-') as kelas
     FROM students s
     LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = :yid
     LEFT JOIN grade_levels gl ON sch.class_id = gl.id

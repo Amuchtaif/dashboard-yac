@@ -38,17 +38,23 @@ foreach ($stats_rows as $row) {
     }
 }
 
-// 2. Fetch All Rooms to ensure we see all dorms
+// 2. Fetch Active Academic Year
+$active_year = $conn->query("SELECT id, name, semester FROM academic_years WHERE is_active = 1 LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+$active_year_id = $active_year['id'] ?? 0;
+
+// Fetch All Rooms to ensure we see all dorms
 $rooms_query = "SELECT id, room_name FROM boarding_rooms ORDER BY CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(room_name, ' (', 1), ' ', -1) AS UNSIGNED) ASC, room_name ASC";
 $rooms = $conn->query($rooms_query)->fetchAll(PDO::FETCH_ASSOC);
 
 // 3. Fetch Active Homecoming Students with Room Info
 $active_query = "
-    SELECT bp.id, bp.student_id, s.nama_siswa, s.nomor_induk, s.kelas, s.foto,
+    SELECT bp.id, bp.student_id, s.nama_siswa, s.nomor_induk, COALESCE(gl.name, s.kelas, '-') as kelas, s.foto,
            bp.category, bp.reason, bp.start_date, bp.end_date, bp.status,
            br.room_name, br.id as room_id
     FROM boarding_permits bp
     JOIN students s ON bp.student_id = s.id
+    LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = :yid
+    LEFT JOIN grade_levels gl ON sch.class_id = gl.id
     LEFT JOIN boarding_room_members brm ON s.id = brm.student_id
     LEFT JOIN boarding_rooms br ON brm.room_id = br.id
     WHERE bp.status = 'Disetujui'
@@ -61,6 +67,7 @@ if (!empty($search)) {
 
 $stmt_active = $conn->prepare($active_query);
 $stmt_active->bindParam(':now', $now);
+$stmt_active->bindParam(':yid', $active_year_id);
 if (!empty($search)) {
     $search_param = "%$search%";
     $stmt_active->bindParam(':search', $search_param);

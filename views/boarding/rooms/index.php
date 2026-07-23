@@ -10,12 +10,15 @@ $db = new Database();
 $conn = $db->getConnection();
 
 // --- Fetch Data ---
+// Active Academic Year
+$active_year = $conn->query("SELECT id, name, semester FROM academic_years WHERE is_active = 1 LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+
 // 1. Fetch Boarding Rooms with multiple Supervisors
 $rooms_query = "
     SELECT br.*, 
     (SELECT GROUP_CONCAT(e.full_name SEPARATOR ', ') FROM boarding_room_supervisors brs JOIN employees e ON brs.supervisor_id = e.id WHERE brs.room_id = br.id) as supervisor_name,
     (SELECT GROUP_CONCAT(e.id) FROM boarding_room_supervisors brs JOIN employees e ON brs.supervisor_id = e.id WHERE brs.room_id = br.id) as supervisor_ids,
-    (SELECT COUNT(*) FROM boarding_room_members WHERE room_id = br.id) as member_count
+    (SELECT COUNT(*) FROM boarding_room_members brm JOIN students s ON brm.student_id = s.id WHERE brm.room_id = br.id AND s.status = 'Aktif') as member_count
     FROM boarding_rooms br
     ORDER BY CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(br.room_name, ' (', 1), ' ', -1) AS UNSIGNED) ASC, br.room_name ASC
 ";
@@ -32,7 +35,14 @@ include '../../layouts/header.php';
     <!-- Header -->
     <div class="sm:flex sm:items-center sm:justify-between">
         <div>
-            <h1 class="text-2xl font-bold text-slate-800">Manajemen Data Asrama</h1>
+            <div class="flex items-center gap-3">
+                <h1 class="text-2xl font-bold text-slate-800">Manajemen Data Asrama</h1>
+                <?php if ($active_year): ?>
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        TA: <?php echo htmlspecialchars($active_year['name'] . ' (' . $active_year['semester'] . ')'); ?>
+                    </span>
+                <?php endif; ?>
+            </div>
             <p class="text-slate-500 mt-1">Kelola pembagian asrama dan penempatan santri.</p>
         </div>
         <div class="mt-4 sm:mt-0">

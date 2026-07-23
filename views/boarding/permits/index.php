@@ -8,18 +8,36 @@ $page_title = "Kelola Izin Santri";
 $db = new Database();
 $conn = $db->getConnection();
 
+// Fetch Active Academic Year
+$active_year = $conn->query("SELECT id, name, semester FROM academic_years WHERE is_active = 1 LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+$active_year_id = $active_year['id'] ?? 0;
+
 // Fetch permits
 $permits_query = "
-    SELECT bp.*, s.nama_siswa, s.kelas, e.full_name as approver_name
+    SELECT bp.*, s.nama_siswa, COALESCE(gl.name, s.kelas, '-') as kelas, e.full_name as approver_name
     FROM boarding_permits bp
     JOIN students s ON bp.student_id = s.id
+    LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = :yid
+    LEFT JOIN grade_levels gl ON sch.class_id = gl.id
     LEFT JOIN employees e ON bp.approved_by = e.id
     ORDER BY bp.created_at DESC
 ";
-$permits = $conn->query($permits_query)->fetchAll(PDO::FETCH_ASSOC);
+$permits_stmt = $conn->prepare($permits_query);
+$permits_stmt->execute([':yid' => $active_year_id]);
+$permits = $permits_stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // For adding permit (filtered by status Aktif)
-$all_students = $conn->query("SELECT id, nama_siswa, kelas FROM students WHERE status = 'Aktif' ORDER BY nama_siswa ASC")->fetchAll(PDO::FETCH_ASSOC);
+$all_students_query = "
+    SELECT s.id, s.nama_siswa, COALESCE(gl.name, s.kelas, '-') as kelas
+    FROM students s
+    LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = :yid
+    LEFT JOIN grade_levels gl ON sch.class_id = gl.id
+    WHERE s.status = 'Aktif'
+    ORDER BY s.nama_siswa ASC
+";
+$all_students_stmt = $conn->prepare($all_students_query);
+$all_students_stmt->execute([':yid' => $active_year_id]);
+$all_students = $all_students_stmt->fetchAll(PDO::FETCH_ASSOC);
 
 include '../../layouts/header.php';
 ?>
