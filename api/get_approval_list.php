@@ -43,8 +43,8 @@ try {
 
     // 1. Visibility Filter
     if ($level === 1) {
-        $whereClause = "pos.level = 2";
-        $params = [];
+        $whereClause = "(p.approver_id = :aid OR pos.level = 2) AND p.employee_id != :aid";
+        $params = [':aid' => $approver_id];
     } else {
         $whereClause = "p.approver_id = :aid AND p.employee_id != :aid";
         $params = [':aid' => $approver_id];

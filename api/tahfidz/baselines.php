@@ -14,9 +14,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 require_once __DIR__ . '/../../app/Services/Tahfidz/BaselineService.php';
 require_once __DIR__ . '/../../config/permission.php';
 
-// Authentication Check: Assuming we verify authorization token or user_id
-// For compatibility with the app, we check if teacher_id / user_id is provided in headers/query
-$user_id = isset($_GET['user_id']) ? (int)$_GET['user_id'] : (isset($_POST['user_id']) ? (int)$_POST['user_id'] : 0);
+// Helper function to decode payload input
+$raw_input = file_get_contents("php://input");
+$json_input = json_decode($raw_input, true);
+$input = is_array($json_input) ? array_merge($_POST, $json_input) : $_POST;
+
+// Authentication Check
+$user_id = isset($_GET['user_id']) ? (int)$_GET['user_id'] : (isset($input['user_id']) ? (int)$input['user_id'] : (isset($input['teacher_id']) ? (int)$input['teacher_id'] : 0));
 if ($user_id > 0 && !hasPermission($user_id, 'access_tahfidz')) {
     http_response_code(403);
     echo json_encode(["success" => false, "message" => "Forbidden: Anda tidak memiliki hak akses Tahfidz."]);
@@ -42,47 +46,46 @@ try {
                 $filters = [
                     'academic_year_id' => isset($_GET['academic_year_id']) ? (int)$_GET['academic_year_id'] : null,
                     'student_id' => isset($_GET['student_id']) ? (int)$_GET['student_id'] : null,
+                    'teacher_id' => isset($_GET['teacher_id']) ? (int)$_GET['teacher_id'] : (isset($_GET['user_id']) ? (int)$_GET['user_id'] : null),
+                    'group_id' => isset($_GET['group_id']) ? (int)$_GET['group_id'] : null,
                     'search' => isset($_GET['search']) ? $_GET['search'] : null
                 ];
                 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-                $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
+                $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 100;
                 $res = $service->listBaselines($filters, $page, $limit);
-                echo json_encode(array_merge(["success" => true], $res));
+                echo json_encode($res);
             }
             break;
 
         case 'POST':
-            $input = json_decode(file_get_contents("php://input"), true) ?? $_POST;
             $id = $service->createBaseline($input);
-            http_response_code(201);
-            echo json_encode(["success" => true, "message" => "Baseline created successfully.", "id" => $id]);
+            http_response_code(200);
+            echo json_encode(["success" => true, "message" => "Baseline hafalan berhasil disimpan.", "id" => $id]);
             break;
 
         case 'PUT':
-            $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+            $id = isset($_GET['id']) ? (int)$_GET['id'] : (isset($input['id']) ? (int)$input['id'] : 0);
             if ($id <= 0) {
-                http_response_code(400);
-                echo json_encode(["success" => false, "message" => "ID is required."]);
+                $id = $service->createBaseline($input);
+                http_response_code(200);
+                echo json_encode(["success" => true, "message" => "Baseline hafalan berhasil disimpan.", "id" => $id]);
                 break;
             }
-            $input = json_decode(file_get_contents("php://input"), true) ?? $_POST;
             $service->updateBaseline($id, $input);
-            echo json_encode(["success" => true, "message" => "Baseline updated successfully."]);
+            http_response_code(200);
+            echo json_encode(["success" => true, "message" => "Baseline hafalan berhasil diperbarui."]);
             break;
 
         case 'DELETE':
-            $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-            if ($id <= 0) {
-                $input = json_decode(file_get_contents("php://input"), true) ?? $_POST;
-                $id = isset($input['id']) ? (int)$input['id'] : 0;
-            }
+            $id = isset($_GET['id']) ? (int)$_GET['id'] : (isset($input['id']) ? (int)$input['id'] : 0);
             if ($id <= 0) {
                 http_response_code(400);
                 echo json_encode(["success" => false, "message" => "ID is required."]);
                 break;
             }
             $service->deleteBaseline($id);
-            echo json_encode(["success" => true, "message" => "Baseline deleted successfully."]);
+            http_response_code(200);
+            echo json_encode(["success" => true, "message" => "Baseline hafalan berhasil dihapus."]);
             break;
 
         default:

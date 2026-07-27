@@ -37,27 +37,64 @@ try {
     // 2. Fetch all students (filtered by status Aktif and excluding specific units)
     $exclude = ["'TKIT'", "'SDIT'", "'PLAY GROUP'"];
     $exclude_str = implode(',', $exclude);
-    $query = "SELECT s.*, COALESCE(gl.name, s.kelas, '-') as kelas 
+    $query = "SELECT s.*, 
+                     s.nomor_induk as nis,
+                     COALESCE(gl.name, s.kelas, '-') as kelas,
+                     COALESCE((SELECT baseline_juz FROM memorization_baselines WHERE student_id = s.id AND academic_year_id = $activeYearId LIMIT 1), 
+                              (SELECT baseline_juz FROM memorization_baselines WHERE student_id = s.id ORDER BY id DESC LIMIT 1), 
+                              0.0) as baseline_juz,
+                     COALESCE((SELECT baseline_juz FROM memorization_baselines WHERE student_id = s.id AND academic_year_id = $activeYearId LIMIT 1), 
+                              (SELECT baseline_juz FROM memorization_baselines WHERE student_id = s.id ORDER BY id DESC LIMIT 1), 
+                              0.0) as baseline,
+                     COALESCE((SELECT baseline_juz FROM memorization_baselines WHERE student_id = s.id AND academic_year_id = $activeYearId LIMIT 1), 
+                              (SELECT baseline_juz FROM memorization_baselines WHERE student_id = s.id ORDER BY id DESC LIMIT 1), 
+                              0.0) as initial_juz
               FROM students s 
               LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = $activeYearId
               LEFT JOIN grade_levels gl ON sch.class_id = gl.id
               WHERE s.status = 'Aktif' 
               AND (s.tingkat NOT IN ($exclude_str) OR s.tingkat IS NULL)
               ORDER BY s.nama_siswa ASC";
-    $result = $mysqli->query($query);
-    
+    $formatted_students = [];
+    $filled_count = 0;
+
     if ($result) {
         while ($row = $result->fetch_assoc()) {
-            $students[] = $row;
+            $baselineVal = (float)$row['baseline_juz'];
+            $isFilled = ($baselineVal > 0);
+            if ($isFilled) $filled_count++;
+
+            $row['id'] = (int)$row['id'];
+            $row['student_id'] = (int)$row['id'];
+            $row['baseline_juz'] = $baselineVal;
+            $row['baseline'] = $baselineVal;
+            $row['initial_juz'] = $baselineVal;
+            $row['juz'] = $baselineVal;
+            $row['is_filled'] = $isFilled;
+            $row['is_set'] = $isFilled;
+            $row['has_baseline'] = $isFilled;
+            $row['status_baseline'] = $isFilled ? "Sudah Diisi" : "Belum Diisi";
+            $row['baseline_status'] = $isFilled ? "Sudah Diisi" : "Belum Diisi";
+            $row['status_text'] = $isFilled ? "Sudah Diisi" : "Belum Diisi";
+
+            $formatted_students[] = $row;
         }
     } else {
         throw new Exception("Error executing query: " . $mysqli->error);
     }
 
+    $total = count($formatted_students);
+
     echo json_encode([
         "success" => true,
-        "count" => count($students),
-        "data" => $students,
+        "academic_year" => $activeYear,
+        "academic_year_id" => (int)$activeYearId,
+        "count" => $total,
+        "total_students" => $total,
+        "filled_count" => $filled_count,
+        "progress_pengisian" => "$filled_count dari $total Santri",
+        "progress_text" => "$filled_count dari $total Santri",
+        "data" => $formatted_students,
         "active_year_debug" => $activeYear 
     ]);
 

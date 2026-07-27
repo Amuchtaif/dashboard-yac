@@ -138,6 +138,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    // Fallback to Mudir (Level 1) if approver_id is still empty/null
+    if (empty($approver_id)) {
+        $stmtMudir = $conn->prepare("SELECT e.id FROM employees e JOIN positions p ON e.position_id = p.id WHERE p.level = 1 AND e.status = 'active' LIMIT 1");
+        $stmtMudir->execute();
+        $mudir_id = $stmtMudir->fetchColumn();
+        if ($mudir_id && $mudir_id != $employee_id) {
+            $approver_id = $mudir_id;
+        }
+    }
+
     // 4. Save to Database
     $sql = "INSERT INTO permits (employee_id, permit_type, start_date, end_date, reason, attachment, status, approver_id, is_hourly, start_time, end_time) 
             VALUES (:employee_id, :permit_type, :start_date, :end_date, :reason, :attachment, :status, :approver_id, :is_hourly, :start_time, :end_time)";
