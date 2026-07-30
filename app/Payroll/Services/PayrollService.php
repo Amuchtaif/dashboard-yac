@@ -85,8 +85,15 @@ class PayrollService
     {
         if (isset($filters['user_id'])) {
             $employee = $this->attendanceRepo->getEmployeeWithPosition($filters['user_id']);
-            if ($employee) {
+            if ($employee && !empty($employee['nik'])) {
                 $filters['nik'] = $employee['nik'];
+            } else {
+                $employeeByNik = $this->attendanceRepo->getEmployeeWithPositionByNik($filters['user_id']);
+                if ($employeeByNik && !empty($employeeByNik['nik'])) {
+                    $filters['nik'] = $employeeByNik['nik'];
+                } else {
+                    $filters['nik'] = $filters['user_id'];
+                }
             }
         }
         return $this->payrollRepo->list($filters);

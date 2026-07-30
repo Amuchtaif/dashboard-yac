@@ -26,11 +26,11 @@ class PayrollRepository
     {
         $query = "INSERT INTO gaji 
                   (id_payroll, tanggal, gaji_bulan, nik, nama, jabatan, 
-                   gapok, tunjab, lembur, gaji_bruto, pph21, bpjs_kes, 
+                   gapok, tunjab, lembur, bpjs_tk_jht_ip, bpjs_keshtn, gaji_bruto, pph21, bpjs_kes, 
                    bpjs_tk, jumlah_potongan, gaji_netto) 
                   VALUES 
                   (:id_payroll, :tanggal, :gaji_bulan, :nik, :nama, :jabatan, 
-                   :gapok, :tunjab, :lembur, :gaji_bruto, :pph21, :bpjs_kes, 
+                   :gapok, :tunjab, :lembur, :bpjs_tk_jht_ip, :bpjs_keshtn, :gaji_bruto, :pph21, :bpjs_kes, 
                    :bpjs_tk, :jumlah_potongan, :gaji_netto)";
 
         $stmt = $this->db->prepare($query);
@@ -53,6 +53,8 @@ class PayrollRepository
             'gapok' => $data['gaji_pokok'],
             'tunjab' => $data['tunjangan_jabatan'],
             'lembur' => $data['lembur'],
+            'bpjs_tk_jht_ip' => $data['bpjs_tk_jht_ip'] ?? $data['bpjs_tk_bg_pt'] ?? 0,
+            'bpjs_keshtn' => $data['bpjs_keshtn'] ?? $data['bpjs_kes_tunjangan'] ?? 0,
             'gaji_bruto' => $data['gaji_bruto'],
             'pph21' => $data['pajak_pph21'],
             'bpjs_kes' => $data['bpjs_kesehatan'],
@@ -80,7 +82,8 @@ class PayrollRepository
     public function list($filters)
     {
         $limit = $filters['limit'] ?? 10;
-        $offset = ($filters['page'] - 1) * $limit;
+        $page = $filters['page'] ?? 1;
+        $offset = ($page - 1) * $limit;
         
         $query = "SELECT * FROM gaji WHERE 1=1";
         $params = [];
@@ -173,8 +176,39 @@ class PayrollRepository
             'tunkus' => (float)$row['tunkus'],
             'ikm' => (float)$row['ikm'],
             'lembur' => (float)$row['lembur'],
+            // BPJS TK Tunjangan / Bagian Perusahaan (Aliases for Flutter compatibility)
             'bpjs_tk_jht_ip' => (float)$row['bpjs_tk_jht_ip'],
+            'bpjs_tk_bg_pt' => (float)$row['bpjs_tk_jht_ip'],
+            'bpjs_tk_pt' => (float)$row['bpjs_tk_jht_ip'],
+            'bpjs_tk_perusahaan' => (float)$row['bpjs_tk_jht_ip'],
+            'bpjs_tk_tunjangan' => (float)$row['bpjs_tk_jht_ip'],
+            'bpjs_ketenagakerjaan' => (float)$row['bpjs_tk_jht_ip'],
+            'bpjs_ketenagakerjaan_bg_pt' => (float)$row['bpjs_tk_jht_ip'],
+            'bpjs_ketenagakerjaan_pt' => (float)$row['bpjs_tk_jht_ip'],
+            'bpjs_ketenagakerjaan_tunjangan' => (float)$row['bpjs_tk_jht_ip'],
+            'bpjsTkBgPt' => (float)$row['bpjs_tk_jht_ip'],
+            'bpjsTkPt' => (float)$row['bpjs_tk_jht_ip'],
+            'bpjsTkPerusahaan' => (float)$row['bpjs_tk_jht_ip'],
+            'bpjsTkTunjangan' => (float)$row['bpjs_tk_jht_ip'],
+            'bpjsKetenagakerjaan' => (float)$row['bpjs_tk_jht_ip'],
+
+            // BPJS Kesehatan Tunjangan / Bagian Perusahaan (Aliases for Flutter compatibility)
             'bpjs_keshtn' => (float)$row['bpjs_keshtn'],
+            'bpjs_kes_tunjangan' => (float)$row['bpjs_keshtn'],
+            'bpjs_kesehatan_tunjangan' => (float)$row['bpjs_keshtn'],
+            'bpjs_kes_pt' => (float)$row['bpjs_keshtn'],
+            'bpjs_kesehatan_pt' => (float)$row['bpjs_keshtn'],
+            'bpjs_kes_bg_pt' => (float)$row['bpjs_keshtn'],
+            'bpjs_kesehatan_bg_pt' => (float)$row['bpjs_keshtn'],
+            'bpjs_kesehatan' => (float)$row['bpjs_keshtn'],
+            'bpjsKeshtn' => (float)$row['bpjs_keshtn'],
+            'bpjsKesTunjangan' => (float)$row['bpjs_keshtn'],
+            'bpjsKesehatanTunjangan' => (float)$row['bpjs_keshtn'],
+            'bpjsKesPt' => (float)$row['bpjs_keshtn'],
+            'bpjsKesehatanPt' => (float)$row['bpjs_keshtn'],
+            'bpjsKesBgPt' => (float)$row['bpjs_keshtn'],
+            'bpjsKesehatan' => (float)$row['bpjs_keshtn'],
+
             'tunj_pph21' => (float)$row['tunj_pph21'],
             'gaji_bruto' => (float)$row['gaji_bruto'],
             'hutang_yac' => (float)$row['hutang_yac'],
@@ -183,9 +217,22 @@ class PayrollRepository
             'pph21' => (float)$row['pph21'],
             'infak' => (float)$row['infak'],
             'donasi_radio_ap' => (float)$row['donasi_radio_ap'],
+
+            // BPJS Potongan Karyawan
             'bpjs_tk' => (float)$row['bpjs_tk'],
+            'bpjs_tk_potongan' => (float)$row['bpjs_tk'],
+            'bpjs_ketenagakerjaan_potongan' => (float)$row['bpjs_tk'],
+            'bpjsTk' => (float)$row['bpjs_tk'],
+            'bpjsTkPotongan' => (float)$row['bpjs_tk'],
+
             'jht_ip' => (float)$row['jht_ip'],
+
             'bpjs_kes' => (float)$row['bpjs_kes'],
+            'bpjs_kes_potongan' => (float)$row['bpjs_kes'],
+            'bpjs_kesehatan_potongan' => (float)$row['bpjs_kes'],
+            'bpjsKes' => (float)$row['bpjs_kes'],
+            'bpjsKesPotongan' => (float)$row['bpjs_kes'],
+
             'kredit_brg' => (float)$row['kredit_brg'],
             'belanja' => (float)$row['belanja'],
             'hutang_kop' => (float)$row['hutang_kop'],
@@ -205,14 +252,13 @@ class PayrollRepository
             'saldo_pendidikan_anak' => (float)$row['saldo_pendidikan_anak'],
             'saldo_qordul_hasan' => (float)$row['saldo_qordul_hasan'],
             'jml_hari' => (int)$row['jml_hari'],
-            'status' => 'TERBAYAR',
             'created_at' => $row['created_at']
         ];
     }
 
     public function getById($id_payroll)
     {
-        $query = "SELECT * FROM gaji WHERE id_payroll = :id LIMIT 1";
+        $query = "SELECT * FROM gaji WHERE id_payroll = :id OR id = :id LIMIT 1";
         $stmt = $this->db->prepare($query);
         $stmt->execute(['id' => $id_payroll]);
         $row = $stmt->fetch();

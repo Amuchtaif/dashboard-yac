@@ -58,6 +58,7 @@ class PayrollController
         $bulan = $_GET['bulan'] ?? null;
         $tahun = $_GET['tahun'] ?? null;
         $user_id = $_GET['user_id'] ?? null;
+        $nik = $_GET['nik'] ?? null;
         $page = (int)($_GET['page'] ?? 1);
         $limit = (int)($_GET['limit'] ?? 10);
 
@@ -69,6 +70,7 @@ class PayrollController
         ];
 
         if ($user_id) $filters['user_id'] = $user_id;
+        if ($nik) $filters['nik'] = $nik;
 
         $list = $this->payrollService->getPayrollList($filters);
         $this->response(200, ["success" => true, "data" => $list]);
