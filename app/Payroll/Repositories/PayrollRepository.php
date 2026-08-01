@@ -53,7 +53,7 @@ class PayrollRepository
             'gapok' => $data['gaji_pokok'],
             'tunjab' => $data['tunjangan_jabatan'],
             'lembur' => $data['lembur'],
-            'bpjs_tk_jht_ip' => $data['bpjs_tk_jht_ip'] ?? $data['bpjs_tk_bg_pt'] ?? 0,
+            'bpjs_tk_jht_ip' => $data['bpjs_tk_jht_ip'] ?? $data['bpjs_tk_jht_lp'] ?? $data['bpjs_tk_bg_pt'] ?? 0,
             'bpjs_keshtn' => $data['bpjs_keshtn'] ?? $data['bpjs_kes_tunjangan'] ?? 0,
             'gaji_bruto' => $data['gaji_bruto'],
             'pph21' => $data['pajak_pph21'],
@@ -177,6 +177,7 @@ class PayrollRepository
             'ikm' => (float)$row['ikm'],
             'lembur' => (float)$row['lembur'],
             // BPJS TK Tunjangan / Bagian Perusahaan (Aliases for Flutter compatibility)
+            'bpjs_tk_jht_lp' => (float)$row['bpjs_tk_jht_ip'],
             'bpjs_tk_jht_ip' => (float)$row['bpjs_tk_jht_ip'],
             'bpjs_tk_bg_pt' => (float)$row['bpjs_tk_jht_ip'],
             'bpjs_tk_pt' => (float)$row['bpjs_tk_jht_ip'],

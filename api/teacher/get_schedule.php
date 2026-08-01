@@ -6,6 +6,7 @@ $conn = $db->getConnection();
 
 $employee_id = $_GET['employee_id'] ?? null;
 $day = $_GET['day'] ?? date('l'); // 'Monday', 'Tuesday', ...
+$date = $_GET['date'] ?? date('Y-m-d');
 
 if (!$employee_id) {
     http_response_code(400);
@@ -45,10 +46,10 @@ try {
             lp.start_time,
             COALESCE(lp_end.end_time, lp.end_time) as end_time,
             cs.day,
-            (SELECT COUNT(*) FROM class_journals cj WHERE cj.class_schedule_id = cs.id AND cj.date = CURDATE() AND (cj.topic != '' AND cj.notes != '')) as is_journal_filled,
+            (SELECT COUNT(*) FROM class_journals cj WHERE cj.class_schedule_id = cs.id AND cj.date = :date AND (cj.topic != '' AND cj.notes != '')) as is_journal_filled,
             (SELECT COUNT(*) FROM student_attendances sa 
              JOIN class_journals cj ON sa.class_journal_id = cj.id 
-             WHERE cj.class_schedule_id = cs.id AND cj.date = CURDATE()) as has_attendance
+             WHERE cj.class_schedule_id = cs.id AND cj.date = :date) as has_attendance
         FROM class_schedules cs
         JOIN subjects s ON cs.subject_id = s.id
         JOIN grade_levels gl ON cs.grade_level_id = gl.id
@@ -59,7 +60,12 @@ try {
     ";
 
     $stmt = $conn->prepare($sql);
-    $stmt->execute([':employee_id' => $employee_id, ':day' => $day, ':active_year_id' => $active_year_id]);
+    $stmt->execute([
+        ':employee_id' => $employee_id,
+        ':day' => $day,
+        ':active_year_id' => $active_year_id,
+        ':date' => $date
+    ]);
     $schedules = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     echo json_encode([

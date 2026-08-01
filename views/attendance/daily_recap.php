@@ -10,7 +10,14 @@ $db = new Database();
 $conn = $db->getConnection();
 
 // --- Filter Logic ---
+$tab = isset($_GET['tab']) ? $_GET['tab'] : 'daily';
+if (!in_array($tab, ['daily', 'absenteeism'])) {
+    $tab = 'daily';
+}
+
 $target_date = isset($_GET['date']) ? $_GET['date'] : date('Y-m-d');
+$start_date = isset($_GET['start_date']) ? $_GET['start_date'] : date('Y-m-d', strtotime('-7 days'));
+$end_date = isset($_GET['end_date']) ? $_GET['end_date'] : date('Y-m-d');
 $division_id = isset($_GET['division_id']) ? $_GET['division_id'] : '';
 $unit_id = isset($_GET['unit_id']) ? $_GET['unit_id'] : '';
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
@@ -21,7 +28,7 @@ $units = $conn->query("SELECT id, name FROM units ORDER BY name ASC")->fetchAll(
 
 // Build WHERE Clause (Base Employees)
 $where_emp = " WHERE e.id != 1 AND (e.status = 'active' OR e.status IS NULL) ";
-$params_emp = [':target_date' => $target_date];
+$params_emp = [];
 
 if ($search) {
     $where_emp .= " AND e.full_name LIKE :search ";
@@ -36,53 +43,87 @@ if ($unit_id) {
     $params_emp[':unit_id'] = $unit_id;
 }
 
-// 1. Query Belum Absen
-$query_absent = "
-    SELECT 
-        e.id, 
-        e.full_name, 
-        u.name as unit_name, 
-        d.name as division_name
-    FROM employees e
-    LEFT JOIN units u ON e.unit_id = u.id
-    LEFT JOIN divisions d ON e.division_id = d.id
-    $where_emp
-    AND e.id NOT IN (SELECT user_id FROM attendances WHERE date = :target_date)
-    ORDER BY e.full_name ASC
-";
-
-$stmt_absent = $conn->prepare($query_absent);
-foreach ($params_emp as $key => $val) {
-    $stmt_absent->bindValue($key, $val);
+if ($tab === 'daily') {
+    // 1. Query Belum Absen (untuk Laporan Harian)
+    $params_emp[':target_date'] = $target_date;
+    $query_absent = "
+        SELECT 
+            e.id, 
+            e.full_name, 
+            u.name as unit_name, 
+            d.name as division_name
+        FROM employees e
+        LEFT JOIN units u ON e.unit_id = u.id
+        LEFT JOIN divisions d ON e.division_id = d.id
+        $where_emp
+        AND e.id NOT IN (SELECT user_id FROM attendances WHERE date = :target_date)
+        ORDER BY e.full_name ASC
+    ";
+    
+    $stmt_absent = $conn->prepare($query_absent);
+    foreach ($params_emp as $key => $val) {
+        $stmt_absent->bindValue($key, $val);
+    }
+    $stmt_absent->execute();
+    $absent_employees = $stmt_absent->fetchAll(PDO::FETCH_ASSOC);
+    
+    // 2. Query Telat (untuk Laporan Harian)
+    $query_late = "
+        SELECT 
+            e.id, 
+            e.full_name, 
+            u.name as unit_name, 
+            d.name as division_name,
+            a.time_in as check_in_time,
+            a.status as attendance_status
+        FROM attendances a
+        JOIN employees e ON a.user_id = e.id
+        LEFT JOIN units u ON e.unit_id = u.id
+        LEFT JOIN divisions d ON e.division_id = d.id
+        $where_emp
+        AND a.date = :target_date
+        AND a.status IN ('Telat', 'Late')
+        ORDER BY a.time_in ASC
+    ";
+    
+    $stmt_late = $conn->prepare($query_late);
+    foreach ($params_emp as $key => $val) {
+        $stmt_late->bindValue($key, $val);
+    }
+    $stmt_late->execute();
+    $late_employees = $stmt_late->fetchAll(PDO::FETCH_ASSOC);
+} else {
+    // Query Ketidakhadiran Kumulatif (untuk Tab Ketidakhadiran)
+    $params_emp[':start_date'] = $start_date;
+    $params_emp[':end_date'] = $end_date;
+    
+    $query_never_attended = "
+        SELECT 
+            e.id, 
+            e.nik,
+            e.full_name, 
+            e.email,
+            u.name as unit_name, 
+            d.name as division_name
+        FROM employees e
+        LEFT JOIN units u ON e.unit_id = u.id
+        LEFT JOIN divisions d ON e.division_id = d.id
+        $where_emp
+        AND e.id NOT IN (
+            SELECT DISTINCT user_id 
+            FROM attendances 
+            WHERE date >= :start_date AND date <= :end_date
+        )
+        ORDER BY e.full_name ASC
+    ";
+    
+    $stmt_never = $conn->prepare($query_never_attended);
+    foreach ($params_emp as $key => $val) {
+        $stmt_never->bindValue($key, $val);
+    }
+    $stmt_never->execute();
+    $never_attended_employees = $stmt_never->fetchAll(PDO::FETCH_ASSOC);
 }
-$stmt_absent->execute();
-$absent_employees = $stmt_absent->fetchAll(PDO::FETCH_ASSOC);
-
-// 2. Query Telat
-$query_late = "
-    SELECT 
-        e.id, 
-        e.full_name, 
-        u.name as unit_name, 
-        d.name as division_name,
-        a.time_in as check_in_time,
-        a.status as attendance_status
-    FROM attendances a
-    JOIN employees e ON a.user_id = e.id
-    LEFT JOIN units u ON e.unit_id = u.id
-    LEFT JOIN divisions d ON e.division_id = d.id
-    " . str_replace('e.', 'e.', $where_emp) . "
-    AND a.date = :target_date
-    AND a.status IN ('Telat', 'Late')
-    ORDER BY a.time_in ASC
-";
-
-$stmt_late = $conn->prepare($query_late);
-foreach ($params_emp as $key => $val) {
-    $stmt_late->bindValue($key, $val);
-}
-$stmt_late->execute();
-$late_employees = $stmt_late->fetchAll(PDO::FETCH_ASSOC);
 
 include '../layouts/header.php';
 ?>
@@ -94,7 +135,7 @@ include '../layouts/header.php';
             <p class="mt-2 text-sm text-slate-500">Monitoring pegawai yang belum absen dan terlambat pada tanggal tertentu.</p>
         </div>
         <div class="mt-4 sm:ml-16 sm:mt-0 flex gap-3">
-            <a href="export_daily_recap_excel.php?<?php echo http_build_query($_GET); ?>" target="_blank"
+            <a href="<?php echo $tab === 'daily' ? 'export_daily_recap_excel.php' : 'export_absenteeism_excel.php'; ?>?<?php echo http_build_query($_GET); ?>" target="_blank"
                 class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all">
                 <svg class="-ml-1 mr-2 h-4 w-4 text-emerald-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
@@ -104,23 +145,55 @@ include '../layouts/header.php';
         </div>
     </div>
 
+    <!-- Tabs Nav -->
+    <div class="mb-6 border-b border-slate-200">
+        <nav class="-mb-px flex space-x-6" aria-label="Tabs">
+            <a href="?tab=daily<?php echo $search ? '&search='.urlencode($search) : ''; ?><?php echo $division_id ? '&division_id='.$division_id : ''; ?><?php echo $unit_id ? '&unit_id='.$unit_id : ''; ?><?php echo $target_date ? '&date='.$target_date : ''; ?>" 
+               class="shrink-0 border-b-2 py-4 px-1 text-sm font-bold transition-all <?php echo $tab === 'daily' ? 'border-cyan-600 text-cyan-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'; ?>">
+                Harian
+            </a>
+            <a href="?tab=absenteeism<?php echo $search ? '&search='.urlencode($search) : ''; ?><?php echo $division_id ? '&division_id='.$division_id : ''; ?><?php echo $unit_id ? '&unit_id='.$unit_id : ''; ?><?php echo $start_date ? '&start_date='.$start_date : ''; ?><?php echo $end_date ? '&end_date='.$end_date : ''; ?>" 
+               class="shrink-0 border-b-2 py-4 px-1 text-sm font-bold transition-all <?php echo $tab === 'absenteeism' ? 'border-cyan-600 text-cyan-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'; ?>">
+                Ketidakhadiran (Rentang Tanggal)
+            </a>
+        </nav>
+    </div>
+
     <!-- Filter Section -->
     <div class="mb-8 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-        <form method="GET" class="grid grid-cols-1 md:grid-cols-5 gap-6 items-end">
+        <form method="GET" class="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
+            <!-- Hidden tab param to preserve active tab -->
+            <input type="hidden" name="tab" value="<?php echo htmlspecialchars($tab); ?>">
+
             <!-- Search by Name -->
-            <div>
+            <div class="md:col-span-3">
                 <label class="block text-[11px] font-bold text-slate-400 uppercase mb-2 ml-1 tracking-wider">Nama Pegawai</label>
                 <input type="text" name="search" value="<?php echo htmlspecialchars($search); ?>" placeholder="Cari nama..."
                     class="block w-full rounded-xl border-slate-200 bg-slate-50 py-2.5 px-4 text-sm focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 focus:bg-white transition-all text-slate-700 font-medium outline-none">
             </div>
 
-            <div>
-                <label class="block text-[11px] font-bold text-slate-400 uppercase mb-2 ml-1 tracking-wider">Tanggal</label>
-                <input type="date" name="date" value="<?php echo $target_date; ?>"
-                    class="block w-full rounded-xl border-slate-200 bg-slate-50 py-2.5 pl-4 text-sm focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 focus:bg-white transition-all text-slate-700 font-medium">
-            </div>
+            <?php if ($tab === 'daily'): ?>
+                <!-- Single Date Filter for Daily Tab -->
+                <div class="md:col-span-2">
+                    <label class="block text-[11px] font-bold text-slate-400 uppercase mb-2 ml-1 tracking-wider">Tanggal</label>
+                    <input type="date" name="date" value="<?php echo $target_date; ?>"
+                        class="block w-full rounded-xl border-slate-200 bg-slate-50 py-2.5 px-4 text-sm focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 focus:bg-white transition-all text-slate-700 font-medium">
+                </div>
+            <?php else: ?>
+                <!-- Date Range Filter for Absenteeism Tab -->
+                <div class="md:col-span-4">
+                    <label class="block text-[11px] font-bold text-slate-400 uppercase mb-2 ml-1 tracking-wider">Rentang Tanggal</label>
+                    <div class="flex items-center gap-2">
+                        <input type="date" name="start_date" value="<?php echo $start_date; ?>"
+                            class="block w-full rounded-xl border-slate-200 bg-slate-50 py-2.5 px-3 text-sm focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 focus:bg-white transition-all text-slate-700 font-medium">
+                        <span class="text-slate-400 text-xs font-bold">s/d</span>
+                        <input type="date" name="end_date" value="<?php echo $end_date; ?>"
+                            class="block w-full rounded-xl border-slate-200 bg-slate-50 py-2.5 px-3 text-sm focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 focus:bg-white transition-all text-slate-700 font-medium">
+                    </div>
+                </div>
+            <?php endif; ?>
 
-            <div>
+            <div class="md:col-span-2">
                 <label class="block text-[11px] font-bold text-slate-400 uppercase mb-2 ml-1 tracking-wider">Filter Bidang</label>
                 <select name="division_id" class="block w-full rounded-xl border-slate-200 bg-slate-50 py-2.5 pl-4 text-sm focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 focus:bg-white transition-all appearance-none cursor-pointer text-slate-700 font-medium">
                     <option value="">Semua Bidang</option>
@@ -132,7 +205,7 @@ include '../layouts/header.php';
                 </select>
             </div>
 
-            <div>
+            <div class="md:col-span-2">
                 <label class="block text-[11px] font-bold text-slate-400 uppercase mb-2 ml-1 tracking-wider">Filter Unit</label>
                 <select name="unit_id" class="block w-full rounded-xl border-slate-200 bg-slate-50 py-2.5 pl-4 text-sm focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 focus:bg-white transition-all appearance-none cursor-pointer text-slate-700 font-medium">
                     <option value="">Semua Unit</option>
@@ -144,12 +217,17 @@ include '../layouts/header.php';
                 </select>
             </div>
 
-            <div class="flex gap-2">
+            <div class="<?php echo $tab === 'daily' ? 'md:col-span-3' : 'md:col-span-1'; ?> flex gap-2">
                 <button type="submit" class="flex-1 inline-flex items-center justify-center rounded-xl bg-cyan-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-cyan-600/20 hover:bg-cyan-700 transition-all active:scale-[0.98]">
                     Filter
                 </button>
-                <?php if ($search || $division_id || $unit_id || $target_date != date('Y-m-d')): ?>
-                    <a href="?" class="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-orange-50 text-orange-600 hover:bg-orange-100 transition-all active:scale-95 border border-orange-100 shrink-0" title="Bersihkan Filter">
+                <?php 
+                $has_active_filters = $search || $division_id || $unit_id || 
+                    ($tab === 'daily' && $target_date != date('Y-m-d')) || 
+                    ($tab === 'absenteeism' && ($start_date != date('Y-m-d', strtotime('-7 days')) || $end_date != date('Y-m-d')));
+                if ($has_active_filters): 
+                ?>
+                    <a href="?tab=<?php echo $tab; ?>" class="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-orange-50 text-orange-600 hover:bg-orange-100 transition-all active:scale-95 border border-orange-100 shrink-0" title="Bersihkan Filter">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
                             <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
                             <path d="M3 3v5h5"/>
@@ -160,16 +238,114 @@ include '../layouts/header.php';
         </form>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <!-- Table 1: Belum Absen -->
+    <?php if ($tab === 'daily'): ?>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Table 1: Belum Absen -->
+            <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+                    <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center">
+                        <span class="w-2 h-2 rounded-full bg-rose-500 mr-2"></span>
+                        Belum Absen
+                    </h3>
+                    <span class="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 text-[10px] font-black uppercase">
+                        <?php echo count($absent_employees); ?> Pegawai
+                    </span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                                <th class="px-6 py-3 w-16 text-center">No.</th>
+                                <th class="px-6 py-3">Nama Pegawai</th>
+                                <th class="px-6 py-3">Unit</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50">
+                            <?php if (count($absent_employees) > 0): ?>
+                                <?php foreach ($absent_employees as $index => $row): ?>
+                                    <tr class="hover:bg-slate-50 transition-colors">
+                                        <td class="px-6 py-4 text-center text-slate-400 font-medium"><?php echo $index + 1; ?>.</td>
+                                        <td class="px-6 py-4">
+                                            <div class="font-bold text-slate-700 text-sm"><?php echo htmlspecialchars($row['full_name']); ?></div>
+                                            <div class="text-[10px] text-slate-400 font-medium"><?php echo htmlspecialchars($row['division_name'] ?? '-'); ?></div>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <span class="inline-flex items-center rounded-md bg-slate-50 px-2 py-1 text-[10px] font-bold text-slate-600 border border-slate-200 uppercase">
+                                                <?php echo htmlspecialchars($row['unit_name'] ?? '-'); ?>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="3" class="px-6 py-10 text-center text-slate-400 text-xs italic">
+                                        Semua pegawai sudah melakukan absensi.
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Table 2: Telat -->
+            <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+                    <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center">
+                        <span class="w-2 h-2 rounded-full bg-amber-500 mr-2"></span>
+                        Pegawai Terlambat (Telat)
+                    </h3>
+                    <span class="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700 text-[10px] font-black uppercase">
+                        <?php echo count($late_employees); ?> Pegawai
+                    </span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                                <th class="px-6 py-3 w-16 text-center">No.</th>
+                                <th class="px-6 py-3">Nama Pegawai</th>
+                                <th class="px-6 py-3 text-center">Waktu Absen</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50">
+                            <?php if (count($late_employees) > 0): ?>
+                                <?php foreach ($late_employees as $index => $row): ?>
+                                    <tr class="hover:bg-slate-50 transition-colors">
+                                        <td class="px-6 py-4 text-center text-slate-400 font-medium"><?php echo $index + 1; ?>.</td>
+                                        <td class="px-6 py-4">
+                                            <div class="font-bold text-slate-700 text-sm"><?php echo htmlspecialchars($row['full_name']); ?></div>
+                                            <div class="text-[10px] text-slate-400 font-medium"><?php echo htmlspecialchars($row['unit_name'] ?? '-'); ?></div>
+                                        </td>
+                                        <td class="px-6 py-4 text-center">
+                                            <span class="inline-flex items-center rounded-xl bg-rose-50 px-3 py-1 text-xs font-black text-rose-700 ring-1 ring-inset ring-rose-500/20">
+                                                <?php echo date('H:i:s', strtotime($row['check_in_time'])); ?>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="3" class="px-6 py-10 text-center text-slate-400 text-xs italic">
+                                        Tidak ada pegawai yang terlambat hari ini.
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    <?php else: ?>
+        <!-- Tab Ketidakhadiran (Rentang Tanggal) -->
         <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
             <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex items-center justify-between">
                 <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center">
                     <span class="w-2 h-2 rounded-full bg-rose-500 mr-2"></span>
-                    Belum Absen
+                    Pegawai Tidak Pernah Hadir
                 </h3>
                 <span class="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 text-[10px] font-black uppercase">
-                    <?php echo count($absent_employees); ?> Pegawai
+                    <?php echo count($never_attended_employees); ?> Pegawai
                 </span>
             </div>
             <div class="overflow-x-auto">
@@ -177,19 +353,24 @@ include '../layouts/header.php';
                     <thead>
                         <tr class="text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">
                             <th class="px-6 py-3 w-16 text-center">No.</th>
+                            <th class="px-6 py-3">NIK</th>
                             <th class="px-6 py-3">Nama Pegawai</th>
-                            <th class="px-6 py-3">Unit</th>
+                            <th class="px-6 py-3">Email</th>
+                            <th class="px-6 py-3">Bidang / Divisi</th>
+                            <th class="px-6 py-3">Unit Kerja</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-50">
-                        <?php if (count($absent_employees) > 0): ?>
-                            <?php foreach ($absent_employees as $index => $row): ?>
+                        <?php if (count($never_attended_employees) > 0): ?>
+                            <?php foreach ($never_attended_employees as $index => $row): ?>
                                 <tr class="hover:bg-slate-50 transition-colors">
                                     <td class="px-6 py-4 text-center text-slate-400 font-medium"><?php echo $index + 1; ?>.</td>
+                                    <td class="px-6 py-4 text-slate-700 text-sm font-semibold"><?php echo htmlspecialchars($row['nik'] ?? '-'); ?></td>
                                     <td class="px-6 py-4">
-                                        <div class="font-bold text-slate-700 text-sm"><?php echo htmlspecialchars($row['full_name']); ?></div>
-                                        <div class="text-[10px] text-slate-400 font-medium"><?php echo htmlspecialchars($row['division_name'] ?? '-'); ?></div>
+                                        <div class="font-bold text-slate-800 text-sm"><?php echo htmlspecialchars($row['full_name']); ?></div>
                                     </td>
+                                    <td class="px-6 py-4 text-slate-600 text-sm font-medium"><?php echo htmlspecialchars($row['email'] ?? '-'); ?></td>
+                                    <td class="px-6 py-4 text-slate-600 text-sm font-semibold"><?php echo htmlspecialchars($row['division_name'] ?? '-'); ?></td>
                                     <td class="px-6 py-4">
                                         <span class="inline-flex items-center rounded-md bg-slate-50 px-2 py-1 text-[10px] font-bold text-slate-600 border border-slate-200 uppercase">
                                             <?php echo htmlspecialchars($row['unit_name'] ?? '-'); ?>
@@ -199,8 +380,8 @@ include '../layouts/header.php';
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="3" class="px-6 py-10 text-center text-slate-400 text-xs italic">
-                                    Semua pegawai sudah melakukan absensi.
+                                <td colspan="6" class="px-6 py-10 text-center text-slate-400 text-xs italic">
+                                    Tidak ada pegawai yang tidak hadir dalam rentang tanggal yang dipilih.
                                 </td>
                             </tr>
                         <?php endif; ?>
@@ -208,55 +389,7 @@ include '../layouts/header.php';
                 </table>
             </div>
         </div>
-
-        <!-- Table 2: Telat -->
-        <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-            <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-                <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center">
-                    <span class="w-2 h-2 rounded-full bg-amber-500 mr-2"></span>
-                    Pegawai Terlambat (Telat)
-                </h3>
-                <span class="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700 text-[10px] font-black uppercase">
-                    <?php echo count($late_employees); ?> Pegawai
-                </span>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left">
-                    <thead>
-                        <tr class="text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">
-                            <th class="px-6 py-3 w-16 text-center">No.</th>
-                            <th class="px-6 py-3">Nama Pegawai</th>
-                            <th class="px-6 py-3 text-center">Waktu Absen</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-50">
-                        <?php if (count($late_employees) > 0): ?>
-                            <?php foreach ($late_employees as $index => $row): ?>
-                                <tr class="hover:bg-slate-50 transition-colors">
-                                    <td class="px-6 py-4 text-center text-slate-400 font-medium"><?php echo $index + 1; ?>.</td>
-                                    <td class="px-6 py-4">
-                                        <div class="font-bold text-slate-700 text-sm"><?php echo htmlspecialchars($row['full_name']); ?></div>
-                                        <div class="text-[10px] text-slate-400 font-medium"><?php echo htmlspecialchars($row['unit_name'] ?? '-'); ?></div>
-                                    </td>
-                                    <td class="px-6 py-4 text-center">
-                                        <span class="inline-flex items-center rounded-xl bg-rose-50 px-3 py-1 text-xs font-black text-rose-700 ring-1 ring-inset ring-rose-500/20">
-                                            <?php echo date('H:i:s', strtotime($row['check_in_time'])); ?>
-                                        </span>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <tr>
-                                <td colspan="3" class="px-6 py-10 text-center text-slate-400 text-xs italic">
-                                    Tidak ada pegawai yang terlambat hari ini.
-                                </td>
-                            </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+    <?php endif; ?>
 </div>
 
 <?php include '../layouts/footer.php'; ?>

@@ -48,6 +48,22 @@ try {
     $counts = $stmt->get_result()->fetch_assoc();
     $stmt->close();
 
+    // Get student's halaqah and teacher name
+    $stmt_h = $mysqli->prepare("
+        SELECT hg.group_name as halaqah_name, e.full_name as teacher_name
+        FROM halaqah_members hm
+        JOIN halaqah_groups hg ON hm.group_id = hg.id
+        LEFT JOIN employees e ON hg.teacher_id = e.id
+        WHERE hm.student_id = ? LIMIT 1
+    ");
+    $stmt_h->bind_param("i", $student_id);
+    $stmt_h->execute();
+    $halaqah_info = $stmt_h->get_result()->fetch_assoc();
+    $stmt_h->close();
+
+    $halaqah_name = $halaqah_info ? $halaqah_info['halaqah_name'] : 'Belum Ada';
+    $teacher_name = $halaqah_info ? $halaqah_info['teacher_name'] : 'Belum Ada';
+
     echo json_encode([
         "success" => true,
         "data" => [
@@ -60,7 +76,9 @@ try {
             "target_semester" => $prog['target_juz'],
             "progress_semester" => $prog['progress_percentage'],
             "baseline_juz" => $prog['baseline_juz'],
-            "total_juz" => $prog['total_juz']
+            "total_juz" => $prog['total_juz'],
+            "halaqah_name" => $halaqah_name,
+            "teacher_name" => $teacher_name
         ]
     ]);
 

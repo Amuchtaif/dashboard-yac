@@ -38,10 +38,13 @@ function get_public_holidays($year) {
     $cache_file = "../../tmp/holidays_$year.json";
     if (file_exists($cache_file) && (time() - filemtime($cache_file)) < 86400) {
         $cached_data = json_decode(file_get_contents($cache_file), true);
-        return is_array($cached_data) ? $cached_data : [];
+        if (is_array($cached_data) && isset($cached_data['data'])) {
+            return $cached_data['data'];
+        }
+        return [];
     }
     
-    $url = "https://libur.deno.dev/api?year=$year";
+    $url = "https://api-hari-libur.vercel.app/api?year=$year";
     
     // Try file_get_contents first
     $json = @file_get_contents($url);
@@ -60,7 +63,9 @@ function get_public_holidays($year) {
         if (!is_dir("../../tmp")) mkdir("../../tmp", 0777, true);
         file_put_contents($cache_file, $json);
         $decoded_data = json_decode($json, true);
-        return is_array($decoded_data) ? $decoded_data : [];
+        if (is_array($decoded_data) && isset($decoded_data['data'])) {
+            return $decoded_data['data'];
+        }
     }
     return [];
 }
@@ -84,11 +89,10 @@ for ($i = $year - 1; $i <= $year + 1; $i++) {
     $api_year_holidays = get_public_holidays($i);
     if (is_array($api_year_holidays)) {
         foreach ($api_year_holidays as $h) {
-            // The API libur.deno.dev structure is actually {"date": "YYYY-MM-DD", "name": "Holiday Name"}
-            if (isset($h['date']) && isset($h['name'])) {
+            if (isset($h['date']) && isset($h['description'])) {
                 $public_events[] = [
-                    'id' => 'api_' . md5($h['date'] . $h['name']),
-                    'title' => $h['name'],
+                    'id' => 'api_' . md5($h['date'] . $h['description']),
+                    'title' => $h['description'],
                     'start_date' => $h['date'],
                     'end_date' => $h['date'],
                     'category' => 'Libur Nasional',

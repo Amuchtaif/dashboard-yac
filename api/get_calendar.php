@@ -15,10 +15,13 @@ function get_public_holidays($year) {
     $cache_file = dirname(__DIR__) . "/tmp/holidays_$year.json";
     if (file_exists($cache_file) && (time() - filemtime($cache_file)) < 86400) {
         $cached_data = json_decode(file_get_contents($cache_file), true);
-        return is_array($cached_data) ? $cached_data : [];
+        if (is_array($cached_data) && isset($cached_data['data'])) {
+            return $cached_data['data'];
+        }
+        return [];
     }
     
-    $url = "https://libur.deno.dev/api?year=$year";
+    $url = "https://api-hari-libur.vercel.app/api?year=$year";
     $json = @file_get_contents($url);
     if (!$json && function_exists('curl_init')) {
         $ch = curl_init();
@@ -33,7 +36,9 @@ function get_public_holidays($year) {
         if (!is_dir(dirname(__DIR__) . "/tmp")) mkdir(dirname(__DIR__) . "/tmp", 0777, true);
         file_put_contents($cache_file, $json);
         $decoded_data = json_decode($json, true);
-        return is_array($decoded_data) ? $decoded_data : [];
+        if (is_array($decoded_data) && isset($decoded_data['data'])) {
+            return $decoded_data['data'];
+        }
     }
     return [];
 }
@@ -69,10 +74,10 @@ try {
     // 2. Fetch Public Holidays from API
     $api_holidays = get_public_holidays($year);
     foreach ($api_holidays as $h) {
-        if (isset($h['date']) && isset($h['name'])) {
+        if (isset($h['date']) && isset($h['description'])) {
             $events[] = [
-                "id" => "api_" . md5($h['date'] . $h['name']),
-                "title" => $h['name'],
+                "id" => "api_" . md5($h['date'] . $h['description']),
+                "title" => $h['description'],
                 "description" => "Hari Libur Nasional (API)",
                 "start_date" => $h['date'],
                 "end_date" => $h['date'],

@@ -734,6 +734,83 @@ class DashboardTahfidzService {
         
         $ay = $this->getActiveAcademicYear();
         $ay_id = $ay ? (int)$ay['id'] : 0;
+        $start_date = $ay ? $ay['start_date'] : date('Y-01-01');
+
+        // member_count
+        $stmt = $this->mysqli->prepare("SELECT COUNT(*) FROM halaqah_members hm JOIN students s ON hm.student_id = s.id WHERE hm.group_id = ? AND s.status = 'Aktif'");
+        $stmt->bind_param("i", $halaqah_id);
+        $stmt->execute();
+        $member_count = (int)$stmt->get_result()->fetch_row()[0];
+        $stmt->close();
+
+        // attendance_rate (last 30 days)
+        $stmt = $this->mysqli->prepare("
+            SELECT 
+                SUM(CASE WHEN status = 'Hadir' THEN 1 ELSE 0 END) as present,
+                COUNT(*) as total
+            FROM tahfidz_attendance ta
+            JOIN halaqah_members hm ON ta.student_id = hm.student_id
+            WHERE hm.group_id = ? AND ta.date >= DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)
+        ");
+        $stmt->bind_param("i", $halaqah_id);
+        $stmt->execute();
+        $att_row = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+        $present = $att_row['present'] ?? 0;
+        $total_att = $att_row['total'] ?? 0;
+        $attendance_rate = $total_att > 0 ? round(($present / $total_att) * 100.0, 2) : 100.0;
+
+        // avg_progress
+        $total_juz_sum = 0.00;
+        if ($member_count > 0) {
+            $stmt = $this->mysqli->prepare("
+                SELECT s.id
+                FROM halaqah_members hm
+                JOIN students s ON hm.student_id = s.id
+                WHERE hm.group_id = ? AND s.status = 'Aktif'
+            ");
+            $stmt->bind_param("i", $halaqah_id);
+            $stmt->execute();
+            $student_ids_res = $stmt->get_result();
+            $student_ids = [];
+            while ($row_id = $student_ids_res->fetch_assoc()) {
+                $student_ids[] = (int)$row_id['id'];
+            }
+            $stmt->close();
+
+            foreach ($student_ids as $std_id) {
+                // baseline
+                $stmt = $this->mysqli->prepare("
+                    SELECT baseline_juz FROM memorization_baselines WHERE student_id = ? AND academic_year_id = ? LIMIT 1
+                ");
+                $stmt->bind_param("ii", $std_id, $ay_id);
+                $stmt->execute();
+                $baseline_row = $stmt->get_result()->fetch_assoc();
+                $stmt->close();
+                $baseline_juz = $baseline_row ? (float)$baseline_row['baseline_juz'] : 0.00;
+
+                // sum lines
+                $stmt = $this->mysqli->prepare("
+                    SELECT SUM(line_count) FROM memorization_entries WHERE student_id = ? AND entry_type = 'HAFALAN_BARU' AND date >= ?
+                ");
+                $stmt->bind_param("is", $std_id, $start_date);
+                $stmt->execute();
+                $lines_row = $stmt->get_result()->fetch_row();
+                $stmt->close();
+                $new_lines = $lines_row ? (int)$lines_row[0] : 0;
+
+                $total_juz_sum += ($baseline_juz + round($new_lines / 300.0, 2));
+            }
+            $avg_progress = round($total_juz_sum / $member_count, 2);
+        } else {
+            $avg_progress = 0.00;
+        }
+
+        // Add to info array for Flutter compatibility
+        $info['name'] = $info['group_name'] ?? 'Halaqah Tahfidz';
+        $info['member_count'] = $member_count;
+        $info['attendance_rate'] = $attendance_rate;
+        $info['avg_progress'] = $avg_progress;
 
         // Students List
         $stmt = $this->mysqli->prepare("
@@ -750,6 +827,43 @@ class DashboardTahfidzService {
         $res = $stmt->get_result();
         $students = [];
         while ($row = $res->fetch_assoc()) {
+            $std_id = (int)$row['id'];
+            
+            // baseline
+            $stmt_b = $this->mysqli->prepare("
+                SELECT baseline_juz FROM memorization_baselines WHERE student_id = ? AND academic_year_id = ? LIMIT 1
+            ");
+            $stmt_b->bind_param("ii", $std_id, $ay_id);
+            $stmt_b->execute();
+            $baseline_row = $stmt_b->get_result()->fetch_assoc();
+            $stmt_b->close();
+            $baseline_juz = $baseline_row ? (float)$baseline_row['baseline_juz'] : 0.00;
+
+            // sum lines
+            $stmt_l = $this->mysqli->prepare("
+                SELECT SUM(line_count) FROM memorization_entries WHERE student_id = ? AND entry_type = 'HAFALAN_BARU' AND date >= ?
+            ");
+            $stmt_l->bind_param("is", $std_id, $start_date);
+            $stmt_l->execute();
+            $lines_row = $stmt_l->get_result()->fetch_row();
+            $stmt_l->close();
+            $new_lines = $lines_row ? (int)$lines_row[0] : 0;
+            $total_juz = $baseline_juz + round($new_lines / 300.0, 2);
+
+            // last setor date
+            $stmt_d = $this->mysqli->prepare("
+                SELECT date FROM memorization_entries WHERE student_id = ? AND entry_type = 'HAFALAN_BARU' ORDER BY date DESC, id DESC LIMIT 1
+            ");
+            $stmt_d->bind_param("i", $std_id);
+            $stmt_d->execute();
+            $last_mem = $stmt_d->get_result()->fetch_assoc();
+            $stmt_d->close();
+            $last_setor_date = $last_mem ? $last_mem['date'] : '-';
+
+            $row['baseline_juz'] = $baseline_juz;
+            $row['total_juz'] = $total_juz;
+            $row['last_setor_date'] = $last_setor_date;
+
             $students[] = $row;
         }
         $stmt->close();
@@ -851,9 +965,12 @@ class DashboardTahfidzService {
         $teacher_id = (int)$teacher_id;
         
         $stmt = $this->mysqli->prepare("
-            SELECT id, full_name, nip, phone_number 
-            FROM employees 
-            WHERE id = ? LIMIT 1
+            SELECT e.id, e.full_name, e.nip, e.phone_number,
+                   u.name as unit_name, div.name as division_name
+            FROM employees e
+            LEFT JOIN units u ON e.unit_id = u.id
+            LEFT JOIN divisions div ON e.division_id = div.id
+            WHERE e.id = ? LIMIT 1
         ");
         $stmt->bind_param("i", $teacher_id);
         $stmt->execute();
@@ -863,25 +980,64 @@ class DashboardTahfidzService {
         if (!$profile) {
             throw new Exception("Teacher not found.");
         }
+
+        $profile['name'] = $profile['full_name'];
+        
+        // Teacher Attendance rate (last 30 days)
+        $stmt_att = $this->mysqli->prepare("
+            SELECT 
+                SUM(CASE WHEN status = 'Hadir' THEN 1 ELSE 0 END) as present,
+                COUNT(*) as total
+            FROM tahfidz_teacher_attendance
+            WHERE teacher_id = ? AND date >= DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)
+        ");
+        $stmt_att->bind_param("i", $teacher_id);
+        $stmt_att->execute();
+        $att_row = $stmt_att->get_result()->fetch_assoc();
+        $stmt_att->close();
+        $present = $att_row['present'] ?? 0;
+        $total_att = $att_row['total'] ?? 0;
+        $attendance_rate = $total_att > 0 ? round(($present / $total_att) * 100.0, 2) : 100.0;
+        
+        $profile['attendance_rate'] = $attendance_rate;
+
+        // weekly_input_count (last 7 days entries)
+        $stmt_weekly = $this->mysqli->prepare("
+            SELECT COUNT(*) FROM memorization_entries WHERE teacher_id = ? AND date >= DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY)
+        ");
+        $stmt_weekly->bind_param("i", $teacher_id);
+        $stmt_weekly->execute();
+        $weekly_input_count = (int)$stmt_weekly->get_result()->fetch_row()[0];
+        $stmt_weekly->close();
+        
+        $profile['weekly_input_count'] = $weekly_input_count;
         
         // Find halaqahs managed by this teacher
         $stmt = $this->mysqli->prepare("
-            SELECT id, group_name 
-            FROM halaqah_groups 
-            WHERE teacher_id = ?
+            SELECT hg.id, hg.group_name 
+            FROM halaqah_groups hg 
+            WHERE hg.teacher_id = ?
         ");
         $stmt->bind_param("i", $teacher_id);
         $stmt->execute();
         $res = $stmt->get_result();
         $halaqahs = [];
         while ($row = $res->fetch_assoc()) {
+            // Count members active in this group
+            $stmt_m = $this->mysqli->prepare("SELECT COUNT(*) FROM halaqah_members hm JOIN students s ON hm.student_id = s.id WHERE hm.group_id = ? AND s.status = 'Aktif'");
+            $stmt_m->bind_param("i", $row['id']);
+            $stmt_m->execute();
+            $row['member_count'] = (int)$stmt_m->get_result()->fetch_row()[0];
+            $stmt_m->close();
+
             $halaqahs[] = $row;
         }
         $stmt->close();
         
         // Recent Activities logged by this teacher
         $stmt = $this->mysqli->prepare("
-            SELECT me.id, s.nama_siswa as student_name, me.date, me.entry_type, me.notes, me.created_at
+            SELECT me.id, s.nama_siswa as student_name, me.date, me.entry_type, me.notes, me.created_at,
+                   me.surah_start as surah_name, me.start_ayah, me.end_ayah, me.entry_type as activity_name
             FROM memorization_entries me
             JOIN students s ON me.student_id = s.id
             WHERE me.teacher_id = ?
@@ -893,6 +1049,11 @@ class DashboardTahfidzService {
         $res_act = $stmt->get_result();
         $activities = [];
         while ($row = $res_act->fetch_assoc()) {
+            if ($row['activity_name'] == 'HAFALAN_BARU') {
+                $row['activity_name'] = 'Ziyadah';
+            } else if ($row['activity_name'] == 'MUROJAAH') {
+                $row['activity_name'] = 'Murojaah';
+            }
             $activities[] = $row;
         }
         $stmt->close();
