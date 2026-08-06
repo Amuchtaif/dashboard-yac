@@ -76,9 +76,7 @@ include '../layouts/header.php';
         <div>
             <div class="flex items-center gap-2 text-sm text-slate-500 mb-1">
                 <span>Dashboard</span>
-                <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
+                <i class="fa-solid fa-chevron-right h-3 w-3"></i>
                 <span class="font-medium text-indigo-600">Manajemen Rapat</span>
             </div>
             <h1 class="text-2xl font-bold text-slate-900">Manajemen Rapat</h1>
@@ -99,9 +97,7 @@ include '../layouts/header.php';
             </form>
             <a href="create.php"
                 class="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-4 py-2 rounded-lg text-sm font-medium flex items-center transition-colors">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
+                <i class="fa-solid fa-plus w-4 h-4 mr-2"></i>
                 Buat Rapat Baru
             </a>
         </div>
@@ -184,31 +180,20 @@ include '../layouts/header.php';
                                     <a href="details.php?id=<?= $m['id'] ?>"
                                         class="p-2 text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
                                         title="Lihat Detail">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                        </svg>
+                                        <i class="fa-solid fa-eye w-4 h-4"></i>
                                     </a>
                                     <!-- Edit Button -->
                                     <a href="edit.php?id=<?= $m['id'] ?>"
                                         class="p-2 text-amber-600 hover:text-amber-900 bg-amber-50 hover:bg-amber-100 rounded-lg transition-colors"
                                         title="Edit Rapat">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                        </svg>
+                                        <i class="fa-solid fa-pen-to-square w-4 h-4"></i>
                                     </a>
                                     <!-- Delete Button -->
                                     <button
                                         onclick="confirmDelete(<?= $m['id'] ?>, '<?= htmlspecialchars(addslashes($m['title'])) ?>')"
                                         class="p-2 text-rose-600 hover:text-rose-900 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors"
                                         title="Hapus Rapat">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
+                                        <i class="fa-solid fa-trash w-4 h-4"></i>
                                     </button>
                                 </div>
                             </td>
@@ -267,11 +252,7 @@ include '../layouts/header.php';
                         <?php if ($page > 1): ?>
                             <a href="?page=<?php echo $page - 1; ?>&limit=<?php echo $limit; ?>&division_id=<?php echo $division_id; ?>"
                                 class="relative inline-flex items-center px-3 py-2 text-slate-400 hover:bg-slate-50 transition-colors">
-                                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd"
-                                        d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
-                                        clip-rule="evenodd" />
-                                </svg>
+                                <i class="fa-solid fa-chevron-left h-5 w-5"></i>
                             </a>
                         <?php endif; ?>
 
@@ -293,11 +274,7 @@ include '../layouts/header.php';
                         <?php if ($page < $total_pages): ?>
                             <a href="?page=<?php echo $page + 1; ?>&limit=<?php echo $limit; ?>&division_id=<?php echo $division_id; ?>"
                                 class="relative inline-flex items-center px-3 py-2 text-slate-400 hover:bg-slate-50 transition-colors">
-                                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd"
-                                        d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
-                                        clip-rule="evenodd" />
-                                </svg>
+                                <i class="fa-solid fa-chevron-right h-5 w-5"></i>
                             </a>
                         <?php endif; ?>
                     </nav>
@@ -393,11 +370,7 @@ include '../layouts/header.php';
                 <div class="sm:flex sm:items-start">
                     <div
                         class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-                        <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                            stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-                        </svg>
+                        <i class="fa-solid fa-triangle-exclamation h-6 w-6 text-red-600"></i>
                     </div>
                     <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
                         <h3 class="text-lg font-bold leading-6 text-slate-900">Hapus Rapat?</h3>
@@ -412,14 +385,7 @@ include '../layouts/header.php';
             <div class="bg-slate-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 gap-2">
                 <button type="button" id="meetingConfirmDeleteBtn" onclick="executeMeetingDelete()"
                     class="inline-flex w-full justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:w-auto transition-all transform active:scale-95">
-                    <svg class="w-4 h-4 mr-2 hidden animate-spin" id="meetingDeleteSpinner" viewBox="0 0 24 24"
-                        fill="none">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
-                        </circle>
-                        <path class="opacity-75" fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                        </path>
-                    </svg>
+                    <i id="meetingDeleteSpinner" class="fa-solid fa-spinner fa-spin w-4 h-4 mr-2 hidden animate-spin"></i>
                     <span id="meetingDeleteBtnText">Ya, Hapus</span>
                 </button>
                 <button type="button" onclick="closeMeetingDeleteModal()"

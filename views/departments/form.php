@@ -50,22 +50,14 @@ include '../layouts/header.php';
             </li>
             <li>
                 <div class="flex items-center">
-                    <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                        fill="none" viewBox="0 0 6 10">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="m1 9 4-4-4-4" />
-                    </svg>
+                    <i class="fa-solid fa-chevron-right w-3 h-3 text-gray-400 mx-1"></i>
                     <a href="<?php url('views/departments/index.php'); ?>"
                         class="ml-1 text-slate-500 hover:text-slate-700">Bidang</a>
                 </div>
             </li>
             <li aria-current="page">
                 <div class="flex items-center">
-                    <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                        fill="none" viewBox="0 0 6 10">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="m1 9 4-4-4-4" />
-                    </svg>
+                    <i class="fa-solid fa-chevron-right w-3 h-3 text-gray-400 mx-1"></i>
                     <span class="ml-1 font-medium text-slate-800">
                         <?php echo $is_edit ? "Edit" : "Tambah Baru"; ?>
                     </span>
@@ -86,11 +78,7 @@ include '../layouts/header.php';
     <!-- Alerts -->
     <?php if (isset($_GET['error'])): ?>
         <div class="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-6 text-sm flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd"
-                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                    clip-rule="evenodd" />
-            </svg>
+            <i class="fa-solid fa-circle-info h-5 w-5 shrink-0"></i>
             <?php echo htmlspecialchars($_GET['error']); ?>
         </div>
     <?php endif; ?>
@@ -146,12 +134,7 @@ include '../layouts/header.php';
                                         ?>
                                     </span>
                                     <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                                        <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"
-                                            aria-hidden="true">
-                                            <path fill-rule="evenodd"
-                                                d="M10 3a1 1 0 01.707.293l3 3a1 1 0 01-1.414 1.414L10 5.414 7.707 7.707a1 1 0 01-1.414-1.414l3-3A1 1 0 0110 3zm-3.707 9.293a1 1 0 011.414 0L10 14.586l2.293-2.293a1 1 0 011.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
-                                                clip-rule="evenodd" />
-                                        </svg>
+                                        <i class="fa-solid fa-sitemap h-5 w-5 text-gray-400"></i>
                                     </span>
                                 </button>
 
@@ -260,13 +243,7 @@ include '../layouts/header.php';
                                     echo htmlspecialchars($currentScheduleName);
                                     ?>
                                 </span>
-                                <svg class="h-4 w-4 text-slate-500 transition-transform duration-200"
-                                    id="arrow-schedule" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
-                                    fill="currentColor">
-                                    <path fill-rule="evenodd"
-                                        d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-                                        clip-rule="evenodd" />
-                                </svg>
+                                <i id="arrow-schedule" class="fa-solid fa-chevron-down h-4 w-4 text-slate-500 transition-transform duration-200"></i>
                             </button>
                             <div id="menu-schedule"
                                 class="absolute z-50 mt-1 hidden max-h-60 w-full overflow-auto rounded-lg bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">

@@ -49,22 +49,14 @@ include '../layouts/header.php';
                 </li>
                 <li>
                     <div class="flex items-center">
-                        <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                            fill="none" viewBox="0 0 6 10">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="m1 9 4-4-4-4" />
-                        </svg>
+                        <i class="fa-solid fa-chevron-right w-3 h-3 text-gray-400 mx-1"></i>
                         <a href="<?php url('views/grade_levels/index.php' . (!empty($return_filters_qs) ? '?' . $return_filters_qs : '')); ?>" class="hover:text-slate-800">Manajemen
                             Kelas</a>
                     </div>
                 </li>
                 <li aria-current="page">
                     <div class="flex items-center">
-                        <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                            fill="none" viewBox="0 0 6 10">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="m1 9 4-4-4-4" />
-                        </svg>
+                        <i class="fa-solid fa-chevron-right w-3 h-3 text-gray-400 mx-1"></i>
                         <span class="text-slate-800 font-medium">Edit Kelas</span>
                     </div>
                 </li>
@@ -133,11 +125,7 @@ include '../layouts/header.php';
                                 echo htmlspecialchars($currentUnitName);
                                 ?>
                             </span>
-                            <svg class="w-4 h-4 text-slate-500 transition-transform duration-200" fill="none"
-                                stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 9l-7 7-7-7"></path>
-                            </svg>
+                            <i class="fa-solid fa-chevron-down w-4 h-4 text-slate-500 transition-transform duration-200"></i>
                         </button>
 
                         <div
@@ -182,11 +170,7 @@ include '../layouts/header.php';
                                 echo htmlspecialchars($currentTeacherName);
                                 ?>
                             </span>
-                            <svg class="w-4 h-4 text-slate-500 transition-transform duration-200" fill="none"
-                                stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 9l-7 7-7-7"></path>
-                            </svg>
+                            <i class="fa-solid fa-chevron-down w-4 h-4 text-slate-500 transition-transform duration-200"></i>
                         </button>
 
                         <div
@@ -223,11 +207,7 @@ include '../layouts/header.php';
                 </a>
                 <button type="submit"
                     class="px-6 py-2.5 rounded-lg bg-cyan-600 text-white text-sm font-semibold hover:bg-cyan-700 transition-colors flex items-center gap-2 shadow-sm shadow-cyan-200">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
-                        <path fill-rule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-11.25a.75.75 0 00-1.5 0v2.5h-2.5a.75.75 0 000 1.5h2.5v2.5a.75.75 0 001.5 0v-2.5h2.5a.75.75 0 000-1.5h-2.5v-2.5z"
-                            clip-rule="evenodd" />
-                    </svg>
+                    <i class="fa-solid fa-magnifying-glass w-5 h-5"></i>
                     Simpan Perubahan
                 </button>
             </div>

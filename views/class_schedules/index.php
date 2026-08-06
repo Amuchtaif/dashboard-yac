@@ -177,36 +177,22 @@ include '../layouts/header.php';
         <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none flex items-center gap-3">
             <button type="button" id="bulkDeleteBtn" onclick="confirmBulkDelete()"
                 class="hidden inline-flex items-center justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all">
-                <svg class="-ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke-width="2"
-                    stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244 2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                </svg>
+                <i class="fa-solid fa-trash -ml-1 mr-2 h-4 w-4 text-white"></i>
                 Hapus Terpilih (<span id="selectedCount">0</span>)
             </button>
             <button type="button" id="bulkEditTeacherBtn" onclick="openBulkEditTeacherModal()"
                 class="hidden inline-flex items-center justify-center rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 transition-all">
-                <svg class="-ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke-width="2"
-                    stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
-                </svg>
+                <i class="fa-solid fa-pen-to-square -ml-1 mr-2 h-4 w-4 text-white"></i>
                 Ubah Guru (<span id="selectedEditCount">0</span>)
             </button>
             <a href="import.php?<?php echo http_build_query($_GET); ?>"
                 class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 transition-colors">
-                <svg class="-ml-1 mr-2 h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                    stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-                </svg>
+                <i class="fa-solid fa-download -ml-1 mr-2 h-4 w-4 text-slate-500"></i>
                 Import Jadwal
             </a>
             <a href="form.php?<?php echo http_build_query($_GET); ?>"
                 class="inline-flex items-center justify-center rounded-lg border border-transparent bg-cyan-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-cyan-700 transition-colors">
-                <svg class="-ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                    stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
+                <i class="fa-solid fa-plus -ml-1 mr-2 h-4 w-4"></i>
                 Tambah Jadwal
             </a>
         </div>
@@ -217,15 +203,11 @@ include '../layouts/header.php';
         <div class="mt-6 p-4 bg-red-50 border border-red-200 rounded-xl">
             <div class="flex items-center justify-between mb-2">
                 <h3 class="text-sm font-bold text-red-800 flex items-center gap-2">
-                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
+                    <i class="fa-solid fa-circle-exclamation h-4 w-4"></i>
                     Detail Kesalahan Import
                 </h3>
                 <button onclick="this.parentElement.parentElement.remove()" class="text-red-400 hover:text-red-600">
-                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                    <i class="fa-solid fa-xmark h-4 w-4"></i>
                 </button>
             </div>
             <ul class="list-disc list-inside text-xs text-red-700 space-y-1 max-h-40 overflow-y-auto">
@@ -244,11 +226,7 @@ include '../layouts/header.php';
             <!-- Search -->
             <div class="relative">
                 <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                    <svg class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                    </svg>
+                    <i class="fa-solid fa-magnifying-glass h-4 w-4 text-slate-400"></i>
                 </div>
                 <input type="text" name="search" value="<?php echo htmlspecialchars($search); ?>"
                     class="block w-full rounded-lg border-slate-200 pl-10 text-sm focus:border-cyan-500 focus:ring-cyan-500 bg-slate-50 border placeholder:text-slate-400 text-slate-600 py-2.5"
@@ -272,9 +250,7 @@ include '../layouts/header.php';
                         echo htmlspecialchars($ayTitle);
                         ?>
                     </span>
-                    <svg id="arrow-ay_id" class="h-4 w-4 text-slate-400 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
+                    <i id="arrow-ay_id" class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 transition-transform"></i>
                 </button>
                 <div id="menu-ay_id" class="hidden absolute z-30 mt-1 max-h-60 w-full overflow-auto rounded-xl bg-white py-1 text-base shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
                     <ul id="list-ay_id">
@@ -299,9 +275,7 @@ include '../layouts/header.php';
                         echo htmlspecialchars($unitTitle);
                         ?>
                     </span>
-                    <svg id="arrow-unit_id" class="h-4 w-4 text-slate-400 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
+                    <i id="arrow-unit_id" class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 transition-transform"></i>
                 </button>
                 <div id="menu-unit_id" class="hidden absolute z-30 mt-1 max-h-60 w-full overflow-auto rounded-xl bg-white py-1 text-base shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
                     <div class="sticky top-0 z-10 bg-white px-2 py-1.5">
@@ -330,9 +304,7 @@ include '../layouts/header.php';
                         echo htmlspecialchars($gradeTitle);
                         ?>
                     </span>
-                    <svg id="arrow-grade_id" class="h-4 w-4 text-slate-400 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
+                    <i id="arrow-grade_id" class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 transition-transform"></i>
                 </button>
                 <div id="menu-grade_id" class="hidden absolute z-30 mt-1 max-h-60 w-full overflow-auto rounded-xl bg-white py-1 text-base shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
                     <div class="sticky top-0 z-10 bg-white px-2 py-1.5">
@@ -360,9 +332,7 @@ include '../layouts/header.php';
                     <span id="text-day" class="block truncate">
                         <?php echo $day ? ($indo_days[$day] ?? $day) : "Semua Hari"; ?>
                     </span>
-                    <svg id="arrow-day" class="h-4 w-4 text-slate-400 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
+                    <i id="arrow-day" class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 transition-transform"></i>
                 </button>
                 <div id="menu-day" class="hidden absolute z-30 mt-1 max-h-60 w-full overflow-auto rounded-xl bg-white py-1 text-base shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
                     <ul id="list-day">
@@ -380,9 +350,7 @@ include '../layouts/header.php';
             <div>
                 <a href="index.php" 
                     class="flex items-center justify-center w-full px-4 py-2.5 rounded-lg bg-slate-800 text-white text-sm font-semibold hover:bg-slate-900 shadow-sm transition-all active:scale-95">
-                    <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                    <i class="fa-solid fa-xmark w-4 h-4 mr-2"></i>
                     Hapus Filter
                 </a>
             </div>
@@ -531,18 +499,10 @@ include '../layouts/header.php';
                             <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                                 <div class="flex items-center justify-end gap-3 text-gray-400">
                                     <a href="form.php?id=<?php echo $sch['id']; ?>&<?php echo http_build_query($_GET); ?>" class="hover:text-cyan-600"
-                                        title="Edit"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24"
-                                            stroke="currentColor">
-                                            <path
-                                                d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
-                                        </svg></a>
+                                        title="Edit"><i class="fa-solid fa-pen-to-square w-5 h-5"></i></a>
                                     <button
                                         onclick="openDeleteModal('../../logic/class_schedules/delete.php?id=<?php echo $sch['id']; ?>&<?php echo http_build_query($_GET); ?>')"
-                                        class="hover:text-red-600" title="Hapus"><svg class="w-5 h-5" fill="none"
-                                            viewBox="0 0 24 24" stroke="currentColor">
-                                            <path
-                                                d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                                        </svg></button>
+                                        class="hover:text-red-600" title="Hapus"><i class="fa-solid fa-trash w-5 h-5"></i></button>
                                 </div>
                             </td>
                         </tr>
@@ -596,11 +556,7 @@ include '../layouts/header.php';
                                 <?php if ($page > 1): ?>
                                     <a href="?page=<?php echo $page - 1; ?><?php echo $pag_qs ? '&' . $pag_qs : ''; ?>"
                                         class="relative inline-flex items-center px-3 py-2 text-slate-400 hover:bg-slate-50 focus:z-20 transition-colors">
-                                        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fill-rule="evenodd"
-                                                d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
-                                                clip-rule="evenodd" />
-                                        </svg>
+                                        <i class="fa-solid fa-chevron-left h-5 w-5"></i>
                                     </a>
                                 <?php endif; ?>
 
@@ -627,11 +583,7 @@ include '../layouts/header.php';
                                 <?php if ($page < $total_pages): ?>
                                     <a href="?page=<?php echo $page + 1; ?><?php echo $pag_qs ? '&' . $pag_qs : ''; ?>"
                                         class="relative inline-flex items-center px-3 py-2 text-slate-400 hover:bg-slate-50 focus:z-20 transition-colors">
-                                        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fill-rule="evenodd"
-                                                d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
-                                                clip-rule="evenodd" />
-                                        </svg>
+                                        <i class="fa-solid fa-chevron-right h-5 w-5"></i>
                                     </a>
                                 <?php endif; ?>
                             </nav>
@@ -650,9 +602,7 @@ include '../layouts/header.php';
             <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
                 <div class="sm:flex sm:items-start">
                     <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-                        <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-                        </svg>
+                        <i class="fa-solid fa-triangle-exclamation h-6 w-6 text-red-600"></i>
                     </div>
                     <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
                         <h3 class="text-lg font-bold leading-6 text-slate-900" id="modal-title">Hapus Jadwal Terpilih</h3>
@@ -685,9 +635,7 @@ include '../layouts/header.php';
                 <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
                     <div class="sm:flex sm:items-start">
                         <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-amber-100 sm:mx-0 sm:h-10 sm:w-10">
-                            <svg class="h-6 w-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
-                            </svg>
+                            <i class="fa-solid fa-pen-to-square h-6 w-6 text-amber-600"></i>
                         </div>
                         <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
                             <h3 class="text-lg font-bold leading-6 text-slate-900" id="modal-title">Ubah Guru Terpilih</h3>
@@ -704,9 +652,7 @@ include '../layouts/header.php';
                                     <span id="text-modal_teacher_id" class="block truncate text-slate-400">
                                         -- Pilih Guru --
                                     </span>
-                                    <svg id="arrow-modal_teacher_id" class="h-4 w-4 text-slate-400 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                                    </svg>
+                                    <i id="arrow-modal_teacher_id" class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 transition-transform"></i>
                                 </button>
                                 
                                 <div id="menu-modal_teacher_id" class="hidden absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-xl bg-white py-1 text-base shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-slate-100">

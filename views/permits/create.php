@@ -25,18 +25,14 @@ include '../layouts/header.php';
             </li>
             <li>
                 <div class="flex items-center">
-                    <svg class="w-3 h-3 text-gray-400 mx-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                    </svg>
+                    <i class="fa-solid fa-chevron-right w-3 h-3 text-gray-400 mx-1"></i>
                     <a href="<?php url('views/permits/index.php'); ?>"
                         class="ml-1 text-slate-500 hover:text-slate-700">Perizinan</a>
                 </div>
             </li>
             <li>
                 <div class="flex items-center">
-                    <svg class="w-3 h-3 text-gray-400 mx-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                    </svg>
+                    <i class="fa-solid fa-chevron-right w-3 h-3 text-gray-400 mx-1"></i>
                     <span class="ml-1 font-medium text-slate-800">Tambah Pengajuan</span>
                 </div>
             </li>
@@ -63,13 +59,7 @@ include '../layouts/header.php';
                             <button type="button" onclick="toggleFormDropdown('employee')" id="button-employee"
                                 class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200 transition-all">
                                 <span id="text-employee" class="block truncate">Pilih Pegawai</span>
-                                <svg class="h-4 w-4 text-slate-500 transition-transform duration-200"
-                                    id="arrow-employee" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
-                                    fill="currentColor">
-                                    <path fill-rule="evenodd"
-                                        d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-                                        clip-rule="evenodd" />
-                                </svg>
+                                <i id="arrow-employee" class="fa-solid fa-chevron-down h-4 w-4 text-slate-500 transition-transform duration-200"></i>
                             </button>
                             <div id="menu-employee"
                                 class="absolute z-50 mt-1 hidden max-h-60 w-full overflow-auto rounded-lg bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
@@ -105,12 +95,7 @@ include '../layouts/header.php';
                             <button type="button" onclick="toggleFormDropdown('type')" id="button-type"
                                 class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200 transition-all">
                                 <span id="text-type" class="block truncate">Pilih Jenis</span>
-                                <svg class="h-4 w-4 text-slate-500 transition-transform duration-200" id="arrow-type"
-                                    xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd"
-                                        d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-                                        clip-rule="evenodd" />
-                                </svg>
+                                <i id="arrow-type" class="fa-solid fa-chevron-down h-4 w-4 text-slate-500 transition-transform duration-200"></i>
                             </button>
                             <div id="menu-type"
                                 class="absolute z-50 mt-1 hidden max-h-60 w-full overflow-auto rounded-lg bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">

@@ -51,9 +51,7 @@ include '../../layouts/header.php';
         <div class="mt-4 sm:mt-0">
             <button onclick="openModal('modal-add-permit')" 
                 class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-all font-bold">
-                <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
+                <i class="fa-solid fa-file-lines -ml-1 mr-2 h-5 w-5"></i>
                 Buat Surat Izin
             </button>
         </div>
@@ -73,7 +71,7 @@ include '../../layouts/header.php';
                                 <p class="text-sm text-slate-600 mt-1 font-medium"><span class="text-slate-400">Alasan:</span> <?php echo htmlspecialchars($p['reason']); ?></p>
                                 <div class="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3">
                                     <div class="flex items-center text-[11px] text-slate-400 font-bold uppercase tracking-wider">
-                                        <svg class="h-3.5 w-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                        <i class="fa-solid fa-calendar-days h-3.5 w-3.5 mr-1"></i>
                                         <?php echo date('d M Y H:i', strtotime($p['start_date'])); ?> s/d <?php echo date('d M Y H:i', strtotime($p['end_date'])); ?>
                                     </div>
                                 </div>
@@ -96,10 +94,10 @@ include '../../layouts/header.php';
                             <div class="flex items-center gap-1">
                                 <?php if ($p['status'] == 'Pending'): ?>
                                     <button onclick="updatePermitStatus(<?php echo $p['id']; ?>, 'Disetujui')" class="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Setujui">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                        <i class="fa-solid fa-check h-6 w-6"></i>
                                     </button>
                                     <button onclick="updatePermitStatus(<?php echo $p['id']; ?>, 'Ditolak')" class="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Tolak">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                        <i class="fa-solid fa-xmark h-6 w-6"></i>
                                     </button>
                                 <?php elseif ($p['status'] == 'Disetujui'): ?>
                                     <button onclick="updatePermitStatus(<?php echo $p['id']; ?>, 'Kembali')" class="px-4 py-2 bg-slate-800 text-white text-[11px] font-bold rounded-xl hover:bg-slate-700 shadow-sm transition-all" title="Konfirmasi Kembali">
@@ -107,7 +105,7 @@ include '../../layouts/header.php';
                                     </button>
                                 <?php endif; ?>
                                 <button onclick="deletePermit(<?php echo $p['id']; ?>)" class="p-2 text-slate-300 hover:text-red-600 transition-colors ml-2">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                    <i class="fa-solid fa-trash h-5 w-5"></i>
                                 </button>
                             </div>
                         </div>
@@ -121,7 +119,7 @@ include '../../layouts/header.php';
             <?php endforeach; ?>
         <?php else: ?>
             <div class="py-20 bg-white border border-dashed border-slate-300 rounded-2xl text-center flex flex-col items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-slate-200 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                <i class="fa-solid fa-file-lines h-16 w-16 text-slate-200 mb-4"></i>
                 <p class="text-slate-400 font-medium">Belum ada permohonan izin.</p>
             </div>
         <?php endif; ?>

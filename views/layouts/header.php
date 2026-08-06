@@ -10,6 +10,7 @@
     </title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" type="image/png" href="<?php echo BASE_URL; ?>/assets/images/favicon.png">
     <script>
         tailwind.config = {
@@ -207,9 +208,7 @@
             <!-- Left Side: Hamburger (Mobile) / Page Title (Desktop) -->
             <div class="flex items-center gap-4">
                 <button type="button" onclick="toggleSidebar()" class="md:hidden text-slate-500 hover:text-slate-700 p-2 rounded-lg hover:bg-slate-50 transition-colors">
-                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
+                    <i class="fa-solid fa-bars text-xl"></i>
                 </button>
                 <!-- Page title removed from header to avoid redundancy with body content -->
             </div>
@@ -219,11 +218,7 @@
                 <!-- Search -->
                 <div class="relative hidden lg:block">
                     <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg class="h-4 w-4 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
+                        <i class="fa-solid fa-search text-slate-400 text-sm"></i>
                     </span>
                     <input type="text"
                         class="bg-slate-50 border border-slate-200 text-slate-600 sm:text-sm rounded-full pl-10 pr-4 py-2 w-48 xl:w-64 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all placeholder:text-slate-400"
@@ -232,12 +227,8 @@
 
                 <!-- Notification Icon -->
                 <div class="flex items-center gap-3 md:gap-4 text-slate-500">
-                    <button class="relative hover:text-cyan-600 transition-colors p-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
-                            <path fill-rule="evenodd"
-                                d="M5.25 9a6.75 6.75 0 0113.5 0v.75c0 2.123.8 4.057 2.118 5.52a.75.75 0 01-.297 1.206c-1.544.57-3.16.99-4.831 1.243a3.75 3.75 0 11-7.48 0 24.585 24.585 0 01-4.831-1.244.75.75 0 01-.298-1.205A8.217 8.217 0 005.25 9.75V9zm4.502 8.9a2.25 2.25 0 104.496 0 25.057 25.057 0 01-4.496 0z"
-                                clip-rule="evenodd" />
-                        </svg>
+                    <button class="relative hover:text-cyan-600 transition-colors p-1 flex items-center justify-center">
+                        <i class="fa-solid fa-bell text-lg"></i>
                         <span
                             class="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"></span>
                     </button>
@@ -277,24 +268,17 @@
                             </div>
                             <!-- Links -->
                             <a href="#" class="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-lg font-medium transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-4 h-4 text-slate-400">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                                </svg>
+                                <i class="fa-solid fa-user text-slate-400 text-xs w-4 text-center"></i>
                                 Profil Saya
                             </a>
                             <a href="#" class="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-lg font-medium transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-4 h-4 text-slate-400">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.43l-1.003.828c-.293.241-.438.613-.43.992a7.723 7.723 0 010 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.43l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.991l-1.004-.827a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.645-.869l.214-1.28z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
+                                <i class="fa-solid fa-gear text-slate-400 text-xs w-4 text-center"></i>
                                 Pengaturan
                             </a>
                             <div class="border-t border-slate-100 my-1"></div>
                             <a href="<?php url('logic/auth/logout.php'); ?>"
                                 class="flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-rose-50 rounded-lg font-bold transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 text-red-500">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
-                                </svg>
+                                <i class="fa-solid fa-right-from-bracket text-red-500 text-xs w-4 text-center"></i>
                                 Keluar Aplikasi
                             </a>
                         </div>
@@ -390,21 +374,28 @@
                 ?>
 
                 <?php if ($success_msg): ?>
-                    <div id="alert-success" class="alert-banner mb-6 rounded-xl bg-emerald-600 shadow-2xl px-5 py-4 border border-emerald-500/30 transition-all duration-500 flex items-center justify-between animate-bounce-in">
+                    <div id="alert-success" class="alert-banner mb-6 rounded-xl bg-emerald-600 shadow-2xl px-5 py-4 border border-emerald-500/30 transition-all duration-500 flex flex-wrap items-center justify-between animate-bounce-in">
                         <div class="flex items-center gap-4">
                             <div class="flex-shrink-0 bg-white/20 p-2 rounded-xl flex items-center justify-center">
-                                <svg class="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
-                                </svg>
+                                <i class="fa-solid fa-circle-check text-white text-base"></i>
                             </div>
                             <div>
                                 <p class="text-[11px] font-black text-emerald-100 uppercase tracking-widest leading-none mb-1">Berhasil!</p>
                                 <p class="text-sm font-bold text-white"><?php echo htmlspecialchars($success_msg); ?></p>
                             </div>
                         </div>
-                        <button type="button" onclick="closeAlert('alert-success')" class="text-emerald-100 hover:text-white transition-colors focus:outline-none p-2 hover:bg-white/10 rounded-lg">
-                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
-                        </button>
+                        <div class="flex items-center gap-2 mt-2 sm:mt-0">
+                            <?php if (!empty($_GET['wa_phone']) && !empty($_GET['wa_text'])): ?>
+                                <a href="https://wa.me/<?php echo htmlspecialchars($_GET['wa_phone']); ?>?text=<?php echo urlencode($_GET['wa_text']); ?>" target="_blank"
+                                   class="inline-flex items-center rounded-xl bg-white text-emerald-700 px-3 py-1.5 text-xs font-bold shadow-sm hover:bg-emerald-50 transition-colors">
+                                    <i class="fa-brands fa-whatsapp mr-1.5 text-sm text-emerald-600"></i>
+                                    Kirim Notifikasi WhatsApp (wa.me)
+                                </a>
+                            <?php endif; ?>
+                            <button type="button" onclick="closeAlert('alert-success')" class="text-emerald-100 hover:text-white transition-colors focus:outline-none p-2 hover:bg-white/10 rounded-lg">
+                                <i class="fa-solid fa-xmark text-sm"></i>
+                            </button>
+                        </div>
                     </div>
                 <?php endif; ?>
 
@@ -412,9 +403,7 @@
                     <div id="alert-error" class="alert-banner mb-6 rounded-xl bg-rose-600 shadow-2xl px-5 py-4 border border-rose-500/30 transition-all duration-500 flex items-center justify-between animate-bounce-in">
                         <div class="flex items-center gap-4">
                             <div class="flex-shrink-0 bg-white/20 p-2 rounded-xl flex items-center justify-center">
-                                <svg class="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
-                                </svg>
+                                <i class="fa-solid fa-circle-xmark text-white text-base"></i>
                             </div>
                             <div>
                                 <p class="text-[11px] font-black text-rose-100 uppercase tracking-widest leading-none mb-1">Error!</p>
@@ -422,7 +411,7 @@
                             </div>
                         </div>
                         <button type="button" onclick="closeAlert('alert-error')" class="text-rose-100 hover:text-white transition-colors focus:outline-none p-2 hover:bg-white/10 rounded-lg">
-                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            <i class="fa-solid fa-xmark text-sm"></i>
                         </button>
                     </div>
                 <?php endif; ?>

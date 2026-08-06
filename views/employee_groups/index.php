@@ -19,19 +19,13 @@ include '../layouts/header.php';
             <li class="inline-flex items-center">
                 <a href="<?php url('views/dashboard/index.php'); ?>"
                     class="hover:text-slate-800 flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3 h-3">
-                        <path fill-rule="evenodd"
-                            d="M9.293 2.293a1 1 0 011.414 0l7 7A1 1 0 0117 11h-1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-3a1 1 0 00-1-1H9a1 1 0 00-1 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-6H3a1 1 0 01-.707-1.707l7-7z"
-                            clip-rule="evenodd" />
-                    </svg>
+                    <i class="fa-solid fa-house w-3 h-3"></i>
                     Beranda
                 </a>
             </li>
             <li aria-current="page">
                 <div class="flex items-center">
-                    <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4" />
-                    </svg>
+                    <i class="fa-solid fa-chevron-right w-3 h-3 text-gray-400 mx-1"></i>
                     <span class="ml-1 text-slate-500 hover:text-slate-800">Pengelompokan Karyawan</span>
                 </div>
             </li>
@@ -49,9 +43,7 @@ include '../layouts/header.php';
         <div class="mt-4 flex md:ml-4 md:mt-0">
             <a href="<?php url('views/employee_groups/form.php'); ?>"
                 class="inline-flex items-center rounded-lg bg-[#2B3990] px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-[#2B3990] focus:ring-offset-2 transition-all ml-auto">
-                <svg class="-ml-1 mr-2 h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                    <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
-                </svg>
+                <i class="fa-solid fa-plus -ml-1 mr-2 h-4 w-4"></i>
                 Tambah Grup
             </a>
         </div>
@@ -62,9 +54,7 @@ include '../layouts/header.php';
         <!-- Search -->
         <div class="relative w-full sm:w-96">
             <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <svg class="h-4 w-4 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                </svg>
+                <i class="fa-solid fa-magnifying-glass h-4 w-4 text-slate-400"></i>
             </div>
             <input type="text" id="searchInput"
                 class="block w-full rounded-lg border-slate-200 pl-10 pt-2 pb-2 text-sm focus:border-cyan-500 focus:ring-cyan-500 bg-slate-50 border placeholder:text-slate-400 text-slate-600"
@@ -122,16 +112,12 @@ include '../layouts/header.php';
             
             <!-- Empty State -->
             <div id="emptyState" class="hidden text-center py-12 px-6">
-                <svg class="mx-auto h-12 w-12 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
+                <i class="fa-solid fa-users mx-auto h-12 w-12 text-slate-300"></i>
                 <h3 class="mt-2 text-sm font-semibold text-slate-900">Belum ada pengelompokan karyawan</h3>
                 <p class="mt-1 text-sm text-slate-500">Klik "Tambah Grup" untuk membuat grup pertama.</p>
                 <div class="mt-6">
                     <a href="<?php url('views/employee_groups/form.php'); ?>" class="inline-flex items-center rounded-md bg-[#2B3990] px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-600">
-                        <svg class="-ml-0.5 mr-1.5 h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                            <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
-                        </svg>
+                        <i class="fa-solid fa-plus -ml-0.5 mr-1.5 h-5 w-5"></i>
                         Tambah Grup
                     </a>
                 </div>
@@ -155,9 +141,7 @@ include '../layouts/header.php';
         <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
           <div class="sm:flex sm:items-start">
             <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-              <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
+              <i class="fa-solid fa-circle-exclamation h-6 w-6 text-red-600"></i>
             </div>
             <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
               <h3 class="text-base font-semibold leading-6 text-gray-900" id="modal-title">Hapus Grup</h3>

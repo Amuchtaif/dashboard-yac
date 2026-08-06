@@ -110,8 +110,8 @@ include '../layouts/header.php';
                                 <?php echo htmlspecialchars($a['teacher_name']); ?>
                             </td>
                             <td class="px-6 py-4 text-center">
-                                <div class="text-sm font-black <?php echo $a['avg_score'] >= 75 ? 'text-emerald-500' : 'text-amber-500'; ?>">
-                                    <?php echo number_format($a['avg_score'], 1); ?>
+                                <div class="text-sm font-black <?php echo (($a['avg_score'] ?? 0) >= 75) ? 'text-emerald-500' : 'text-amber-500'; ?>">
+                                    <?php echo number_format((float)($a['avg_score'] ?? 0), 1); ?>
                                 </div>
                                 <div class="text-[9px] text-slate-400"><?php echo $a['student_count']; ?> Siswa</div>
                             </td>
@@ -137,7 +137,7 @@ include '../layouts/header.php';
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                 <h3 class="text-lg font-bold text-slate-800">Detail Nilai Siswa</h3>
                 <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600">
-                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    <i class="fa-solid fa-xmark h-6 w-6"></i>
                 </button>
             </div>
             <div class="p-6 max-h-[500px] overflow-y-auto" id="modal-body">

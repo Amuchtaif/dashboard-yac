@@ -101,10 +101,7 @@ include '../layouts/header.php';
                 class="px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50">Batal</a>
             <button onclick="submitPlacement()"
                 class="px-4 py-2 bg-cyan-600 rounded-lg text-sm font-medium text-white hover:bg-cyan-700 shadow-sm flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                    <path
-                        d="M7.707 10.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V6h5a2 2 0 012 2v7a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2h5v5.586l-1.293-1.293zM9 4a1 1 0 012 0v2H9V4z" />
-                </svg>
+                <i class="fa-solid fa-arrow-down h-4 w-4"></i>
                 Simpan Penempatan Siswa
             </button>
         </div>
@@ -118,11 +115,7 @@ include '../layouts/header.php';
             <!-- Filters -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
                 <div class="flex items-center gap-2 mb-4 text-slate-800 font-bold text-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-400" fill="none"
-                        viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                    </svg>
+                    <i class="fa-solid fa-filter h-5 w-5 text-slate-400"></i>
                     Filter Pencarian
                 </div>
 
@@ -148,11 +141,7 @@ include '../layouts/header.php';
                     <div class="relative">
                         <input type="text" id="search-input" placeholder="Ketik nama atau NISN..."
                             class="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-cyan-500 outline-none">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400 absolute left-3 top-2.5"
-                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
+                        <i class="fa-solid fa-magnifying-glass h-4 w-4 text-slate-400 absolute left-3 top-2.5"></i>
                     </div>
                 </div>
 
@@ -173,11 +162,7 @@ include '../layouts/header.php';
             <!-- Class Info Card -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
                 <div class="flex items-center gap-2 mb-4 text-cyan-700 font-semibold text-sm uppercase tracking-wide">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                    <i class="fa-solid fa-circle-info h-5 w-5"></i>
                     Informasi Kelas Tujuan
                 </div>
 
@@ -222,12 +207,7 @@ include '../layouts/header.php';
                     $alertColor = $isFull ? 'bg-red-50 text-red-700 border-red-100' : 'bg-yellow-50 text-yellow-700 border-yellow-100';
                     ?>
                     <div class="mt-4 p-3 rounded-lg border <?php echo $alertColor; ?> flex gap-3 text-xs leading-relaxed">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" viewBox="0 0 20 20"
-                            fill="currentColor">
-                            <path fill-rule="evenodd"
-                                d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                                clip-rule="evenodd" />
-                        </svg>
+                        <i class="fa-solid fa-triangle-exclamation h-5 w-5 flex-shrink-0"></i>
                         <div>
                             Kapasitas maksimal kelas adalah <span
                                 class="font-bold"><?php echo $targetClass['capacity']; ?></span> siswa. Saat ini terisi
@@ -255,10 +235,7 @@ include '../layouts/header.php';
                             id="source-count">0</span>
                     </div>
                     <button class="text-sm text-cyan-600 hover:text-cyan-700 font-medium flex items-center gap-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg>
+                        <i class="fa-solid fa-check h-4 w-4"></i>
                         Pilih Semua
                     </button>
                 </div>
@@ -301,11 +278,7 @@ include '../layouts/header.php';
                 <div class="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar bg-slate-50/50" id="selected-list">
                     <!-- Empty State -->
                     <div id="empty-state" class="h-full flex flex-col items-center justify-center text-slate-400">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mb-3 opacity-20" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
+                        <i class="fa-solid fa-users h-12 w-12 mb-3 opacity-20"></i>
                         <p class="text-sm text-center px-6">Klik ikon tambah (+) atau seret siswa ke sini untuk
                             menambahkan.</p>
                     </div>
@@ -428,7 +401,7 @@ include '../layouts/header.php';
                 <div class="flex items-center gap-3">
                     ${statusBadge}
                     <button onclick="addToSelection('${student.id}')" class="h-8 w-8 rounded-full bg-cyan-50 text-cyan-600 flex items-center justify-center hover:bg-cyan-600 hover:text-white transition-colors">
-                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
+                         <i class="fa-solid fa-plus h-5 w-5"></i>
                     </button>
                 </div>
             `;
@@ -467,7 +440,7 @@ include '../layouts/header.php';
                     <p class="text-xs text-slate-400 font-mono">NISN: ${student.nomor_induk || '-'}</p>
                 </div>
                  <button onclick="removeFromSelection('${student.id}')" class="text-slate-300 hover:text-red-500 transition-colors p-1">
-                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                     <i class="fa-solid fa-xmark h-4 w-4"></i>
                  </button>
             `;
             selectedListEl.appendChild(item);

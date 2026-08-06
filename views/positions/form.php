@@ -45,22 +45,14 @@ include '../layouts/header.php';
             </li>
             <li>
                 <div class="flex items-center">
-                    <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                        fill="none" viewBox="0 0 6 10">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="m1 9 4-4-4-4" />
-                    </svg>
+                    <i class="fa-solid fa-chevron-right w-3 h-3 text-gray-400 mx-1"></i>
                     <a href="<?php url('views/positions/index.php'); ?>"
                         class="ml-1 text-slate-500 hover:text-slate-700">Jabatan</a>
                 </div>
             </li>
             <li aria-current="page">
                 <div class="flex items-center">
-                    <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                        fill="none" viewBox="0 0 6 10">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="m1 9 4-4-4-4" />
-                    </svg>
+                    <i class="fa-solid fa-chevron-right w-3 h-3 text-gray-400 mx-1"></i>
                     <span class="ml-1 font-medium text-slate-800">
                         <?php echo $is_edit ? "Edit" : "Tambah"; ?>
                     </span>
@@ -79,11 +71,7 @@ include '../layouts/header.php';
     <!-- Error Alert -->
     <?php if (isset($_GET['error'])): ?>
         <div class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
-                <path fill-rule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
-                    clip-rule="evenodd" />
-            </svg>
+            <i class="fa-solid fa-magnifying-glass w-5 h-5"></i>
             <?php echo htmlspecialchars($_GET['error']); ?>
         </div>
     <?php endif; ?>

@@ -113,9 +113,7 @@ include '../layouts/header.php';
         <div class="mt-4 sm:mt-0 sm:flex-none">
             <button onclick="openFormModal()"
                 class="inline-flex items-center justify-center rounded-lg bg-cyan-600 px-6 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-cyan-700 transition-all active:scale-95 group">
-                <svg class="-ml-1 mr-2 h-4 w-4 transform group-hover:rotate-90 transition-transform" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
+                <i class="fa-solid fa-plus -ml-1 mr-2 h-4 w-4 transform group-hover:rotate-90 transition-transform"></i>
                 Input Nilai Baru
             </button>
         </div>
@@ -128,7 +126,7 @@ include '../layouts/header.php';
                 <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Cari Santri / Guru</label>
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <svg class="h-4 w-4 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                        <i class="fa-solid fa-magnifying-glass h-4 w-4 text-slate-300"></i>
                     </div>
                     <input type="text" name="search" value="<?php echo htmlspecialchars($search); ?>" 
                         class="block w-full rounded-lg border-slate-200 bg-slate-50 pl-11 pr-4 py-2 text-sm font-medium text-slate-600 focus:bg-white focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/5 outline-none transition-all"
@@ -161,7 +159,7 @@ include '../layouts/header.php';
                         class="block w-full rounded-lg border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-600 focus:bg-white focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/5 outline-none transition-all">
                 </div>
                 <button type="submit" class="p-2.5 rounded-lg bg-slate-800 text-white hover:bg-slate-900 shadow-sm transition-all active:scale-95">
-                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>
+                    <i class="fa-solid fa-filter h-5 w-5"></i>
                 </button>
             </div>
         </form>
@@ -229,10 +227,10 @@ include '../layouts/header.php';
                             <td class="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                                 <div class="flex items-center justify-end gap-3 text-gray-400">
                                     <button onclick='openFormModal(<?php echo json_encode($item); ?>)' class="hover:text-cyan-600 transition-colors" title="Edit">
-                                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" /></svg>
+                                        <i class="fa-solid fa-pen-to-square h-5 w-5"></i>
                                     </button>
                                     <button onclick="openDeleteModal('<?php url('logic/tahfidz/delete_assessment.php?id=' . $item['id']); ?>')" class="hover:text-rose-600 transition-colors" title="Hapus">
-                                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+                                        <i class="fa-solid fa-trash h-5 w-5"></i>
                                     </button>
                                 </div>
                             </td>
@@ -251,7 +249,7 @@ include '../layouts/header.php';
                 <div class="flex gap-1">
                     <?php if ($page > 1): ?>
                         <a href="?<?php echo http_build_query(array_merge($_GET, ['page' => $page - 1])); ?>" class="px-2 py-1 rounded border border-gray-300 bg-white text-gray-500 hover:bg-gray-50 transition-colors">
-                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                            <i class="fa-solid fa-chevron-left h-4 w-4"></i>
                         </a>
                     <?php endif; ?>
                     
@@ -264,7 +262,7 @@ include '../layouts/header.php';
 
                     <?php if ($page < $total_pages): ?>
                         <a href="?<?php echo http_build_query(array_merge($_GET, ['page' => $page + 1])); ?>" class="px-2 py-1 rounded border border-gray-300 bg-white text-gray-500 hover:bg-gray-50 transition-colors">
-                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                            <i class="fa-solid fa-chevron-right h-4 w-4"></i>
                         </a>
                     <?php endif; ?>
                 </div>
@@ -288,7 +286,7 @@ include '../layouts/header.php';
                         <p class="text-xs text-slate-400 font-bold uppercase tracking-wider mt-1">Laporan Santri Tahfidz Quran</p>
                     </div>
                     <button type="button" onclick="closeFormModal()" class="p-2 rounded-lg border border-slate-200 text-slate-400 hover:text-rose-600 shadow-sm transition-all">
-                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        <i class="fa-solid fa-xmark h-5 w-5"></i>
                     </button>
                 </div>
 

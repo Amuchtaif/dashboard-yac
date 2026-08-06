@@ -1,6 +1,8 @@
 <?php
 // api/tahfidz/submit_tahfidz_record.php
 
+date_default_timezone_set('Asia/Jakarta');
+
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Methods: POST, OPTIONS");

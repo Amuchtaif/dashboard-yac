@@ -68,9 +68,7 @@ include '../layouts/header.php';
         <div class="mt-4 sm:mt-0">
             <a href="create.php" 
                 class="inline-flex items-center justify-center rounded-lg bg-cyan-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-cyan-700 transition-all">
-                <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
+                <i class="fa-solid fa-plus -ml-1 mr-2 h-4 w-4"></i>
                 Buat RPP Baru
             </a>
         </div>
@@ -93,9 +91,7 @@ include '../layouts/header.php';
         <form method="GET" class="relative group max-w-sm w-full">
             <input type="hidden" name="draft" value="<?php echo $is_draft; ?>">
             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg class="h-4 w-4 text-slate-400 group-focus-within:text-cyan-500 transition-colors" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
+                <i class="fa-solid fa-magnifying-glass h-4 w-4 text-slate-400 group-focus-within:text-cyan-500 transition-colors"></i>
             </div>
             <input type="text" name="search" value="<?php echo htmlspecialchars($search); ?>" 
                 placeholder="Cari judul atau mapel..." 
@@ -141,16 +137,16 @@ include '../layouts/header.php';
                                 <td class="px-6 py-4 text-right">
                                     <div class="flex items-center justify-end gap-1">
                                         <button onclick="viewRPP(<?php echo $r['id']; ?>)" class="p-2 text-slate-400 hover:text-cyan-600 transition-colors" title="Lihat">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                            <i class="fa-solid fa-eye h-5 w-5"></i>
                                         </button>
                                         <a href="<?php url('views/rpp/print.php?id=' . $r['id']); ?>" target="_blank" class="p-2 text-indigo-500 hover:text-indigo-700 hover:bg-indigo-50 rounded-xl transition-all" title="Cetak RPP">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                                            <i class="fa-solid fa-print h-5 w-5"></i>
                                         </a>
                                         <a href="edit.php?id=<?php echo $r['id']; ?>" class="p-2 text-slate-400 hover:text-cyan-600 transition-colors" title="Ubah">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                            <i class="fa-solid fa-pen-to-square h-5 w-5"></i>
                                         </a>
                                         <button onclick="openDeleteModal('delete.php?id=<?php echo $r['id']; ?>')" class="p-2 text-slate-400 hover:text-rose-600 transition-colors" title="Hapus">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                            <i class="fa-solid fa-trash h-5 w-5"></i>
                                         </button>
                                     </div>
                                 </td>
@@ -195,9 +191,7 @@ include '../layouts/header.php';
                 <div class="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                     <div class="flex items-center gap-4">
                         <div class="w-12 h-12 rounded-2xl bg-cyan-600 flex items-center justify-center text-white shadow-lg shadow-cyan-600/20">
-                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
+                            <i class="fa-solid fa-file-lines w-6 h-6"></i>
                         </div>
                         <div>
                             <h3 class="text-lg font-black text-slate-800 leading-tight" id="modal-title-text">Detail RPP</h3>
@@ -205,7 +199,7 @@ include '../layouts/header.php';
                         </div>
                     </div>
                     <button onclick="closeViewModal()" class="group p-2 rounded-xl bg-slate-100 text-slate-400 hover:text-slate-600 hover:bg-slate-200 transition-all active:scale-90">
-                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        <i class="fa-solid fa-xmark h-6 w-6"></i>
                     </button>
                 </div>
 
@@ -225,15 +219,11 @@ include '../layouts/header.php';
                 <div class="px-8 py-6 bg-slate-50 border-t border-slate-100 flex flex-wrap items-center justify-end gap-3">
                     <button onclick="closeViewModal()" class="px-6 py-2.5 text-sm font-bold text-slate-500 hover:text-slate-700 transition-colors">Tutup</button>
                     <a id="modal-print-btn" href="#" target="_blank" class="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-all active:scale-95">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                        </svg>
+                        <i class="fa-solid fa-print w-4 h-4"></i>
                         Cetak Sekarang
                     </a>
                     <a id="modal-edit-btn" href="#" class="inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-cyan-600/20 hover:bg-cyan-700 transition-all active:scale-95">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
+                        <i class="fa-solid fa-pen-to-square w-4 h-4"></i>
                         Edit RPP
                     </a>
                 </div>
@@ -284,7 +274,7 @@ async function viewRPP(id) {
             const data = result.data;
             title.textContent = data.title;
             subtitle.innerHTML = `
-                <svg class="h-3 w-3 text-cyan-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89l-.25-2.27c-.062-.562.175-1.103.627-1.432zM10 14.122l.391.151a7.024 7.024 0 002.219-.506V11.31l-3 1.286v1.526zm6.3-3.61c.453.33.69.87.628 1.432l-.25 2.27a1 1 0 01-.89.89 8.976 8.976 0 01-1.05.174V10.12l1.69-.723z" /></svg>
+                <i class="fa-solid fa-graduation-cap h-3 w-3 text-cyan-500"></i>
                 ${data.subject_name} <span class="text-slate-300 mx-1">•</span> Kelas ${data.grade_name} <span class="text-slate-300 mx-1">•</span> ${data.teacher_name}
             `;
             
@@ -295,7 +285,7 @@ async function viewRPP(id) {
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 p-6 bg-slate-50 rounded-2xl border border-slate-100 shadow-inner">
                     <div class="flex items-start gap-4">
                         <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-slate-400 border border-slate-100 shadow-sm">
-                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                            <i class="fa-solid fa-calendar-days w-5 h-5"></i>
                         </div>
                         <div>
                             <div class="text-[10px] font-bold text-slate-400 uppercase mb-0.5">Tahun Ajaran / Sem</div>
@@ -304,7 +294,7 @@ async function viewRPP(id) {
                     </div>
                     <div class="flex items-start gap-4">
                         <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-slate-400 border border-slate-100 shadow-sm">
-                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            <i class="fa-solid fa-clock w-5 h-5"></i>
                         </div>
                         <div>
                             <div class="text-[10px] font-bold text-slate-400 uppercase mb-0.5">Alokasi Waktu</div>
@@ -313,7 +303,7 @@ async function viewRPP(id) {
                     </div>
                     <div class="flex items-start gap-4">
                         <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-slate-400 border border-slate-100 shadow-sm">
-                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16" /></svg>
+                            <i class="fa-solid fa-hashtag w-5 h-5"></i>
                         </div>
                         <div>
                             <div class="text-[10px] font-bold text-slate-400 uppercase mb-0.5">Pertemuan Ke-</div>

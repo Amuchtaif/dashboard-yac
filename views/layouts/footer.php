@@ -17,11 +17,7 @@
                 <div class="sm:flex sm:items-start">
                     <div
                         class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-                        <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                            stroke="currentColor" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-                        </svg>
+                        <i class="fa-solid fa-triangle-exclamation h-6 w-6 text-red-600"></i>
                     </div>
                     <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
                         <h3 class="text-lg font-bold leading-6 text-slate-900" id="modal-title">Hapus Item</h3>
@@ -56,9 +52,7 @@
             <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
                 <div class="sm:flex sm:items-start">
                     <div id="confirmModalIconContainer" class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-cyan-100 sm:mx-0 sm:h-10 sm:w-10">
-                        <svg id="confirmModalIcon" class="h-6 w-6 text-cyan-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-                        </svg>
+                        <i id="confirmModalIcon" class="fa-solid fa-triangle-exclamation h-6 w-6 text-cyan-600"></i>
                     </div>
                     <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
                         <h3 class="text-lg font-bold leading-6 text-slate-900" id="confirm-modal-title">Konfirmasi</h3>
@@ -158,9 +152,9 @@
         toast.className = `alert-banner mb-6 rounded-xl shadow-2xl px-5 py-4 border transition-all duration-500 flex items-center justify-between opacity-0 translate-y-4 ${type === 'success' ? 'bg-emerald-600 border-emerald-500/30' : 'bg-rose-600 border-rose-500/30'}`;
         toast.role = 'alert';
 
-        let svgIcon = type === 'success' 
-            ? `<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />`
-            : `<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />`;
+        let iconHtml = type === 'success' 
+            ? `<i class="fa-solid fa-circle-check text-lg text-white"></i>`
+            : `<i class="fa-solid fa-circle-xmark text-lg text-white"></i>`;
             
         let titleText = type === 'success' ? 'Berhasil!' : 'Error!';
         let titleColor = type === 'success' ? 'text-emerald-100' : 'text-rose-100';
@@ -169,15 +163,16 @@
         toast.innerHTML = `
             <div class="flex items-center gap-4">
                 <div class="flex-shrink-0 bg-white/20 p-2 rounded-xl flex items-center justify-center">
-                    <svg class="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor">${svgIcon}</svg>
-                </div>
+                    ${iconHtml}
+                </div>`
+,StartLine:155,TargetContent:
                 <div>
                      <p class="text-[11px] font-black ${titleColor} uppercase tracking-widest leading-none mb-1">${titleText}</p>
                      <p class="text-sm font-bold text-white">${message}</p>
                 </div>
             </div>
             <button type="button" onclick="this.closest('[role=alert]').remove()" class="${btnColor} hover:text-white transition-colors focus:outline-none p-2 hover:bg-white/10 rounded-lg">
-                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                <i class="fa-solid fa-xmark h-5 w-5"></i>
             </button>
         `;
 
@@ -298,9 +293,7 @@
                 <div class="relative">
                     <input type="text" class="hybrid-search-input" placeholder="${currentText}" readonly>
                     <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                        <svg class="h-4 w-4 text-slate-400 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
-                        </svg>
+                        <i class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 transition-transform duration-200"></i>
                     </div>
                 </div>
                 <div class="hybrid-select-dropdown">
@@ -410,9 +403,7 @@
         <div id="imageModalPanel" class="relative transform overflow-hidden rounded-2xl bg-white shadow-2xl transition-all duration-300 opacity-0 scale-95 max-w-2xl w-full">
             <div class="absolute top-4 right-4 z-10">
                 <button onclick="closeImageModal()" class="p-2 bg-white/80 hover:bg-white text-slate-800 rounded-full shadow-md backdrop-blur-md transition-all">
-                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                    <i class="fa-solid fa-xmark h-5 w-5"></i>
                 </button>
             </div>
             <div class="p-2">
@@ -421,16 +412,12 @@
             <div class="bg-slate-50 px-6 py-4 flex justify-between items-center">
                 <div class="flex items-center gap-2">
                     <div class="p-2 bg-cyan-100 rounded-lg">
-                        <svg class="h-4 w-4 text-cyan-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
+                        <i class="fa-solid fa-image h-4 w-4 text-cyan-600"></i>
                     </div>
                     <span class="text-sm font-bold text-slate-700 uppercase tracking-wider">Pratinjau Lampiran</span>
                 </div>
                 <a id="downloadImageBtn" href="#" download class="inline-flex items-center gap-2 px-5 py-2.5 bg-cyan-600 text-white rounded-xl text-sm font-bold hover:bg-cyan-700 transition-all shadow-lg shadow-cyan-600/20 active:scale-95">
-                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
+                    <i class="fa-solid fa-download h-4 w-4"></i>
                     Unduh File
                 </a>
             </div>

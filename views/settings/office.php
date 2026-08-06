@@ -91,31 +91,19 @@ include '../layouts/header.php';
             <li class="inline-flex items-center">
                 <a href="<?php url('views/dashboard/index.php'); ?>"
                     class="hover:text-slate-800 flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3 h-3">
-                        <path fill-rule="evenodd"
-                            d="M9.293 2.293a1 1 0 011.414 0l7 7A1 1 0 0117 11h-1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-3a1 1 0 00-1-1H9a1 1 0 00-1 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-6H3a1 1 0 01-.707-1.707l7-7z"
-                            clip-rule="evenodd" />
-                    </svg>
+                    <i class="fa-solid fa-house w-3 h-3"></i>
                     Beranda
                 </a>
             </li>
             <li>
                 <div class="flex items-center">
-                    <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                        fill="none" viewBox="0 0 6 10">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="m1 9 4-4-4-4" />
-                    </svg>
+                    <i class="fa-solid fa-chevron-right w-3 h-3 text-gray-400 mx-1"></i>
                     <span class="ml-1 text-slate-500 hover:text-slate-800">Pengaturan</span>
                 </div>
             </li>
             <li aria-current="page">
                 <div class="flex items-center">
-                    <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                        fill="none" viewBox="0 0 6 10">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="m1 9 4-4-4-4" />
-                    </svg>
+                    <i class="fa-solid fa-chevron-right w-3 h-3 text-gray-400 mx-1"></i>
                     <span class="ml-1 font-medium text-slate-800">Lokasi Kantor</span>
                 </div>
             </li>
@@ -146,12 +134,7 @@ include '../layouts/header.php';
             <form action="" method="POST" class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <div class="px-6 py-6 border-b border-slate-100 flex justify-between items-center">
                     <div class="flex items-center gap-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
-                            class="w-6 h-6 text-cyan-600">
-                            <path fill-rule="evenodd"
-                                d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 00-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 002.682 2.282 16.975 16.975 0 001.145.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z"
-                                clip-rule="evenodd" />
-                        </svg>
+                        <i class="fa-solid fa-shield-halved w-6 h-6 text-cyan-600"></i>
                         <h3 class="text-lg font-bold text-slate-800">Koordinat Kantor</h3>
                     </div>
                 </div>
@@ -227,11 +210,7 @@ include '../layouts/header.php';
                     class="bg-slate-50 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-100">
                     <button type="button" onclick="getCurrentLocation()"
                         class="text-sm font-medium text-cyan-600 hover:text-cyan-700 flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                            stroke="currentColor" class="w-5 h-5">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M15.042 21.672L13.684 16.6m0 0l-2.51 2.225.569-9.47 5.227 7.917-3.286-.672zM12 2.25V4.5m5.834.166l-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.243l-1.59-1.59" />
-                        </svg>
+                        <i class="fa-solid fa-arrow-pointer w-5 h-5"></i>
                         Gunakan Lokasi Saya Saat Ini
                     </button>
 
@@ -263,12 +242,7 @@ include '../layouts/header.php';
                 </div>
                 <div class="p-4 bg-slate-50 border-t border-slate-100">
                     <div class="flex gap-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
-                            class="w-5 h-5 text-slate-400 flex-shrink-0">
-                            <path fill-rule="evenodd"
-                                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z"
-                                clip-rule="evenodd" />
-                        </svg>
+                        <i class="fa-solid fa-circle-info w-5 h-5 text-slate-400 flex-shrink-0"></i>
                         <p class="text-xs text-slate-500 leading-relaxed">
                             Verifikasi lokasi di peta. Perbarui koordinat untuk memindahkan pin.
                         </p>

@@ -154,9 +154,7 @@ include '../layouts/header.php';
     <div class="bg-white rounded-2xl shadow-sm p-6 border-l-4 border-[#2B3990] relative overflow-hidden transition-all duration-300 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <!-- Decorative subtle pattern/background shape -->
         <div class="absolute right-0 bottom-0 opacity-[0.03] translate-x-10 translate-y-10 pointer-events-none">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-64 h-64 text-[#2B3990]">
-                <path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z" clip-rule="evenodd" />
-            </svg>
+            <i class="fa-solid fa-user text-[#2B3990]" style="font-size: 16rem;"></i>
         </div>
         
         <div class="relative z-10">
@@ -169,10 +167,8 @@ include '../layouts/header.php';
             </p>
         </div>
         <div class="relative z-10 shrink-0 flex items-center gap-3 bg-slate-50 rounded-xl p-3 border border-slate-100 self-start md:self-auto">
-            <div class="p-2 bg-indigo-50 text-[#2B3990] rounded-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5a2.25 2.25 0 002.25-2.25m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5m-9-6h.008v.008H12v-.008zM12 15h.008v.008H12V15zm0 2.25h.008v.008H12v-.008zM9.75 15h.008v.008H9.75V15zm0 2.25h.008v.008H9.75v-.008zM7.5 15h.008v.008H7.5V15zm0 2.25h.008v.008H7.5v-.008zm6.75-4.5h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V15zm0 2.25h.008v.008h-.008v-.008zm2.25-4.5h.008v.008H16.5v-.008zm0 2.25h.008v.008H16.5V15z" />
-                </svg>
+            <div class="p-2 bg-indigo-50 text-[#2B3990] rounded-lg flex items-center justify-center">
+                <i class="fa-solid fa-calendar-days text-base"></i>
             </div>
             <div class="text-left">
                 <p class="text-[10px] text-slate-400 uppercase font-semibold">Hari Ini</p>
@@ -189,11 +185,7 @@ include '../layouts/header.php';
             class="bg-white overflow-hidden shadow-sm rounded-xl border border-slate-100 hover:shadow-md transition-shadow p-5 relative">
             <div class="flex justify-between items-start">
                 <div class="flex items-center justify-center h-10 w-10 rounded-lg bg-blue-50 text-blue-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
-                        <path fill-rule="evenodd"
-                            d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z"
-                            clip-rule="evenodd" />
-                    </svg>
+                    <i class="fa-solid fa-users text-lg"></i>
                 </div>
                 <span
                     class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-500">Total</span>
@@ -203,12 +195,7 @@ include '../layouts/header.php';
                 <dd class="mt-1 flex items-baseline">
                     <div class="text-2xl font-bold text-slate-900"><?php echo number_format($emp_count); ?></div>
                     <span class="ml-2 text-sm font-medium text-green-600">
-                        <svg class="self-center flex-shrink-0 h-4 w-4 text-green-500 inline-block" fill="currentColor"
-                            viewBox="0 0 20 20" aria-hidden="true">
-                            <path fill-rule="evenodd"
-                                d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z"
-                                clip-rule="evenodd" />
-                        </svg>
+                        <i class="fa-solid fa-arrow-up text-green-500 text-xs"></i>
                         <span class="inline-block align-middle">2.5%</span>
                     </span>
                 </dd>
@@ -220,11 +207,7 @@ include '../layouts/header.php';
             class="bg-white overflow-hidden shadow-sm rounded-xl border border-slate-100 hover:shadow-md transition-shadow p-5 relative">
             <div class="flex justify-between items-start">
                 <div class="flex items-center justify-center h-10 w-10 rounded-lg bg-blue-50 text-blue-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
-                        <path fill-rule="evenodd"
-                            d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z"
-                            clip-rule="evenodd" />
-                    </svg>
+                    <i class="fa-solid fa-user-check text-lg"></i>
                 </div>
                 <span
                     class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">Aktif</span>
@@ -240,11 +223,7 @@ include '../layouts/header.php';
             class="bg-white overflow-hidden shadow-sm rounded-xl border border-slate-100 hover:shadow-md transition-shadow p-5 relative">
             <div class="flex justify-between items-start">
                 <div class="flex items-center justify-center h-10 w-10 rounded-lg bg-red-50 text-red-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
-                        <path fill-rule="evenodd"
-                            d="M12 2.25a.75.75 0 01.75.75v9a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM6.166 5.106a.75.75 0 010 1.06 8.25 8.25 0 1011.668 0 .75.75 0 111.06-1.06c3.808 3.807 3.808 9.98 0 13.788-3.809 3.808-9.98 3.808-13.788 0-3.808-3.809-3.808-9.98 0-13.788a.75.75 0 011.06 0z"
-                            clip-rule="evenodd" />
-                    </svg>
+                    <i class="fa-solid fa-power-off text-lg"></i>
                 </div>
                 <span
                     class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-600">Nonaktif</span>
@@ -260,11 +239,7 @@ include '../layouts/header.php';
             class="bg-white overflow-hidden shadow-sm rounded-xl border border-slate-100 hover:shadow-md transition-shadow p-5 relative">
             <div class="flex justify-between items-start">
                 <div class="flex items-center justify-center h-10 w-10 rounded-lg bg-green-50 text-green-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
-                        <path fill-rule="evenodd"
-                            d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z"
-                            clip-rule="evenodd" />
-                    </svg>
+                    <i class="fa-solid fa-circle-check text-lg"></i>
                 </div>
                 <span
                     class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700">
@@ -284,11 +259,7 @@ include '../layouts/header.php';
             class="bg-white overflow-hidden shadow-sm rounded-xl border border-slate-100 hover:shadow-md transition-shadow p-5 relative">
             <div class="flex justify-between items-start">
                 <div class="flex items-center justify-center h-10 w-10 rounded-lg bg-yellow-50 text-yellow-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
-                        <path fill-rule="evenodd"
-                            d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zM12.75 6a.75.75 0 00-1.5 0v6c0 .414.336.75.75.75h4.5a.75.75 0 000-1.5h-3.75V6z"
-                            clip-rule="evenodd" />
-                    </svg>
+                    <i class="fa-solid fa-clock text-lg"></i>
                 </div>
                 <span
                     class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-50 text-yellow-700">
@@ -308,13 +279,7 @@ include '../layouts/header.php';
             class="bg-white overflow-hidden shadow-sm rounded-xl border border-slate-100 hover:shadow-md transition-shadow p-5 relative">
             <div class="flex justify-between items-start">
                 <div class="flex items-center justify-center h-10 w-10 rounded-lg bg-red-50 text-red-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
-                        <path
-                            d="M3.375 3C2.339 3 1.5 3.84 1.5 4.875v.75c0 1.036.84 1.875 1.875 1.875h17.25c1.035 0 1.875-.84 1.875-1.875v-.75C22.5 3.839 21.66 3 20.625 3H3.375z" />
-                        <path fill-rule="evenodd"
-                            d="M3.087 9l.54 9.176A3 3 0 006.62 21h10.757a3 3 0 002.995-2.824L20.913 9H3.087zm6.163 3.75A.75.75 0 0110 12h4a.75.75 0 010 1.5h-4a.75.75 0 01-.75-.75z"
-                            clip-rule="evenodd" />
-                    </svg>
+                    <i class="fa-solid fa-user-xmark text-lg"></i>
                 </div>
                 <span
                     class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700">
@@ -336,9 +301,7 @@ include '../layouts/header.php';
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-4 border-b border-slate-100 mb-4 gap-3">
             <div>
                 <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-cyan-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
-                    </svg>
+                    <i class="fa-solid fa-chart-line text-cyan-600"></i>
                     Tren Persentase Kehadiran Pegawai
                 </h3>
                 <p class="text-xs text-slate-500 mt-0.5">Grafik perbandingan persentase kehadiran (Hadir, Izin, dan Tidak Hadir) harian pegawai (7 Hari Terakhir)</p>

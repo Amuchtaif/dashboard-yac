@@ -108,7 +108,7 @@ include '../layouts/header.php';
         </div>
         <button onclick="document.getElementById('create-modal').classList.remove('hidden')"
             class="mt-4 sm:mt-0 inline-flex items-center rounded-lg bg-cyan-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-cyan-700 transition-all">
-            <svg class="-ml-0.5 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+            <i class="fa-solid fa-plus -ml-0.5 mr-2 h-4 w-4"></i>
             Buat Tugas Baru
         </button>
     </div>
@@ -127,7 +127,7 @@ include '../layouts/header.php';
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
             <div class="flex items-center gap-3">
                 <div class="p-2 rounded-lg bg-<?php echo $si['color']; ?>-50">
-                    <svg class="h-5 w-5 text-<?php echo $si['color']; ?>-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="<?php echo $si['icon']; ?>"/></svg>
+                    <i class="fa-solid fa-list-check h-5 w-5 text-<?php echo $si['color']; ?>-600"></i>
                 </div>
                 <div>
                     <p class="text-2xl font-bold text-slate-800"><?php echo $si['value']; ?></p>
@@ -142,7 +142,7 @@ include '../layouts/header.php';
     <form method="GET" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-4 justify-between items-center mb-6">
         <div class="relative w-full sm:w-80">
             <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <svg class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+                <i class="fa-solid fa-magnifying-glass h-4 w-4 text-slate-400"></i>
             </div>
             <input type="text" name="search" value="<?php echo htmlspecialchars($search); ?>"
                 class="block w-full rounded-lg border-slate-200 pl-10 py-2 text-sm focus:border-cyan-500 focus:ring-cyan-500 bg-slate-50 border placeholder:text-slate-400"
@@ -162,7 +162,7 @@ include '../layouts/header.php';
                 <?php endforeach; ?>
             </select>
             <a href="index.php" class="inline-flex items-center p-2 rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 transition-colors" title="Reset">
-                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                <i class="fa-solid fa-xmark h-4 w-4"></i>
             </a>
         </div>
     </form>
@@ -241,10 +241,10 @@ include '../layouts/header.php';
                     <td class="px-4 py-3 whitespace-nowrap text-right">
                         <div class="flex items-center justify-end gap-2">
                             <button onclick="viewDetail(<?php echo $t['id']; ?>)" class="p-1.5 text-slate-400 hover:text-cyan-600 hover:bg-cyan-50 rounded-lg transition-all" title="Detail">
-                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                <i class="fa-solid fa-eye w-5 h-5"></i>
                             </button>
                             <button onclick="confirmDelete(<?php echo $t['id']; ?>)" class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" title="Hapus">
-                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                <i class="fa-solid fa-trash w-5 h-5"></i>
                             </button>
                         </div>
                     </td>
@@ -270,7 +270,7 @@ include '../layouts/header.php';
             </div>
             <nav class="isolate inline-flex -space-x-px rounded-xl border border-slate-200 overflow-hidden shadow-sm" aria-label="Pagination">
                 <?php if ($page > 1): ?>
-                <a href="?page=<?php echo $page-1; ?>&limit=<?php echo $limit; ?>&<?php echo http_build_query(array_diff_key($_GET, ['page'=>'','limit'=>''])); ?>" class="relative inline-flex items-center px-4 py-2 text-slate-400 hover:bg-slate-50 transition-colors"><svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd"/></svg></a>
+                <a href="?page=<?php echo $page-1; ?>&limit=<?php echo $limit; ?>&<?php echo http_build_query(array_diff_key($_GET, ['page'=>'','limit'=>''])); ?>" class="relative inline-flex items-center px-4 py-2 text-slate-400 hover:bg-slate-50 transition-colors"><i class="fa-solid fa-chevron-left h-5 w-5"></i></a>
                 <?php endif; ?>
                 
                 <?php for ($pg = max(1,$page-2); $pg <= min($total_pages,$page+2); $pg++): ?>
@@ -278,7 +278,7 @@ include '../layouts/header.php';
                 <?php endfor; ?>
 
                 <?php if ($page < $total_pages): ?>
-                <a href="?page=<?php echo $page+1; ?>&limit=<?php echo $limit; ?>&<?php echo http_build_query(array_diff_key($_GET, ['page'=>'','limit'=>''])); ?>" class="relative inline-flex items-center px-4 py-2 text-slate-400 hover:bg-slate-50 transition-colors"><svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd"/></svg></a>
+                <a href="?page=<?php echo $page+1; ?>&limit=<?php echo $limit; ?>&<?php echo http_build_query(array_diff_key($_GET, ['page'=>'','limit'=>''])); ?>" class="relative inline-flex items-center px-4 py-2 text-slate-400 hover:bg-slate-50 transition-colors"><i class="fa-solid fa-chevron-right h-5 w-5"></i></a>
                 <?php endif; ?>
             </nav>
         </div>
@@ -300,7 +300,7 @@ include '../layouts/header.php';
         <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 z-10">
             <div class="flex items-center justify-between mb-5">
                 <h3 class="text-lg font-bold text-slate-900">Buat Tugas Baru</h3>
-                <button onclick="document.getElementById('create-modal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+                <button onclick="document.getElementById('create-modal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark w-5 h-5"></i></button>
             </div>
             <form action="../../logic/task_assignments/store.php" method="POST" class="space-y-4">
                 <div>
@@ -357,9 +357,7 @@ include '../layouts/header.php';
             <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <div class="p-2 bg-cyan-100 rounded-lg">
-                        <svg class="w-5 h-5 text-cyan-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                        </svg>
+                        <i class="fa-solid fa-clipboard-list w-5 h-5 text-cyan-600"></i>
                     </div>
                     <div>
                         <h3 class="text-lg font-bold text-slate-900 line-clamp-1" id="detail-title-display">Detail Tugas</h3>
@@ -367,9 +365,7 @@ include '../layouts/header.php';
                     </div>
                 </div>
                 <button onclick="hideDetail()" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-all">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                    <i class="fa-solid fa-xmark w-5 h-5"></i>
                 </button>
             </div>
 
@@ -441,7 +437,7 @@ function viewDetail(id) {
             <!-- Description Block -->
             <div class="group">
                 <div class="flex items-center gap-2 mb-2 text-slate-400">
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h7"/></svg>
+                    <i class="fa-solid fa-list w-3.5 h-3.5"></i>
                     <h4 class="text-[10px] font-bold uppercase tracking-widest">Deskripsi Penugasan</h4>
                 </div>
                 <div class="bg-slate-50/50 rounded-2xl p-4 border border-slate-100/80 text-sm text-slate-700 leading-relaxed min-h-[80px]">
@@ -462,7 +458,7 @@ function viewDetail(id) {
                 <!-- Personnel -->
                 <div class="space-y-3">
                     <div class="flex items-center gap-2 text-slate-400">
-                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                        <i class="fa-solid fa-users w-3.5 h-3.5"></i>
                         <h4 class="text-[10px] font-bold uppercase tracking-widest">Delegasi</h4>
                     </div>
                     <div class="space-y-3 pl-1">
@@ -492,7 +488,7 @@ function viewDetail(id) {
                 <!-- Timeline -->
                 <div class="space-y-3">
                     <div class="flex items-center gap-2 text-slate-400">
-                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        <i class="fa-solid fa-calendar-days w-3.5 h-3.5"></i>
                         <h4 class="text-[10px] font-bold uppercase tracking-widest">Waktu</h4>
                     </div>
                     <div class="space-y-3 pl-1">
@@ -522,7 +518,7 @@ function viewDetail(id) {
                     <div class="flex items-center justify-between mb-3">
                         <div class="flex items-center gap-2">
                             <div class="p-1.5 bg-green-200/50 rounded-lg text-green-700">
-                                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z"/></svg>
+                                <i class="fa-solid fa-certificate h-3.5 w-3.5"></i>
                             </div>
                             <h4 class="text-[10px] font-bold text-green-800 uppercase tracking-widest">Laporan Selesai</h4>
                         </div>
@@ -552,7 +548,7 @@ function getFilePreviewElement(filename) {
                 <img src="${filePath}" class="w-full h-auto max-h-48 object-cover transition-transform duration-500 group-hover:scale-105">
                 <div class="absolute inset-0 bg-slate-900/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <div class="bg-white/90 p-2 rounded-full shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-transform">
-                        <svg class="h-5 w-5 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6"/></svg>
+                        <i class="fa-solid fa-magnifying-glass h-5 w-5 text-slate-700"></i>
                     </div>
                 </div>
             </div>`;
@@ -564,14 +560,14 @@ function getFilePreviewElement(filename) {
             <a href="${filePath}" target="_blank" class="flex items-center justify-between p-3 bg-white border border-slate-100 rounded-xl hover:bg-slate-50 transition-all shadow-sm group">
                 <div class="flex items-center gap-3">
                     <div class="p-2 bg-red-50 rounded-lg text-red-600 transition-transform">
-                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m.75 12l3 3m0 0l3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
+                        <i class="fa-solid fa-file-arrow-down h-4 w-4"></i>
                     </div>
                     <div class="min-w-0">
                         <p class="text-[11px] font-bold text-slate-700 truncate">${filename}</p>
                         <p class="text-[9px] text-slate-400">Pusat Dokumen PDF</p>
                     </div>
                 </div>
-                <svg class="h-3.5 w-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg>
+                <i class="fa-solid fa-up-right-from-square h-3.5 w-3.5 text-slate-400"></i>
             </a>`;
     }
     
@@ -580,14 +576,14 @@ function getFilePreviewElement(filename) {
         <a href="${filePath}" target="_blank" class="flex items-center justify-between p-3 bg-white border border-slate-100 rounded-xl hover:bg-slate-50 transition-all shadow-sm group">
             <div class="flex items-center gap-3">
                 <div class="p-2 bg-blue-50 rounded-lg text-blue-600 transition-transform">
-                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+                    <i class="fa-solid fa-download h-4 w-4"></i>
                 </div>
                 <div class="min-w-0">
                     <p class="text-[11px] font-bold text-slate-700 truncate">${filename}</p>
                     <p class="text-[9px] text-slate-400">${ext.toUpperCase()} File Archive</p>
                 </div>
             </div>
-            <svg class="h-3.5 w-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+            <i class="fa-solid fa-download h-3.5 w-3.5 text-slate-400"></i>
         </a>`;
 }
 

@@ -58,7 +58,7 @@ include '../layouts/header.php';
         <div>
            <div class="flex items-center gap-2 text-sm text-slate-500 mb-1">
                 <a href="index.php" class="hover:text-indigo-600">Manajemen Rapat</a>
-                <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                <i class="fa-solid fa-chevron-right h-3 w-3"></i>
                 <span class="font-medium text-indigo-600">Buat Baru</span>
             </div>
             <h1 class="text-2xl font-bold text-slate-900">Buat Rapat Baru</h1>

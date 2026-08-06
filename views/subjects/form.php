@@ -83,11 +83,7 @@ include '../layouts/header.php';
                         <button type="button" onclick="toggleDropdown('category')"
                             class="inline-flex items-center justify-between w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-colors">
                             <span id="category-text"><?php echo $subject['category'] ?? 'Umum'; ?></span>
-                            <svg class="h-5 w-5 text-slate-400 transition-transform duration-200" id="category-arrow"
-                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 9l-7 7-7-7" />
-                            </svg>
+                            <i id="category-arrow" class="fa-solid fa-chevron-down h-5 w-5 text-slate-400 transition-transform duration-200"></i>
                         </button>
                         <div id="category-menu"
                             class="hidden absolute top-full left-0 mt-1 w-full origin-top-left rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
@@ -116,10 +112,7 @@ include '../layouts/header.php';
             <div class="pt-6 flex items-center justify-end gap-3 border-t border-slate-100">
                 <button type="submit"
                     class="inline-flex items-center px-6 py-2.5 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-cyan-600 hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 transition-all">
-                    <svg class="-ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                    </svg>
+                    <i class="fa-solid fa-check -ml-1 mr-2 h-4 w-4"></i>
                     Simpan Perubahan
                 </button>
             </div>

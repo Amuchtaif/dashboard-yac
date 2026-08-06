@@ -122,9 +122,7 @@ include '../layouts/header.php';
         <div>
             <div class="flex items-center gap-2 text-sm text-slate-500 mb-1">
                 <span>Tahfidz</span>
-                <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
+                <i class="fa-solid fa-chevron-right h-3 w-3"></i>
                 <span class="font-semibold text-cyan-600">Baseline Hafalan Santri</span>
             </div>
             <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight">Baseline Hafalan Santri</h1>
@@ -134,9 +132,7 @@ include '../layouts/header.php';
         <div class="flex items-center gap-3">
             <button onclick="openModal()"
                 class="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-teal-500/25 hover:from-emerald-600 hover:to-teal-700 transition-all active:scale-95">
-                <svg class="-ml-1 mr-2 h-5 w-5 text-emerald-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                </svg>
+                <i class="fa-solid fa-plus -ml-1 mr-2 h-4 w-4 text-emerald-100"></i>
                 Set / Edit Baseline
             </button>
         </div>
@@ -145,18 +141,14 @@ include '../layouts/header.php';
     <!-- Alert Notifications -->
     <?php if (isset($_GET['success'])): ?>
         <div class="mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center gap-3 shadow-sm">
-            <svg class="h-5 w-5 text-emerald-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-            </svg>
+            <i class="fa-solid fa-check h-5 w-5 text-emerald-500 flex-shrink-0"></i>
             <span class="text-sm font-medium"><?php echo htmlspecialchars($_GET['success']); ?></span>
         </div>
     <?php endif; ?>
 
     <?php if (isset($_GET['error'])): ?>
         <div class="mb-6 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 flex items-center gap-3 shadow-sm">
-            <svg class="h-5 w-5 text-rose-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            <i class="fa-solid fa-circle-exclamation h-5 w-5 text-rose-500 flex-shrink-0"></i>
             <span class="text-sm font-medium"><?php echo htmlspecialchars($_GET['error']); ?></span>
         </div>
     <?php endif; ?>
@@ -168,12 +160,10 @@ include '../layouts/header.php';
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Ter-Baseline</p>
-                    <h3 class="text-2xl font-black text-slate-800 mt-1"><?php echo number_format($stats['total']); ?> <span class="text-sm font-semibold text-slate-400">Santri</span></h3>
+                    <h3 class="text-2xl font-black text-slate-800 mt-1"><?php echo number_format((int)($stats['total'] ?? 0)); ?> <span class="text-sm font-semibold text-slate-400">Santri</span></h3>
                 </div>
                 <div class="h-12 w-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
+                    <i class="fa-solid fa-users h-6 w-6"></i>
                 </div>
             </div>
         </div>
@@ -183,12 +173,10 @@ include '../layouts/header.php';
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Rata-Rata Baseline</p>
-                    <h3 class="text-2xl font-black text-emerald-600 mt-1"><?php echo number_format($stats['avg'], 1); ?> <span class="text-sm font-semibold text-slate-400">Juz</span></h3>
+                    <h3 class="text-2xl font-black text-emerald-600 mt-1"><?php echo number_format((float)($stats['avg'] ?? 0), 1); ?> <span class="text-sm font-semibold text-slate-400">Juz</span></h3>
                 </div>
                 <div class="h-12 w-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 012-2h2a2 2 0 012 2v6m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2" />
-                    </svg>
+                    <i class="fa-solid fa-chart-simple h-6 w-6"></i>
                 </div>
             </div>
         </div>
@@ -198,12 +186,10 @@ include '../layouts/header.php';
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Baseline Tertinggi</p>
-                    <h3 class="text-2xl font-black text-indigo-600 mt-1"><?php echo number_format($stats['max'], 1); ?> <span class="text-sm font-semibold text-slate-400">Juz</span></h3>
+                    <h3 class="text-2xl font-black text-indigo-600 mt-1"><?php echo number_format((float)($stats['max'] ?? 0), 1); ?> <span class="text-sm font-semibold text-slate-400">Juz</span></h3>
                 </div>
                 <div class="h-12 w-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 11l7-7 7 7M5 19l7-7 7 7" />
-                    </svg>
+                    <i class="fa-solid fa-angles-up h-6 w-6"></i>
                 </div>
             </div>
         </div>
@@ -213,12 +199,10 @@ include '../layouts/header.php';
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Baseline Terendah</p>
-                    <h3 class="text-2xl font-black text-amber-600 mt-1"><?php echo number_format($stats['min'], 1); ?> <span class="text-sm font-semibold text-slate-400">Juz</span></h3>
+                    <h3 class="text-2xl font-black text-amber-600 mt-1"><?php echo number_format((float)($stats['min'] ?? 0), 1); ?> <span class="text-sm font-semibold text-slate-400">Juz</span></h3>
                 </div>
                 <div class="h-12 w-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
-                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 13l-7 7-7-7m14-8l-7 7-7-7" />
-                    </svg>
+                    <i class="fa-solid fa-angles-down h-6 w-6"></i>
                 </div>
             </div>
         </div>
@@ -231,9 +215,7 @@ include '../layouts/header.php';
                 <!-- Search Input -->
                 <div class="relative flex-1 min-w-[220px]">
                     <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
+                        <i class="fa-solid fa-magnifying-glass h-4 w-4"></i>
                     </div>
                     <input type="text" name="search" value="<?php echo htmlspecialchars($search); ?>"
                         placeholder="Cari Nama Santri / NIS..."
@@ -301,9 +283,7 @@ include '../layouts/header.php';
                     <?php if (empty($baselines)): ?>
                         <tr>
                             <td colspan="9" class="py-12 text-center text-slate-400">
-                                <svg class="h-12 w-12 mx-auto mb-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                                </svg>
+                                <i class="fa-solid fa-book-open h-12 w-12 mx-auto mb-3 text-slate-300"></i>
                                 Belum ada data baseline hafalan yang ditemukan.
                             </td>
                         </tr>
@@ -342,9 +322,7 @@ include '../layouts/header.php';
                                              title="<?php echo htmlspecialchars($row['notes']); ?>"
                                              class="truncate font-medium text-slate-700 cursor-pointer flex items-center gap-1.5 hover:text-emerald-600 transition-colors">
                                             <span class="truncate"><?php echo htmlspecialchars($row['notes']); ?></span>
-                                            <svg class="h-3.5 w-3.5 text-slate-400 hover:text-emerald-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
+                                            <i class="fa-solid fa-circle-info h-3.5 w-3.5 text-slate-400 hover:text-emerald-500 flex-shrink-0"></i>
                                         </div>
                                     <?php else: ?>
                                         <span class="text-slate-400 font-medium">-</span>
@@ -358,17 +336,13 @@ include '../layouts/header.php';
                                         <button onclick='editBaseline(<?php echo json_encode($row); ?>)'
                                             title="Edit Baseline"
                                             class="p-1.5 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 active:scale-95 transition-all">
-                                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                            </svg>
+                                            <i class="fa-solid fa-pen-to-square h-4 w-4"></i>
                                         </button>
                                         <a href="../../logic/tahfidz/manage_baseline.php?action=delete&id=<?php echo $row['id']; ?>"
                                             onclick="return confirm('Apakah Anda yakin ingin menghapus baseline santri ini?')"
                                             title="Hapus Baseline"
                                             class="p-1.5 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-100 active:scale-95 transition-all">
-                                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                            </svg>
+                                            <i class="fa-solid fa-trash h-4 w-4"></i>
                                         </a>
                                     </div>
                                 </td>
@@ -415,9 +389,7 @@ include '../layouts/header.php';
             <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-white/10 rounded-full blur-xl pointer-events-none"></div>
             <div class="flex items-center gap-3.5 relative z-10">
                 <div class="p-2.5 bg-white/15 backdrop-blur-md rounded-2xl border border-white/20 shadow-inner">
-                    <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                    </svg>
+                    <i class="fa-solid fa-book-open h-6 w-6 text-white"></i>
                 </div>
                 <div>
                     <h3 id="modalTitle" class="text-lg font-extrabold tracking-tight">Atur Baseline Hafalan Santri</h3>
@@ -425,9 +397,7 @@ include '../layouts/header.php';
                 </div>
             </div>
             <button onclick="closeModal()" class="relative z-10 text-white/80 hover:text-white p-1.5 rounded-xl hover:bg-white/15 transition-all">
-                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <i class="fa-solid fa-xmark h-5 w-5"></i>
             </button>
         </div>
 
@@ -448,9 +418,7 @@ include '../layouts/header.php';
                     <button type="button" id="studentDropdownBtn" onclick="toggleStudentDropdown()"
                         class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-left text-sm font-semibold text-slate-700 hover:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all flex items-center justify-between shadow-xs">
                         <span id="selectedStudentText" class="truncate text-slate-400">-- Cari & Pilih Santri --</span>
-                        <svg class="h-4 w-4 text-slate-400 flex-shrink-0 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
+                        <i class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 flex-shrink-0 ml-2"></i>
                     </button>
 
                     <!-- Dropdown List Container -->
@@ -459,9 +427,7 @@ include '../layouts/header.php';
                             <div class="relative">
                                 <input type="text" id="studentSearchInput" oninput="filterStudents()" placeholder="Ketik nama / NIS santri..."
                                     class="w-full pl-9 pr-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                                <svg class="h-4 w-4 text-slate-400 absolute left-3 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
+                                <i class="fa-solid fa-magnifying-glass h-4 w-4 text-slate-400 absolute left-3 top-2.5"></i>
                             </div>
                         </div>
                         <div id="studentOptionsList" class="max-h-56 overflow-y-auto divide-y divide-slate-50 p-1">
@@ -495,7 +461,7 @@ include '../layouts/header.php';
                         <?php endforeach; ?>
                     </select>
                     <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-400">
-                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                        <i class="fa-solid fa-chevron-down h-4 w-4"></i>
                     </div>
                 </div>
             </div>
@@ -549,9 +515,7 @@ include '../layouts/header.php';
 <!-- Global Fixed Position Tooltip (Prevents Table Overflow/Clipping Bugs) -->
 <div id="globalNoteTooltip" class="fixed z-[9999] hidden max-w-xs p-3.5 bg-slate-900/95 backdrop-blur-md text-white text-xs rounded-2xl shadow-2xl border border-slate-700/60 transition-opacity duration-150 pointer-events-none">
     <div class="font-bold text-emerald-400 mb-1 flex items-center gap-1.5 border-b border-slate-800 pb-1">
-        <svg class="h-3.5 w-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-        </svg>
+        <i class="fa-solid fa-pen-to-square h-3.5 w-3.5 text-emerald-400"></i>
         Catatan Baseline:
     </div>
     <p id="globalNoteTooltipText" class="leading-relaxed text-slate-200 whitespace-pre-wrap"></p>

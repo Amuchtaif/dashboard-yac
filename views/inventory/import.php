@@ -18,21 +18,13 @@ include '../layouts/header.php';
             </li>
             <li>
                 <div class="flex items-center">
-                    <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                        fill="none" viewBox="0 0 6 10">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="m1 9 4-4-4-4" />
-                    </svg>
+                    <i class="fa-solid fa-chevron-right w-3 h-3 text-gray-400 mx-1"></i>
                     <a href="<?php url('views/inventory/items.php'); ?>" class="hover:text-slate-800">Kelola Inventaris</a>
                 </div>
             </li>
             <li aria-current="page">
                 <div class="flex items-center">
-                    <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                        fill="none" viewBox="0 0 6 10">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="m1 9 4-4-4-4" />
-                    </svg>
+                    <i class="fa-solid fa-chevron-right w-3 h-3 text-gray-400 mx-1"></i>
                     <span class="text-slate-800 font-medium">Import Excel / CSV</span>
                 </div>
             </li>
@@ -58,9 +50,7 @@ include '../layouts/header.php';
                 <li>
                     <a href="<?php url('logic/inventory/download_template.php'); ?>"
                         class="inline-flex items-center underline font-bold hover:text-cyan-900 mt-2">
-                        <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                        </svg>
+                        <i class="fa-solid fa-download w-4 h-4 mr-1"></i>
                         Download Template Excel
                     </a>
                 </li>
@@ -76,12 +66,7 @@ include '../layouts/header.php';
                     <label for="dropzone-file"
                         class="flex flex-col items-center justify-center w-full h-40 border-2 border-slate-300 border-dashed rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 transition-all">
                         <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                            <svg class="w-10 h-10 mb-4 text-slate-400" aria-hidden="true"
-                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
-                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2" />
-                            </svg>
+                            <i class="fa-solid fa-cloud-arrow-up w-10 h-10 mb-4 text-slate-400"></i>
                             <p class="mb-2 text-sm text-slate-500 font-medium">Klik untuk pilih file Excel / CSV</p>
                             <p class="text-xs text-slate-400 uppercase tracking-widest">Atau drag and drop file di sini</p>
                         </div>
@@ -115,7 +100,7 @@ include '../layouts/header.php';
         if (this.files && this.files.length > 0) {
             fileNameDisplay.innerHTML = `
                 <div class="flex items-center gap-3">
-                    <svg class="w-5 h-5 text-cyan-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <i class="fa-solid fa-file-lines w-5 h-5 text-cyan-600"></i>
                     <span>File terpilih: <b>${this.files[0].name}</b></span>
                 </div>
             `;

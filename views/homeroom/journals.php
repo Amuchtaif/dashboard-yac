@@ -132,9 +132,7 @@ include '../layouts/header.php';
         <a href="journal_recap.php?grade_id=<?php echo $grade_id; ?>"
             class="text-cyan-600 hover:text-cyan-700 text-sm font-bold flex items-center gap-2">
             Lihat Rekap Semester
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-            </svg>
+            <i class="fa-solid fa-arrow-right w-4 h-4"></i>
         </a>
     </div>
 </div>

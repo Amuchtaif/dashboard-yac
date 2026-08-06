@@ -25,7 +25,7 @@ include '../layouts/header.php';
             <ol class="inline-flex items-center space-x-1 md:space-x-3 text-xs text-slate-500">
                 <li><a href="index.php" class="hover:text-cyan-600 transition-colors">Daftar RPP</a></li>
                 <li class="flex items-center">
-                    <svg class="w-3 h-3 mx-1 text-slate-400" fill="currentColor" viewBox="0 0 20 20"><path d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"></path></svg>
+                    <i class="fa-solid fa-chevron-right w-3 h-3 mx-1 text-slate-400"></i>
                     <span class="font-medium text-slate-800">Tambah Baru</span>
                 </li>
             </ol>
@@ -46,9 +46,7 @@ include '../layouts/header.php';
                         <button type="button" onclick="toggleTeacherDropdown()" id="teacher_select_btn"
                             class="inline-flex items-center justify-between w-full rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 transition-all shadow-sm">
                             <span id="teacher_selected_label">-- Pilih Guru --</span>
-                            <svg class="h-4 w-4 text-slate-400 transition-transform duration-200" id="teacher-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                            </svg>
+                            <i id="teacher-arrow" class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 transition-transform duration-200"></i>
                         </button>
                         
                         <div id="teacher-dropdown-menu" class="hidden absolute top-full left-0 mt-1 w-full z-50 rounded-xl bg-white shadow-xl ring-1 ring-black ring-opacity-5 focus:outline-none overflow-hidden border border-slate-100">
@@ -135,7 +133,7 @@ include '../layouts/header.php';
         <div class="lg:col-span-3 space-y-6">
             <div class="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm space-y-6 relative overflow-hidden">
                 <div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-                    <svg class="h-40 w-40" viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM6 4h7v5h5v11H6V4zm2 8v2h8v-2H8zm0 4v2h5v-2H8z"/></svg>
+                    <i class="fa-solid fa-file-lines h-40 w-40"></i>
                 </div>
 
                 <div>
@@ -218,9 +216,7 @@ include '../layouts/header.php';
                 <!-- Action Buttons -->
                 <div class="flex items-center justify-end gap-3 pt-6">
                     <button type="button" onclick="openSmartPaste()" class="group relative inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-indigo-200 bg-indigo-50/50 px-6 py-3 text-sm font-bold text-indigo-600 hover:border-indigo-400 hover:bg-indigo-50 transition-all active:scale-95">
-                        <svg class="w-5 h-5 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                        </svg>
+                        <i class="fa-solid fa-clipboard-list w-5 h-5 animate-pulse"></i>
                         <span>Smart Paste dari Word</span>
                         <div class="absolute -top-2 -right-2 px-2 py-0.5 bg-indigo-600 text-[8px] text-white rounded-full font-black animate-bounce">BARU</div>
                     </button>
@@ -246,9 +242,7 @@ include '../layouts/header.php';
                 <div class="flex items-center justify-between mb-6">
                     <div class="flex items-center gap-4">
                         <div class="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-600/20">
-                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                            </svg>
+                            <i class="fa-solid fa-bolt w-6 h-6"></i>
                         </div>
                         <div>
                             <h3 class="text-xl font-black text-slate-800">Smart Paste Parser</h3>
@@ -256,13 +250,13 @@ include '../layouts/header.php';
                         </div>
                     </div>
                     <button onclick="closeSmartPaste()" class="p-2 rounded-xl bg-slate-100 text-slate-400 hover:text-slate-600 transition-all">
-                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        <i class="fa-solid fa-xmark h-5 w-5"></i>
                     </button>
                 </div>
 
                 <div class="space-y-4">
                     <div class="bg-amber-50 border border-amber-100 rounded-2xl p-4 flex gap-3">
-                        <svg class="w-5 h-5 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <i class="fa-solid fa-circle-info w-5 h-5 text-amber-500 shrink-0"></i>
                         <p class="text-[11px] text-amber-700 leading-relaxed">
                             <span class="font-bold">Tips:</span> Pastikan teks di Word menggunakan poin penomoran <span class="font-bold">A, B, C, dst</span> agar sistem dapat mengenali pemisah antar bagian dengan akurat.
                         </p>
@@ -279,7 +273,7 @@ include '../layouts/header.php';
                     </button>
                     <button onclick="processSmartPaste()" class="flex-[2] px-6 py-4 rounded-2xl bg-indigo-600 text-sm font-bold text-white hover:bg-indigo-700 shadow-xl shadow-indigo-600/20 active:scale-95 transition-all flex items-center justify-center gap-2">
                         <span>Proses & Masukkan ke Form</span>
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                        <i class="fa-solid fa-arrow-right w-4 h-4"></i>
                     </button>
                 </div>
             </div>

@@ -124,9 +124,7 @@ include '../layouts/header.php';
         <div class="mb-6 rounded-xl bg-orange-600 shadow-2xl px-5 py-4 border border-orange-500/30 flex items-center justify-between animate-bounce-in text-white">
             <div class="flex items-center gap-4">
                 <div class="flex-shrink-0 bg-white/20 p-2 rounded-xl flex items-center justify-center">
-                    <svg class="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-                    </svg>
+                    <i class="fa-solid fa-triangle-exclamation h-5 w-5 text-white"></i>
                 </div>
                 <div>
                     <p class="text-[11px] font-black text-orange-100 uppercase tracking-widest leading-none mb-1">Database Offline</p>
@@ -141,9 +139,7 @@ include '../layouts/header.php';
         <div>
             <div class="flex items-center gap-2 text-sm text-slate-500 mb-1">
                 <span>Dashboard</span>
-                <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
+                <i class="fa-solid fa-chevron-right h-3 w-3"></i>
                 <span class="font-medium text-cyan-600">Log Sistem (File)</span>
             </div>
             <h1 class="text-2xl font-bold text-slate-900">Log Sistem (File Viewer)</h1>
@@ -182,9 +178,7 @@ include '../layouts/header.php';
                         <?php endforeach; ?>
                     </select>
                     <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
+                        <i class="fa-solid fa-chevron-down h-4 w-4"></i>
                     </div>
                 </div>
 
@@ -198,9 +192,7 @@ include '../layouts/header.php';
                         <?php endforeach; ?>
                     </select>
                     <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
+                        <i class="fa-solid fa-chevron-down h-4 w-4"></i>
                     </div>
                 </div>
             </form>
@@ -344,7 +336,7 @@ include '../layouts/header.php';
                     <p class="text-xs text-slate-500 mt-0.5" id="log-time-title"></p>
                 </div>
                 <button type="button" onclick="closeLogModal()" class="text-slate-400 hover:text-slate-600 transition-colors">
-                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    <i class="fa-solid fa-xmark h-5 w-5"></i>
                 </button>
             </div>
             <!-- Modal Body -->

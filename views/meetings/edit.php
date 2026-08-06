@@ -39,9 +39,7 @@ include '../layouts/header.php';
         <div>
             <div class="flex items-center gap-2 text-sm text-slate-500 mb-1">
                 <a href="index.php" class="hover:text-indigo-600">Manajemen Rapat</a>
-                <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
+                <i class="fa-solid fa-chevron-right h-3 w-3"></i>
                 <span class="font-medium text-indigo-600">Edit Rapat</span>
             </div>
             <h1 class="text-2xl font-bold text-slate-900">Edit Rapat</h1>
@@ -50,17 +48,12 @@ include '../layouts/header.php';
         <div class="flex space-x-3">
             <a href="details.php?id=<?= $meeting['id'] ?>"
                 class="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-4 py-2 rounded-lg text-sm font-medium flex items-center transition-colors">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                </svg>
+                <i class="fa-solid fa-eye w-4 h-4 mr-2"></i>
                 Lihat Detail
             </a>
             <a href="index.php"
                 class="bg-slate-100 text-slate-700 hover:bg-slate-200 px-4 py-2 rounded-lg text-sm font-medium flex items-center transition-colors">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
+                <i class="fa-solid fa-arrow-left w-4 h-4 mr-2"></i>
                 Kembali
             </a>
         </div>

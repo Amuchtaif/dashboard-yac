@@ -61,17 +61,13 @@ include '../layouts/header.php';
                 </li>
                 <li>
                     <div class="flex items-center">
-                        <svg class="w-3 h-3 mx-1" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
-                        </svg>
+                        <i class="fa-solid fa-chevron-right w-3 h-3 mx-1"></i>
                         <a href="index.php" class="hover:text-cyan-600 transition-colors">Manajemen Berita</a>
                     </div>
                 </li>
                 <li aria-current="page">
                     <div class="flex items-center">
-                        <svg class="w-3 h-3 mx-1" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
-                        </svg>
+                        <i class="fa-solid fa-chevron-right w-3 h-3 mx-1"></i>
                         <span class="text-cyan-600"><?php echo $is_edit ? "Edit" : "Baru"; ?></span>
                     </div>
                 </li>
@@ -85,9 +81,7 @@ include '../layouts/header.php';
                 </p>
             </div>
             <a href="index.php" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-slate-200 bg-white text-slate-600 text-xs font-semibold hover:bg-slate-50 transition-all shadow-sm">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                </svg>
+                <i class="fa-solid fa-arrow-left w-3.5 h-3.5"></i>
                 Kembali
             </a>
         </div>
@@ -96,9 +90,7 @@ include '../layouts/header.php';
     <!-- Error Message -->
     <?php if (isset($_GET['error'])): ?>
         <div class="bg-rose-50 border-l-4 border-rose-500 text-rose-700 px-3 py-2.5 rounded-r-lg mb-6 text-xs font-medium flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-            </svg>
+            <i class="fa-solid fa-magnifying-glass h-4 w-4 shrink-0"></i>
             <?php echo htmlspecialchars($_GET['error']); ?>
         </div>
     <?php endif; ?>
@@ -146,9 +138,7 @@ include '../layouts/header.php';
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-4">
                     <div class="flex items-center gap-2 pb-3 border-b border-slate-100">
                         <span class="w-7 h-7 rounded-lg bg-cyan-50 text-cyan-600 flex items-center justify-center">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
-                            </svg>
+                            <i class="fa-solid fa-tag w-3.5 h-3.5"></i>
                         </span>
                         <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wide">Kategori</h3>
                     </div>
@@ -165,9 +155,7 @@ include '../layouts/header.php';
                         </select>
                     </div>
                     <div class="p-2.5 bg-emerald-50 rounded-lg border border-emerald-100 flex items-center gap-2">
-                        <svg class="h-3.5 w-3.5 text-emerald-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                        </svg>
+                        <i class="fa-solid fa-magnifying-glass h-3.5 w-3.5 text-emerald-500 shrink-0"></i>
                         <p class="text-[10px] text-emerald-700 font-medium">Langsung dipublikasikan</p>
                     </div>
                 </div>
@@ -176,9 +164,7 @@ include '../layouts/header.php';
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-4">
                     <div class="flex items-center gap-2 pb-3 border-b border-slate-100">
                         <span class="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.581-1.581a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                            </svg>
+                            <i class="fa-solid fa-image w-3.5 h-3.5"></i>
                         </span>
                         <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wide">Gambar Cover</h3>
                     </div>
@@ -193,9 +179,7 @@ include '../layouts/header.php';
                         <?php else: ?>
                             <div class="text-center p-3">
                                 <div class="w-8 h-8 bg-white rounded-full shadow-sm flex items-center justify-center mx-auto mb-1.5 text-slate-300 group-hover:text-cyan-500 group-hover:scale-110 transition-all">
-                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                                    </svg>
+                                    <i class="fa-solid fa-plus h-4 w-4"></i>
                                 </div>
                                 <p class="text-[10px] text-slate-400 font-semibold">Klik untuk unggah gambar</p>
                             </div>
@@ -208,9 +192,7 @@ include '../layouts/header.php';
                 <!-- Action Card -->
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-3">
                     <button type="submit" class="w-full py-3 px-4 bg-cyan-600 hover:bg-cyan-700 text-white font-bold text-xs rounded-lg shadow-sm hover:shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                        </svg>
+                        <i class="fa-solid fa-check w-4 h-4"></i>
                         <?php echo $is_edit ? "Simpan Perubahan" : "Terbitkan Berita"; ?>
                     </button>
                     <a href="index.php" class="block w-full py-2.5 px-4 border border-slate-200 text-slate-500 text-center font-semibold text-xs rounded-lg hover:bg-slate-50 transition-colors">

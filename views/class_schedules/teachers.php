@@ -77,11 +77,7 @@ include '../layouts/header.php';
             <!-- Search -->
             <div class="relative">
                 <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                    <svg class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                    </svg>
+                    <i class="fa-solid fa-magnifying-glass h-4 w-4 text-slate-400"></i>
                 </div>
                 <input type="text" name="search" value="<?php echo htmlspecialchars($search); ?>"
                     class="block w-full rounded-lg border-slate-200 pl-10 text-sm focus:border-cyan-500 focus:ring-cyan-500 bg-slate-50 border placeholder:text-slate-400 text-slate-600 py-2.5"
@@ -100,9 +96,7 @@ include '../layouts/header.php';
                         echo htmlspecialchars($unitTitle);
                         ?>
                     </span>
-                    <svg id="arrow-unit_id" class="h-4 w-4 text-slate-400 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
+                    <i id="arrow-unit_id" class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 transition-transform"></i>
                 </button>
                 <div id="menu-unit_id" class="hidden absolute z-30 mt-1 max-h-60 w-full overflow-auto rounded-xl bg-white py-1 text-base shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
                     <div class="sticky top-0 z-10 bg-white px-2 py-1.5">
@@ -123,9 +117,7 @@ include '../layouts/header.php';
             <div>
                 <a href="teachers.php" 
                     class="flex items-center justify-center w-full px-4 py-2.5 rounded-lg bg-slate-800 text-white text-sm font-semibold hover:bg-slate-900 shadow-sm transition-all active:scale-95">
-                    <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                    <i class="fa-solid fa-xmark w-4 h-4 mr-2"></i>
                     Hapus Filter
                 </a>
             </div>

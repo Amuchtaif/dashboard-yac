@@ -17,15 +17,11 @@ require_once __DIR__ . '/../layouts/header.php';
         </div>
         <div class="flex gap-2">
             <button onclick="openModal(null)" class="bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow-sm flex items-center gap-2">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                </svg>
+                <i class="fa-solid fa-plus w-5 h-5"></i>
                 Tambah Root Lokasi
             </button>
             <button onclick="printAllLabels()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow-sm flex items-center gap-2">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
-                </svg>
+                <i class="fa-solid fa-print w-5 h-5"></i>
                 Cetak Semua Barcode
             </button>
         </div>
@@ -49,7 +45,7 @@ require_once __DIR__ . '/../layouts/header.php';
         <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center">
             <h3 class="text-lg font-bold text-slate-800" id="modal-title">Tambah Lokasi</h3>
             <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 focus:outline-none">
-                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                <i class="fa-solid fa-xmark w-6 h-6"></i>
             </button>
         </div>
         
@@ -86,10 +82,7 @@ require_once __DIR__ . '/../layouts/header.php';
 <div id="confirm-modal" class="fixed inset-0 z-[60] flex items-center justify-center hidden bg-slate-900/60 backdrop-blur-sm transition-opacity opacity-0">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden transform transition-all scale-95 opacity-0 p-6 text-center" id="confirm-content">
         <div class="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4" id="confirm-icon-bg">
-            <svg class="w-8 h-8 text-amber-500" id="confirm-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
+            <i id="confirm-icon" class="fa-solid fa-location-dot w-8 h-8 text-amber-500"></i>
         </div>
         <h3 class="text-xl font-bold text-slate-800 mb-2" id="confirm-modal-title-text">Konfirmasi Pindah</h3>
         <p class="text-sm text-slate-500 mb-6 leading-relaxed" id="confirm-message">Apakah Anda yakin?</p>
@@ -132,7 +125,7 @@ require_once __DIR__ . '/../layouts/header.php';
             const treeContainer = document.getElementById('location-tree');
             if (treeContainer) {
                 treeContainer.innerHTML = `<li class="text-rose-500 font-bold p-4 bg-rose-50 rounded-xl border border-rose-100 flex items-center gap-3">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <i class="fa-solid fa-circle-exclamation w-5 h-5"></i>
                     Gagal memuat data: ${err.message}
                 </li>`;
             }
@@ -192,8 +185,8 @@ require_once __DIR__ . '/../layouts/header.php';
         titleArea.className = "flex items-center gap-3";
         
         const iconSvg = node.children && node.children.length > 0 
-            ? `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1v1H9V7zm5 0h1v1h-1V7zm-5 4h1v1H9v-1zm5 0h1v1h-1v-1zm-5 4h1v1H9v-1zm5 0h1v1h-1v-1z" /></svg>`
-            : `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>`;
+            ? `<i class="fa-solid fa-building w-5 h-5"></i>`
+            : `<i class="fa-solid fa-location-dot w-5 h-5"></i>`;
             
         const iconBg = node.children && node.children.length > 0 ? 'bg-amber-50 text-amber-600' : 'bg-cyan-50 text-cyan-600';
 
@@ -213,25 +206,25 @@ require_once __DIR__ . '/../layouts/header.php';
         // Buttons
         const btnAdd = document.createElement('button');
         btnAdd.className = "p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-md transition";
-        btnAdd.innerHTML = `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>`;
+        btnAdd.innerHTML = `<i class="fa-solid fa-plus w-5 h-5"></i>`;
         btnAdd.title = "Tambah Child Node";
         btnAdd.onclick = () => openModal(null, node.id, node.name);
         
         const btnEdit = document.createElement('button');
         btnEdit.className = "p-1.5 text-amber-600 hover:bg-amber-50 rounded-md transition";
-        btnEdit.innerHTML = `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>`;
+        btnEdit.innerHTML = `<i class="fa-solid fa-pen-to-square w-5 h-5"></i>`;
         btnEdit.title = "Edit Detail";
         btnEdit.onclick = () => openModal(node.id, node.parent_id, null, node.name, node.location_code, node.location_label);
         
         const btnDel = document.createElement('button');
         btnDel.className = "p-1.5 text-rose-600 hover:bg-rose-50 rounded-md transition";
-        btnDel.innerHTML = `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>`;
+        btnDel.innerHTML = `<i class="fa-solid fa-trash w-5 h-5"></i>`;
         btnDel.title = "Hapus";
         btnDel.onclick = () => deleteNode(node.id);
         
         const btnPrint = document.createElement('button');
         btnPrint.className = "p-1.5 text-cyan-600 hover:bg-cyan-50 rounded-md transition";
-        btnPrint.innerHTML = `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>`;
+        btnPrint.innerHTML = `<i class="fa-solid fa-print w-5 h-5"></i>`;
         btnPrint.title = "Cetak Barcode";
         btnPrint.onclick = () => openPrintModal(node);
         
@@ -439,7 +432,7 @@ require_once __DIR__ . '/../layouts/header.php';
 
         try {
             submitBtn.disabled = true;
-            submitBtn.innerHTML = `<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Menyimpan...`;
+            submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block"></i> Menyimpan...`;
 
             const endpoint = id 
                 ? '<?php url("api/inventory/locations/update.php"); ?>' 
@@ -750,7 +743,7 @@ require_once __DIR__ . '/../layouts/header.php';
         <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center">
             <h3 class="text-lg font-bold text-slate-800">Cetak Label Lokasi</h3>
             <button onclick="closePrintModal()" class="text-slate-400 hover:text-slate-600 focus:outline-none">
-                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                <i class="fa-solid fa-xmark w-6 h-6"></i>
             </button>
         </div>
         
@@ -768,7 +761,7 @@ require_once __DIR__ . '/../layouts/header.php';
             
             <div class="flex flex-col gap-3 mt-8">
                 <button onclick="printLabel()" class="w-full py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl font-bold transition shadow-lg flex items-center justify-center gap-2">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                    <i class="fa-solid fa-print w-5 h-5"></i>
                     Cetak Sekarang
                 </button>
                 <button onclick="closePrintModal()" class="w-full py-3 text-slate-500 hover:text-slate-700 font-semibold transition">Batal</button>

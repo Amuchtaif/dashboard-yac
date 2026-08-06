@@ -97,9 +97,7 @@ include '../layouts/header.php';
         <div class="mt-4 sm:mt-0 sm:flex-none">
             <button onclick="openFormModal()"
                 class="inline-flex items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 px-5 py-3 text-sm font-bold text-white shadow-md hover:from-cyan-600 hover:to-blue-700 transition-all active:scale-95">
-                <svg class="-ml-1 mr-2 h-4 w-4 text-cyan-200" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
+                <i class="fa-solid fa-plus -ml-1 mr-2 h-4 w-4 text-cyan-200"></i>
                 Tambah Target Hafalan
             </button>
         </div>
@@ -157,9 +155,7 @@ include '../layouts/header.php';
                     Filter
                 </button>
                 <a href="target_hafalan.php" class="bg-white border border-slate-200 text-slate-500 p-2.5 rounded-xl hover:bg-slate-50 transition-all flex items-center justify-center shadow-sm" title="Reset Filter">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                    <i class="fa-solid fa-xmark h-4 w-4"></i>
                 </a>
             </div>
         </form>
@@ -227,15 +223,11 @@ include '../layouts/header.php';
                                 <div class="flex items-center justify-end gap-2">
                                     <button onclick='openFormModal(<?php echo json_encode($item); ?>)'
                                         class="p-2 text-slate-300 hover:text-cyan-600 hover:bg-cyan-50 rounded-xl transition-all" title="Edit">
-                                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
-                                        </svg>
+                                        <i class="fa-solid fa-pen-to-square w-5 h-5"></i>
                                     </button>
                                     <button onclick="confirmDelete(<?php echo $item['id']; ?>)"
                                         class="p-2 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all" title="Hapus">
-                                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                                        </svg>
+                                        <i class="fa-solid fa-trash w-5 h-5"></i>
                                     </button>
                                 </div>
                             </td>
@@ -254,7 +246,7 @@ include '../layouts/header.php';
                 <div class="flex gap-1">
                     <?php if ($page > 1): ?>
                         <a href="?page=<?php echo $page - 1; ?>&limit=<?php echo $limit; ?>&filter_ay=<?php echo $filter_ay; ?>&filter_unit=<?php echo $filter_unit; ?>&filter_program=<?php echo $filter_program; ?>&filter_kelas=<?php echo $filter_kelas; ?>&filter_status=<?php echo $filter_status; ?>" class="p-2 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 shadow-sm transition-all">
-                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                            <i class="fa-solid fa-chevron-left h-4 w-4"></i>
                         </a>
                     <?php endif; ?>
                     
@@ -271,7 +263,7 @@ include '../layouts/header.php';
 
                     <?php if ($page < $total_pages): ?>
                         <a href="?page=<?php echo $page + 1; ?>&limit=<?php echo $limit; ?>&filter_ay=<?php echo $filter_ay; ?>&filter_unit=<?php echo $filter_unit; ?>&filter_program=<?php echo $filter_program; ?>&filter_kelas=<?php echo $filter_kelas; ?>&filter_status=<?php echo $filter_status; ?>" class="p-2 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 shadow-sm transition-all">
-                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                            <i class="fa-solid fa-chevron-right h-4 w-4"></i>
                         </a>
                     <?php endif; ?>
                 </div>
@@ -295,7 +287,7 @@ include '../layouts/header.php';
                         <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Pengelolaan Target Hafalan Dinamis</p>
                     </div>
                     <button type="button" onclick="closeFormModal()" class="p-2 rounded-lg border border-slate-200 text-slate-400 hover:text-rose-600 shadow-sm transition-all group">
-                        <svg class="h-5 w-5 transform group-hover:rotate-90 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        <i class="fa-solid fa-xmark h-5 w-5 transform group-hover:rotate-90 transition-transform"></i>
                     </button>
                 </div>
 

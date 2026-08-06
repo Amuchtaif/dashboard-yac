@@ -106,7 +106,7 @@ include '../../layouts/header.php';
                     placeholder="Cari nama santri..." 
                     class="pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:ring-emerald-500 focus:border-emerald-500 w-64 transition-all">
                 <div class="absolute left-3.5 top-2.5 text-slate-400 group-focus-within:text-emerald-500 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                    <i class="fa-solid fa-magnifying-glass h-4 w-4"></i>
                 </div>
             </form>
             <a href="../permits/index.php" class="inline-flex items-center justify-center rounded-xl bg-slate-800 px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-slate-700 transition-all">
@@ -129,16 +129,14 @@ include '../../layouts/header.php';
             </div>
             <!-- Decore Icon from image -->
             <div class="absolute -right-4 -bottom-4 opacity-20 transform group-hover:scale-110 transition-transform duration-500">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-32 w-32" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                </svg>
+                <i class="fa-solid fa-house h-32 w-32"></i>
             </div>
         </div>
 
         <!-- Breakdown Cards -->
         <div class="bg-white border border-slate-200 rounded-2xl p-5 flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow">
             <div class="h-10 w-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                <i class="fa-solid fa-file-lines h-5 w-5"></i>
             </div>
             <div>
                 <p class="text-sm font-bold text-slate-500">Izin Pulang</p>
@@ -148,7 +146,7 @@ include '../../layouts/header.php';
 
         <div class="bg-white border border-slate-200 rounded-2xl p-5 flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow">
             <div class="h-10 w-10 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                <i class="fa-solid fa-up-right-from-square h-5 w-5"></i>
             </div>
             <div>
                 <p class="text-sm font-bold text-slate-500">Santri Sakit</p>
@@ -158,7 +156,7 @@ include '../../layouts/header.php';
 
         <div class="bg-white border border-slate-200 rounded-2xl p-5 flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow">
             <div class="h-10 w-10 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <i class="fa-solid fa-clock h-5 w-5"></i>
             </div>
             <div>
                 <p class="text-sm font-bold text-slate-500">Masa Libur</p>
@@ -180,7 +178,7 @@ include '../../layouts/header.php';
                 <div class="flex items-center justify-between border-b border-slate-200 pb-4">
                     <div class="flex items-center gap-3">
                         <div class="h-10 w-10 rounded-xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-slate-400">
-                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                             <i class="fa-solid fa-house h-5 w-5"></i>
                         </div>
                         <div>
                             <h2 class="text-lg font-bold text-slate-800"><?php echo htmlspecialchars($roomName); ?></h2>
@@ -228,13 +226,13 @@ include '../../layouts/header.php';
                                 <div class="bg-slate-50/80 rounded-2xl p-4 space-y-3 mb-5 border border-slate-100/50">
                                     <div class="flex items-center gap-2">
                                         <div class="h-6 w-6 rounded-lg bg-white shadow-sm flex items-center justify-center text-slate-400">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            <i class="fa-solid fa-circle-info h-3.5 w-3.5"></i>
                                         </div>
                                         <p class="text-xs text-slate-600 font-medium truncate italic">"<?php echo htmlspecialchars($student['reason']); ?>"</p>
                                     </div>
                                     <div class="flex items-center gap-2">
                                         <div class="h-6 w-6 rounded-lg bg-white shadow-sm flex items-center justify-center text-slate-400">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                            <i class="fa-solid fa-calendar-days h-3.5 w-3.5"></i>
                                         </div>
                                         <p class="text-[11px] text-slate-500 font-bold uppercase tracking-tight">KEMBALI: <span class="text-slate-800"><?php echo date('d M Y', strtotime($student['end_date'])); ?></span></p>
                                     </div>
@@ -243,11 +241,11 @@ include '../../layouts/header.php';
                                 <div class="flex items-center gap-2 pt-1">
                                     <button onclick="confirmReturn('<?php echo $student['id']; ?>', '<?php echo addslashes($student['nama_siswa']); ?>')" 
                                         class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 hover:bg-emerald-600 hover:text-white hover:border-emerald-600 transition-all group/btn shadow-sm active:scale-95">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 group-hover/btn:animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                                        <i class="fa-solid fa-chevron-left h-3.5 w-3.5 group-hover/btn:animate-bounce"></i>
                                         Konfirmasi Kembali
                                     </button>
                                     <a href="../permits/index.php" class="p-2.5 bg-slate-50 text-slate-400 rounded-xl hover:bg-slate-100 hover:text-slate-600 transition-colors border border-transparent">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                                        <i class="fa-solid fa-chevron-right h-4 w-4"></i>
                                     </a>
                                 </div>
                             </div>
@@ -265,7 +263,7 @@ include '../../layouts/header.php';
         <?php if (count($active_list) === 0): ?>
             <div class="col-span-full py-24 bg-white border-2 border-dashed border-slate-200 rounded-[32px] text-center flex flex-col items-center justify-center">
                 <div class="h-20 w-20 bg-emerald-50 text-emerald-300 rounded-3xl flex items-center justify-center mb-6">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                    <i class="fa-solid fa-house h-10 w-10"></i>
                 </div>
                 <p class="text-slate-500 font-bold text-lg">Tidak ada santri yang sedang tidak di asrama.</p>
                 <?php if ($search): ?>

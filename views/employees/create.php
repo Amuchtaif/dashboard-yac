@@ -28,21 +28,13 @@ include '../layouts/header.php';
                 </li>
                 <li>
                     <div class="flex items-center">
-                        <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                            fill="none" viewBox="0 0 6 10">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="m1 9 4-4-4-4" />
-                        </svg>
+                        <i class="fa-solid fa-chevron-right w-3 h-3 text-gray-400 mx-1"></i>
                         <a href="<?php url('views/employees/index.php'); ?>" class="hover:text-slate-800">Employees</a>
                     </div>
                 </li>
                 <li aria-current="page">
                     <div class="flex items-center">
-                        <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                            fill="none" viewBox="0 0 6 10">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="m1 9 4-4-4-4" />
-                        </svg>
+                        <i class="fa-solid fa-chevron-right w-3 h-3 text-gray-400 mx-1"></i>
                         <span
                             class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-cyan-50 text-cyan-700">
                             Add New
@@ -57,11 +49,7 @@ include '../layouts/header.php';
 
     <?php if (isset($_GET['error'])): ?>
         <div class="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-6 text-sm flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd"
-                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                    clip-rule="evenodd" />
-            </svg>
+            <i class="fa-solid fa-circle-info h-5 w-5 shrink-0"></i>
             <?php echo htmlspecialchars($_GET['error']); ?>
         </div>
     <?php endif; ?>
@@ -76,11 +64,7 @@ include '../layouts/header.php';
             <div class="p-8 border-b border-slate-100">
                 <div class="flex items-center gap-3 mb-6">
                     <div class="p-2 bg-blue-50 rounded-lg text-blue-600">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
-                            <path fill-rule="evenodd"
-                                d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z"
-                                clip-rule="evenodd" />
-                        </svg>
+                        <i class="fa-solid fa-circle-user w-5 h-5"></i>
                     </div>
                     <h3 class="text-base font-bold text-slate-800">Personal Information</h3>
                 </div>
@@ -91,22 +75,10 @@ include '../layouts/header.php';
                         <label class="block text-sm font-semibold text-slate-700 mb-2">Profile Photo</label>
                         <div
                             class="flex flex-col items-center justify-center w-32 h-32 rounded-full border-2 border-dashed border-slate-300 bg-slate-50 relative group cursor-pointer hover:border-cyan-500 hover:bg-cyan-50 transition-all">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                                stroke="currentColor" class="w-8 h-8 text-slate-400 group-hover:text-cyan-600">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
-                            </svg>
+                            <i class="fa-solid fa-id-badge w-8 h-8 text-slate-400 group-hover:text-cyan-600"></i>
                             <span
                                 class="absolute bottom-0 right-0 bg-white border border-slate-200 rounded-full p-1.5 shadow-sm">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
-                                    class="w-3 h-3 text-slate-500">
-                                    <path
-                                        d="M5.433 13.917l1.262-3.155A4 4 0 017.58 9.42l6.92-6.918a2.121 2.121 0 013 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 01-.65-.65z" />
-                                    <path
-                                        d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0010 3H4.75A2.75 2.75 0 002 5.75v9.5A2.75 2.75 0 004.75 18h9.5A2.75 2.75 0 0017 15.25V10a.75.75 0 00-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5z" />
-                                </svg>
+                                <i class="fa-solid fa-pen w-3 h-3 text-slate-500"></i>
                             </span>
                         </div>
                         <p class="text-[10px] text-slate-400 mt-2 text-center w-32">Upload a professional photo. Max
@@ -174,11 +146,7 @@ include '../layouts/header.php';
             <div class="p-8">
                 <div class="flex items-center gap-3 mb-6">
                     <div class="p-2 bg-cyan-50 rounded-lg text-cyan-600">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
-                            <path fill-rule="evenodd"
-                                d="M7.5 5.25a3 3 0 013-3h3a3 3 0 013 3v.25a3 3 0 013 3v1.5a3 3 0 01-3 3v.25h-9v-.25a3 3 0 01-3-3v-1.5a3 3 0 013-3V5.25zM3.75 21a.75.75 0 01.75-.75h15a.75.75 0 010 1.5H4.5a.75.75 0 01-.75-.75zm4.266-4.5H15.98a3 3 0 001.996.75 2.25 2.25 0 002.247-2.072l.027-.333a3.751 3.751 0 00-3.753-4.045H7.501A3.751 3.751 0 003.75 14.8l.026.333A2.25 2.25 0 006.023 17.25a3 3 0 001.993-.75z"
-                                clip-rule="evenodd" />
-                        </svg>
+                        <i class="fa-solid fa-briefcase w-5 h-5"></i>
                     </div>
                     <h3 class="text-base font-bold text-slate-800">Employment Details</h3>
                 </div>
@@ -220,12 +188,7 @@ include '../layouts/header.php';
                             </select>
                             <div
                                 class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
-                                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
-                                    fill="currentColor">
-                                    <path fill-rule="evenodd"
-                                        d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-                                        clip-rule="evenodd" />
-                                </svg>
+                                <i class="fa-solid fa-chevron-down h-4 w-4"></i>
                             </div>
                         </div>
                     </div>
@@ -241,12 +204,7 @@ include '../layouts/header.php';
                             </select>
                             <div
                                 class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
-                                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
-                                    fill="currentColor">
-                                    <path fill-rule="evenodd"
-                                        d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-                                        clip-rule="evenodd" />
-                                </svg>
+                                <i class="fa-solid fa-chevron-down h-4 w-4"></i>
                             </div>
                         </div>
                     </div>

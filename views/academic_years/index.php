@@ -23,21 +23,13 @@ include '../layouts/header.php';
             <li class="inline-flex items-center">
                 <a href="<?php url('views/dashboard/index.php'); ?>"
                     class="hover:text-slate-800 flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3 h-3">
-                        <path fill-rule="evenodd"
-                            d="M9.293 2.293a1 1 0 011.414 0l7 7A1 1 0 0117 11h-1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-3a1 1 0 00-1-1H9a1 1 0 00-1 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-6H3a1 1 0 01-.707-1.707l7-7z"
-                            clip-rule="evenodd" />
-                    </svg>
+                    <i class="fa-solid fa-house w-3 h-3"></i>
                     Dashboard
                 </a>
             </li>
             <li aria-current="page">
                 <div class="flex items-center">
-                    <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                        fill="none" viewBox="0 0 6 10">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="m1 9 4-4-4-4" />
-                    </svg>
+                    <i class="fa-solid fa-chevron-right w-3 h-3 text-gray-400 mx-1"></i>
                     <span class="ml-1 font-medium text-slate-800">Tahun Ajaran</span>
                 </div>
             </li>
@@ -52,10 +44,7 @@ include '../layouts/header.php';
         <div class="mt-4 flex md:ml-4 md:mt-0">
             <button onclick="openModal('addModal')"
                 class="inline-flex items-center rounded-lg bg-cyan-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-600 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                    stroke="currentColor" class="w-5 h-5 mr-2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
+                <i class="fa-solid fa-plus w-5 h-5 mr-2"></i>
                 Tambah Tahun Ajaran
             </button>
         </div>
@@ -112,21 +101,13 @@ include '../layouts/header.php';
                                     <button onclick="openEditModal(<?php echo htmlspecialchars(json_encode($year)); ?>)"
                                         class="text-indigo-600 hover:text-indigo-900 p-1 hover:bg-indigo-50 rounded transition-colors"
                                         title="Edit">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                            stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                                        </svg>
+                                        <i class="fa-solid fa-pen-to-square w-5 h-5"></i>
                                     </button>
                                     <a href="javascript:void(0)"
                                         onclick="openDeleteModal('<?php url('logic/academic_years/delete.php?id=' . $year['id']); ?>')"
                                         class="text-red-500 hover:text-red-700 p-1 hover:bg-red-50 rounded transition-colors"
                                         title="Delete">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                            stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                                        </svg>
+                                        <i class="fa-solid fa-trash w-5 h-5"></i>
                                     </a>
                                 </div>
                             </td>
@@ -160,11 +141,7 @@ include '../layouts/header.php';
                                 class="text-xs font-normal text-slate-400">(Contoh: 2024/2025)</span></label>
                         <div class="relative">
                             <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                <svg class="h-5 w-5 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-                                </svg>
+                                <i class="fa-solid fa-calendar-days h-5 w-5 text-slate-400"></i>
                             </div>
                             <input type="text" name="name" required
                                 class="block w-full rounded-lg border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-slate-900 focus:border-cyan-500 focus:ring-cyan-500 sm:text-sm transition-all shadow-sm"
@@ -178,12 +155,7 @@ include '../layouts/header.php';
                             <button type="button" onclick="toggleDropdown('add-semester')"
                                 class="flex w-full items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-left text-sm text-slate-900 focus:border-cyan-500 focus:ring-cyan-500 transition-all shadow-sm">
                                 <span id="add-semester-text">Ganjil</span>
-                                <svg class="h-5 w-5 text-slate-400 transition-transform duration-200"
-                                    id="add-semester-arrow" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M19 9l-7 7-7-7" />
-                                </svg>
+                                <i id="add-semester-arrow" class="fa-solid fa-chevron-down h-5 w-5 text-slate-400 transition-transform duration-200"></i>
                             </button>
                             <div id="add-semester-menu"
                                 class="hidden absolute z-10 mt-1 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
@@ -253,11 +225,7 @@ include '../layouts/header.php';
                                 class="text-xs font-normal text-slate-400">(Contoh: 2024/2025)</span></label>
                         <div class="relative">
                             <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                <svg class="h-5 w-5 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-                                </svg>
+                                <i class="fa-solid fa-calendar-days h-5 w-5 text-slate-400"></i>
                             </div>
                             <input type="text" name="name" id="edit_name" required
                                 class="block w-full rounded-lg border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-slate-900 focus:border-cyan-500 focus:ring-cyan-500 sm:text-sm transition-all shadow-sm"
@@ -271,12 +239,7 @@ include '../layouts/header.php';
                             <button type="button" onclick="toggleDropdown('edit-semester')"
                                 class="flex w-full items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-left text-sm text-slate-900 focus:border-cyan-500 focus:ring-cyan-500 transition-all shadow-sm">
                                 <span id="edit-semester-text">Ganjil</span>
-                                <svg class="h-5 w-5 text-slate-400 transition-transform duration-200"
-                                    id="edit-semester-arrow" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M19 9l-7 7-7-7" />
-                                </svg>
+                                <i id="edit-semester-arrow" class="fa-solid fa-chevron-down h-5 w-5 text-slate-400 transition-transform duration-200"></i>
                             </button>
                             <div id="edit-semester-menu"
                                 class="hidden absolute z-10 mt-1 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
@@ -337,11 +300,7 @@ include '../layouts/header.php';
                 <div class="sm:flex sm:items-start">
                     <div
                         class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
-                        <svg class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke-width="2"
-                            stroke="currentColor" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-                        </svg>
+                        <i class="fa-solid fa-triangle-exclamation h-6 w-6 text-blue-600"></i>
                     </div>
                     <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
                         <h3 class="text-lg font-bold leading-6 text-slate-900" id="modal-title">Aktifkan Semester</h3>

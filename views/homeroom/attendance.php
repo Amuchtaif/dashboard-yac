@@ -133,11 +133,7 @@ include '../layouts/header.php';
                     <tr>
                         <td colspan="5" class="px-6 py-20 text-center">
                             <div class="flex flex-col items-center">
-                                <svg class="w-12 h-12 text-slate-200 mb-3" fill="none" viewBox="0 0 24 24"
-                                    stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                </svg>
+                                <i class="fa-solid fa-file-lines w-12 h-12 text-slate-200 mb-3"></i>
                                 <p class="text-slate-400 italic">Belum ada data absensi yang masuk untuk tanggal ini.</p>
                             </div>
                         </td>
@@ -178,9 +174,7 @@ include '../layouts/header.php';
         <a href="recap.php?grade_id=<?php echo $grade_id; ?>"
             class="text-cyan-600 hover:text-cyan-700 text-sm font-bold flex items-center gap-2">
             Lihat Rekap Semester
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-            </svg>
+            <i class="fa-solid fa-arrow-right w-4 h-4"></i>
         </a>
     </div>
 </div>

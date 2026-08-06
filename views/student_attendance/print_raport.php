@@ -143,9 +143,7 @@ foreach ($recap_raw as $row) {
 <body class="p-8">
     <div class="no-print mb-8 flex justify-center gap-4">
         <button onclick="window.print()" class="bg-cyan-600 hover:bg-cyan-700 text-white px-6 py-2.5 rounded-lg font-bold shadow-lg transition-all active:scale-95 flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-            </svg>
+            <i class="fa-solid fa-calendar-days w-4 h-4"></i>
             Cetak Sekarang
         </button>
         <button onclick="window.close()" class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 px-6 py-2.5 rounded-lg font-bold transition-all active:scale-95">Tutup Halaman</button>

@@ -73,9 +73,7 @@ include '../../layouts/header.php';
                         <div class="flex justify-between items-start">
                             <div class="flex items-center gap-3">
                                 <div class="h-12 w-12 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                    </svg>
+                                    <i class="fa-solid fa-building h-6 w-6"></i>
                                 </div>
                                 <div>
                                     <a href="room_attendance.php?room_id=<?php echo $room['id']; ?>&date=<?php echo $date; ?>" class="hover:text-indigo-600 transition-colors">

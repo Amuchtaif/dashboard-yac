@@ -34,31 +34,19 @@ include '../layouts/header.php';
             <li class="inline-flex items-center">
                 <a href="<?php url('views/dashboard/index.php'); ?>"
                     class="hover:text-slate-800 flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3 h-3">
-                        <path fill-rule="evenodd"
-                            d="M9.293 2.293a1 1 0 011.414 0l7 7A1 1 0 0117 11h-1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-3a1 1 0 00-1-1H9a1 1 0 00-1 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-6H3a1 1 0 01-.707-1.707l7-7z"
-                            clip-rule="evenodd" />
-                    </svg>
+                    <i class="fa-solid fa-house w-3 h-3"></i>
                     Home
                 </a>
             </li>
             <li>
                 <div class="flex items-center">
-                    <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                        fill="none" viewBox="0 0 6 10">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="m1 9 4-4-4-4" />
-                    </svg>
+                    <i class="fa-solid fa-chevron-right w-3 h-3 text-gray-400 mx-1"></i>
                     <span class="ml-1 text-slate-500 hover:text-slate-800">Settings</span>
                 </div>
             </li>
             <li aria-current="page">
                 <div class="flex items-center">
-                    <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                        fill="none" viewBox="0 0 6 10">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="m1 9 4-4-4-4" />
-                    </svg>
+                    <i class="fa-solid fa-chevron-right w-3 h-3 text-gray-400 mx-1"></i>
                     <span class="ml-1 font-medium text-slate-800">Geofencing</span>
                 </div>
             </li>
@@ -76,11 +64,7 @@ include '../layouts/header.php';
         <div class="mt-4 flex md:ml-4 md:mt-0">
             <button type="button"
                 class="inline-flex items-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 transition-colors">
-                <svg class="-ml-1 mr-2 h-4 w-4 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none"
-                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+                <i class="fa-solid fa-clock -ml-1 mr-2 h-4 w-4 text-slate-500"></i>
                 View Audit Log
             </button>
         </div>
@@ -95,12 +79,7 @@ include '../layouts/header.php';
                 class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <div class="px-6 py-6 border-b border-slate-100 flex justify-between items-center">
                     <div class="flex items-center gap-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
-                            class="w-6 h-6 text-cyan-600">
-                            <path fill-rule="evenodd"
-                                d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 00-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 002.682 2.282 16.975 16.975 0 001.145.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z"
-                                clip-rule="evenodd" />
-                        </svg>
+                        <i class="fa-solid fa-shield-halved w-6 h-6 text-cyan-600"></i>
                         <h3 class="text-lg font-bold text-slate-800">Office Coordinates</h3>
                     </div>
                     <span
@@ -125,12 +104,7 @@ include '../layouts/header.php';
                                     class="block w-full rounded-lg border-slate-200 pl-12 pr-10 py-3 text-slate-700 focus:border-cyan-500 focus:ring-cyan-500 sm:text-sm shadow-sm"
                                     placeholder="e.g. 34.0522" required>
                                 <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                                    <svg class="h-5 w-5 text-green-500" xmlns="http://www.w3.org/2000/svg"
-                                        viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                        <path fill-rule="evenodd"
-                                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
-                                            clip-rule="evenodd" />
-                                    </svg>
+                                    <i class="fa-solid fa-magnifying-glass h-5 w-5 text-green-500"></i>
                                 </div>
                             </div>
                             <p class="mt-2 text-xs text-slate-400">Decimal degrees (e.g., 34.0522)</p>
@@ -149,12 +123,7 @@ include '../layouts/header.php';
                                     class="block w-full rounded-lg border-slate-200 pl-12 pr-10 py-3 text-slate-700 focus:border-cyan-500 focus:ring-cyan-500 sm:text-sm shadow-sm"
                                     placeholder="e.g. -118.2437" required>
                                 <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                                    <svg class="h-5 w-5 text-green-500" xmlns="http://www.w3.org/2000/svg"
-                                        viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                        <path fill-rule="evenodd"
-                                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
-                                            clip-rule="evenodd" />
-                                    </svg>
+                                    <i class="fa-solid fa-magnifying-glass h-5 w-5 text-green-500"></i>
                                 </div>
                             </div>
                             <p class="mt-2 text-xs text-slate-400">Decimal degrees (e.g., -118.2437)</p>
@@ -183,12 +152,7 @@ include '../layouts/header.php';
                         <div class="rounded-md bg-yellow-50 p-4 mt-6 border border-yellow-100">
                             <div class="flex">
                                 <div class="flex-shrink-0">
-                                    <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor"
-                                        aria-hidden="true">
-                                        <path fill-rule="evenodd"
-                                            d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z"
-                                            clip-rule="evenodd" />
-                                    </svg>
+                                    <i class="fa-solid fa-triangle-exclamation h-5 w-5 text-yellow-400"></i>
                                 </div>
                                 <div class="ml-3">
                                     <h3 class="text-sm font-medium text-yellow-800">Attention needed</h3>
@@ -207,11 +171,7 @@ include '../layouts/header.php';
                     class="bg-slate-50 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-100">
                     <button type="button" onclick="getCurrentLocation()"
                         class="text-sm font-medium text-cyan-600 hover:text-cyan-700 flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                            stroke="currentColor" class="w-5 h-5">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M15.042 21.672L13.684 16.6m0 0l-2.51 2.225.569-9.47 5.227 7.917-3.286-.672zM12 2.25V4.5m5.834.166l-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.243l-1.59-1.59" />
-                        </svg>
+                        <i class="fa-solid fa-arrow-pointer w-5 h-5"></i>
                         Use My Current Location
                     </button>
 
@@ -245,12 +205,7 @@ include '../layouts/header.php';
                 </div>
                 <div class="p-4 bg-slate-50 border-t border-slate-100">
                     <div class="flex gap-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
-                            class="w-5 h-5 text-slate-400 flex-shrink-0">
-                            <path fill-rule="evenodd"
-                                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z"
-                                clip-rule="evenodd" />
-                        </svg>
+                        <i class="fa-solid fa-circle-info w-5 h-5 text-slate-400 flex-shrink-0"></i>
                         <p class="text-xs text-slate-500 leading-relaxed">
                             Verify the location on the map. Dragging is not supported in preview mode; update
                             coordinates to move the pin.

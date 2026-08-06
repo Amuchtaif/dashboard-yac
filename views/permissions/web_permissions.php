@@ -17,7 +17,8 @@ $web_permissions = [
     'can_manage_academic' => 'can_manage_employees',
     'can_manage_tahfidz' => 'can_manage_academic',
     'can_manage_boarding' => 'can_manage_tahfidz',
-    'can_manage_inventory' => 'can_manage_boarding'
+    'can_manage_inventory' => 'can_manage_boarding',
+    'can_manage_documents' => 'can_manage_inventory'
 ];
 
 foreach ($web_permissions as $column => $after) {
@@ -49,7 +50,8 @@ $query = "
         can_manage_academic,
         can_manage_tahfidz,
         can_manage_boarding,
-        can_manage_inventory
+        can_manage_inventory,
+        can_manage_documents
     FROM positions
     ORDER BY level ASC, name ASC
     LIMIT :limit OFFSET :offset
@@ -123,7 +125,7 @@ include '../layouts/header.php';
                             <!-- Category Row -->
                             <tr>
                                 <th colspan="3" class="bg-slate-50 border-b border-slate-200 sticky-col z-20"></th>
-                                <th colspan="5" class="group-header border-l border-slate-200 bg-indigo-50/30 text-indigo-700">Manajemen Dashboard (Web CMS)</th>
+                                <th colspan="6" class="group-header border-l border-slate-200 bg-indigo-50/30 text-indigo-700">Manajemen Dashboard (Web CMS)</th>
                             </tr>
                             <tr class="bg-slate-50/80 backdrop-blur-sm">
                                 <th scope="col" class="sticky-col py-3.5 pl-4 pr-3 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500 sm:pl-6 w-12 border-b border-slate-200">No.</th>
@@ -134,6 +136,7 @@ include '../layouts/header.php';
                                 <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">Manajemen Tahfidz</th>
                                 <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">Kepengasuhan</th>
                                 <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">Manajemen Inventaris</th>
+                                <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">Manajemen Dokumen</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 bg-white">
@@ -200,11 +203,21 @@ include '../layouts/header.php';
                                                 </label>
                                             </div>
                                         </td>
+                                        <td class="whitespace-nowrap px-3 py-4 text-center">
+                                            <div class="flex justify-center">
+                                                <label class="relative inline-flex items-center cursor-pointer">
+                                                    <input type="checkbox" class="sr-only peer" 
+                                                        <?php echo $pos['can_manage_documents'] == 1 ? 'checked' : ''; ?>
+                                                        onchange="updateWebPermission(<?php echo $pos['id']; ?>, 'can_manage_documents', this.checked)">
+                                                    <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-600"></div>
+                                                </label>
+                                            </div>
+                                        </td>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <tr>
-                                    <td colspan="6" class="py-10 text-center text-sm text-slate-500 italic">Data jabatan tidak ditemukan.</td>
+                                    <td colspan="7" class="py-10 text-center text-sm text-slate-500 italic">Data jabatan tidak ditemukan.</td>
                                 </tr>
                             <?php endif; ?>
                         </tbody>
@@ -231,18 +244,14 @@ include '../layouts/header.php';
                                     <?php if ($page > 1): ?>
                                         <a href="?page=<?php echo $page - 1; ?>&limit=<?php echo $limit; ?>" class="relative inline-flex items-center rounded-l-md px-2 py-2 text-slate-400 ring-1 ring-inset ring-slate-300 hover:bg-slate-50">
                                             <span class="sr-only">Previous</span>
-                                            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                                <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
-                                            </svg>
+                                            <i class="fa-solid fa-chevron-left h-5 w-5"></i>
                                         </a>
                                     <?php endif; ?>
                                     <span class="relative z-10 inline-flex items-center bg-cyan-600 px-4 py-2 text-xs font-semibold text-white focus:z-20"><?php echo $page; ?></span>
                                     <?php if ($page < $total_pages): ?>
                                         <a href="?page=<?php echo $page + 1; ?>&limit=<?php echo $limit; ?>" class="relative inline-flex items-center rounded-r-md px-2 py-2 text-slate-400 ring-1 ring-inset ring-slate-300 hover:bg-slate-50">
                                             <span class="sr-only">Next</span>
-                                            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                                <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
-                                            </svg>
+                                            <i class="fa-solid fa-chevron-right h-5 w-5"></i>
                                         </a>
                                     <?php endif; ?>
                                 </nav>
@@ -302,11 +311,11 @@ function showNotification(type, message) {
     if (type === 'success') {
         notif.style.backgroundColor = '#10B981';
         notif.style.color = '#ffffff';
-        notif.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"></path></svg><span>${message}</span>`;
+        notif.innerHTML = `<i class="fa-solid fa-check"></i><span>${message}</span>`;
     } else {
         notif.style.backgroundColor = '#EF4444';
         notif.style.color = '#ffffff';
-        notif.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"></path></svg><span>${message}</span>`;
+        notif.innerHTML = `<i class="fa-solid fa-xmark"></i><span>${message}</span>`;
     }
     
     document.body.appendChild(notif);

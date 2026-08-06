@@ -45,9 +45,7 @@ include '../../layouts/header.php';
         <div class="mt-4 sm:mt-0">
             <button onclick="openModal('modal-add-exchange')" 
                 class="inline-flex items-center justify-center rounded-lg bg-cyan-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-cyan-700 transition-all font-bold">
-                <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
-                </svg>
+                <i class="fa-solid fa-rotate -ml-1 mr-2 h-4 w-4"></i>
                 Ajukan Tukar Shift
             </button>
         </div>
@@ -90,14 +88,14 @@ include '../../layouts/header.php';
                                     <div class="flex items-center justify-end gap-2">
                                         <?php if ($e['status'] == 'Menunggu'): ?>
                                             <button onclick="processExchange(<?php echo $e['id']; ?>, 'Disetujui')" class="text-emerald-600 hover:bg-emerald-50 p-2 rounded-lg" title="Setujui">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                                <i class="fa-solid fa-check h-5 w-5"></i>
                                             </button>
                                             <button onclick="processExchange(<?php echo $e['id']; ?>, 'Ditolak')" class="text-rose-600 hover:bg-rose-50 p-2 rounded-lg" title="Tolak">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                                <i class="fa-solid fa-xmark h-5 w-5"></i>
                                             </button>
                                         <?php endif; ?>
                                         <button onclick="openDeleteModal('delete.php?id=<?php echo $e['id']; ?>')" class="text-slate-400 hover:text-red-600 p-2 ml-2 transition-colors">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                            <i class="fa-solid fa-trash h-4 w-4"></i>
                                         </button>
                                     </div>
                                 </td>

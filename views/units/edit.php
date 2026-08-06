@@ -47,22 +47,14 @@ include '../layouts/header.php';
             </li>
             <li>
                 <div class="flex items-center">
-                    <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                        fill="none" viewBox="0 0 6 10">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="m1 9 4-4-4-4" />
-                    </svg>
+                    <i class="fa-solid fa-chevron-right w-3 h-3 text-gray-400 mx-1"></i>
                     <a href="<?php url('views/units/index.php'); ?>"
                         class="ml-1 text-slate-500 hover:text-slate-700">Unit</a>
                 </div>
             </li>
             <li aria-current="page">
                 <div class="flex items-center">
-                    <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                        fill="none" viewBox="0 0 6 10">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="m1 9 4-4-4-4" />
-                    </svg>
+                    <i class="fa-solid fa-chevron-right w-3 h-3 text-gray-400 mx-1"></i>
                     <span class="ml-1 font-medium text-slate-800">Edit Unit</span>
                 </div>
             </li>
@@ -110,13 +102,7 @@ include '../layouts/header.php';
                                     echo htmlspecialchars($currentDivisionName);
                                     ?>
                                 </span>
-                                <svg class="h-4 w-4 text-slate-500 transition-transform duration-200"
-                                    id="arrow-division" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
-                                    fill="currentColor">
-                                    <path fill-rule="evenodd"
-                                        d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-                                        clip-rule="evenodd" />
-                                </svg>
+                                <i id="arrow-division" class="fa-solid fa-chevron-down h-4 w-4 text-slate-500 transition-transform duration-200"></i>
                             </button>
                             <div id="menu-division"
                                 class="absolute z-50 mt-1 hidden max-h-60 w-full overflow-auto rounded-lg bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
@@ -200,13 +186,7 @@ include '../layouts/header.php';
                                     echo htmlspecialchars($currentScheduleName);
                                     ?>
                                 </span>
-                                <svg class="h-4 w-4 text-slate-500 transition-transform duration-200"
-                                    id="arrow-schedule" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
-                                    fill="currentColor">
-                                    <path fill-rule="evenodd"
-                                        d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-                                        clip-rule="evenodd" />
-                                </svg>
+                                <i id="arrow-schedule" class="fa-solid fa-chevron-down h-4 w-4 text-slate-500 transition-transform duration-200"></i>
                             </button>
                             <div id="menu-schedule"
                                 class="absolute z-50 mt-1 hidden max-h-60 w-full overflow-auto rounded-lg bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">

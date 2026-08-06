@@ -71,9 +71,7 @@ include '../layouts/header.php';
         <!-- Search -->
         <div class="relative w-full sm:w-80">
             <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <svg class="h-4 w-4 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                </svg>
+                <i class="fa-solid fa-magnifying-glass h-4 w-4 text-slate-400"></i>
             </div>
             <input type="text" name="search" value="<?php echo htmlspecialchars($search); ?>"
                 class="block w-full rounded-lg border-slate-200 pl-10 pt-2 pb-2 text-sm focus:border-cyan-500 focus:ring-cyan-500 bg-slate-50 border placeholder:text-slate-400 text-slate-600"
@@ -94,9 +92,7 @@ include '../layouts/header.php';
                         echo htmlspecialchars($displayStatus);
                         ?>
                     </span>
-                    <svg class="h-4 w-4 text-slate-400 transition-transform duration-200" id="filter-status-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
+                    <i id="filter-status-arrow" class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 transition-transform duration-200"></i>
                 </button>
                 <div id="filter-status-menu" class="hidden absolute top-full right-0 mt-1 w-36 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
                     <ul class="py-1">
@@ -117,9 +113,7 @@ include '../layouts/header.php';
             </div>
 
             <a href="teacher_attendance.php" class="inline-flex items-center p-2 rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-100 hover:text-red-500 focus:outline-none transition-colors" title="Reset Filters">
-                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <i class="fa-solid fa-xmark h-4 w-4"></i>
             </a>
         </div>
     </form>
@@ -173,12 +167,12 @@ include '../layouts/header.php';
                                 <!-- Approval Status -->
                                 <?php if ($row['status_approval'] == 'approved'): ?>
                                     <div class="flex items-center text-xs text-green-600">
-                                        <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        <i class="fa-solid fa-check w-3.5 h-3.5 mr-1"></i>
                                         Disetujui: <?php echo htmlspecialchars($row['coordinator_name'] ?? 'Administrator'); ?>
                                     </div>
                                 <?php elseif ($row['status_approval'] == 'rejected'): ?>
                                     <div class="flex items-start text-xs text-red-600">
-                                        <svg class="w-3.5 h-3.5 mr-1 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        <i class="fa-solid fa-circle-xmark w-3.5 h-3.5 mr-1 mt-0.5 flex-shrink-0"></i>
                                         <div>
                                             <span class="font-bold">Ditolak:</span> <?php echo htmlspecialchars($row['rejection_reason'] ?: 'Tanpa alasan'); ?>
                                             <div class="text-[10px] opacity-75 mt-0.5">Oleh: <?php echo htmlspecialchars($row['coordinator_name'] ?? 'Administrator'); ?></div>
@@ -186,7 +180,7 @@ include '../layouts/header.php';
                                     </div>
                                 <?php else: ?>
                                     <div class="flex items-center text-xs text-yellow-600">
-                                        <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        <i class="fa-solid fa-clock w-3.5 h-3.5 mr-1"></i>
                                         Menunggu Verifikasi
                                     </div>
                                 <?php endif; ?>

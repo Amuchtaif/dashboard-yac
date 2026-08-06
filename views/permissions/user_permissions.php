@@ -195,14 +195,14 @@ include '../layouts/header.php';
         <div class="flex flex-wrap gap-4 text-xs text-slate-600">
             <div class="flex items-center gap-2">
                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-200 text-slate-600 text-[10px] font-semibold">
-                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    <i class="fa-solid fa-building w-3 h-3"></i>
                     Jabatan
                 </span>
                 <span>= Izin bawaan dari jabatan</span>
             </div>
             <div class="flex items-center gap-2">
                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 text-[10px] font-semibold">
-                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    <i class="fa-solid fa-user w-3 h-3"></i>
                     Override
                 </span>
                 <span>= Izin khusus per karyawan (prioritas tertinggi)</span>
@@ -215,9 +215,7 @@ include '../layouts/header.php';
         <!-- Search -->
         <form class="relative w-full sm:w-96" method="GET">
             <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <svg class="h-4 w-4 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                </svg>
+                <i class="fa-solid fa-magnifying-glass h-4 w-4 text-slate-400"></i>
             </div>
             <input type="text" name="search" value="<?php echo htmlspecialchars($search); ?>"
                 class="block w-full rounded-lg border-slate-200 pl-10 pt-2 pb-2 text-sm focus:border-cyan-500 focus:ring-cyan-500 bg-slate-50 border placeholder:text-slate-400 text-slate-600"
@@ -335,14 +333,14 @@ include '../layouts/header.php';
                                 <?php if ($page > 1): ?>
                                     <a href="?page=<?php echo $page - 1; ?>&search=<?php echo urlencode($search); ?>" class="relative inline-flex items-center rounded-l-md px-2 py-2 text-slate-400 ring-1 ring-inset ring-slate-300 hover:bg-slate-50">
                                         <span class="sr-only">Previous</span>
-                                        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" /></svg>
+                                        <i class="fa-solid fa-chevron-left h-5 w-5"></i>
                                     </a>
                                 <?php endif; ?>
                                 <span class="relative z-10 inline-flex items-center bg-cyan-600 px-4 py-2 text-sm font-semibold text-white"><?php echo $page; ?></span>
                                 <?php if ($page < $total_pages): ?>
                                     <a href="?page=<?php echo $page + 1; ?>&search=<?php echo urlencode($search); ?>" class="relative inline-flex items-center rounded-r-md px-2 py-2 text-slate-400 ring-1 ring-inset ring-slate-300 hover:bg-slate-50">
                                         <span class="sr-only">Next</span>
-                                        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" /></svg>
+                                        <i class="fa-solid fa-chevron-right h-5 w-5"></i>
                                     </a>
                                 <?php endif; ?>
                             </nav>
@@ -362,8 +360,8 @@ function renderToggle($empId, $permName, $effectiveValue, $source, $roleValue = 
     $sourceLabel = $isOverride ? 'Override' : 'Jabatan';
     $sourceClass = $isOverride ? 'from-override' : 'from-role';
     $sourceIcon = $isOverride 
-        ? '<svg class="w-3 h-3 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>'
-        : '<svg class="w-3 h-3 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>';
+        ? '<i class="fa-solid fa-user w-3 h-3 inline"></i>'
+        : '<i class="fa-solid fa-building w-3 h-3 inline"></i>';
     
     $toggleColor = $isOverride ? 'peer-checked:bg-violet-600 peer-focus:ring-violet-300' : 'peer-checked:bg-cyan-600 peer-focus:ring-cyan-300';
     ?>
@@ -419,10 +417,10 @@ function updateUserPermission(empId, permName, isChecked, checkboxEl) {
             if (sourceEl) {
                 if (isMatchingRole) {
                     sourceEl.className = 'perm-source from-role';
-                    sourceEl.innerHTML = '<svg class="w-3 h-3 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg> Jabatan';
+                    sourceEl.innerHTML = '<i class="fa-solid fa-building w-3 h-3 inline"></i> Jabatan';
                 } else {
                     sourceEl.className = 'perm-source from-override';
-                    sourceEl.innerHTML = '<svg class="w-3 h-3 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg> Override';
+                    sourceEl.innerHTML = '<i class="fa-solid fa-user w-3 h-3 inline"></i> Override';
                 }
             }
             // Update toggle color
@@ -472,18 +470,14 @@ function showNotification(type, message) {
         notif.style.backgroundColor = '#10B981';
         notif.style.color = '#fff';
         notif.innerHTML = `
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
-            </svg>
+            <i class="fa-solid fa-check"></i>
             <span>${message}</span>
         `;
     } else {
         notif.style.backgroundColor = '#EF4444';
         notif.style.color = '#fff';
         notif.innerHTML = `
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
+            <i class="fa-solid fa-xmark"></i>
             <span>${message}</span>
         `;
     }

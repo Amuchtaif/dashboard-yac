@@ -22,17 +22,13 @@ include '../layouts/header.php';
             </li>
             <li>
                 <div class="flex items-center">
-                    <svg class="w-3 h-3 text-gray-400 mx-1" fill="none" viewBox="0 0 6 10">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4" />
-                    </svg>
+                    <i class="fa-solid fa-chevron-right w-3 h-3 text-gray-400 mx-1"></i>
                     <a href="<?php url('views/employee_groups/index.php'); ?>" class="ml-1 hover:text-slate-800">Pengelompokan Karyawan</a>
                 </div>
             </li>
             <li aria-current="page">
                 <div class="flex items-center">
-                    <svg class="w-3 h-3 text-gray-400 mx-1" fill="none" viewBox="0 0 6 10">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4" />
-                    </svg>
+                    <i class="fa-solid fa-chevron-right w-3 h-3 text-gray-400 mx-1"></i>
                     <span class="ml-1 text-slate-800 font-medium"><?php echo $id > 0 ? 'Ubah' : 'Tambah'; ?> Grup</span>
                 </div>
             </li>
@@ -128,9 +124,7 @@ include '../layouts/header.php';
 
                         <div class="mt-4 pt-4 border-t border-slate-100 border-dashed">
                             <button type="button" id="addRuleBtn" class="inline-flex items-center text-sm font-medium text-[#2B3990] hover:text-blue-800">
-                                <svg class="mr-1 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
-                                </svg>
+                                <i class="fa-solid fa-plus mr-1 h-5 w-5"></i>
                                 Tambah Rule
                             </button>
                         </div>
@@ -141,9 +135,7 @@ include '../layouts/header.php';
                 <div class="lg:col-span-1 bg-white shadow-sm ring-1 ring-slate-200 rounded-xl overflow-hidden flex flex-col self-start">
                     <div class="px-4 py-5 sm:p-6">
                         <h3 class="text-sm font-semibold text-slate-850 mb-4 flex items-center gap-1.5">
-                            <svg class="w-4.5 h-4.5 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
+                            <i class="fa-solid fa-circle-info w-4.5 h-4.5 text-cyan-600"></i>
                             Panduan ID & Value
                         </h3>
                         <div class="space-y-3">
@@ -152,7 +144,7 @@ include '../layouts/header.php';
                                 <summary class="flex justify-between items-center font-medium text-xs text-slate-700 p-3 cursor-pointer select-none hover:bg-slate-100">
                                     <span>Unit</span>
                                     <span class="transition group-open:rotate-180">
-                                        <svg fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="24" class="w-4 h-4"><path d="M6 9l6 6 6-6"></path></svg>
+                                        <i class="fa-solid fa-chevron-down w-4 h-4"></i>
                                     </span>
                                 </summary>
                                 <div class="p-3 border-t border-slate-100 bg-white text-xs space-y-1 text-slate-600 font-mono">
@@ -175,7 +167,7 @@ include '../layouts/header.php';
                                 <summary class="flex justify-between items-center font-medium text-xs text-slate-700 p-3 cursor-pointer select-none hover:bg-slate-100">
                                     <span>Departemen (Divisi)</span>
                                     <span class="transition group-open:rotate-180">
-                                        <svg fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="24" class="w-4 h-4"><path d="M6 9l6 6 6-6"></path></svg>
+                                        <i class="fa-solid fa-chevron-down w-4 h-4"></i>
                                     </span>
                                 </summary>
                                 <div class="p-3 border-t border-slate-100 bg-white text-xs space-y-1 text-slate-600 font-mono">
@@ -194,7 +186,7 @@ include '../layouts/header.php';
                                 <summary class="flex justify-between items-center font-medium text-xs text-slate-700 p-3 cursor-pointer select-none hover:bg-slate-100">
                                     <span>Jabatan</span>
                                     <span class="transition group-open:rotate-180">
-                                        <svg fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="24" class="w-4 h-4"><path d="M6 9l6 6 6-6"></path></svg>
+                                        <i class="fa-solid fa-chevron-down w-4 h-4"></i>
                                     </span>
                                 </summary>
                                 <div class="p-3 border-t border-slate-100 bg-white text-xs space-y-1 text-slate-600 font-mono max-h-48 overflow-y-auto">
@@ -221,7 +213,7 @@ include '../layouts/header.php';
                                 <summary class="flex justify-between items-center font-medium text-xs text-slate-700 p-3 cursor-pointer select-none hover:bg-slate-100">
                                     <span>Gender & Status</span>
                                     <span class="transition group-open:rotate-180">
-                                        <svg fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="24" class="w-4 h-4"><path d="M6 9l6 6 6-6"></path></svg>
+                                        <i class="fa-solid fa-chevron-down w-4 h-4"></i>
                                     </span>
                                 </summary>
                                 <div class="p-3 border-t border-slate-100 bg-white text-xs space-y-2 text-slate-600 font-mono">
@@ -358,9 +350,7 @@ include '../layouts/header.php';
         </div>
         <div>
             <button type="button" class="rule-remove text-slate-400 hover:text-rose-500 p-1 rounded-md hover:bg-white transition-colors">
-                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"/>
-                </svg>
+                <i class="fa-solid fa-xmark h-5 w-5"></i>
             </button>
         </div>
     </div>

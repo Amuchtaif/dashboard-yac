@@ -1,6 +1,8 @@
 <?php
 // api/tahfidz/submit_student_attendance.php
 
+date_default_timezone_set('Asia/Jakarta');
+
 if (!headers_sent()) {
     header("Access-Control-Allow-Origin: *");
     header("Content-Type: application/json; charset=UTF-8");
@@ -59,8 +61,8 @@ $errors = [];
 try {
     $mysqli->begin_transaction();
 
-    // Persiapkan statement untuk pengecekan, insert, dan update secara terpisah
-    $check_sql = "SELECT id FROM tahfidz_attendance WHERE student_id = ? AND date = ? LIMIT 1";
+    // Persiapkan statement untuk pengecekan, insert, dan update secara terpisah berdasarkan student, date, DAN session
+    $check_sql = "SELECT id FROM tahfidz_attendance WHERE student_id = ? AND date = ? AND session = ? LIMIT 1";
     $check_stmt = $mysqli->prepare($check_sql);
     
     $insert_sql = "INSERT INTO tahfidz_attendance (student_id, date, status, session, teacher_id) VALUES (?, ?, ?, ?, ?)";
@@ -83,11 +85,11 @@ try {
         $status = $student['status'];
 
         try {
-            // Cek apakah data absensi sudah ada untuk tanggal tersebut
+            // Cek apakah data absensi sudah ada untuk tanggal DAN sesi tersebut
             if (defined('PHP_VERSION_ID') && PHP_VERSION_ID >= 80100) {
-                $check_stmt->execute([$s_id, $date]);
+                $check_stmt->execute([$s_id, $date, $session]);
             } else {
-                $check_stmt->bind_param("is", $s_id, $date);
+                $check_stmt->bind_param("iss", $s_id, $date, $session);
                 $check_stmt->execute();
             }
             $check_result = $check_stmt->get_result();

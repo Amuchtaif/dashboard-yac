@@ -101,32 +101,20 @@ include '../layouts/header.php';
             <li class="inline-flex items-center">
                 <a href="<?php url('views/dashboard/index.php'); ?>"
                     class="hover:text-slate-800 flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3 h-3">
-                        <path fill-rule="evenodd"
-                            d="M9.293 2.293a1 1 0 011.414 0l7 7A1 1 0 0117 11h-1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-3a1 1 0 00-1-1H9a1 1 0 00-1 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-6H3a1 1 0 01-.707-1.707l7-7z"
-                            clip-rule="evenodd" />
-                    </svg>
+                    <i class="fa-solid fa-house w-3 h-3"></i>
                     Dashboard
                 </a>
             </li>
             <li>
                 <div class="flex items-center">
-                    <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                        fill="none" viewBox="0 0 6 10">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="m1 9 4-4-4-4" />
-                    </svg>
+                    <i class="fa-solid fa-chevron-right w-3 h-3 text-gray-400 mx-1"></i>
                     <a href="<?php url('views/students/index.php'); ?>"
                         class="ml-1 text-slate-500 hover:text-slate-800">Manajemen Siswa</a>
                 </div>
             </li>
             <li aria-current="page">
                 <div class="flex items-center">
-                    <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                        fill="none" viewBox="0 0 6 10">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="m1 9 4-4-4-4" />
-                    </svg>
+                    <i class="fa-solid fa-chevron-right w-3 h-3 text-gray-400 mx-1"></i>
                     <span class="ml-1 font-medium text-slate-800">Kenaikan Kelas</span>
                 </div>
             </li>
@@ -168,10 +156,7 @@ include '../layouts/header.php';
                         echo htmlspecialchars($unitLabel);
                         ?>
                     </span>
-                    <svg class="h-4 w-4 text-slate-400 transition-transform duration-200" id="source-unit-arrow"
-                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
+                    <i id="source-unit-arrow" class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 transition-transform duration-200"></i>
                 </button>
                 <div id="source-unit-menu"
                     class="hidden absolute top-full left-0 mt-1 w-full origin-top-left rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50 max-h-60 overflow-y-auto">
@@ -209,10 +194,7 @@ include '../layouts/header.php';
                         echo htmlspecialchars($classLabel);
                         ?>
                     </span>
-                    <svg class="h-4 w-4 text-slate-400 transition-transform duration-200" id="source-class-arrow"
-                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
+                    <i id="source-class-arrow" class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 transition-transform duration-200"></i>
                 </button>
                 <div id="source-class-menu"
                     class="hidden absolute top-full left-0 mt-1 w-full origin-top-left rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50 max-h-60 overflow-y-auto">
@@ -252,10 +234,7 @@ include '../layouts/header.php';
                         echo htmlspecialchars($yearLabel);
                         ?>
                     </span>
-                    <svg class="h-4 w-4 text-slate-400 transition-transform duration-200" id="source-year-arrow"
-                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
+                    <i id="source-year-arrow" class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 transition-transform duration-200"></i>
                 </button>
                 <div id="source-year-menu"
                     class="hidden absolute top-full left-0 mt-1 w-full origin-top-left rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50 max-h-60 overflow-y-auto">
@@ -327,10 +306,7 @@ include '../layouts/header.php';
                             <span id="target-unit-text" class="truncate">
                                 Pilih Unit Tujuan
                             </span>
-                            <svg class="h-4 w-4 text-cyan-700 transition-transform duration-200" id="target-unit-arrow"
-                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                            </svg>
+                            <i id="target-unit-arrow" class="fa-solid fa-chevron-down h-4 w-4 text-cyan-700 transition-transform duration-200"></i>
                         </button>
                         <div id="target-unit-menu"
                             class="hidden absolute top-full left-0 mt-1 w-full origin-top-left rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50 max-h-60 overflow-y-auto">
@@ -358,10 +334,7 @@ include '../layouts/header.php';
                             <span id="target-class-text" class="truncate">
                                 -- Pilih Kelas Tujuan --
                             </span>
-                            <svg class="h-4 w-4 text-cyan-700 transition-transform duration-200" id="target-class-arrow"
-                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                            </svg>
+                            <i id="target-class-arrow" class="fa-solid fa-chevron-down h-4 w-4 text-cyan-700 transition-transform duration-200"></i>
                         </button>
                         <div id="target-class-menu"
                             class="hidden absolute top-full left-0 mt-1 w-full origin-top-left rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50 max-h-60 overflow-y-auto">
@@ -391,10 +364,7 @@ include '../layouts/header.php';
                             <span id="target-year-text" class="truncate">
                                 -- Pilih Tahun Baru --
                             </span>
-                            <svg class="h-4 w-4 text-cyan-700 transition-transform duration-200" id="target-year-arrow"
-                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                            </svg>
+                            <i id="target-year-arrow" class="fa-solid fa-chevron-down h-4 w-4 text-cyan-700 transition-transform duration-200"></i>
                         </button>
                         <div id="target-year-menu"
                             class="hidden absolute top-full left-0 mt-1 w-full origin-top-left rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50 max-h-60 overflow-y-auto">
@@ -504,9 +474,7 @@ include '../layouts/header.php';
             <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
                 <div class="sm:flex sm:items-start">
                     <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-cyan-100 sm:mx-0 sm:h-10 sm:w-10">
-                        <svg class="h-6 w-6 text-cyan-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-                        </svg>
+                        <i class="fa-solid fa-triangle-exclamation h-6 w-6 text-cyan-600"></i>
                     </div>
                     <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
                         <h3 class="text-lg font-bold leading-6 text-slate-900" id="graduate-modal-title">Konfirmasi Kelulusan Siswa</h3>

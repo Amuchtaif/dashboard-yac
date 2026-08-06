@@ -56,6 +56,22 @@ if (!function_exists('hasPermission')) {
                 return (bool) $user_perm['is_allowed'];
             }
 
+            // 1.0 Document Module Full Access Override for user_permissions
+            $is_doc_perm = (strpos($permission_name, 'document.') === 0 || in_array($permission_name, ['manage_documents', 'can_manage_documents', 'access_documents']));
+            if ($is_doc_perm) {
+                $stmtDocUser = $conn->prepare("
+                    SELECT is_allowed FROM user_permissions 
+                    WHERE employee_id = ? 
+                      AND permission_name IN ('manage_documents', 'can_manage_documents', 'access_documents', 'document.create', 'document.approve', 'document.view', ?) 
+                    ORDER BY is_allowed DESC LIMIT 1
+                ");
+                $stmtDocUser->execute([$employee_id, $permission_name]);
+                $doc_user_perm = $stmtDocUser->fetch(PDO::FETCH_ASSOC);
+                if ($doc_user_perm) {
+                    return (bool) $doc_user_perm['is_allowed'];
+                }
+            }
+
             // 1.1 Alias Check for user_permissions (to match web admin naming)
             if ($permission_name === 'create_meeting') {
                 $stmtAlias = $conn->prepare("SELECT is_allowed FROM user_permissions WHERE employee_id = ? AND permission_name = 'access_meeting' LIMIT 1");
@@ -93,11 +109,31 @@ if (!function_exists('hasPermission')) {
                 'manage_tahfidz' => 'can_manage_tahfidz',
                 'manage_boarding' => 'can_manage_boarding',
                 'manage_inventory' => 'can_manage_inventory',
+                'manage_documents' => 'can_manage_documents',
+                'can_manage_documents' => 'can_manage_documents',
                 'manage_news' => 'can_manage_news',
                 'manage_assignments' => 'can_manage_assignments',
                 'can_access_kabid' => 'can_access_kabid',
                 'can_access_kesantrian' => 'can_access_kesantrian',
                 'manage_activities' => 'can_manage_amaliyah',
+                
+                // Document permissions mapped to can_manage_documents position column
+                'document.view' => 'can_manage_documents',
+                'document.create' => 'can_manage_documents',
+                'document.edit' => 'can_manage_documents',
+                'document.delete' => 'can_manage_documents',
+                'document.submit' => 'can_manage_documents',
+                'document.approve' => 'can_manage_documents',
+                'document.reject' => 'can_manage_documents',
+                'document.sign' => 'can_manage_documents',
+                'document.download' => 'can_manage_documents',
+                'document.print' => 'can_manage_documents',
+                'document.verify' => 'can_manage_documents',
+                'document.archive' => 'can_manage_documents',
+                'document.restore' => 'can_manage_documents',
+                'document.disposition' => 'can_manage_documents',
+                'document.template.manage' => 'can_manage_documents',
+                'document.report.view' => 'can_manage_documents',
             ];
 
             if (array_key_exists($permission_name, $permission_map) && !empty($employee['position_id'])) {

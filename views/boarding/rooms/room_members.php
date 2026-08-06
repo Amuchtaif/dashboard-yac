@@ -93,9 +93,7 @@ include '../../layouts/header.php';
             <div class="mt-4 sm:mt-0">
                 <button onclick="openModal('modal-add-member')" 
                     class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
-                    <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                    </svg>
+                    <i class="fa-solid fa-user-plus -ml-1 mr-2 h-5 w-5"></i>
                     Tambah Santri
                 </button>
             </div>
@@ -136,9 +134,7 @@ include '../../layouts/header.php';
                                 </td>
                                 <td class="px-6 py-4 text-right">
                                     <button onclick="removeMember(<?php echo $m['id']; ?>)" class="text-slate-400 hover:text-red-600 transition-colors p-2" title="Keluarkan dari asrama">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
+                                        <i class="fa-solid fa-trash h-5 w-5"></i>
                                     </button>
                                 </td>
                             </tr>
@@ -170,16 +166,14 @@ include '../../layouts/header.php';
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="text-xl font-bold text-slate-800">Tambah Santri ke Asrama</h3>
                         <button type="button" onclick="closeModal('modal-add-member')" class="text-slate-400 hover:text-slate-600">
-                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            <i class="fa-solid fa-xmark h-6 w-6"></i>
                         </button>
                     </div>
 
                     <!-- Search Input -->
                     <div class="relative mb-6">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <svg class="h-5 w-5 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
+                            <i class="fa-solid fa-magnifying-glass h-5 w-5 text-slate-400"></i>
                         </div>
                         <input type="text" id="member-search" onkeyup="filterStudents()" 
                             class="block w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl bg-slate-50 text-sm focus:ring-indigo-500 focus:border-indigo-500 transition-all" 

@@ -51,12 +51,14 @@ $query = "
         COALESCE(p.can_manage_tahfidz, 0) as role_manage_tahfidz,
         COALESCE(p.can_manage_boarding, 0) as role_manage_boarding,
         COALESCE(p.can_manage_inventory, 0) as role_manage_inventory,
+        COALESCE(p.can_manage_documents, 0) as role_manage_documents,
         -- User-specific overrides (NULL = no override)
         up_emp.is_allowed as override_manage_employees,
         up_aca.is_allowed as override_manage_academic,
         up_tah.is_allowed as override_manage_tahfidz,
         up_boa.is_allowed as override_manage_boarding,
-        up_inv.is_allowed as override_manage_inventory
+        up_inv.is_allowed as override_manage_inventory,
+        up_doc.is_allowed as override_manage_documents
     FROM employees e
     LEFT JOIN positions p ON e.position_id = p.id
     LEFT JOIN user_permissions up_emp 
@@ -69,6 +71,8 @@ $query = "
         ON e.id = up_boa.employee_id AND up_boa.permission_name = 'manage_boarding'
     LEFT JOIN user_permissions up_inv 
         ON e.id = up_inv.employee_id AND up_inv.permission_name = 'manage_inventory'
+    LEFT JOIN user_permissions up_doc 
+        ON e.id = up_doc.employee_id AND up_doc.permission_name = 'manage_documents'
     WHERE $where_sql
     ORDER BY e.full_name ASC
     LIMIT :limit OFFSET :offset
@@ -174,9 +178,7 @@ include '../layouts/header.php';
     <div class="mt-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-4 justify-between items-center">
         <form class="relative w-full sm:w-96" method="GET">
             <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <svg class="h-4 w-4 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                </svg>
+                <i class="fa-solid fa-magnifying-glass h-4 w-4 text-slate-400"></i>
             </div>
             <input type="text" name="search" value="<?php echo htmlspecialchars($search); ?>"
                 class="block w-full rounded-lg border-slate-200 pl-10 pt-2 pb-2 text-sm focus:border-cyan-500 focus:ring-cyan-500 bg-slate-50 border placeholder:text-slate-400 text-slate-600"
@@ -194,7 +196,7 @@ include '../layouts/header.php';
                             <!-- Category Row -->
                             <tr>
                                 <th colspan="3" class="bg-slate-50 border-b border-slate-200 sticky-col z-20"></th>
-                                <th colspan="5" class="group-header border-l border-slate-200 bg-indigo-50/30 text-indigo-700">Manajemen Dashboard (Override)</th>
+                                <th colspan="6" class="group-header border-l border-slate-200 bg-indigo-50/30 text-indigo-700">Manajemen Dashboard (Override)</th>
                             </tr>
                             <tr class="bg-slate-50/80 backdrop-blur-sm">
                                 <th scope="col" class="sticky-col py-3.5 pl-4 pr-3 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500 sm:pl-6 border-b border-slate-200">No.</th>
@@ -205,6 +207,7 @@ include '../layouts/header.php';
                                 <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">Manajemen Tahfidz</th>
                                 <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">Kepengasuhan</th>
                                 <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">Manajemen Inventaris</th>
+                                <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">Manajemen Dokumen</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 bg-white">
@@ -215,7 +218,8 @@ include '../layouts/header.php';
                                         ['name' => 'manage_academic',  'eff' => ($emp['override_manage_academic'] !== null ? (int)$emp['override_manage_academic'] : (int)$emp['role_manage_academic']), 'src' => ($emp['override_manage_academic'] !== null && (int)$emp['override_manage_academic'] !== (int)$emp['role_manage_academic'] ? 'override' : 'role'), 'role' => (int)$emp['role_manage_academic']],
                                         ['name' => 'manage_tahfidz',   'eff' => ($emp['override_manage_tahfidz'] !== null ? (int)$emp['override_manage_tahfidz'] : (int)$emp['role_manage_tahfidz']), 'src' => ($emp['override_manage_tahfidz'] !== null && (int)$emp['override_manage_tahfidz'] !== (int)$emp['role_manage_tahfidz'] ? 'override' : 'role'), 'role' => (int)$emp['role_manage_tahfidz']],
                                         ['name' => 'manage_boarding',  'eff' => ($emp['override_manage_boarding'] !== null ? (int)$emp['override_manage_boarding'] : (int)$emp['role_manage_boarding']), 'src' => ($emp['override_manage_boarding'] !== null && (int)$emp['override_manage_boarding'] !== (int)$emp['role_manage_boarding'] ? 'override' : 'role'), 'role' => (int)$emp['role_manage_boarding']],
-                                        ['name' => 'manage_inventory', 'eff' => ($emp['override_manage_inventory'] !== null ? (int)$emp['override_manage_inventory'] : (int)$emp['role_manage_inventory']), 'src' => ($emp['override_manage_inventory'] !== null && (int)$emp['override_manage_inventory'] !== (int)$emp['role_manage_inventory'] ? 'override' : 'role'), 'role' => (int)$emp['role_manage_inventory']]
+                                        ['name' => 'manage_inventory', 'eff' => ($emp['override_manage_inventory'] !== null ? (int)$emp['override_manage_inventory'] : (int)$emp['role_manage_inventory']), 'src' => ($emp['override_manage_inventory'] !== null && (int)$emp['override_manage_inventory'] !== (int)$emp['role_manage_inventory'] ? 'override' : 'role'), 'role' => (int)$emp['role_manage_inventory']],
+                                        ['name' => 'manage_documents', 'eff' => ($emp['override_manage_documents'] !== null ? (int)$emp['override_manage_documents'] : (int)$emp['role_manage_documents']), 'src' => ($emp['override_manage_documents'] !== null && (int)$emp['override_manage_documents'] !== (int)$emp['role_manage_documents'] ? 'override' : 'role'), 'role' => (int)$emp['role_manage_documents']]
                                     ];
                                 ?>
                                     <tr class="hover:bg-slate-50 transition-colors group">
@@ -246,7 +250,7 @@ include '../layouts/header.php';
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
-                                <tr><td colspan="6" class="py-10 text-center text-sm text-slate-500 italic">Data karyawan tidak ditemukan.</td></tr>
+                                <tr><td colspan="7" class="py-10 text-center text-sm text-slate-500 italic">Data karyawan tidak ditemukan.</td></tr>
                             <?php endif; ?>
                         </tbody>
                     </table>

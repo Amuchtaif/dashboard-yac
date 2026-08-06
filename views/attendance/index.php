@@ -158,9 +158,7 @@ include '../layouts/header.php';
         <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
             <a href="export_excel.php?<?php echo http_build_query(['search' => $search ?? '', 'division_id' => $division_id ?? '', 'start_date' => $start_date ?? '', 'end_date' => $end_date ?? '']); ?>" 
                class="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-emerald-600/20 hover:bg-emerald-700 hover:shadow-emerald-600/40 focus:ring-4 focus:ring-emerald-500/30 transition-all active:scale-95">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
-                    <path fill-rule="evenodd" d="M4.5 2A1.5 1.5 0 003 3.5v13A1.5 1.5 0 004.5 18h11a1.5 1.5 0 001.5-1.5V7.879a1.5 1.5 0 00-.44-1.06L13.18 2.44A1.5 1.5 0 0012.12 2H4.5zm8 1.5L16.5 7H13a.5.5 0 01-.5-.5V3.5zM6 9.5a.75.75 0 01.75-.75h6.5a.75.75 0 010 1.5h-6.5A.75.75 0 016 9.5zm0 3a.75.75 0 01.75-.75h6.5a.75.75 0 010 1.5h-6.5A.75.75 0 016 12.5zm0 3a.75.75 0 01.75-.75h4.5a.75.75 0 010 1.5h-4.5A.75.75 0 016 15.5z" clip-rule="evenodd" />
-                </svg>
+                <i class="fa-solid fa-file-lines w-4 h-4"></i>
                 Export Excel
             </a>
         </div>
@@ -170,9 +168,7 @@ include '../layouts/header.php';
     <div class="mb-8 overflow-hidden rounded-2xl bg-white shadow-sm border border-slate-200">
         <div class="border-b border-slate-100 bg-slate-50/50 px-6 py-4">
             <h3 class="flex items-center gap-2 text-sm font-bold text-slate-800 uppercase tracking-tight">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 text-cyan-500">
-                    <path fill-rule="evenodd" d="M2.628 1.601C5.028 1.206 7.49 1 10 1s4.973.206 7.372.601a.75.75 0 01.628.74v2.288a2.25 2.25 0 01-.659 1.59l-4.682 4.683a2.25 2.25 0 00-.659 1.59v3.037c0 .684-.31 1.33-.844 1.757l-1.937 1.55A.75.75 0 018 18.25v-5.757a2.25 2.25 0 00-.659-1.591L2.659 6.22A2.25 2.25 0 012 4.629V2.34a.75.75 0 01.628-.74z" clip-rule="evenodd" />
-                </svg>
+                <i class="fa-solid fa-filter w-4 h-4 text-cyan-500"></i>
                 Filter Pencarian
             </h3>
         </div>
@@ -185,9 +181,7 @@ include '../layouts/header.php';
                     <label for="search" class="block text-xs font-bold text-slate-500 uppercase mb-2 ml-1">Nama Pegawai</label>
                     <div class="relative group">
                         <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400 group-focus-within:text-cyan-500 transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
-                                <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd" />
-                            </svg>
+                            <i class="fa-solid fa-magnifying-glass w-4 h-4"></i>
                         </div>
                         <input type="text" name="search" id="search" value="<?php echo htmlspecialchars($search ?? ''); ?>" placeholder="Cari nama..." class="block w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl focus:ring-4 focus:ring-cyan-500/10 focus:border-cyan-500 focus:bg-white transition-all outline-none">
                     </div>
@@ -198,10 +192,7 @@ include '../layouts/header.php';
                     <label for="division_id" class="block text-xs font-bold text-slate-500 uppercase mb-2 ml-1">Bidang</label>
                     <div class="relative group">
                         <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400 group-focus-within:text-cyan-500 transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
-                                <path fill-rule="evenodd" d="M2.25 14.5A2.25 2.25 0 014.5 12h11a2.25 2.25 0 012.25 2.25V16a2.25 2.25 0 01-2.25 2.25h-11A2.25 2.25 0 012.25 16v-1.5zM4.5 13.5a.75.75 0 00-.75.75V16c0 .414.336.75.75.75h11a.75.75 0 00.75-.75v-1.75a.75.75 0 00-.75-.75h-11z" clip-rule="evenodd" />
-                                <path fill-rule="evenodd" d="M10 2a3 3 0 100 6 3 3 0 000-6zM8.5 5a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zm-5.5 5.5A2.25 2.25 0 015.25 8h9.5A2.25 2.25 0 0117 10.25V11a.75.75 0 01-1.5 0v-.75a.75.75 0 00-.75-.75h-9.5a.75.75 0 00-.75.75V11a.75.75 0 01-1.5 0v-.75z" clip-rule="evenodd" />
-                            </svg>
+                            <i class="fa-solid fa-id-card w-4 h-4"></i>
                         </div>
                         <select name="division_id" id="division_id" class="block w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl focus:ring-4 focus:ring-cyan-500/10 focus:border-cyan-500 focus:bg-white transition-all appearance-none cursor-pointer">
                             <option value="">Semua Bidang</option>
@@ -212,9 +203,7 @@ include '../layouts/header.php';
                             <?php endforeach; ?>
                         </select>
                         <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
-                                <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 011.06 0L10 11.94l3.72-3.72a.75.75 0 111.06 1.06l-4.25 4.25a.75.75 0 01-1.06 0L5.22 9.28a.75.75 0 010-1.06z" clip-rule="evenodd" />
-                            </svg>
+                            <i class="fa-solid fa-chevron-down w-4 h-4"></i>
                         </div>
                     </div>
                 </div>
@@ -225,18 +214,14 @@ include '../layouts/header.php';
                     <div class="flex items-center gap-3">
                         <div class="relative w-full group">
                             <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400 group-focus-within:text-cyan-500 transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
-                                    <path fill-rule="evenodd" d="M5.75 2a.75.75 0 01.75.75V4h7V2.75a.75.75 0 011.5 0V4h.25A2.75 2.75 0 0118 6.75v8.5A2.75 2.75 0 0115.25 18H4.75A2.75 2.75 0 012 15.25v-8.5A2.75 2.75 0 014.75 4H5V2.75A.75.75 0 015.75 2zm-1 5.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h10.5c.69 0 1.25-.56 1.25-1.25v-6.5c0-.69-.56-1.25-1.25-1.25H4.75z" clip-rule="evenodd" />
-                                </svg>
+                                <i class="fa-solid fa-calendar-days w-4 h-4"></i>
                             </div>
                             <input type="date" name="start_date" id="start_date" value="<?php echo $start_date; ?>" class="block w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl focus:ring-4 focus:ring-cyan-500/10 focus:border-cyan-500 focus:bg-white transition-all">
                         </div>
                         <span class="text-slate-400 text-sm font-bold">s/d</span>
                         <div class="relative w-full group">
                             <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400 group-focus-within:text-cyan-500 transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
-                                    <path fill-rule="evenodd" d="M5.75 2a.75.75 0 01.75.75V4h7V2.75a.75.75 0 011.5 0V4h.25A2.75 2.75 0 0118 6.75v8.5A2.75 2.75 0 0115.25 18H4.75A2.75 2.75 0 012 15.25v-8.5A2.75 2.75 0 014.75 4H5V2.75A.75.75 0 015.75 2zm-1 5.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h10.5c.69 0 1.25-.56 1.25-1.25v-6.5c0-.69-.56-1.25-1.25-1.25H4.75z" clip-rule="evenodd" />
-                                </svg>
+                                <i class="fa-solid fa-calendar-days w-4 h-4"></i>
                             </div>
                             <input type="date" name="end_date" id="end_date" value="<?php echo $end_date; ?>" class="block w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl focus:ring-4 focus:ring-cyan-500/10 focus:border-cyan-500 focus:bg-white transition-all">
                         </div>
@@ -246,17 +231,12 @@ include '../layouts/header.php';
                 <!-- Action Buttons -->
                 <div class="md:col-span-2 flex items-end gap-2">
                     <button type="submit" class="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-cyan-600/20 hover:bg-cyan-700 hover:shadow-cyan-600/40 focus:ring-4 focus:ring-cyan-500/30 transition-all active:scale-95">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
-                            <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd" />
-                        </svg>
+                        <i class="fa-solid fa-magnifying-glass w-4 h-4"></i>
                         Terapkan
                     </button>
                     <?php if ($search || $division_id || $start_date != $default_start || $end_date != $default_end): ?>
                         <a href="?" class="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-orange-50 text-orange-600 hover:bg-orange-100 transition-all active:scale-95 border border-orange-100" title="Bersihkan Filter">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
-                                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-                                <path d="M3 3v5h5"/>
-                            </svg>
+                            <i class="fa-solid fa-rotate w-5 h-5"></i>
                         </a>
                     <?php endif; ?>
                 </div>
@@ -405,9 +385,7 @@ include '../layouts/header.php';
                                         <?php endforeach; ?>
                                     </select>
                                     <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none text-slate-400">
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3 h-3">
-                                            <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 011.06 0L10 11.94l3.72-3.72a.75.75 0 111.06 1.06l-4.25 4.25a.75.75 0 01-1.06 0L5.22 9.28a.75.75 0 010-1.06z" clip-rule="evenodd" />
-                                        </svg>
+                                        <i class="fa-solid fa-chevron-down w-3 h-3"></i>
                                     </div>
                                 </div>
                                 <p class="text-sm text-slate-600 font-medium">
@@ -420,9 +398,7 @@ include '../layouts/header.php';
                                     <?php if ($page > 1): ?>
                                         <a href="<?php echo buildUrl($page - 1, $limit, $division_id, $start_date, $end_date, $search); ?>"
                                             class="relative inline-flex items-center px-3 py-2 text-slate-400 hover:bg-slate-50 focus:z-20 transition-colors">
-                                            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                                <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
-                                            </svg>
+                                            <i class="fa-solid fa-chevron-left h-5 w-5"></i>
                                         </a>
                                     <?php endif; ?>
 
@@ -451,9 +427,7 @@ include '../layouts/header.php';
                                     <?php if ($page < $total_pages): ?>
                                         <a href="<?php echo buildUrl($page + 1, $limit, $division_id, $start_date, $end_date, $search); ?>"
                                             class="relative inline-flex items-center px-3 py-2 text-slate-400 hover:bg-slate-50 focus:z-20 transition-colors">
-                                            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                                <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
-                                            </svg>
+                                            <i class="fa-solid fa-chevron-right h-5 w-5"></i>
                                         </a>
                                     <?php endif; ?>
                                 </nav>

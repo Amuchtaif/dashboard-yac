@@ -151,39 +151,12 @@ include '../layouts/header.php';
                 fleksibel.</p>
         </div>
         <div class="mt-4 sm:ml-16 sm:mt-0 flex gap-3">
-            <!-- Export Dropdown -->
-            <div class="relative" id="export-container">
-                <button type="button" onclick="toggleDropdown('export')"
-                    class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all">
-                    <svg class="-ml-1 mr-2 h-4 w-4 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none"
-                        viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-                    </svg>
-                    Export
-                    <svg id="export-arrow" class="ml-2 h-4 w-4 text-slate-400 transition-transform duration-200"
-                        xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd"
-                            d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-                            clip-rule="evenodd" />
-                    </svg>
-                </button>
-                <div id="export-menu"
-                    class="hidden absolute right-0 mt-2 w-48 origin-top-right rounded-xl bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50 overflow-hidden">
-                    <div class="py-1 text-slate-700">
-                        <a href="export_summary.php?<?php echo http_build_query($_GET); ?>" target="_blank"
-                            class="group flex items-center px-4 py-2.5 text-sm hover:bg-slate-50 hover:text-cyan-700 transition-colors">
-                            <span class="mr-3 text-lg">📊</span>
-                            Excel (.xlsx)
-                        </a>
-                        <a href="export_summary_pdf.php?<?php echo http_build_query($_GET); ?>" target="_blank"
-                            class="group flex items-center px-4 py-2.5 text-sm hover:bg-slate-50 hover:text-cyan-700 transition-colors border-t border-slate-50">
-                            <span class="mr-3 text-lg">📄</span>
-                            PDF Document
-                        </a>
-                    </div>
-                </div>
-            </div>
+            <!-- Export Excel Button -->
+            <a href="export_summary.php?<?php echo http_build_query($_GET); ?>" target="_blank"
+                class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all">
+                <i class="fa-solid fa-file-excel -ml-1 mr-2 h-4 w-4 text-emerald-600"></i>
+                Export Excel
+            </a>
         </div>
     </div>
 
@@ -238,10 +211,7 @@ include '../layouts/header.php';
                         <?php endforeach; ?>
                     </select>
                     <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
-                            </path>
-                        </svg>
+                        <i class="fa-solid fa-chevron-down h-4 w-4"></i>
                     </div>
                 </div>
             </div>
@@ -261,10 +231,7 @@ include '../layouts/header.php';
                         <?php endforeach; ?>
                     </select>
                     <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
-                            </path>
-                        </svg>
+                        <i class="fa-solid fa-chevron-down h-4 w-4"></i>
                     </div>
                 </div>
             </div>
@@ -273,18 +240,12 @@ include '../layouts/header.php';
             <div class="flex gap-2">
                 <button type="submit"
                     class="flex-1 inline-flex items-center justify-center rounded-xl bg-cyan-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-cyan-600/20 hover:bg-cyan-700 hover:shadow-cyan-600/40 focus:ring-4 focus:ring-cyan-600/20 transition-all active:scale-[0.98]">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentcolor" viewBox="0 0 24 24" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                    </svg>
+                    <i class="fa-solid fa-magnifying-glass w-4 h-4 mr-2"></i>
                     Filter
                 </button>
                 <?php if ($search || $division_id || $unit_id || $start_date != $default_start || $end_date != $default_end): ?>
                     <a href="?" class="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-orange-50 text-orange-600 hover:bg-orange-100 transition-all active:scale-95 border border-orange-100 shrink-0" title="Bersihkan Filter">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
-                            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-                            <path d="M3 3v5h5"/>
-                        </svg>
+                        <i class="fa-solid fa-rotate w-5 h-5"></i>
                     </a>
                 <?php endif; ?>
             </div>
@@ -360,12 +321,7 @@ include '../layouts/header.php';
                             <td colspan="6" class="px-6 py-32 text-center border-none">
                                 <div class="flex flex-col items-center justify-center">
                                     <div class="h-16 w-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
-                                        <svg class="h-8 w-8 text-slate-300" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                                            </path>
-                                        </svg>
+                                        <i class="fa-solid fa-file-lines h-8 w-8 text-slate-300"></i>
                                     </div>
                                     <p class="text-slate-400 font-medium tracking-tight">Tidak ada data kehadiran ditemukan
                                         untuk periode ini.</p>
@@ -413,11 +369,7 @@ include '../layouts/header.php';
                 <?php if ($page > 1): ?>
                     <a href="<?php echo buildSummaryUrl($page - 1, $limit, $start_date, $end_date, $division_id, $unit_id); ?>"
                         class="relative inline-flex items-center px-3 py-2 text-slate-400 hover:bg-slate-50 transition-colors">
-                        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd"
-                                d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
-                                clip-rule="evenodd" />
-                        </svg>
+                        <i class="fa-solid fa-chevron-left h-5 w-5"></i>
                     </a>
                 <?php endif; ?>
 
@@ -443,11 +395,7 @@ include '../layouts/header.php';
                 <?php if ($page < $total_pages): ?>
                     <a href="<?php echo buildSummaryUrl($page + 1, $limit, $start_date, $end_date, $division_id, $unit_id); ?>"
                         class="relative inline-flex items-center px-3 py-2 text-slate-400 hover:bg-slate-50 transition-colors">
-                        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd"
-                                d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
-                                clip-rule="evenodd" />
-                        </svg>
+                        <i class="fa-solid fa-chevron-right h-5 w-5"></i>
                     </a>
                 <?php endif; ?>
             </nav>

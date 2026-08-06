@@ -124,9 +124,7 @@ include '../layouts/header.php';
                                     <div class="flex-1">
                                         <div class="text-sm font-bold text-slate-900 group-hover:text-cyan-700 transition-colors"><?php echo htmlspecialchars($sch['subject_name']); ?></div>
                                         <div class="text-[10px] text-slate-500 mt-1 flex items-center gap-1">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3 h-3 text-slate-300">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                                            </svg>
+                                            <i class="fa-solid fa-user w-3 h-3 text-slate-300"></i>
                                             <?php echo htmlspecialchars($sch['teacher_name']); ?>
                                         </div>
                                     </div>

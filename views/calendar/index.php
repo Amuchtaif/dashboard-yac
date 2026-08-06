@@ -386,11 +386,11 @@ include '../layouts/header.php';
                     <h2 class="text-xl font-bold text-slate-800"><?php echo $month_name . " " . $year; ?></h2>
                     <div class="flex items-center gap-2">
                         <a href="?month=<?php echo $prev_month; ?>&year=<?php echo $prev_year; ?>" class="p-2 hover:bg-slate-100 rounded-lg transition-all">
-                            <svg class="h-5 w-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                            <i class="fa-solid fa-chevron-left h-5 w-5 text-slate-500"></i>
                         </a>
                         <a href="index.php" class="px-4 py-2 text-sm font-semibold text-slate-600 bg-slate-50 hover:bg-slate-100 rounded-lg transition-all">Bulan Ini</a>
                         <a href="?month=<?php echo $next_month; ?>&year=<?php echo $next_year; ?>" class="p-2 hover:bg-slate-100 rounded-lg transition-all">
-                            <svg class="h-5 w-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                            <i class="fa-solid fa-chevron-right h-5 w-5 text-slate-500"></i>
                         </a>
                     </div>
                 </div>
@@ -474,9 +474,7 @@ include '../layouts/header.php';
                 <div class="px-8 pt-8 pb-5 border-b border-slate-50 bg-gradient-to-r from-slate-50/50 to-white">
                     <div class="flex items-center gap-4">
                         <div class="h-12 w-12 rounded-2xl bg-cyan-50 flex items-center justify-center text-cyan-600 shadow-sm border border-cyan-100/50">
-                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
+                            <i class="fa-solid fa-circle-plus h-6 w-6"></i>
                         </div>
                         <div>
                             <h3 class="text-lg font-extrabold text-slate-800 tracking-tight" id="sideHeaderTitle">Tambah Kegiatan</h3>
@@ -492,7 +490,7 @@ include '../layouts/header.php';
                         <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2.5 group-focus-within:text-cyan-600 transition-colors">Nama Kegiatan</label>
                         <div class="relative transition-all">
                             <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                <svg class="h-5 w-5 text-slate-300 group-focus-within:text-cyan-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                <i class="fa-solid fa-pen-to-square h-5 w-5 text-slate-300 group-focus-within:text-cyan-400 transition-colors"></i>
                             </div>
                             <input type="text" name="title" id="sideFormTitle" required placeholder="Contoh: Rapat Kerja Kurikulum"
                                 class="w-full pl-11 rounded-2xl border-slate-200 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 bg-slate-50/30 text-sm py-3.5 font-semibold text-slate-700 placeholder:text-slate-300 transition-all">
@@ -520,14 +518,14 @@ include '../layouts/header.php';
                             <input type="hidden" name="category" id="categoryInputSidebar" value="Libur Nasional">
                             <div class="custom-select-trigger transition-all">
                                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <svg class="h-5 w-5 text-slate-300 group-focus-within:text-cyan-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 11h.01M7 15h.01M11 7h.01M11 11h.01M11 15h.01M15 7h.01M15 11h.01M15 15h.01" /></svg>
+                                    <i class="fa-solid fa-grip h-5 w-5 text-slate-300 group-focus-within:text-cyan-400 transition-colors"></i>
                                 </div>
                                 <span class="selected-text flex items-center gap-2">
                                     <span class="color-dot bg-red-500"></span>
                                     Libur Nasional
                                 </span>
                                 <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                                    <svg class="h-4 w-4 text-slate-400 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" /></svg>
+                                    <i class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 transition-transform"></i>
                                 </div>
                             </div>
                             <div class="custom-select-options">
@@ -561,7 +559,7 @@ include '../layouts/header.php';
                         <button type="submit" class="group/btn relative w-full inline-flex items-center justify-center px-8 py-4 font-bold text-white transition-all duration-200 bg-cyan-600 rounded-2xl hover:bg-cyan-700 focus:outline-none focus:ring-4 focus:ring-cyan-500/20 active:scale-[0.97] overflow-hidden">
                             <span class="absolute inset-0 w-full h-full bg-gradient-to-br from-white/10 to-transparent"></span>
                             <span class="relative flex items-center gap-2">
-                                <svg class="h-5 w-5 group-hover/btn:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                <i class="fa-solid fa-check h-5 w-5 group-hover/btn:translate-x-1 transition-transform"></i>
                                 <span id="sideBtnText">Simpan Kegiatan</span>
                             </span>
                         </button>
@@ -599,9 +597,7 @@ include '../layouts/header.php';
                                         <div>
                                             <h4 class="text-sm font-bold text-slate-800 group-hover:text-[#0E83A3] transition-colors"><?php echo htmlspecialchars($upcoming['title']); ?></h4>
                                             <p class="text-xs text-slate-400 flex items-center gap-1.5 mt-1 font-medium">
-                                                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25m-10.5 0h10.5m-10.5 0a2.25 2.25 0 00-2.25 2.25v10.5a2.25 2.25 0 002.25 2.25h10.5a2.25 2.25 0 002.25-2.25V7.5a2.25 2.25 0 00-2.25-2.25h-10.5z" />
-                                                </svg>
+                                                <i class="fa-solid fa-calendar-days h-3.5 w-3.5"></i>
                                                 <?php echo date('d', strtotime($upcoming['start_date'])) . " " . $indo_months[(int)date('m', strtotime($upcoming['start_date']))] . " " . date('Y', strtotime($upcoming['start_date'])); ?>
                                             </p>
                                         </div>
@@ -612,7 +608,7 @@ include '../layouts/header.php';
                         <div class="p-4 bg-slate-50/50 border-t border-slate-100 text-center">
                             <a href="#" class="text-xs font-bold text-[#0E83A3] hover:underline flex items-center justify-center gap-1">
                                 Lihat Semua Kegiatan 
-                                <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7-7 7" /></svg>
+                                <i class="fa-solid fa-chevron-right h-3 w-3"></i>
                             </a>
                         </div>
                     <?php else: ?>
@@ -819,9 +815,7 @@ function confirmDeleteEvent() {
             <div class="bg-white px-4 pb-4 pt-5 sm:p-8 sm:pb-6">
                 <div class="sm:flex sm:items-start">
                     <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-red-50 sm:mx-0 sm:h-12 sm:w-12">
-                        <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                        </svg>
+                        <i class="fa-solid fa-trash h-6 w-6 text-red-600"></i>
                     </div>
                     <div class="mt-3 text-center sm:ml-6 sm:mt-0 sm:text-left">
                         <h3 class="text-xl font-bold leading-6 text-slate-900" id="modal-title">Hapus Kegiatan?</h3>

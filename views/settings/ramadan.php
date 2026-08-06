@@ -64,25 +64,19 @@ include '../layouts/header.php';
         <ol class="inline-flex items-center space-x-1 md:space-x-3 text-xs text-slate-500">
             <li class="inline-flex items-center">
                 <a href="<?php url('views/dashboard/index.php'); ?>" class="hover:text-slate-800 flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3 h-3">
-                        <path fill-rule="evenodd" d="M9.293 2.293a1 1 0 011.414 0l7 7A1 1 0 0117 11h-1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-3a1 1 0 00-1-1H9a1 1 0 00-1 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-6H3a1 1 0 01-.707-1.707l7-7z" clip-rule="evenodd" />
-                    </svg>
+                    <i class="fa-solid fa-house w-3 h-3"></i>
                     Home
                 </a>
             </li>
             <li>
                 <div class="flex items-center">
-                    <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4" />
-                    </svg>
+                    <i class="fa-solid fa-chevron-right w-3 h-3 text-gray-400 mx-1"></i>
                     <a href="<?php url('views/settings/index.php'); ?>" class="ml-1 text-slate-500 hover:text-slate-800">Settings</a>
                 </div>
             </li>
             <li aria-current="page">
                 <div class="flex items-center">
-                    <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4" />
-                    </svg>
+                    <i class="fa-solid fa-chevron-right w-3 h-3 text-gray-400 mx-1"></i>
                     <span class="ml-1 font-medium text-slate-800">Pengaturan Ramadan</span>
                 </div>
             </li>
@@ -98,11 +92,7 @@ include '../layouts/header.php';
         </div>
         <div class="mt-4 flex md:ml-4 md:mt-0 items-center justify-between md:justify-start gap-4 bg-white px-6 py-3 rounded-2xl shadow-sm border border-slate-200">
             <div class="flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 text-cyan-600">
-                    <!-- Moon & Star Symbol -->
-                    <path fill-rule="evenodd" d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 003.463-.69.75.75 0 01.981.98 10.503 10.503 0 01-9.694 6.46c-5.799 0-10.5-4.701-10.5-10.5 0-4.368 2.667-8.112 6.46-9.694a.75.75 0 01.818.162z" clip-rule="evenodd" />
-                    <path d="M18.75 3a.75.75 0 00-.75.75v1.5h-1.5a.75.75 0 000 1.5h1.5v1.5a.75.75 0 001.5 0v-1.5h1.5a.75.75 0 000-1.5h-1.5v-1.5a.75.75 0 00-.75-.75z" />
-                </svg>
+                <i class="fa-solid fa-moon w-5 h-5 text-cyan-600"></i>
                 <span class="text-xs font-black text-slate-600 uppercase tracking-widest leading-none mt-1">Aktifasi Jadwal Ramadhan</span>
             </div>
             <label class="relative inline-flex items-center cursor-pointer group shrink-0">
@@ -133,9 +123,7 @@ include '../layouts/header.php';
                         <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 ml-1">Identitas Grup</label>
                         <div class="flex items-center gap-4">
                             <div class="p-3 bg-cyan-600 rounded-2xl text-white shadow-lg shadow-cyan-600/20">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
+                                <i class="fa-solid fa-clock w-6 h-6"></i>
                             </div>
                             <input type="text" name="groups[<?php echo $group_idx; ?>][label]" value="<?php echo htmlspecialchars($ov['label'] ?? "Grup #".($group_idx+1)); ?>" placeholder="Nama Grup (Contoh: Unit Satpam)" class="w-full max-w-md bg-transparent border-0 border-b-2 border-slate-200 focus:border-0 focus:border-b-2 focus:border-b-cyan-600 focus:ring-0 focus:ring-offset-0 focus:outline-none text-xl font-black text-slate-800 placeholder:text-slate-300 shadow-none focus:shadow-none hover:border-b-slate-300 transition-all px-0 py-2">
                         </div>
@@ -228,9 +216,7 @@ include '../layouts/header.php';
                 <!-- Left: Add Group Button -->
                 <button type="button" onclick="addNewGroup()" class="w-full sm:w-auto group relative px-6 py-3.5 bg-slate-50 border border-slate-200 rounded-[2rem] transition-all duration-300 flex items-center justify-center gap-4 overflow-hidden shadow-inner flex-shrink-0">
                     <div class="w-10 h-10 rounded-xl bg-cyan-50 text-cyan-600 border border-cyan-100 flex items-center justify-center group-hover:scale-110 group-hover:bg-cyan-600 group-hover:text-white group-hover:border-cyan-600 transition-all duration-300">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                        </svg>
+                        <i class="fa-solid fa-plus w-5 h-5"></i>
                     </div>
                     <div class="text-left">
                         <span class="block text-xs font-black text-slate-800 uppercase tracking-widest group-hover:text-cyan-600 transition-colors">Tambah Grup</span>
@@ -257,9 +243,7 @@ include '../layouts/header.php';
                     <span class="relative z-10 flex items-center gap-3">
                         Simpan Setup
                         <div class="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white group-hover:text-blue-600 transition-colors duration-300 relative">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5 relative z-10 transition-transform group-hover:translate-x-0.5">
-                                <path fill-rule="evenodd" d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z" clip-rule="evenodd" />
-                            </svg>
+                            <i class="fa-solid fa-arrow-right w-3.5 h-3.5 relative z-10 transition-transform group-hover:translate-x-0.5"></i>
                         </div>
                     </span>
                     <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-[150%] skew-x-[-30deg] group-hover:animate-shine transition-transform duration-1000"></div>
@@ -285,9 +269,7 @@ include '../layouts/header.php';
                     <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 ml-1">Identitas Grup</label>
                     <div class="flex items-center gap-4">
                         <div class="p-3 bg-cyan-600 rounded-2xl text-white shadow-lg shadow-cyan-600/20">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
+                            <i class="fa-solid fa-clock w-6 h-6"></i>
                         </div>
                         <input type="text" name="groups[${idx}][label]" value="Grup Baru ${idx + 1}" placeholder="Nama Grup (Contoh: Unit Satpam)" class="w-full max-w-md bg-transparent border-0 border-b-2 border-slate-200 focus:border-0 focus:border-b-2 focus:border-b-cyan-600 focus:ring-0 focus:ring-offset-0 focus:outline-none text-xl font-black text-slate-800 placeholder:text-slate-300 shadow-none focus:shadow-none hover:border-b-slate-300 transition-all px-0 py-2">
                     </div>

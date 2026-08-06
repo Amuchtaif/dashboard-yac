@@ -35,22 +35,14 @@ include '../layouts/header.php';
                 </li>
                 <li>
                     <div class="flex items-center">
-                        <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                            fill="none" viewBox="0 0 6 10">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="m1 9 4-4-4-4" />
-                        </svg>
+                        <i class="fa-solid fa-chevron-right w-3 h-3 text-gray-400 mx-1"></i>
                         <a href="<?php url('views/grade_levels/index.php' . (!empty($return_filters_qs) ? '?' . $return_filters_qs : '')); ?>" class="hover:text-slate-800">Manajemen
                             Kelas</a>
                     </div>
                 </li>
                 <li aria-current="page">
                     <div class="flex items-center">
-                        <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                            fill="none" viewBox="0 0 6 10">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="m1 9 4-4-4-4" />
-                        </svg>
+                        <i class="fa-solid fa-chevron-right w-3 h-3 text-gray-400 mx-1"></i>
                         <span class="text-slate-800 font-medium">Tambah Kelas Baru</span>
                     </div>
                 </li>
@@ -103,10 +95,7 @@ include '../layouts/header.php';
                             </select>
                             <div
                                 class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M19 9l-7 7-7-7"></path>
-                                </svg>
+                                <i class="fa-solid fa-chevron-down h-4 w-4"></i>
                             </div>
                         </div>
                     </div>
@@ -216,11 +205,7 @@ include '../layouts/header.php';
                 </a>
                 <button type="submit" name="save" value="save"
                     class="px-6 py-2.5 rounded-lg bg-cyan-600 text-white text-sm font-semibold hover:bg-cyan-700 transition-colors flex items-center gap-2 shadow-sm shadow-cyan-200">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
-                        <path fill-rule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-11.25a.75.75 0 00-1.5 0v2.5h-2.5a.75.75 0 000 1.5h2.5v2.5a.75.75 0 001.5 0v-2.5h2.5a.75.75 0 000-1.5h-2.5v-2.5z"
-                            clip-rule="evenodd" />
-                    </svg>
+                    <i class="fa-solid fa-magnifying-glass w-5 h-5"></i>
                     Simpan Kelas
                 </button>
             </div>
@@ -230,12 +215,7 @@ include '../layouts/header.php';
 
     <!-- Info Box -->
     <div class="mt-6 bg-blue-50 border border-blue-100 rounded-xl p-4 flex gap-3">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
-            class="w-5 h-5 text-blue-500 shrink-0 mt-0.5">
-            <path fill-rule="evenodd"
-                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z"
-                clip-rule="evenodd" />
-        </svg>
+        <i class="fa-solid fa-circle-info w-5 h-5 text-blue-500 shrink-0 mt-0.5"></i>
         <div>
             <h4 class="text-sm font-semibold text-blue-700 mb-1">Catatan:</h4>
             <ul class="list-disc list-inside text-xs text-blue-600 space-y-1 ml-1">

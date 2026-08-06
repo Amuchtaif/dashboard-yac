@@ -18,7 +18,7 @@ require_once '../../layouts/header.php';
     <!-- Header with Back Button -->
     <div class="flex items-center gap-4">
         <a href="index.php" class="p-2.5 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-slate-600 hover:border-slate-300 transition-all shadow-sm">
-            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+            <i class="fa-solid fa-arrow-left w-6 h-6"></i>
         </a>
         <div>
             <h1 class="text-2xl font-bold text-slate-800"><?php echo $page_title; ?></h1>
@@ -56,7 +56,7 @@ require_once '../../layouts/header.php';
                     <div class="space-y-4">
                         <div class="flex items-start gap-4">
                             <div class="p-2 bg-indigo-50 rounded-xl text-indigo-600 flex-shrink-0">
-                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                <i class="fa-solid fa-location-dot w-5 h-5"></i>
                             </div>
                             <div>
                                 <p class="text-[10px] text-slate-400 uppercase font-black mb-0.5">Lokasi Kejadian</p>
@@ -65,7 +65,7 @@ require_once '../../layouts/header.php';
                         </div>
                         <div class="flex items-start gap-4">
                             <div class="p-2 bg-emerald-50 rounded-xl text-emerald-600 flex-shrink-0">
-                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                <i class="fa-solid fa-user w-5 h-5"></i>
                             </div>
                             <div>
                                 <p class="text-[10px] text-slate-400 uppercase font-black mb-0.5">Pelapor</p>
@@ -89,7 +89,7 @@ require_once '../../layouts/header.php';
             <div id="form-followup-card" class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden hidden">
                 <div class="p-8">
                     <h3 class="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
-                        <svg class="w-6 h-6 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                        <i class="fa-solid fa-pen-to-square w-6 h-6 text-indigo-500"></i>
                         Tambahkan Tindak Lanjut
                     </h3>
                     <form id="followup-form" class="space-y-5">

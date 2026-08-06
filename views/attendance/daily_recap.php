@@ -137,9 +137,7 @@ include '../layouts/header.php';
         <div class="mt-4 sm:ml-16 sm:mt-0 flex gap-3">
             <a href="<?php echo $tab === 'daily' ? 'export_daily_recap_excel.php' : 'export_absenteeism_excel.php'; ?>?<?php echo http_build_query($_GET); ?>" target="_blank"
                 class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all">
-                <svg class="-ml-1 mr-2 h-4 w-4 text-emerald-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-                </svg>
+                <i class="fa-solid fa-file-arrow-down -ml-1 mr-2 h-4 w-4 text-emerald-600"></i>
                 Export to Excel
             </a>
         </div>
@@ -228,10 +226,7 @@ include '../layouts/header.php';
                 if ($has_active_filters): 
                 ?>
                     <a href="?tab=<?php echo $tab; ?>" class="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-orange-50 text-orange-600 hover:bg-orange-100 transition-all active:scale-95 border border-orange-100 shrink-0" title="Bersihkan Filter">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
-                            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-                            <path d="M3 3v5h5"/>
-                        </svg>
+                        <i class="fa-solid fa-rotate w-5 h-5"></i>
                     </a>
                 <?php endif; ?>
             </div>

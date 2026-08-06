@@ -75,22 +75,14 @@ include '../layouts/header.php';
             </li>
             <li>
                 <div class="flex items-center">
-                    <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                        fill="none" viewBox="0 0 6 10">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="m1 9 4-4-4-4" />
-                    </svg>
+                    <i class="fa-solid fa-chevron-right w-3 h-3 text-gray-400 mx-1"></i>
                     <a href="<?php url('views/students/index.php'); ?>"
                         class="ml-1 text-slate-500 hover:text-slate-700">Data Siswa</a>
                 </div>
             </li>
             <li aria-current="page">
                 <div class="flex items-center">
-                    <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                        fill="none" viewBox="0 0 6 10">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="m1 9 4-4-4-4" />
-                    </svg>
+                    <i class="fa-solid fa-chevron-right w-3 h-3 text-gray-400 mx-1"></i>
                     <span class="ml-1 font-medium text-slate-800">Tambah Baru</span>
                 </div>
             </li>
@@ -111,11 +103,7 @@ include '../layouts/header.php';
             <div class="p-8 border-b border-slate-100">
                 <div class="flex items-center gap-3 mb-6">
                     <div class="p-2 bg-blue-50 rounded-lg text-blue-600">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
-                            <path fill-rule="evenodd"
-                                d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z"
-                                clip-rule="evenodd" />
-                        </svg>
+                        <i class="fa-solid fa-circle-user w-5 h-5"></i>
                     </div>
                     <h3 class="text-base font-bold text-slate-800 uppercase">Identitas Siswa</h3>
                 </div>
@@ -165,10 +153,7 @@ include '../layouts/header.php';
             <div class="p-8 border-b border-slate-100">
                 <div class="flex items-center gap-3 mb-6">
                     <div class="p-2 bg-cyan-50 rounded-lg text-cyan-600">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
-                            <path
-                                d="M11.7 2.805a.75.75 0 01.6 0A60.65 60.65 0 0122.83 8.72a.75.75 0 01-.231 1.337 49.949 49.949 0 00-9.902 3.912l-.003.002-.34.18a.75.75 0 01-.707 0A50.009 50.009 0 007.5 12.174v-.224c0-.131.067-.248.172-.311a54.614 54.614 0 014.653-2.52.75.75 0 00-.65-1.352 56.129 56.129 0 00-4.78 2.589 1.868 1.868 0 00-.959 1.718v.497c0 1.047.4 2.086 1.171 2.87C9.363 18.497 12.067 20 15 20s5.637-1.503 7.893-4.544a.75.75 0 011.214.893C21.574 20.088 18.067 22 15 22s-6.574-1.912-9.107-5.651A3.75 3.75 0 015 13.5v-.435c0-.621-.614-1.12-1.23-1.157l-1.356-.081a.75.75 0 01-.595-1.026 60.648 60.648 0 0110.88-8.08z" />
-                        </svg>
+                        <i class="fa-solid fa-graduation-cap w-5 h-5"></i>
                     </div>
                     <h3 class="text-base font-bold text-slate-800 uppercase">Informasi Akademik</h3>
                 </div>
@@ -233,13 +218,7 @@ include '../layouts/header.php';
                     <div>
                         <div class="flex items-center gap-3 mb-6">
                             <div class="p-2 bg-blue-50 rounded-lg text-blue-600">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
-                                    class="w-5 h-5">
-                                    <path d="M4.5 3.75a3 3 0 00-3 3v.75h21v-.75a3 3 0 00-3-3h-15z" />
-                                    <path fill-rule="evenodd"
-                                        d="M22.5 9.75h-21v7.5a3 3 0 003 3h15a3 3 0 003-3v-7.5zm-18 3.75a.75.75 0 01.75-.75h6a.75.75 0 010 1.5h-6a.75.75 0 01-.75-.75zm.75 2.25a.75.75 0 000 1.5h3a.75.75 0 000-1.5h-3z"
-                                        clip-rule="evenodd" />
-                                </svg>
+                                <i class="fa-solid fa-credit-card w-5 h-5"></i>
                             </div>
                             <h3 class="text-base font-bold text-slate-800 uppercase">Data Keuangan</h3>
                         </div>
@@ -275,13 +254,7 @@ include '../layouts/header.php';
                     <div>
                         <div class="flex items-center gap-3 mb-6">
                             <div class="p-2 bg-cyan-50 rounded-lg text-cyan-600">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
-                                    class="w-5 h-5">
-                                    <path d="M12 9a3.75 3.75 0 100 7.5A3.75 3.75 0 0012 9z" />
-                                    <path fill-rule="evenodd"
-                                        d="M9.344 3.071a4.993 4.993 0 015.312 0l.208.107a.65.65 0 01.325.567V5.5h1.562c2.071 0 3.75 1.679 3.75 3.75v10.5c0 2.071-1.679 3.75-3.75 3.75h-15c-2.071 0-3.75-1.679-3.75-3.75V9.25c0-2.071 1.679-3.75 3.75-3.75h1.562V3.745a.65.65 0 01.325-.567l.208-.107zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
-                                        clip-rule="evenodd" />
-                                </svg>
+                                <i class="fa-solid fa-user-gear w-5 h-5"></i>
                             </div>
                             <h3 class="text-base font-bold text-slate-800 uppercase">Unggah Foto</h3>
                         </div>
@@ -290,11 +263,7 @@ include '../layouts/header.php';
                             class="block w-full h-[140px] border-2 border-dashed border-slate-300 rounded-lg bg-slate-50 hover:bg-slate-100 hover:border-cyan-500 transition-all cursor-pointer flex flex-col items-center justify-center text-center p-6 group">
                             <div
                                 class="p-3 bg-white rounded-full shadow-sm mb-3 group-hover:scale-110 transition-transform">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                    stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-cyan-600">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-                                </svg>
+                                <i class="fa-solid fa-download w-6 h-6 text-cyan-600"></i>
                             </div>
                             <p class="text-sm font-medium text-slate-700">Klik untuk unggah foto siswa</p>
                             <p class="text-xs text-slate-400 mt-1">Format: JPG, PNG (Max. 2MB)</p>

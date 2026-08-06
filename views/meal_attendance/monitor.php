@@ -55,7 +55,7 @@ require_once __DIR__ . '/../layouts/header.php';
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
             <div class="flex items-center">
                 <div class="p-3 rounded-xl bg-emerald-50 text-emerald-600 mr-4">
-                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <i class="fa-solid fa-check w-6 h-6"></i>
                 </div>
                 <div>
                     <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Sudah Makan</p>
@@ -66,7 +66,7 @@ require_once __DIR__ . '/../layouts/header.php';
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
             <div class="flex items-center">
                 <div class="p-3 rounded-xl bg-orange-50 text-orange-600 mr-4">
-                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <i class="fa-solid fa-clock w-6 h-6"></i>
                 </div>
                 <div>
                     <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Belum Makan</p>
@@ -77,7 +77,7 @@ require_once __DIR__ . '/../layouts/header.php';
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
             <div class="flex items-center">
                 <div class="p-3 rounded-xl bg-blue-50 text-blue-600 mr-4">
-                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /></svg>
+                    <i class="fa-solid fa-user w-6 h-6"></i>
                 </div>
                 <div>
                     <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Santri</p>

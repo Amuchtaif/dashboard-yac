@@ -48,21 +48,13 @@ include '../layouts/header.php';
                 </li>
                 <li>
                     <div class="flex items-center">
-                        <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                            fill="none" viewBox="0 0 6 10">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="m1 9 4-4-4-4" />
-                        </svg>
+                        <i class="fa-solid fa-chevron-right w-3 h-3 text-gray-400 mx-1"></i>
                         <a href="<?php url('views/employees/index.php'); ?>" class="hover:text-slate-800">Employees</a>
                     </div>
                 </li>
                 <li aria-current="page">
                     <div class="flex items-center">
-                        <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                            fill="none" viewBox="0 0 6 10">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="m1 9 4-4-4-4" />
-                        </svg>
+                        <i class="fa-solid fa-chevron-right w-3 h-3 text-gray-400 mx-1"></i>
                         <span
                             class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-cyan-50 text-cyan-700">
                             Edit
@@ -79,11 +71,7 @@ include '../layouts/header.php';
 
     <?php if (isset($_GET['error'])): ?>
         <div class="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-6 text-sm flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd"
-                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                    clip-rule="evenodd" />
-            </svg>
+            <i class="fa-solid fa-circle-info h-5 w-5 shrink-0"></i>
             <?php echo htmlspecialchars($_GET['error']); ?>
         </div>
     <?php endif; ?>
@@ -99,11 +87,7 @@ include '../layouts/header.php';
             <div class="p-8 border-b border-slate-100">
                 <div class="flex items-center gap-3 mb-6">
                     <div class="p-2 bg-blue-50 rounded-lg text-blue-600">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
-                            <path fill-rule="evenodd"
-                                d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z"
-                                clip-rule="evenodd" />
-                        </svg>
+                        <i class="fa-solid fa-circle-user w-5 h-5"></i>
                     </div>
                     <h3 class="text-base font-bold text-slate-800">Personal Information</h3>
                 </div>
@@ -111,15 +95,26 @@ include '../layouts/header.php';
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
                     <!-- Profile Photo Placeholder -->
                     <div class="md:col-span-1">
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">Profile Photo</label>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Foto Profil</label>
+                        <?php
+                        $photo_url = null;
+                        if (!empty($employee['profile_photo'])) {
+                            if (file_exists(BASE_PATH . '/uploads/profile_photos/' . $employee['profile_photo'])) {
+                                $photo_url = BASE_URL . '/uploads/profile_photos/' . $employee['profile_photo'];
+                            } elseif (file_exists(BASE_PATH . '/public/uploads/employees/' . $employee['profile_photo'])) {
+                                $photo_url = BASE_URL . '/public/uploads/employees/' . $employee['profile_photo'];
+                            }
+                        }
+                        if (!$photo_url) {
+                            $photo_url = "https://ui-avatars.com/api/?name=" . urlencode($employee['full_name'] ?? 'User') . "&background=0891b2&color=fff&size=128&bold=true";
+                        }
+                        ?>
                         <div
-                            class="flex flex-col items-center justify-center w-32 h-32 rounded-full border-2 border-dashed border-slate-300 bg-slate-50 relative group cursor-pointer hover:border-cyan-500 hover:bg-cyan-50 transition-all">
+                            class="flex flex-col items-center justify-center w-32 h-32 rounded-full border-2 border-dashed border-slate-300 bg-slate-50 relative group transition-all overflow-hidden mx-auto md:mx-0 shadow-sm">
                             <img class="w-full h-full rounded-full object-cover"
-                                src="https://ui-avatars.com/api/?name=<?php echo urlencode($employee['full_name']); ?>&background=random&size=128"
-                                alt="">
+                                src="<?php echo htmlspecialchars($photo_url); ?>"
+                                alt="Foto Profil">
                         </div>
-                        <p class="text-[10px] text-slate-400 mt-2 text-center w-32">Profile photo update not implemented
-                            yet.</p>
                     </div>
 
                     <!-- Personal Fields -->
@@ -183,11 +178,7 @@ include '../layouts/header.php';
             <div class="p-8">
                 <div class="flex items-center gap-3 mb-6">
                     <div class="p-2 bg-cyan-50 rounded-lg text-cyan-600">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
-                            <path fill-rule="evenodd"
-                                d="M7.5 5.25a3 3 0 013-3h3a3 3 0 013 3v.25a3 3 0 013 3v1.5a3 3 0 01-3 3v.25h-9v-.25a3 3 0 01-3-3v-1.5a3 3 0 013-3V5.25zM3.75 21a.75.75 0 01.75-.75h15a.75.75 0 010 1.5H4.5a.75.75 0 01-.75-.75zm4.266-4.5H15.98a3 3 0 001.996.75 2.25 2.25 0 002.247-2.072l.027-.333a3.751 3.751 0 00-3.753-4.045H7.501A3.751 3.751 0 003.75 14.8l.026.333A2.25 2.25 0 006.023 17.25a3 3 0 001.993-.75z"
-                                clip-rule="evenodd" />
-                        </svg>
+                        <i class="fa-solid fa-briefcase w-5 h-5"></i>
                     </div>
                     <h3 class="text-base font-bold text-slate-800">Employment Details</h3>
                 </div>
@@ -209,12 +200,7 @@ include '../layouts/header.php';
                             </select>
                             <div
                                 class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
-                                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
-                                    fill="currentColor">
-                                    <path fill-rule="evenodd"
-                                        d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-                                        clip-rule="evenodd" />
-                                </svg>
+                                <i class="fa-solid fa-chevron-down h-4 w-4"></i>
                             </div>
                         </div>
                     </div>
@@ -230,12 +216,7 @@ include '../layouts/header.php';
                             </select>
                             <div
                                 class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
-                                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
-                                    fill="currentColor">
-                                    <path fill-rule="evenodd"
-                                        d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-                                        clip-rule="evenodd" />
-                                </svg>
+                                <i class="fa-solid fa-chevron-down h-4 w-4"></i>
                             </div>
                         </div>
                     </div>

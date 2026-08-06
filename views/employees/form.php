@@ -64,21 +64,13 @@ $return_filters_qs = http_build_query($return_filters);
                 </li>
                 <li>
                     <div class="flex items-center">
-                        <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                            fill="none" viewBox="0 0 6 10">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="m1 9 4-4-4-4" />
-                        </svg>
+                        <i class="fa-solid fa-chevron-right w-3 h-3 text-gray-400 mx-1"></i>
                         <a href="<?php url('views/employees/index.php'); ?>" class="hover:text-slate-800">Pegawai</a>
                     </div>
                 </li>
                 <li aria-current="page">
                     <div class="flex items-center">
-                        <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                            fill="none" viewBox="0 0 6 10">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="m1 9 4-4-4-4" />
-                        </svg>
+                        <i class="fa-solid fa-chevron-right w-3 h-3 text-gray-400 mx-1"></i>
                         <span
                             class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-cyan-50 text-cyan-700">
                             <?php echo $is_edit ? "Edit" : "Tambah Baru"; ?>
@@ -96,11 +88,7 @@ $return_filters_qs = http_build_query($return_filters);
 
     <?php if (isset($_GET['error'])): ?>
         <div class="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-6 text-sm flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd"
-                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                    clip-rule="evenodd" />
-            </svg>
+            <i class="fa-solid fa-circle-info h-5 w-5 shrink-0"></i>
             <?php echo htmlspecialchars($_GET['error']); ?>
         </div>
     <?php endif; ?>
@@ -120,11 +108,7 @@ $return_filters_qs = http_build_query($return_filters);
             <div class="p-4 sm:p-8 border-b border-slate-100">
                 <div class="flex items-center gap-3 mb-6">
                     <div class="p-2 bg-blue-50 rounded-lg text-blue-600">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
-                            <path fill-rule="evenodd"
-                                d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z"
-                                clip-rule="evenodd" />
-                        </svg>
+                        <i class="fa-solid fa-circle-user w-5 h-5"></i>
                     </div>
                     <h3 class="text-base font-bold text-slate-800">Informasi Pribadi</h3>
                 </div>
@@ -142,8 +126,12 @@ $return_filters_qs = http_build_query($return_filters);
                                 class="flex flex-col items-center justify-center w-32 h-32 rounded-full border-2 border-dashed border-slate-300 bg-slate-50 relative group cursor-pointer hover:border-cyan-500 hover:bg-cyan-50 transition-all overflow-hidden">
                                 <?php
                                 $photo_url = null;
-                                if (!empty($employee['profile_photo']) && file_exists(BASE_PATH . '/uploads/profile_photos/' . $employee['profile_photo'])) {
-                                    $photo_url = BASE_URL . 'uploads/profile_photos/' . $employee['profile_photo'];
+                                if (!empty($employee['profile_photo'])) {
+                                    if (file_exists(BASE_PATH . '/uploads/profile_photos/' . $employee['profile_photo'])) {
+                                        $photo_url = BASE_URL . '/uploads/profile_photos/' . $employee['profile_photo'];
+                                    } elseif (file_exists(BASE_PATH . '/public/uploads/employees/' . $employee['profile_photo'])) {
+                                        $photo_url = BASE_URL . '/public/uploads/employees/' . $employee['profile_photo'];
+                                    }
                                 }
                                 ?>
                                 <img id="profile_preview"
@@ -152,35 +140,20 @@ $return_filters_qs = http_build_query($return_filters);
 
                                 <div id="photo_placeholder"
                                     class="<?php echo $photo_url ? 'hidden' : 'flex'; ?> flex-col items-center justify-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                        stroke-width="1.5" stroke="currentColor"
-                                        class="w-8 h-8 text-slate-400 group-hover:text-cyan-600">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
-                                    </svg>
+                                    <i class="fa-solid fa-id-badge w-8 h-8 text-slate-400 group-hover:text-cyan-600"></i>
                                 </div>
 
                                 <!-- Overlay on hover -->
                                 <div
                                     class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                        stroke-width="2" stroke="currentColor" class="w-6 h-6 text-white">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
-                                    </svg>
+                                    <i class="fa-solid fa-id-badge w-6 h-6 text-white"></i>
                                 </div>
                             </div>
 
                             <!-- Remove button -->
                             <button type="button" id="remove_photo_btn" onclick="removeImage()"
                                 class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600 transition-all <?php echo $photo_url ? '' : 'hidden'; ?>">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
-                                    class="w-4 h-4">
-                                    <path
-                                        d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
-                                </svg>
+                                <i class="fa-solid fa-xmark w-4 h-4"></i>
                             </button>
                         </div>
                         <p
@@ -253,9 +226,7 @@ $return_filters_qs = http_build_query($return_filters);
                                     else echo 'Pilih Gender';
                                     ?>
                                 </span>
-                                <svg class="h-4 w-4 text-slate-400 transition-transform duration-200" id="arrow-gender" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                                </svg>
+                                <i id="arrow-gender" class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 transition-transform duration-200"></i>
                             </button>
                             <div id="menu-gender" class="hidden absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
                                 <ul class="py-1">
@@ -283,11 +254,7 @@ $return_filters_qs = http_build_query($return_filters);
             <div class="p-4 sm:p-8 space-y-8">
                 <div class="flex items-center gap-3 mb-6">
                     <div class="p-2 bg-cyan-50 rounded-lg text-cyan-600">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
-                            <path fill-rule="evenodd"
-                                d="M7.5 5.25a3 3 0 013-3h3a3 3 0 013 3v.25a3 3 0 013 3v1.5a3 3 0 01-3 3v.25h-9v-.25a3 3 0 01-3-3v-1.5a3 3 0 013-3V5.25zM3.75 21a.75.75 0 01.75-.75h15a.75.75 0 010 1.5H4.5a.75.75 0 01-.75-.75zm4.266-4.5H15.98a3 3 0 001.996.75 2.25 2.25 0 002.247-2.072l.027-.333a3.751 3.751 0 00-3.753-4.045H7.501A3.751 3.751 0 003.75 14.8l.026.333A2.25 2.25 0 006.023 17.25a3 3 0 001.993-.75z"
-                                clip-rule="evenodd" />
-                        </svg>
+                        <i class="fa-solid fa-briefcase w-5 h-5"></i>
                     </div>
                     <h3 class="text-base font-bold text-slate-800">Rincian Pekerjaan (Organisasi)</h3>
                 </div>
@@ -334,11 +301,7 @@ $return_filters_qs = http_build_query($return_filters);
                                 echo htmlspecialchars($divName);
                                 ?>
                             </span>
-                            <svg class="h-4 w-4 text-slate-400 transition-transform duration-200" id="arrow-division_id"
-                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 9l-7 7-7-7" />
-                            </svg>
+                            <i id="arrow-division_id" class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 transition-transform duration-200"></i>
                         </button>
                         <div id="menu-division_id"
                             class="hidden absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
@@ -375,11 +338,7 @@ $return_filters_qs = http_build_query($return_filters);
                                 echo htmlspecialchars($unitName);
                                 ?>
                             </span>
-                            <svg class="h-4 w-4 text-slate-400 transition-transform duration-200" id="arrow-unit_id"
-                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 9l-7 7-7-7" />
-                            </svg>
+                            <i id="arrow-unit_id" class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 transition-transform duration-200"></i>
                         </button>
                         <div id="menu-unit_id"
                             class="hidden absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
@@ -413,10 +372,7 @@ $return_filters_qs = http_build_query($return_filters);
                             echo htmlspecialchars($posName);
                             ?>
                         </span>
-                        <svg class="h-4 w-4 text-slate-400 transition-transform duration-200" id="arrow-position_id"
-                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
+                        <i id="arrow-position_id" class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 transition-transform duration-200"></i>
                     </button>
                     <div id="menu-position_id"
                         class="hidden absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
@@ -458,10 +414,7 @@ $return_filters_qs = http_build_query($return_filters);
                             echo htmlspecialchars($schedName);
                             ?>
                         </span>
-                        <svg class="h-4 w-4 text-slate-400 transition-transform duration-200" id="arrow-schedule_id"
-                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
+                        <i id="arrow-schedule_id" class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 transition-transform duration-200"></i>
                     </button>
                     <div id="menu-schedule_id"
                         class="hidden absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">

@@ -43,18 +43,14 @@ include '../layouts/header.php';
             </li>
             <li>
                 <div class="flex items-center">
-                    <svg class="w-3 h-3 text-gray-400 mx-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                    </svg>
+                    <i class="fa-solid fa-chevron-right w-3 h-3 text-gray-400 mx-1"></i>
                     <a href="<?php url('views/permits/index.php'); ?>"
                         class="ml-1 text-slate-500 hover:text-slate-700">Perizinan</a>
                 </div>
             </li>
             <li>
                 <div class="flex items-center">
-                    <svg class="w-3 h-3 text-gray-400 mx-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                    </svg>
+                    <i class="fa-solid fa-chevron-right w-3 h-3 text-gray-400 mx-1"></i>
                     <span class="ml-1 font-medium text-slate-800">Edit Izin</span>
                 </div>
             </li>
@@ -94,13 +90,7 @@ include '../layouts/header.php';
                                     echo htmlspecialchars($empName);
                                     ?>
                                 </span>
-                                <svg class="h-4 w-4 text-slate-500 transition-transform duration-200"
-                                    id="arrow-employee" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
-                                    fill="currentColor">
-                                    <path fill-rule="evenodd"
-                                        d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-                                        clip-rule="evenodd" />
-                                </svg>
+                                <i id="arrow-employee" class="fa-solid fa-chevron-down h-4 w-4 text-slate-500 transition-transform duration-200"></i>
                             </button>
                             <div id="menu-employee"
                                 class="absolute z-50 mt-1 hidden max-h-60 w-full overflow-auto rounded-lg bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
@@ -146,12 +136,7 @@ include '../layouts/header.php';
                                     echo $types[$permit['permit_type']] ?? $permit['permit_type'];
                                     ?>
                                 </span>
-                                <svg class="h-4 w-4 text-slate-500 transition-transform duration-200" id="arrow-type"
-                                    xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd"
-                                        d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-                                        clip-rule="evenodd" />
-                                </svg>
+                                <i id="arrow-type" class="fa-solid fa-chevron-down h-4 w-4 text-slate-500 transition-transform duration-200"></i>
                             </button>
                             <div id="menu-type"
                                 class="absolute z-50 mt-1 hidden max-h-60 w-full overflow-auto rounded-lg bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
@@ -284,9 +269,7 @@ include '../layouts/header.php';
                                 <button type="button" 
                                     onclick="openImageModal('<?php echo BASE_URL; ?>/uploads/permits/<?php echo $permit['attachment']; ?>')" 
                                     class="text-xs text-cyan-600 font-bold hover:text-cyan-700 hover:underline flex items-center gap-1 transition-all">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                                    </svg>
+                                    <i class="fa-solid fa-paperclip h-3.5 w-3.5"></i>
                                     <?php echo $permit['attachment']; ?>
                                 </button>
                             </div>

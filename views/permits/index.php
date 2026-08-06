@@ -106,9 +106,7 @@ include '../layouts/header.php';
         <div>
             <div class="flex items-center gap-2 text-sm text-slate-500 mb-1">
                 <span>Dashboard</span>
-                <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
+                <i class="fa-solid fa-chevron-right h-3 w-3"></i>
                 <span class="font-medium text-cyan-600">Manajemen Perizinan</span>
             </div>
             <h1 class="text-2xl font-bold text-slate-900">Manajemen Perizinan</h1>
@@ -116,9 +114,7 @@ include '../layouts/header.php';
         </div>
         <a href="<?php url('views/permits/create.php'); ?>"
             class="bg-cyan-50 text-cyan-700 hover:bg-cyan-100 px-4 py-2 rounded-lg text-sm font-medium flex items-center transition-colors w-full sm:w-auto justify-center">
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
+            <i class="fa-solid fa-plus w-4 h-4 mr-2"></i>
             Pengajuan Manual
         </a>
     </div>
@@ -129,10 +125,7 @@ include '../layouts/header.php';
         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden">
             <div class="flex justify-between items-start">
                 <div class="p-3 bg-orange-50 rounded-lg">
-                    <svg class="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                    <i class="fa-solid fa-clock w-6 h-6 text-orange-500"></i>
                 </div>
                 <span class="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">+5% vs minggu
                     lalu</span>
@@ -147,10 +140,7 @@ include '../layouts/header.php';
         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden">
             <div class="flex justify-between items-start">
                 <div class="p-3 bg-blue-50 rounded-lg">
-                    <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                    </svg>
+                    <i class="fa-solid fa-paper-plane w-6 h-6 text-blue-500"></i>
                 </div>
                 <span class="text-xs font-medium text-red-600 bg-red-50 px-2 py-1 rounded-full">-2% vs minggu
                     lalu</span>
@@ -165,10 +155,7 @@ include '../layouts/header.php';
         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden">
             <div class="flex justify-between items-start">
                 <div class="p-3 bg-green-50 rounded-lg">
-                    <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                    <i class="fa-solid fa-check w-6 h-6 text-green-500"></i>
                 </div>
                 <span class="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">+1% vs bulan
                     lalu</span>
@@ -224,9 +211,7 @@ include '../layouts/header.php';
                             <option value="Other" <?php echo $permit_type == 'Other' ? 'selected' : ''; ?>>Lainnya</option>
                         </select>
                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
-                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                            </svg>
+                            <i class="fa-solid fa-chevron-down h-4 w-4"></i>
                         </div>
                     </div>
 
@@ -239,9 +224,7 @@ include '../layouts/header.php';
                             <option value="100" <?php echo $limit == 100 ? 'selected' : ''; ?>>100 baris</option>
                         </select>
                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
-                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                            </svg>
+                            <i class="fa-solid fa-chevron-down h-4 w-4"></i>
                         </div>
                     </div>
                 </form>
@@ -355,9 +338,7 @@ include '../layouts/header.php';
                                 <div class="text-slate-500 text-[10px] mt-0.5">
                                     <?php if ($permit['is_hourly']): ?>
                                         <span class="flex items-center gap-1">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
+                                            <i class="fa-solid fa-clock h-3 w-3"></i>
                                             <?php echo date('H:i', strtotime($permit['start_time'])); ?> - <?php echo date('H:i', strtotime($permit['end_time'])); ?>
                                         </span>
                                     <?php else: ?>
@@ -373,9 +354,7 @@ include '../layouts/header.php';
                                        onclick="openImageModal('<?php echo BASE_URL; ?>/uploads/permits/<?php echo $permit['attachment']; ?>')"
                                        class="inline-flex items-center p-1.5 bg-cyan-50 text-cyan-600 rounded-lg hover:bg-cyan-100 transition-colors"
                                        title="Lihat Lampiran">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                                        </svg>
+                                        <i class="fa-solid fa-paperclip h-4 w-4"></i>
                                     </button>
                                 <?php else: ?>
                                     <span class="text-slate-400 text-xs">-</span>
@@ -406,9 +385,7 @@ include '../layouts/header.php';
                                 </div>
                                 <?php if (!empty($permit['approver_name']) && $permit['status'] !== 'Pending'): ?>
                                     <div class="mt-1 flex items-center gap-1 text-[10px] text-slate-500">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                        </svg>
+                                        <i class="fa-solid fa-user h-3 w-3 text-slate-400"></i>
                                         <span>oleh <span class="font-semibold text-slate-600"><?php echo htmlspecialchars($permit['approver_name']); ?></span></span>
                                     </div>
                                 <?php endif; ?>
@@ -422,18 +399,14 @@ include '../layouts/header.php';
                                            class="p-2 text-emerald-500 hover:bg-emerald-50 rounded-lg transition-all" 
                                            title="Setujui"
                                            onclick="openConfirmModal('<?php echo BASE_URL; ?>/logic/permits/quick_action.php?id=<?= $permit['id'] ?>&action=approve', 'Setujui Izin', 'Apakah Anda yakin ingin menyetujui pengajuan izin ini?', 'emerald')">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                            </svg>
+                                            <i class="fa-solid fa-check h-4 w-4"></i>
                                         </a>
                                         <!-- Reject -->
                                         <a href="javascript:void(0)" 
                                            class="p-2 text-amber-500 hover:bg-amber-50 rounded-lg transition-all" 
                                            title="Tolak"
                                            onclick="openConfirmModal('<?php echo BASE_URL; ?>/logic/permits/quick_action.php?id=<?= $permit['id'] ?>&action=reject', 'Tolak Izin', 'Apakah Anda yakin ingin menolak pengajuan izin ini?', 'amber')">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                            </svg>
+                                            <i class="fa-solid fa-xmark h-4 w-4"></i>
                                         </a>
                                     <?php endif; ?>
                                     
@@ -441,9 +414,7 @@ include '../layouts/header.php';
                                     <button onclick="openDeleteModal('<?php url('logic/permits/delete.php?id=' . $permit['id']); ?>')" 
                                             class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all" 
                                             title="Hapus">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
+                                        <i class="fa-solid fa-trash h-4 w-4"></i>
                                     </button>
                                 </div>
                             </td>
@@ -484,9 +455,7 @@ include '../layouts/header.php';
                             <a href="?page=<?php echo $page - 1; ?>&tab=<?php echo $tab; ?>&type=<?php echo $permit_type; ?>&limit=<?php echo $limit; ?>"
                                 class="relative inline-flex items-center px-3 py-2 text-slate-400 hover:bg-slate-50 focus:z-20 transition-colors">
                                 <span class="sr-only">Previous</span>
-                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                    <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-                                </svg>
+                                <i class="fa-solid fa-chevron-left h-5 w-5"></i>
                             </a>
                         <?php endif; ?>
 
@@ -507,9 +476,7 @@ include '../layouts/header.php';
                             <a href="?page=<?php echo $page + 1; ?>&tab=<?php echo $tab; ?>&type=<?php echo $permit_type; ?>&limit=<?php echo $limit; ?>"
                                 class="relative inline-flex items-center px-3 py-2 text-slate-400 hover:bg-slate-50 focus:z-20 transition-colors">
                                 <span class="sr-only">Next</span>
-                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                                </svg>
+                                <i class="fa-solid fa-chevron-right h-5 w-5"></i>
                             </a>
                         <?php endif; ?>
                     </nav>

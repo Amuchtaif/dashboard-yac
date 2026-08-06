@@ -71,7 +71,7 @@ $totalItems = array_sum($itemCounts);
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
             <div class="w-12 h-12 rounded-xl bg-cyan-100 text-cyan-600 flex items-center justify-center">
-                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                <i class="fa-solid fa-location-dot w-6 h-6"></i>
             </div>
             <div>
                 <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Total Lokasi</p>
@@ -80,7 +80,7 @@ $totalItems = array_sum($itemCounts);
         </div>
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
             <div class="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
-                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <i class="fa-solid fa-check w-6 h-6"></i>
             </div>
             <div>
                 <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Lokasi Terisi</p>
@@ -89,7 +89,7 @@ $totalItems = array_sum($itemCounts);
         </div>
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
             <div class="w-12 h-12 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center">
-                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                <i class="fa-solid fa-circle-exclamation w-6 h-6"></i>
             </div>
             <div>
                 <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Lokasi Kosong</p>
@@ -98,7 +98,7 @@ $totalItems = array_sum($itemCounts);
         </div>
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
             <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
-                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+                <i class="fa-solid fa-box w-6 h-6"></i>
             </div>
             <div>
                 <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Total Barang</p>
@@ -112,7 +112,7 @@ $totalItems = array_sum($itemCounts);
         <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
             <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded-lg bg-slate-800 text-white flex items-center justify-center">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
+                    <i class="fa-solid fa-list w-5 h-5"></i>
                 </div>
                 <h3 class="font-bold text-slate-700">Daftar Status Lokasi</h3>
             </div>

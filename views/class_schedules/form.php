@@ -138,11 +138,7 @@ include '../layouts/header.php';
                                 echo htmlspecialchars($ayName);
                                 ?>
                             </span>
-                            <svg class="h-4 w-4 text-slate-400 transition-transform duration-200"
-                                id="arrow-academic_year_id" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 9l-7 7-7-7" />
-                            </svg>
+                            <i id="arrow-academic_year_id" class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 transition-transform duration-200"></i>
                         </button>
                         <div id="menu-academic_year_id"
                             class="hidden absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
@@ -182,11 +178,7 @@ include '../layouts/header.php';
                                 echo htmlspecialchars($unitName);
                                 ?>
                             </span>
-                            <svg class="h-4 w-4 text-slate-400 transition-transform duration-200"
-                                id="arrow-education_unit_id" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 9l-7 7-7-7" />
-                            </svg>
+                            <i id="arrow-education_unit_id" class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 transition-transform duration-200"></i>
                         </button>
                         <div id="menu-education_unit_id"
                             class="hidden absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
@@ -225,11 +217,7 @@ include '../layouts/header.php';
                                 echo htmlspecialchars($glName);
                                 ?>
                             </span>
-                            <svg class="h-4 w-4 text-slate-400 transition-transform duration-200"
-                                id="arrow-grade_level_id" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 9l-7 7-7-7" />
-                            </svg>
+                            <i id="arrow-grade_level_id" class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 transition-transform duration-200"></i>
                         </button>
                         <div id="menu-grade_level_id"
                             class="hidden absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
@@ -278,11 +266,7 @@ include '../layouts/header.php';
                                 echo htmlspecialchars($empName);
                                 ?>
                             </span>
-                            <svg class="h-4 w-4 text-slate-400 transition-transform duration-200" id="arrow-employee_id"
-                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 9l-7 7-7-7" />
-                            </svg>
+                            <i id="arrow-employee_id" class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 transition-transform duration-200"></i>
                         </button>
                         <div id="menu-employee_id"
                             class="hidden absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
@@ -329,11 +313,7 @@ include '../layouts/header.php';
                                 echo htmlspecialchars($subName);
                                 ?>
                             </span>
-                            <svg class="h-4 w-4 text-slate-400 transition-transform duration-200" id="arrow-subject_id"
-                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 9l-7 7-7-7" />
-                            </svg>
+                            <i id="arrow-subject_id" class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 transition-transform duration-200"></i>
                         </button>
                         <div id="menu-subject_id"
                             class="hidden absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
@@ -373,11 +353,7 @@ include '../layouts/header.php';
                                 echo isset($days[$currentDay]) ? $days[$currentDay] : 'Senin';
                                 ?>
                             </span>
-                            <svg class="h-4 w-4 text-slate-400 transition-transform duration-200" id="arrow-day"
-                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 9l-7 7-7-7" />
-                            </svg>
+                            <i id="arrow-day" class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 transition-transform duration-200"></i>
                         </button>
                         <div id="menu-day"
                             class="hidden absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
@@ -406,11 +382,7 @@ include '../layouts/header.php';
                         <button type="button" onclick="toggleFormDropdown('lesson_periods')"
                             class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all">
                             <span id="text-lesson_periods" class="block truncate">Pilih Jam...</span>
-                            <svg class="h-4 w-4 text-slate-400 transition-transform duration-200"
-                                id="arrow-lesson_periods" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 9l-7 7-7-7" />
-                            </svg>
+                            <i id="arrow-lesson_periods" class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 transition-transform duration-200"></i>
                         </button>
                         <div id="menu-lesson_periods"
                             class="hidden absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-slate-200">

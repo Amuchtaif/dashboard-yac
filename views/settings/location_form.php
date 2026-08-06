@@ -55,19 +55,19 @@ include '../layouts/header.php';
         <ol class="inline-flex items-center space-x-1 md:space-x-3 text-xs text-slate-500">
             <li class="inline-flex items-center">
                 <a href="<?php url('views/dashboard/index.php'); ?>" class="hover:text-slate-800 flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3 h-3"><path fill-rule="evenodd" d="M9.293 2.293a1 1 0 011.414 0l7 7A1 1 0 0117 11h-1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-3a1 1 0 00-1-1H9a1 1 0 00-1 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-6H3a1 1 0 01-.707-1.707l7-7z" clip-rule="evenodd" /></svg>
+                    <i class="fa-solid fa-house w-3 h-3"></i>
                     Beranda
                 </a>
             </li>
             <li>
                 <div class="flex items-center">
-                    <svg class="w-3 h-3 text-gray-400 mx-1" fill="none" viewBox="0 0 6 10"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/></svg>
+                    <i class="fa-solid fa-chevron-right w-3 h-3 text-gray-400 mx-1"></i>
                     <a href="locations.php" class="ml-1 text-slate-500 hover:text-slate-800">Manajemen Lokasi</a>
                 </div>
             </li>
             <li aria-current="page">
                 <div class="flex items-center">
-                    <svg class="w-3 h-3 text-gray-400 mx-1" fill="none" viewBox="0 0 6 10"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/></svg>
+                    <i class="fa-solid fa-chevron-right w-3 h-3 text-gray-400 mx-1"></i>
                     <span class="ml-1 font-medium text-slate-800"><?php echo $page_title; ?></span>
                 </div>
             </li>
@@ -128,9 +128,7 @@ include '../layouts/header.php';
                         <div class="flex justify-between items-center mb-4">
                             <div class="flex items-center gap-2">
                                 <label for="radius_meter" class="block text-sm font-semibold text-slate-700">Radius Geofence</label>
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 text-slate-400 cursor-help" title="Radius meter diizinkan untuk absensi">
-                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd" />
-                                </svg>
+                                <i class="fa-solid fa-circle-info w-4 h-4 text-slate-400 cursor-help"></i>
                             </div>
                             <span class="inline-flex items-center rounded-md bg-cyan-50 px-2 py-1 text-xs font-bold text-cyan-700 ring-1 ring-inset ring-cyan-700/10 shadow-sm" id="radius-display">
                                 <?php echo htmlspecialchars($location['radius_meter'] ?? 100); ?> meter
@@ -163,11 +161,7 @@ include '../layouts/header.php';
                 <div class="bg-slate-50 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-100">
                     <button type="button" onclick="getCurrentLocation()"
                         class="text-sm font-medium text-cyan-600 hover:text-cyan-700 flex items-center gap-2 group">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                            stroke="currentColor" class="w-5 h-5 group-hover:animate-pulse">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M15.042 21.672L13.684 16.6m0 0l-2.51 2.225.569-9.47 5.227 7.917-3.286-.672zM12 2.25V4.5m5.834.166l-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.243l-1.59-1.59" />
-                        </svg>
+                        <i class="fa-solid fa-arrow-pointer w-5 h-5 group-hover:animate-pulse"></i>
                         Gunakan Lokasi Saya Saat Ini
                     </button>
                     <div class="flex items-center gap-3 w-full sm:w-auto">
@@ -185,9 +179,7 @@ include '../layouts/header.php';
              <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                  <div class="px-6 py-4 border-b border-slate-100 bg-slate-50">
                      <h3 class="font-bold text-slate-800 flex items-center gap-2 text-sm uppercase tracking-wider">
-                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 text-cyan-500">
-                           <path fill-rule="evenodd" d="M9.69 18.933l.003.001C9.89 19.02 10 19 10 19s.11.02.308-.066l.002-.001.006-.003.018-.008a5.741 5.741 0 00.281-.14c.186-.096.446-.24.757-.433.62-.384 1.445-.966 2.274-1.765C15.302 14.988 17 12.493 17 9A7 7 0 103 9c0 3.492 1.698 5.988 3.355 7.584a13.731 13.731 0 002.273 1.765 7.23 7.23 0 00.758.433 8.163 8.163 0 00.281.14l.018.008.006.003zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
-                         </svg>
+                         <i class="fa-solid fa-location-dot w-4 h-4 text-cyan-500"></i>
                          Pratinjau Lokasi
                      </h3>
                  </div>
@@ -195,9 +187,7 @@ include '../layouts/header.php';
                      <div id="map"></div>
                      <div class="mt-4 p-4 rounded-lg bg-cyan-50 border border-cyan-100">
                          <div class="flex gap-3">
-                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 text-cyan-600 flex-shrink-0">
-                                 <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd" />
-                             </svg>
+                             <i class="fa-solid fa-circle-info w-5 h-5 text-cyan-600 flex-shrink-0"></i>
                              <div class="space-y-1">
                                  <p class="text-xs text-cyan-800 font-bold leading-none">Petunjuk:</p>
                                  <p class="text-[11px] text-cyan-600 leading-relaxed font-medium">

@@ -81,9 +81,7 @@ include '../layouts/header.php';
                             <button type="button" onclick="toggleCustomDropdown('employee')"
                                 class="flex h-[46px] w-full items-center justify-between rounded-xl border border-slate-300 bg-slate-50 px-4 py-2 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-4 focus:ring-cyan-500/5 transition-all">
                                 <span id="text-employee" class="block truncate text-slate-400 italic">Cari nama pegawai...</span>
-                                <svg id="arrow-employee" class="h-4 w-4 text-slate-400 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                                </svg>
+                                <i id="arrow-employee" class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 transition-transform"></i>
                             </button>
                             <div id="menu-employee" class="hidden absolute z-50 mt-1 max-h-72 w-full overflow-hidden rounded-xl bg-white py-1 text-base shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
                                 <div class="sticky top-0 z-10 bg-white px-2 py-1.5 border-b border-slate-100">
@@ -120,9 +118,7 @@ include '../layouts/header.php';
                             <button type="button" onclick="toggleCustomDropdown('unit')"
                                 class="flex h-[46px] w-full items-center justify-between rounded-xl border border-slate-300 bg-slate-50 px-4 py-2 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-4 focus:ring-cyan-500/5 transition-all">
                                 <span id="text-unit" class="block truncate font-bold text-slate-700">Semua Unit (Umum)</span>
-                                <svg id="arrow-unit" class="h-4 w-4 text-slate-400 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                                </svg>
+                                <i id="arrow-unit" class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 transition-transform"></i>
                             </button>
                             <div id="menu-unit" class="hidden absolute z-50 mt-1 max-h-60 w-full overflow-hidden rounded-xl bg-white py-1 text-base shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
                                 <div class="sticky top-0 z-10 bg-white px-2 py-1.5 border-b border-slate-100">
@@ -207,9 +203,7 @@ include '../layouts/header.php';
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right">
                                         <button onclick="confirmDelete(<?php echo $asn['id']; ?>)" class="p-2 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all" title="Hapus Koordinator">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                            </svg>
+                                            <i class="fa-solid fa-trash h-5 w-5"></i>
                                         </button>
                                     </td>
                                 </tr>

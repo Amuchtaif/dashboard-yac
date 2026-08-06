@@ -180,9 +180,7 @@ include '../layouts/header.php';
     <?php if (!empty($insights['insights'])): ?>
         <div class="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 p-5 rounded-3xl flex gap-4">
             <div class="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-600 flex-shrink-0">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+                <i class="fa-solid fa-circle-info h-5 w-5"></i>
             </div>
             <div>
                 <h4 class="text-sm font-bold text-amber-900">Executive Insight Hari Ini</h4>
@@ -317,9 +315,7 @@ include '../layouts/header.php';
                     <?php endforeach; ?>
                 <?php else: ?>
                     <div class="h-full flex flex-col items-center justify-center text-center text-slate-400 py-12">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-slate-200 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
+                        <i class="fa-solid fa-check h-10 w-10 text-slate-200 mb-2"></i>
                         <p class="text-xs font-medium">Tidak ada santri bermasalah</p>
                     </div>
                 <?php endif; ?>
@@ -681,9 +677,7 @@ if ($detail_student_id > 0):
                     </div>
                     <!-- Close button -->
                     <a href="?unit=<?= urlencode($selected_unit ?? '') ?>&kelas=<?= urlencode($selected_kelas ?? '') ?>&date=<?= $selected_date ?>" class="text-white/60 hover:text-white transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
+                        <i class="fa-solid fa-xmark h-6 w-6"></i>
                     </a>
                 </div>
 

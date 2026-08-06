@@ -94,9 +94,7 @@ include '../layouts/header.php';
     <div class="mt-6">
         <form method="GET" class="flex gap-3 items-center">
             <div class="relative flex-1 max-w-sm">
-                <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400"></i>
                 <input type="text" name="search" value="<?php echo htmlspecialchars($search); ?>"
                        placeholder="Cari nama atau email..."
                        class="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 text-sm focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 focus:outline-none transition-all placeholder:text-slate-400">
@@ -160,9 +158,7 @@ include '../layouts/header.php';
                                         <td class="whitespace-nowrap px-3 py-3 text-center">
                                             <button type="button" onclick="openResetModal(<?php echo $emp['id']; ?>, '<?php echo htmlspecialchars(addslashes($emp['full_name']), ENT_QUOTES); ?>')"
                                                 class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 text-amber-700 text-xs font-semibold rounded-lg border border-amber-200 hover:bg-amber-100 transition-all">
-                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                                                </svg>
+                                                <i class="fa-solid fa-key w-3.5 h-3.5"></i>
                                                 Reset Password
                                             </button>
                                         </td>
@@ -171,9 +167,7 @@ include '../layouts/header.php';
                             <?php else: ?>
                                 <tr>
                                     <td colspan="5" class="py-10 text-center">
-                                        <svg class="mx-auto h-10 w-10 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
-                                        </svg>
+                                        <i class="fa-solid fa-users mx-auto h-10 w-10 text-slate-300"></i>
                                         <p class="mt-2 text-sm text-slate-400">Tidak ada data karyawan ditemukan.</p>
                                     </td>
                                 </tr>
@@ -208,13 +202,13 @@ include '../layouts/header.php';
                                 <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
                                     <?php if ($page > 1): ?>
                                         <a href="?page=<?php echo $page - 1; ?>&limit=<?php echo $limit; ?>&search=<?php echo urlencode($search); ?>" class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
-                                            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" /></svg>
+                                            <i class="fa-solid fa-chevron-left h-5 w-5"></i>
                                         </a>
                                     <?php endif; ?>
                                     <a href="#" aria-current="page" class="relative z-10 inline-flex items-center bg-cyan-600 px-4 py-2 text-sm font-semibold text-white"><?php echo $page; ?></a>
                                     <?php if ($page < $total_pages): ?>
                                         <a href="?page=<?php echo $page + 1; ?>&limit=<?php echo $limit; ?>&search=<?php echo urlencode($search); ?>" class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
-                                            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" /></svg>
+                                            <i class="fa-solid fa-chevron-right h-5 w-5"></i>
                                         </a>
                                     <?php endif; ?>
                                 </nav>
@@ -238,9 +232,7 @@ include '../layouts/header.php';
                 <div class="bg-white px-5 pt-5 pb-4">
                     <div class="flex items-start gap-4">
                         <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-amber-100">
-                            <svg class="h-5 w-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                            </svg>
+                            <i class="fa-solid fa-key h-5 w-5 text-amber-600"></i>
                         </div>
                         <div class="flex-1">
                             <h3 class="text-base font-bold text-slate-900">Reset Password</h3>
@@ -255,18 +247,13 @@ include '../layouts/header.php';
                                                class="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-sm focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 focus:outline-none transition-all placeholder:text-slate-300"
                                                placeholder="Minimal 6 karakter...">
                                         <button type="button" onclick="togglePassword()" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-                                            <svg id="eyeIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                            </svg>
+                                            <i id="eyeIcon" class="fa-solid fa-eye w-4 h-4"></i>
                                         </button>
                                     </div>
                                 </div>
                                 <div class="p-2.5 bg-amber-50 border border-amber-100 rounded-lg">
                                     <p class="text-[10px] text-amber-700 font-medium flex items-start gap-1.5">
-                                        <svg class="w-3.5 h-3.5 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-                                        </svg>
+                                        <i class="fa-solid fa-triangle-exclamation w-3.5 h-3.5 mt-0.5 shrink-0"></i>
                                         Setelah direset, informasikan password baru kepada karyawan terkait secara langsung.
                                     </p>
                                 </div>

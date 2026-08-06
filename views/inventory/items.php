@@ -16,23 +16,17 @@ require_once __DIR__ . '/../layouts/header.php';
         <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
             <div class="flex gap-2 items-center">
                 <a href="<?php echo BASE_URL; ?>/logic/inventory/export_excel.php" class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-100 transition-all">
-                    <svg class="-ml-1 mr-2 h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                    </svg>
+                    <i class="fa-solid fa-download -ml-1 mr-2 h-4 w-4 text-slate-400"></i>
                     Export Excel
                 </a>
 
                 <a href="<?php echo BASE_URL; ?>/views/inventory/import.php" class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-100 transition-all">
-                    <svg class="-ml-1 mr-2 h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
-                    </svg>
+                    <i class="fa-solid fa-download -ml-1 mr-2 h-4 w-4 text-slate-400"></i>
                     Import Excel
                 </a>
 
                 <button onclick="openModal()" class="inline-flex items-center justify-center rounded-lg border border-transparent bg-cyan-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-cyan-100 hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 transition-all ml-2">
-                    <svg class="-ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15"/>
-                    </svg>
+                    <i class="fa-solid fa-plus -ml-1 mr-2 h-4 w-4"></i>
                     Tambah Barang
                 </button>
             </div>
@@ -44,16 +38,12 @@ require_once __DIR__ . '/../layouts/header.php';
         <div class="p-5 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between rounded-t-2xl">
             <div class="flex items-center gap-2">
                 <div class="w-8 h-8 rounded-lg bg-cyan-100 text-cyan-600 flex items-center justify-center">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                    </svg>
+                    <i class="fa-solid fa-filter w-5 h-5"></i>
                 </div>
                 <h3 class="text-sm font-bold text-slate-700">Filter & Pencarian</h3>
             </div>
             <button onclick="resetFilters()" class="text-xs font-semibold text-slate-400 hover:text-cyan-600 transition-colors flex items-center gap-1">
-                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
+                <i class="fa-solid fa-rotate w-3.5 h-3.5"></i>
                 Reset Filter
             </button>
         </div>
@@ -65,9 +55,7 @@ require_once __DIR__ . '/../layouts/header.php';
                     <div class="relative group">
                         <input type="text" id="searchInput" onkeyup="handleSearch()" placeholder="Cari sesuatu..." class="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-4 focus:ring-cyan-500/10 focus:border-cyan-500 transition-all text-sm outline-none bg-slate-50/50 focus:bg-white">
                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <svg class="h-5 w-5 text-slate-400 group-focus-within:text-cyan-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
+                            <i class="fa-solid fa-magnifying-glass h-5 w-5 text-slate-400 group-focus-within:text-cyan-500 transition-colors"></i>
                         </div>
                     </div>
                 </div>
@@ -161,11 +149,11 @@ require_once __DIR__ . '/../layouts/header.php';
     </div>
     <div class="space-x-2 flex items-center border-l border-slate-600 pl-4 ml-4">
         <button onclick="openBulkEditModal()" class="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded-lg text-sm font-semibold transition shadow-sm border border-slate-600">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+            <i class="fa-solid fa-pen-to-square w-4 h-4"></i>
             Edit
         </button>
         <button onclick="bulkDelete()" class="flex items-center gap-2 bg-rose-600 hover:bg-rose-500 text-white px-3 py-1.5 rounded-lg text-sm font-semibold transition shadow-sm border border-rose-500">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            <i class="fa-solid fa-trash w-4 h-4"></i>
             Hapus
         </button>
     </div>
@@ -177,7 +165,7 @@ require_once __DIR__ . '/../layouts/header.php';
         <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center">
             <h3 class="text-lg font-bold text-slate-800" id="modal-title">Tambah Barang</h3>
             <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 focus:outline-none">
-                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                <i class="fa-solid fa-xmark w-6 h-6"></i>
             </button>
         </div>
         
@@ -200,7 +188,7 @@ require_once __DIR__ . '/../layouts/header.php';
                 <label class="block text-sm font-semibold text-slate-700 mb-1">Foto Barang</label>
                 <div class="mt-1 flex items-center gap-4">
                     <div id="photo-preview" class="w-16 h-16 rounded-lg bg-slate-100 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden">
-                        <svg class="w-8 h-8 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        <i class="fa-solid fa-image w-8 h-8 text-slate-300"></i>
                     </div>
                     <input type="file" id="item_photo" accept="image/*" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-cyan-50 file:text-cyan-700 hover:file:bg-cyan-100 transition-all cursor-pointer">
                 </div>
@@ -264,7 +252,7 @@ require_once __DIR__ . '/../layouts/header.php';
         <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center rounded-t-2xl">
             <h3 class="text-lg font-bold text-slate-800">Edit Masal</h3>
             <button onclick="closeBulkEditModal()" class="text-slate-400 hover:text-slate-600 focus:outline-none">
-                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                <i class="fa-solid fa-xmark w-6 h-6"></i>
             </button>
         </div>
         
@@ -298,9 +286,7 @@ require_once __DIR__ . '/../layouts/header.php';
     <div class="bg-white rounded-2xl shadow-xl w-full max-sm:mx-4 max-w-sm overflow-hidden transform transition-all scale-95 opacity-0" id="item-delete-modal-content">
         <div class="p-6 text-center">
             <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-rose-100 mb-4">
-                <svg class="h-8 w-8 text-rose-600" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                </svg>
+                <i class="fa-solid fa-trash h-8 w-8 text-rose-600"></i>
             </div>
             <h3 class="text-lg font-bold text-slate-800 mb-2">Konfirmasi Hapus</h3>
             <p class="text-sm text-slate-500 mb-6 px-4" id="item-delete-modal-message">Apakah Anda yakin ingin menghapus data ini secara permanen? Tindakan ini tidak dapat dibatalkan.</p>
@@ -317,9 +303,7 @@ require_once __DIR__ . '/../layouts/header.php';
 <div id="image-lightbox" class="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex flex-col items-center justify-center hidden opacity-0 transition-opacity duration-300" onclick="closeLightbox()">
     <!-- Close Button -->
     <button type="button" class="absolute top-6 right-6 text-white/70 hover:text-white bg-white/10 hover:bg-white/20 p-2.5 rounded-full transition-all active:scale-95 z-[110]" onclick="closeLightbox(); event.stopPropagation();">
-        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
-        </svg>
+        <i class="fa-solid fa-xmark w-6 h-6"></i>
     </button>
     
     <!-- Image Wrapper -->
@@ -461,9 +445,7 @@ require_once __DIR__ . '/../layouts/header.php';
         if (currentPage > 1) {
             html += `
                 <a href="javascript:void(0)" onclick="changePage(${currentPage - 1})" class="relative inline-flex items-center px-3 py-2 text-slate-400 hover:bg-slate-50 focus:z-20 transition-colors">
-                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
-                    </svg>
+                    <i class="fa-solid fa-chevron-left h-5 w-5"></i>
                 </a>
             `;
         }
@@ -487,9 +469,7 @@ require_once __DIR__ . '/../layouts/header.php';
         if (currentPage < totalPages) {
             html += `
                 <a href="javascript:void(0)" onclick="changePage(${currentPage + 1})" class="relative inline-flex items-center px-3 py-2 text-slate-400 hover:bg-slate-50 focus:z-20 transition-colors">
-                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
-                    </svg>
+                    <i class="fa-solid fa-chevron-right h-5 w-5"></i>
                 </a>
             `;
         }
@@ -619,10 +599,7 @@ require_once __DIR__ . '/../layouts/header.php';
                 </td>
                 <td class="whitespace-nowrap px-3 py-4">
                     <div class="flex items-center gap-2">
-                         <svg class="w-4 h-4 text-orange-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
+                         <i class="fa-solid fa-location-dot w-4 h-4 text-orange-400 flex-shrink-0"></i>
                         <span class="text-xs text-gray-500 truncate max-w-[200px]" title="${item.location_breadcrumb}">${item.location_breadcrumb}</span>
                     </div>
                 </td>
@@ -642,10 +619,10 @@ require_once __DIR__ . '/../layouts/header.php';
                 <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                     <div class="flex items-center justify-end gap-3 text-gray-400">
                         <button onclick="editItem(${item.id})" class="hover:text-cyan-600 transition-colors" title="Edit">
-                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg>
+                            <i class="fa-solid fa-pen-to-square w-5 h-5"></i>
                         </button>
                         <button onclick="singleDelete(${item.id})" class="hover:text-red-600 transition-colors ml-1" title="Hapus">
-                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+                            <i class="fa-solid fa-trash w-5 h-5"></i>
                         </button>
                     </div>
                 </td>
@@ -731,7 +708,7 @@ require_once __DIR__ . '/../layouts/header.php';
         document.getElementById('item_description').value = '';
         document.getElementById('purchase_date').value = '';
         document.getElementById('item_photo').value = '';
-        document.getElementById('photo-preview').innerHTML = '<svg class="w-8 h-8 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>';
+        document.getElementById('photo-preview').innerHTML = '<i class="fa-solid fa-image w-8 h-8 text-slate-300"></i>';
 
         document.getElementById('modal-title').innerText = "Tambah Barang";
         buildCascadingDropdowns([], 'location-cascade-container');
@@ -756,7 +733,7 @@ require_once __DIR__ . '/../layouts/header.php';
         if (it.item_photo) {
             document.getElementById('photo-preview').innerHTML = `<img src="<?php echo BASE_URL; ?>/uploads/inventory/${it.item_photo}" class="w-full h-full object-cover">`;
         } else {
-            document.getElementById('photo-preview').innerHTML = '<svg class="w-8 h-8 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>';
+            document.getElementById('photo-preview').innerHTML = '<i class="fa-solid fa-image w-8 h-8 text-slate-300"></i>';
         }
 
         document.getElementById('modal-title').innerText = "Edit Barang";
@@ -801,10 +778,7 @@ require_once __DIR__ . '/../layouts/header.php';
         newConfirmBtn.addEventListener('click', async () => {
             newConfirmBtn.disabled = true;
             newConfirmBtn.innerHTML = `
-                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg> Menghapus...`;
+                <i class="fa-solid fa-spinner fa-spin animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block"></i> Menghapus...`;
             await execDelete(deleteTargetIds);
             closeItemDeleteModal();
         });

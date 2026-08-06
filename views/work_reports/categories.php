@@ -18,9 +18,7 @@ require_once __DIR__ . '/../layouts/header.php';
         </div>
         <button onclick="openCategoryModal()" class="inline-flex items-center justify-center px-6 py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-2xl font-bold text-sm transition-all active:scale-95 gap-2 group">
             <div class="p-1 bg-white/20 rounded-lg group-hover:rotate-90 transition-transform duration-300">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                </svg>
+                <i class="fa-solid fa-plus w-4 h-4"></i>
             </div>
             Tambah Kategori
         </button>
@@ -32,9 +30,7 @@ require_once __DIR__ . '/../layouts/header.php';
         <div class="p-6 border-b border-slate-50 bg-slate-50/30">
             <div class="relative max-w-md">
                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <svg class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
+                    <i class="fa-solid fa-magnifying-glass h-5 w-5 text-slate-400"></i>
                 </div>
                 <input type="text" id="category-search" oninput="filterCategories()" class="block w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-cyan-500/10 focus:border-cyan-500 transition-all font-medium" placeholder="Cari nama kategori...">
             </div>
@@ -69,9 +65,7 @@ require_once __DIR__ . '/../layouts/header.php';
             <!-- Empty State -->
             <div id="table-empty" class="hidden flex flex-col items-center justify-center py-24 px-8 text-center">
                 <div class="w-32 h-32 bg-slate-50 rounded-[2.5rem] flex items-center justify-center text-slate-200 mb-6 relative overflow-hidden">
-                    <svg class="w-16 h-16 relative z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                    </svg>
+                    <i class="fa-solid fa-folder-open w-16 h-16 relative z-10"></i>
                     <div class="absolute -bottom-4 -right-4 w-16 h-16 bg-slate-100 rounded-full blur-2xl"></div>
                 </div>
                 <h3 class="text-lg font-bold text-slate-800 mb-1">Belum Ada Kategori</h3>
@@ -94,7 +88,7 @@ require_once __DIR__ . '/../layouts/header.php';
                 <p class="text-xs text-slate-400 font-bold mt-0.5 tracking-wide">DETAIL INFORMASI</p>
             </div>
             <button onclick="closeCategoryModal()" class="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-all">
-                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                <i class="fa-solid fa-xmark w-6 h-6"></i>
             </button>
         </div>
         
@@ -105,7 +99,7 @@ require_once __DIR__ . '/../layouts/header.php';
                 <label class="block text-xs font-black text-slate-400 uppercase tracking-[0.15em] mb-3">Nama Kategori</label>
                 <div class="relative group">
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-cyan-500 transition-colors">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" /></svg>
+                        <i class="fa-solid fa-tag w-5 h-5"></i>
                     </div>
                     <input type="text" id="category_name" required class="w-full rounded-2xl border-2 border-slate-100 pl-12 pr-4 py-4 focus:ring-4 focus:ring-cyan-500/10 focus:border-cyan-500 outline-none transition-all bg-slate-50/50 focus:bg-white text-slate-700 font-bold placeholder-slate-300" placeholder="Masukkan nama kategori...">
                 </div>
@@ -130,9 +124,7 @@ require_once __DIR__ . '/../layouts/header.php';
         <div class="p-10 text-center">
             <div class="mx-auto flex h-24 w-24 items-center justify-center rounded-[2rem] bg-rose-50 mb-8 relative">
                 <div class="absolute inset-0 rounded-[2rem] border-2 border-rose-100/50 animate-ping opacity-20"></div>
-                <svg class="h-12 w-12 text-rose-500 relative z-10" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                </svg>
+                <i class="fa-solid fa-trash h-12 w-12 text-rose-500 relative z-10"></i>
             </div>
             <h3 class="text-xl font-black text-slate-800 mb-3">Hapus Kategori?</h3>
             <p class="text-sm text-slate-500 mb-10 leading-relaxed font-medium" id="delete-message">Apakah Anda yakin ingin menghapus kategori ini? Tindakan ini tidak dapat dibatalkan.</p>
@@ -198,10 +190,10 @@ require_once __DIR__ . '/../layouts/header.php';
                 <td class="px-8 py-5 text-right">
                     <div class="flex justify-end gap-1">
                         <button onclick="openCategoryModal(${cat.id}, '${cat.name}')" class="p-2.5 text-slate-400 hover:text-cyan-600 hover:bg-cyan-50 rounded-xl transition-all" title="Edit Kategori">
-                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                            <i class="fa-solid fa-pen-to-square w-5 h-5"></i>
                         </button>
                         <button onclick="confirmCategoryDelete(${cat.id}, '${cat.name}')" class="p-2.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all" title="Hapus Kategori">
-                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                            <i class="fa-solid fa-trash w-5 h-5"></i>
                         </button>
                     </div>
                 </td>

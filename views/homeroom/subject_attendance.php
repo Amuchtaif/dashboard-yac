@@ -133,9 +133,7 @@ include '../layouts/header.php';
                         <td colspan="5" class="px-6 py-20 text-center">
                             <div class="flex flex-col items-center">
                                 <div class="bg-slate-50 p-4 rounded-full mb-4">
-                                    <svg class="w-10 h-10 text-slate-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                    </svg>
+                                    <i class="fa-solid fa-calendar-days w-10 h-10 text-slate-200"></i>
                                 </div>
                                 <p class="text-slate-500 font-medium">Tidak ada jadwal pelajaran.</p>
                                 <p class="text-slate-400 text-sm mt-1">Hari <?php echo $idn_day; ?> tidak ditemukan jadwal untuk kelas ini.</p>
@@ -201,25 +199,19 @@ include '../layouts/header.php';
     
     <div class="mt-8 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
         <p class="text-xs text-slate-500 font-medium flex items-center gap-2">
-            <svg class="w-4 h-4 text-cyan-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            <i class="fa-solid fa-circle-info w-4 h-4 text-cyan-600"></i>
             Data absensi per mapel sinkron dengan Jurnal Kelas yang diisi oleh Guru.
         </p>
         <div class="flex gap-3">
             <a href="attendance.php?grade_id=<?php echo $grade_id; ?>&date=<?php echo $date; ?>" 
                class="bg-white px-4 py-2 rounded-lg border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all flex items-center gap-2 shadow-sm">
-                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 0118 0z" />
-                </svg>
+                <i class="fa-solid fa-arrow-left w-3.5 h-3.5"></i>
                 Absensi Harian
             </a>
             <a href="recap.php?grade_id=<?php echo $grade_id; ?>" 
                class="bg-cyan-600 px-4 py-2 rounded-lg text-xs font-bold text-white hover:bg-cyan-700 transition-all flex items-center gap-2 shadow-md shadow-cyan-100">
                 Rekap Semester
-                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
+                <i class="fa-solid fa-arrow-right w-3.5 h-3.5"></i>
             </a>
         </div>
     </div>

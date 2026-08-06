@@ -48,9 +48,7 @@ include '../../layouts/header.php';
         <div class="mt-4 sm:mt-0">
             <button onclick="openModal('modal-add-room')" 
                 class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
-                <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
+                <i class="fa-solid fa-plus -ml-1 mr-2 h-4 w-4"></i>
                 Tambah Asrama
             </button>
         </div>
@@ -65,9 +63,7 @@ include '../../layouts/header.php';
                         <div class="flex justify-between items-start">
                             <div class="flex items-center gap-3">
                                 <div class="h-12 w-12 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                                    </svg>
+                                    <i class="fa-solid fa-house h-6 w-6"></i>
                                 </div>
                                 <div>
                                     <h3 class="font-bold text-slate-800 text-lg"><?php echo htmlspecialchars($room['room_name']); ?></h3>
@@ -76,14 +72,10 @@ include '../../layouts/header.php';
                             </div>
                             <div class="flex gap-1 transition-opacity">
                                 <button onclick="editRoom(<?php echo htmlspecialchars(json_encode($room)); ?>)" class="p-2 text-slate-400 hover:text-cyan-600 transition-colors">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                    </svg>
+                                    <i class="fa-solid fa-pen-to-square h-4 w-4"></i>
                                 </button>
                                 <button onclick="deleteRoom(<?php echo $room['id']; ?>)" class="p-2 text-slate-400 hover:text-red-600 transition-colors">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                    </svg>
+                                    <i class="fa-solid fa-trash h-4 w-4"></i>
                                 </button>
                             </div>
                         </div>
@@ -105,18 +97,14 @@ include '../../layouts/header.php';
                         <a href="room_members.php?room_id=<?php echo $room['id']; ?>" 
                            class="text-sm font-bold text-indigo-600 hover:text-indigo-700 transition-colors inline-flex items-center">
                             Kelola Santri
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                            </svg>
+                            <i class="fa-solid fa-chevron-right h-4 w-4 ml-1"></i>
                         </a>
                     </div>
                 </div>
             <?php endforeach; ?>
         <?php else: ?>
             <div class="col-span-full py-20 bg-white rounded-2xl border border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400 text-center px-6">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mb-4 text-slate-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
+                <i class="fa-solid fa-building h-16 w-16 mb-4 text-slate-200"></i>
                 <p class="text-lg font-bold text-slate-600">Belum ada data asrama</p>
                 <p class="text-sm mt-1 max-w-xs">Mulai dengan menambahkan asrama baru dan tugaskan musyrif.</p>
                 <button onclick="openModal('modal-add-room')" class="mt-6 text-indigo-600 font-bold hover:underline">Tambah Asrama Sekarang</button>
@@ -140,7 +128,7 @@ include '../../layouts/header.php';
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="text-xl font-bold text-slate-800" id="room-modal-title">Tambah Asrama Baru</h3>
                         <button type="button" onclick="closeModal('modal-add-room')" class="text-slate-400 hover:text-slate-600">
-                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            <i class="fa-solid fa-xmark h-6 w-6"></i>
                         </button>
                     </div>
                     
@@ -159,9 +147,7 @@ include '../../layouts/header.php';
                                     onclick="toggleSupervisorDropdown()"
                                     class="flex items-center justify-between w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-left focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all">
                                     <span id="supervisor-dropdown-text" class="text-slate-400 truncate">Pilih Musyrif...</span>
-                                    <svg class="h-4 w-4 text-slate-400 flex-shrink-0 ml-2 transition-transform duration-200" id="supervisor-dropdown-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                                    </svg>
+                                    <i id="supervisor-dropdown-arrow" class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 flex-shrink-0 ml-2 transition-transform duration-200"></i>
                                 </button>
 
                                 <!-- Dropdown Panel -->
@@ -172,9 +158,7 @@ include '../../layouts/header.php';
                                     <div class="p-2.5 border-b border-slate-100 sticky top-0 bg-white z-10">
                                         <div class="relative">
                                             <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                                <svg class="h-4 w-4 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                                                </svg>
+                                                <i class="fa-solid fa-magnifying-glass h-4 w-4 text-slate-400"></i>
                                             </div>
                                             <input type="text" id="supervisor-search-input"
                                                 placeholder="Ketik nama musyrif..."
@@ -229,9 +213,7 @@ include '../../layouts/header.php';
                 <div class="bg-white px-8 pt-8 pb-6 rounded-t-2xl">
                     <div class="flex flex-col items-center text-center">
                         <div class="h-14 w-14 rounded-full bg-red-50 flex items-center justify-center text-red-500 mb-4">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
+                            <i class="fa-solid fa-trash h-8 w-8"></i>
                         </div>
                         <h3 class="text-xl font-bold text-slate-800 mb-2">Hapus Asrama?</h3>
                         <p class="text-slate-500 text-sm">

@@ -17,7 +17,7 @@ require_once '../../layouts/header.php';
         <div>
             <div class="flex items-center gap-3">
                 <a href="index.php" class="p-2 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-slate-600 transition-all shadow-sm">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                    <i class="fa-solid fa-arrow-left w-5 h-5"></i>
                 </a>
                 <h1 class="text-2xl font-bold text-slate-800"><?php echo $page_title; ?></h1>
             </div>
@@ -26,7 +26,7 @@ require_once '../../layouts/header.php';
         <div class="mt-4 sm:mt-0">
             <button onclick="openAddModal()" 
                 class="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all">
-                <svg class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                <i class="fa-solid fa-plus -ml-1 mr-2 h-4 w-4"></i>
                 Tambah Petugas
             </button>
         </div>
@@ -62,7 +62,7 @@ require_once '../../layouts/header.php';
             <div class="px-8 py-6 border-b border-slate-100 flex items-center justify-between">
                 <h3 class="text-xl font-bold text-slate-800">Tunjuk Petugas</h3>
                 <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 transition-colors p-2 hover:bg-slate-50 rounded-xl">
-                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    <i class="fa-solid fa-xmark h-6 w-6"></i>
                 </button>
             </div>
             
@@ -134,7 +134,7 @@ require_once '../../layouts/header.php';
                         </td>
                         <td class="px-6 py-4 text-center">
                             <button onclick="deleteOfficer(${o.id})" class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all" title="Hapus Petugas">
-                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                <i class="fa-solid fa-trash w-5 h-5"></i>
                             </button>
                         </td>
                     </tr>

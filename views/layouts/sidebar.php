@@ -40,6 +40,12 @@ if (!function_exists('getIconClass')) {
     }
 }
 
+if (!function_exists('renderIcon')) {
+    function renderIcon($iconClass, $colorClass) {
+        echo "<i class=\"fa-solid {$iconClass} mr-3 flex-shrink-0 w-5 text-center text-base {$colorClass} transition-colors\"></i>";
+    }
+}
+
 // Fetch current user's permissions
 require_once __DIR__ . '/../../config/permission.php';
 $user_id = $_SESSION['user_id'] ?? 0;
@@ -51,6 +57,7 @@ $can_manage_news = hasPermission($user_id, 'manage_news');
 $can_access_kabid = hasPermission($user_id, 'can_access_kabid');
 $can_manage_boarding = hasPermission($user_id, 'manage_boarding');
 $can_manage_inventory = hasPermission($user_id, 'manage_inventory');
+$can_manage_documents = hasPermission($user_id, 'manage_documents');
 
 // Check if user is Administrator (Position)
 $is_admin = false;
@@ -62,6 +69,7 @@ if (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Adminis
     $can_access_kabid = true;
     $can_manage_boarding = true;
     $can_manage_inventory = true;
+    $can_manage_documents = true;
     $is_admin = true;
 }
 
@@ -103,10 +111,7 @@ if ($is_admin) {
 
         <!-- Mobile Close Button -->
         <button type="button" onclick="toggleSidebar()" class="md:hidden text-white/60 hover:text-white p-1.5 rounded-xl hover:bg-white/10 transition-all duration-200">
-            <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <i class="fa-solid fa-xmark text-lg"></i>
         </button>
     </div>
 
@@ -116,11 +121,7 @@ if ($is_admin) {
         <nav class="space-y-1.5">
             <a href="<?php url('views/dashboard/index.php'); ?>"
                 class="<?php echo isActive('/views/dashboard/'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('/views/dashboard/'); ?> transition-colors"
-                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                        d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                </svg>
+                <?php renderIcon('fa-house', getIconClass('/views/dashboard/')); ?>
                 Beranda
             </a>
 
@@ -133,44 +134,28 @@ if ($is_admin) {
                 <!-- Employees -->
                 <a href="<?php url('views/employees/index.php'); ?>"
                     class="<?php echo (isUrlActive('employees') && !isUrlActive('reset_password')) ? 'bg-white text-[#2B3990] font-semibold shadow-sm' : 'text-white/80 hover:bg-white/10 hover:text-white'; ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo (isUrlActive('employees') && !isUrlActive('reset_password')) ? 'text-[#2B3990]' : 'text-white/70 group-hover:text-white'; ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
+                    <?php renderIcon('fa-users', (isUrlActive('employees') && !isUrlActive('reset_password')) ? 'text-[#2B3990]' : 'text-white/70 group-hover:text-white'); ?>
                     Data Pegawai
                 </a>
 
                 <!-- Bidang Organisasi (Renamed to Bidang to match UI) -->
                 <a href="<?php url('views/departments/index.php'); ?>"
                     class="<?php echo isActive('departments'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('departments'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
+                    <?php renderIcon('fa-sitemap', getIconClass('departments')); ?>
                     Bidang Organisasi
                 </a>
 
                 <!-- Units -->
                 <a href="<?php url('views/units/index.php'); ?>"
                     class="<?php echo isActive('/views/units/'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('/views/units/'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                    </svg>
+                    <?php renderIcon('fa-building', getIconClass('/views/units/')); ?>
                     Unit Organisasi
                 </a>
 
                 <!-- Positions -->
                 <a href="<?php url('views/positions/index.php'); ?>"
                     class="<?php echo isActive('positions'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('positions'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                            d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" />
-                    </svg>
+                    <?php renderIcon('fa-briefcase', getIconClass('positions')); ?>
                     Jabatan
                 </a>
 
@@ -178,141 +163,84 @@ if ($is_admin) {
                 <!-- Work Schedules -->
                 <a href="<?php url('views/settings/schedules/index.php'); ?>"
                     class="<?php echo isActive('settings/schedules'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('settings/schedules'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                    <?php renderIcon('fa-calendar-days', getIconClass('settings/schedules')); ?>
                     Jadwal Kerja
                 </a>
 
                 <!-- Ramadan Settings -->
                 <a href="<?php url('views/settings/ramadan.php'); ?>"
                     class="<?php echo isActive('settings/ramadan.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('settings/ramadan.php'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                        <path fill-rule="evenodd"
-                            d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 003.463-.69.75.75 0 01.981.98 10.503 10.503 0 01-9.694 6.46c-5.799 0-10.5-4.701-10.5-10.5 0-4.368 2.667-8.112 6.46-9.694a.75.75 0 01.818.162z"
-                            clip-rule="evenodd" />
-                    </svg>
+                    <?php renderIcon('fa-moon', getIconClass('settings/ramadan.php')); ?>
                     Pengaturan Ramadan
                 </a>
 
                 <!-- Shift Exchange -->
                 <a href="<?php url('views/settings/shifts/index.php'); ?>"
                     class="<?php echo isActive('settings/shifts'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('settings/shifts'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
-                    </svg>
+                    <?php renderIcon('fa-right-left', getIconClass('settings/shifts')); ?>
                     Tukar Shift
                 </a>
 
                 <!-- Attendance -->
                 <a href="<?php url('views/attendance/index.php'); ?>"
                     class="<?php echo isActive('views/attendance/index.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('views/attendance/index.php'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                    <?php renderIcon('fa-clock', getIconClass('views/attendance/index.php')); ?>
                     Absensi Pegawai
                 </a>
 
                 <!-- Attendance Summary -->
                 <a href="<?php url('views/attendance/summary.php'); ?>"
                     class="<?php echo isActive('attendance/summary.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('attendance/summary.php'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5M9 11.25v1.5M12 9v3.75m3-6v6" />
-                    </svg>
+                    <?php renderIcon('fa-file-invoice', getIconClass('attendance/summary.php')); ?>
                     Rekap Absensi Pegawai
                 </a>
 
                 <!-- Daily Recap -->
                 <a href="<?php url('views/attendance/daily_recap.php'); ?>"
                     class="<?php echo isActive('attendance/daily_recap.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('attendance/daily_recap.php'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5m-9-6h.008v.008H12v-.008zM12 15h.008v.008H12V15zm0 2.25h.008v.008H12v-.008zM9.75 15h.008v.008H9.75V15zm0 2.25h.008v.008H9.75v-.008zM7.5 15h.008v.008H7.5V15zm0 2.25h.008v.008H7.5v-.008z" />
-                    </svg>
+                    <?php renderIcon('fa-calendar-check', getIconClass('attendance/daily_recap.php')); ?>
                     Rekap Harian Pegawai
                 </a>
 
                 <!-- Kinerja Pegawai -->
                 <a href="<?php url('views/performance/index.php'); ?>"
                     class="<?php echo isActive('performance'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('performance'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M18.75 4.236c.982.143 1.954.317 2.916.52A6.003 6.003 0 0016.27 9.728M18.75 4.236V4.5c0 2.108-.966 3.99-2.48 5.228m0 0a6.023 6.023 0 01-2.77.704 6.023 6.023 0 01-2.77-.704" />
-                    </svg>
+                    <?php renderIcon('fa-trophy', getIconClass('performance')); ?>
                     Kinerja Pegawai
                 </a>
 
                 <!-- Permits -->
                 <a href="<?php url('views/permits/index.php'); ?>"
                     class="<?php echo isActive('/views/permits/'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('/views/permits/'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M10.125 2.25h-4.5c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125v-9M10.125 2.25h.375a9 9 0 019 9v.375M10.125 2.25A3.375 3.375 0 0113.5 5.625v1.5c0 .621.504 1.125 1.125 1.125h1.5a3.375 3.375 0 013.375 3.375M9 15l2.25 2.25L15 12" />
-                    </svg>
+                    <?php renderIcon('fa-envelope-open-text', getIconClass('/views/permits/')); ?>
                     Perizinan
                 </a>
 
                 <!-- Meetings -->
                 <a href="<?php url('views/meetings/index.php'); ?>"
                     class="<?php echo isActive('meetings'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('meetings'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
-                    </svg>
+                    <?php renderIcon('fa-comments', getIconClass('meetings')); ?>
                     Manajemen Rapat
                 </a>
 
                 <!-- Organization Chart -->
                 <a href="<?php url('views/organization/chart.php'); ?>"
                     class="<?php echo isActive('organization'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('organization'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                            d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
-                    </svg>
+                    <?php renderIcon('fa-network-wired', getIconClass('organization')); ?>
                     Struktur Organisasi
                 </a>
 
                 <!-- Locations Management -->
                 <a href="<?php url('views/settings/locations.php'); ?>"
                     class="<?php echo isActive('settings/locations.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('settings/locations.php'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
-                    </svg>
+                    <?php renderIcon('fa-location-dot', getIconClass('settings/locations.php')); ?>
                     Manajemen Lokasi
                 </a>
 
                 <!-- Employee Groups -->
                 <a href="<?php url('views/employee_groups/index.php'); ?>"
                     class="<?php echo isActive('employee_groups'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('employee_groups'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
-                    </svg>
+                    <?php renderIcon('fa-people-group', getIconClass('employee_groups')); ?>
                     Pengelompokan Karyawan
                 </a>
 
@@ -320,36 +248,21 @@ if ($is_admin) {
                 <!-- Task Assignments -->
                 <a href="<?php url('views/task_assignments/index.php'); ?>"
                     class="<?php echo isActive('views/task_assignments/'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('views/task_assignments/'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M11.35 3.836c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15a2.25 2.25 0 011.65 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m8.9-4.414c.376.023.75.05 1.124.08 1.131.094 1.976 1.057 1.976 2.192V16.5A2.25 2.25 0 0118 18.75h-2.25m-7.5-10.5H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V18.75m-7.5-10.5h6.375c.621 0 1.125.504 1.125 1.125v9.375m-8.25-3l1.5 1.5 3-3.75" />
-                    </svg>
+                    <?php renderIcon('fa-list-check', getIconClass('views/task_assignments/')); ?>
                     Manajemen Penugasan
                 </a>
 
                 <!-- Work Reports -->
                 <a href="<?php url('views/work_reports/index.php'); ?>"
                     class="<?php echo (isUrlActive('work_reports') && !isUrlActive('categories')) ? 'bg-white text-[#2B3990] font-semibold shadow-sm' : 'text-white/80 hover:bg-white/10 hover:text-white'; ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo (isUrlActive('work_reports') && !isUrlActive('categories')) ? 'text-[#2B3990]' : 'text-white/70 group-hover:text-white'; ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.423 48.423 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V18.75m-7.5-10.5h6.375c.621 0 1.125.504 1.125 1.125v9.375m-8.25-3l1.5 1.5 3-3.75" />
-                    </svg>
+                    <?php renderIcon('fa-file-signature', (isUrlActive('work_reports') && !isUrlActive('categories')) ? 'text-[#2B3990]' : 'text-white/70 group-hover:text-white'); ?>
                     Laporan Kerja
                 </a>
 
                 <!-- Work Report Categories -->
                 <a href="<?php url('views/work_reports/categories.php'); ?>"
                     class="<?php echo isActive('work_reports/categories'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('work_reports/categories'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M9.568 3H5.25A2.25 2.25 0 003 5.25v13.5A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V11.75M9.568 3a2.25 2.25 0 011.831.94l2.392 3.587a2.25 2.25 0 001.831.94h3.129a2.25 2.25 0 012.25 2.25v1.033" />
-                    </svg>
+                    <?php renderIcon('fa-folder-open', getIconClass('work_reports/categories')); ?>
                     Kategori Laporan
                 </a>
                 <?php
@@ -364,44 +277,28 @@ if ($is_admin) {
                 <!-- Access Control (Permissions) -->
                 <a href="<?php url('views/permissions/index.php'); ?>"
                     class="<?php echo isActive('permissions/index.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('permissions/index.php'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                            d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
-                    </svg>
+                    <?php renderIcon('fa-key', getIconClass('permissions/index.php')); ?>
                     Hak Akses Aplikasi
                 </a>
 
                 <!-- Web Access Control (Permissions) -->
                 <a href="<?php url('views/permissions/web_permissions.php'); ?>"
                     class="<?php echo isActive('permissions/web_permissions.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('permissions/web_permissions.php'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                            d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9s2.015-9 4.5-9m0 0a9.004 9.004 0 018.716 6.747M12 3a9.004 9.004 0 00-8.716 6.747" />
-                    </svg>
+                    <?php renderIcon('fa-globe', getIconClass('permissions/web_permissions.php')); ?>
                     Hak Akses Web
                 </a>
 
                 <!-- Reset Password -->
                 <a href="<?php url('views/employees/reset_password.php'); ?>"
                     class="<?php echo isActive('reset_password'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('reset_password'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                            d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
-                    </svg>
+                    <?php renderIcon('fa-lock-open', getIconClass('reset_password')); ?>
                     Reset Password
                 </a>
 
                 <!-- Status Maintenance -->
                 <a href="<?php url('views/settings/maintenance.php'); ?>"
                     class="<?php echo isActive('settings/maintenance.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('settings/maintenance.php'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
+                    <?php renderIcon('fa-gears', getIconClass('settings/maintenance.php')); ?>
                     Status Maintenance
                 </a>
 
@@ -409,11 +306,7 @@ if ($is_admin) {
                 <?php if ($can_manage_news): ?>
                     <a href="<?php url('views/news/index.php'); ?>"
                         class="<?php echo isActive('news'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                        <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('news'); ?> transition-colors"
-                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M16.5 7.5V18a2.25 2.25 0 002.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 002.25 2.25h13.5M6 7.5h3v3H6v-3z" />
-                        </svg>
+                        <?php renderIcon('fa-newspaper', getIconClass('news')); ?>
                         Manajemen Berita
                     </a>
                     <?php
@@ -436,10 +329,7 @@ if ($is_admin) {
                     <!-- Activity Log -->
                     <a href="<?php url('views/logs/activity.php'); ?>"
                         class="<?php echo isActive('views/logs/activity.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                        <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('views/logs/activity.php'); ?> transition-colors"
-                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.423 48.423 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V18.75m-7.5-10.5h6.375c.621 0 1.125.504 1.125 1.125v9.375m-8.25-3l1.5 1.5 3-3.75" />
-                        </svg>
+                        <?php renderIcon('fa-clock-rotate-left', getIconClass('views/logs/activity.php')); ?>
                         Log Aktivitas
                     </a>
                 <?php endif; ?>
@@ -448,10 +338,7 @@ if ($is_admin) {
                     <!-- System Logs -->
                     <a href="<?php url('views/logs/system.php'); ?>"
                         class="<?php echo isActive('views/logs/system.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                        <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('views/logs/system.php'); ?> transition-colors"
-                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-                        </svg>
+                        <?php renderIcon('fa-terminal', getIconClass('views/logs/system.php')); ?>
                         Log Sistem (File)
                     </a>
                 <?php endif; ?>
@@ -465,203 +352,119 @@ if ($is_admin) {
                 <!-- Academic Years -->
                 <a href="<?php url('views/academic_years/index.php'); ?>"
                     class="<?php echo isActive('academic_years'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('academic_years'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                            d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-                    </svg>
+                    <?php renderIcon('fa-graduation-cap', getIconClass('academic_years')); ?>
                     Tahun Ajaran
                 </a>
 
                 <!-- Academic Calendar -->
                 <a href="<?php url('views/calendar/index.php'); ?>"
                     class="<?php echo isActive('calendar'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('calendar'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5m-9-6h.008v.008H12v-.008zM12 15h.008v.008H12V15zm0 2.25h.008v.008H12v-.008zM9.75 15h.008v.008H9.75V15zm0 2.25h.008v.008H9.75v-.008zM7.5 15h.008v.008H7.5V15zm0 2.25h.008v.008H7.5v-.008zm6.75-4.5h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V15zm0 2.25h.008v.008h-.008v-.008zm2.25-4.5h.008v.008H16.5v-.008zm0 2.25h.008v.008H16.5V15z" />
-                    </svg>
+                    <?php renderIcon('fa-calendar', getIconClass('calendar')); ?>
                     Kalender Akademik
                 </a>
 
                 <!-- Teachers -->
                 <a href="<?php url('views/class_schedules/teachers.php'); ?>"
                     class="<?php echo isActive('class_schedules/teachers.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('class_schedules/teachers.php'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                    </svg>
+                    <?php renderIcon('fa-chalkboard-user', getIconClass('class_schedules/teachers.php')); ?>
                     Data Guru
                 </a>
 
                 <!-- Students -->
                 <a href="<?php url('views/students/index.php'); ?>"
                     class="<?php echo isActive('students/index'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('students/index'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                            d="M12 14l9-5-9-5-9 5 9 5z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                            d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
-                    </svg>
+                    <?php renderIcon('fa-user-graduate', getIconClass('students/index')); ?>
                     Data Siswa
                 </a>
 
                 <!-- Data Siswa (Non-Aktif) -->
                 <a href="<?php url('views/students/inactive.php'); ?>"
                     class="<?php echo isActive('students/inactive'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('students/inactive'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/xl" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-                    </svg>
+                    <?php renderIcon('fa-user-slash', getIconClass('students/inactive')); ?>
                     Data Siswa (Non-Aktif)
                 </a>
 
                 <!-- Batch Promotion -->
                 <a href="<?php url('views/students/promotion.php'); ?>"
                     class="<?php echo isActive('promotion.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('promotion.php'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                            d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                    </svg>
+                    <?php renderIcon('fa-arrow-up-right-dots', getIconClass('promotion.php')); ?>
                     Kenaikan Kelas
                 </a>
 
                 <!-- Education Units -->
                 <a href="<?php url('views/education_units/index.php'); ?>"
                     class="<?php echo isActive('education_units'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('education_units'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.499 5.294 50.536 50.536 0 00-2.658.813m-15.482 0A50.717 50.717 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
-                    </svg>
+                    <?php renderIcon('fa-school', getIconClass('education_units')); ?>
                     Unit Pendidikan
                 </a>
 
                 <!-- Grade Levels -->
                 <a href="<?php url('views/grade_levels/index.php'); ?>"
                     class="<?php echo isActive('grade_levels'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('grade_levels'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
-                    </svg>
+                    <?php renderIcon('fa-chalkboard', getIconClass('grade_levels')); ?>
                     Data Kelas
                 </a>
 
                 <!-- Lesson Periods -->
                 <a href="<?php url('views/lesson_periods/index.php'); ?>"
                     class="<?php echo isActive('lesson_periods'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('lesson_periods'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                    <?php renderIcon('fa-clock', getIconClass('lesson_periods')); ?>
                     Jam Pelajaran
                 </a>
 
                 <!-- Subjects -->
                 <a href="<?php url('views/subjects/index.php'); ?>"
                     class="<?php echo isActive('subjects'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('subjects'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18c-2.305 0-4.408.867-6 2.292m0-14.25v14.25" />
-                    </svg>
+                    <?php renderIcon('fa-book', getIconClass('subjects')); ?>
                     Mata Pelajaran
                 </a>
 
                 <!-- Class Schedules -->
                 <a href="<?php url('views/class_schedules/index.php'); ?>"
                     class="<?php echo (isUrlActive('tahfidz/halaqah')) ? 'text-white/80 hover:bg-white/10 hover:text-white' : (isUrlActive('class_schedules') && !isUrlActive('teachers') ? 'bg-white text-[#2B3990] font-semibold shadow-sm' : 'text-white/80 hover:bg-white/10 hover:text-white'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo (isUrlActive('tahfidz/halaqah')) ? 'text-white/70 group-hover:text-white' : (isUrlActive('class_schedules') && !isUrlActive('teachers') ? 'text-[#2B3990]' : 'text-white/70 group-hover:text-white'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5m-9-6h.008v.008H12v-.008zM12 15h.008v.008H12V15zm0 2.25h.008v.008H12v-.008zM9.75 15h.008v.008H9.75V15zm0 2.25h.008v.008H9.75v-.008zM7.5 15h.008v.008H7.5V15zm0 2.25h.008v.008H7.5v-.008zm6.75-4.5h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V15zm0 2.25h.008v.008h-.008v-.008zm2.25-4.5h.008v.008H16.5v-.008zm0 2.25h.008v.008H16.5V15z" />
-                    </svg>
+                    <?php renderIcon('fa-calendar-day', (isUrlActive('tahfidz/halaqah')) ? 'text-white/70 group-hover:text-white' : (isUrlActive('class_schedules') && !isUrlActive('teachers') ? 'text-[#2B3990]' : 'text-white/70 group-hover:text-white')); ?>
                     Jadwal Pelajaran
                 </a>
 
                 <!-- Class Attendance -->
                 <a href="<?php url('views/class_attendance/index.php'); ?>"
                     class="<?php echo isActive('views/class_attendance/'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('views/class_attendance/'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18" />
-                    </svg>
+                    <?php renderIcon('fa-check-double', getIconClass('views/class_attendance/')); ?>
                     Absensi Kelas
                 </a>
 
                 <!-- Student Attendance -->
                 <a href="<?php url('views/student_attendance/index.php'); ?>"
                     class="<?php echo isActive('views/student_attendance/index.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('views/student_attendance/index.php'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                    <?php renderIcon('fa-clipboard-user', getIconClass('views/student_attendance/index.php')); ?>
                     Absensi Siswa
                 </a>
 
                 <!-- Class Journals -->
                 <a href="<?php url('views/class_journals/index.php'); ?>"
                     class="<?php echo isActive('class_journals'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('class_journals'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18c-2.305 0-4.408.867-6 2.292m0-14.25v14.25" />
-                    </svg>
+                    <?php renderIcon('fa-book-open-reader', getIconClass('class_journals')); ?>
                     Jurnal Kelas
                 </a>
 
                 <!-- RPP -->
                 <a href="<?php url('views/rpp/index.php'); ?>"
                     class="<?php echo isActive('rpp'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('rpp'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-                    </svg>
+                    <?php renderIcon('fa-file-lines', getIconClass('rpp')); ?>
                     Rencana Mengajar (RPP)
                 </a>
 
                 <!-- Assessment Types -->
                 <a href="<?php url('views/assessment_types/index.php'); ?>"
                     class="<?php echo isActive('/views/assessment_types/'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('/views/assessment_types/'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M11.35 3.836c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15a2.25 2.25 0 011.65 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m8.9-4.414c.376.023.75.05 1.124.08 1.131.094 1.976 1.057 1.976 2.192V16.5A2.25 2.25 0 0118 18.75h-2.25m-7.5-10.5H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V18.75m-7.5-10.5h6.375c.621 0 1.125.504 1.125 1.125v9.375m-8.25-3l1.5 1.5 3-3.75" />
-                    </svg>
+                    <?php renderIcon('fa-sliders', getIconClass('/views/assessment_types/')); ?>
                     Jenis Penilaian
                 </a>
 
                 <!-- Student Assessments -->
                 <a href="<?php url('views/student_assessments/index.php'); ?>"
                     class="<?php echo isActive('student_assessments'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('student_assessments'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/xl" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.423 48.423 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V18.75m-7.5-10.5h6.375c.621 0 1.125.504 1.125 1.125v9.375m-8.25-3l1.5 1.5 3-3.75" />
-                    </svg>
+                    <?php renderIcon('fa-ranking-star', getIconClass('student_assessments')); ?>
                     Riwayat Penilaian
                 </a>
 
@@ -678,84 +481,49 @@ if ($is_admin) {
                 <!-- Daily Student Attendance (Homeroom) -->
                 <a href="<?php url('views/homeroom/attendance.php'); ?>"
                     class="<?php echo isActive('homeroom/attendance'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('homeroom/attendance'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                    <?php renderIcon('fa-clipboard-user', getIconClass('homeroom/attendance')); ?>
                     Absensi Harian Siswa
                 </a>
 
                 <!-- Absensi Per Mapel (Homeroom View) -->
                 <a href="<?php url('views/homeroom/subject_attendance.php'); ?>"
                     class="<?php echo isActive('homeroom/subject_attendance'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('homeroom/subject_attendance'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18" />
-                    </svg>
+                    <?php renderIcon('fa-check-double', getIconClass('homeroom/subject_attendance')); ?>
                     Absensi Per Mapel
                 </a>
 
                 <!-- Attendance Recap (Homeroom View) -->
                 <a href="<?php url('views/homeroom/recap.php'); ?>"
                     class="<?php echo isActive('homeroom/recap'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('homeroom/recap'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5M9 11.25v1.5M12 9v3.75m3-6v6" />
-                    </svg>
+                    <?php renderIcon('fa-file-invoice', getIconClass('homeroom/recap')); ?>
                     Rekap Absensi Siswa
                 </a>
 
                 <!-- Class Journals (Homeroom View) -->
                 <a href="<?php url('views/homeroom/journals.php'); ?>"
                     class="<?php echo isActive('homeroom/journals'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('homeroom/journals'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18c-2.305 0-4.408.867-6 2.292m0-14.25v14.25" />
-                    </svg>
+                    <?php renderIcon('fa-book-open-reader', getIconClass('homeroom/journals')); ?>
                     Jurnal Kelas
                 </a>
 
                 <!-- Journal Recap (Homeroom View) -->
                 <a href="<?php url('views/homeroom/journal_recap.php'); ?>"
                     class="<?php echo isActive('homeroom/journal_recap'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('homeroom/journal_recap'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18c-2.305 0-4.408.867-6 2.292m0-14.25v14.25" />
-                    </svg>
+                    <?php renderIcon('fa-rectangle-list', getIconClass('homeroom/journal_recap')); ?>
                     Rekap Jurnal Kelas
                 </a>
 
                 <!-- Class Schedule (Homeroom View) -->
                 <a href="<?php url('views/homeroom/schedule.php'); ?>"
                     class="<?php echo isActive('homeroom/schedule'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('homeroom/schedule'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-                    </svg>
+                    <?php renderIcon('fa-calendar-day', getIconClass('homeroom/schedule')); ?>
                     Jadwal Pelajaran
                 </a>
 
                 <!-- Student Grades (Homeroom View) -->
                 <a href="<?php url('views/homeroom/grades.php'); ?>"
                     class="<?php echo isActive('homeroom/grades'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('homeroom/grades'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/xl" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.423 48.423 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V18.75m-7.5-10.5h6.375c.621 0 1.125.504 1.125 1.125v9.375m-8.25-3l1.5 1.5 3-3.75" />
-                    </svg>
+                    <?php renderIcon('fa-award', getIconClass('homeroom/grades')); ?>
                     Data Nilai Siswa
                 </a>
             <?php endif; ?>
@@ -768,102 +536,58 @@ if ($is_admin) {
 
                 <a href="<?php url('views/tahfidz/dashboard.php'); ?>"
                     class="<?php echo isActive('tahfidz/dashboard'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('tahfidz/dashboard'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18c-2.305 0-4.408.867-6 2.292m0-14.25v14.25" />
-                    </svg>
+                    <?php renderIcon('fa-quran', getIconClass('tahfidz/dashboard')); ?>
                     Dashboard Tahfidz
                 </a>
 
                 <!-- Double Assignment -->
                 <a href="<?php url('views/assignments/index.php'); ?>"
                     class="<?php echo isActive('/views/assignments/'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('/views/assignments/'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                            d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-                    </svg>
+                    <?php renderIcon('fa-user-gear', getIconClass('/views/assignments/')); ?>
                     Koordinator Tahfidz
                 </a>
 
                 <!-- Tahfidz Assessment Types -->
                 <a href="<?php url('views/tahfidz/assessment_types.php'); ?>"
                     class="<?php echo isActive('/tahfidz/assessment_types.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('/tahfidz/assessment_types.php'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M11.35 3.836c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15a2.25 2.25 0 011.65 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m8.9-4.414c.376.023.75.05 1.124.08 1.131.094 1.976 1.057 1.976 2.192V16.5A2.25 2.25 0 0118 18.75h-2.25m-7.5-10.5H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V18.75m-7.5-10.5h6.375c.621 0 1.125.504 1.125 1.125v9.375m-8.25-3l1.5 1.5 3-3.75" />
-                    </svg>
+                    <?php renderIcon('fa-sliders', getIconClass('/tahfidz/assessment_types.php')); ?>
                     Kelola Penilaian Tahfidz
                 </a>
 
                 <a href="<?php url('views/tahfidz/target_hafalan.php'); ?>"
                     class="<?php echo isActive('tahfidz/target_hafalan'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('tahfidz/target_hafalan'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m11.314 11.314l.707.707M12 5a7 7 0 100 14 7 7 0 000-14zm0 3a4 4 0 100 8 4 4 0 000-8zm0 2a2 2 0 100 4 2 2 0 000-4z" />
-                    </svg>
+                    <?php renderIcon('fa-bullseye', getIconClass('tahfidz/target_hafalan')); ?>
                     Kelola Target Hafalan
                 </a>
 
                 <a href="<?php url('views/tahfidz/baselines.php'); ?>"
                     class="<?php echo isActive('tahfidz/baselines'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('tahfidz/baselines'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                    </svg>
+                    <?php renderIcon('fa-flag', getIconClass('tahfidz/baselines')); ?>
                     Baseline Hafalan
                 </a>
 
                 <!-- Tahfidz Assessment History -->
                 <a href="<?php url('views/tahfidz/assessments.php'); ?>"
                     class="<?php echo isActive('/tahfidz/assessments.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('/tahfidz/assessments.php'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/xl" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.423 48.423 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V18.75m-7.5-10.5h6.375c.621 0 1.125.504 1.125 1.125v9.375m-8.25-3l1.5 1.5 3-3.75" />
-                    </svg>
+                    <?php renderIcon('fa-ranking-star', getIconClass('/tahfidz/assessments.php')); ?>
                     Data Penilaian Tahfidz
                 </a>
 
                 <a href="<?php url('views/tahfidz/halaqah.php'); ?>"
                     class="<?php echo isActive('tahfidz/halaqah'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('tahfidz/halaqah'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
-                    </svg>
+                    <?php renderIcon('fa-people-roof', getIconClass('tahfidz/halaqah')); ?>
                     Data Halaqah
                 </a>
 
                 <a href="<?php url('views/tahfidz/teacher_attendance.php'); ?>"
                     class="<?php echo isActive('tahfidz/teacher_attendance'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('tahfidz/teacher_attendance'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                    </svg>
+                    <?php renderIcon('fa-user-check', getIconClass('tahfidz/teacher_attendance')); ?>
                     Absensi Pengampu
                 </a>
 
                 <a href="<?php url('views/tahfidz/student_attendance.php'); ?>"
                     class="<?php echo isActive('tahfidz/student_attendance'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('tahfidz/student_attendance'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
-                    </svg>
+                    <?php renderIcon('fa-users-rectangle', getIconClass('tahfidz/student_attendance')); ?>
                     Absensi Santri
                 </a>
 
@@ -871,27 +595,17 @@ if ($is_admin) {
 
                 <a href="<?php url('views/tahfidz/report.php'); ?>"
                     class="<?php echo isActive('tahfidz/report'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('tahfidz/report'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-                    </svg>
+                    <?php renderIcon('fa-chart-simple', getIconClass('tahfidz/report')); ?>
                     Laporan Hafalan
                 </a>
 
                 <a href="<?php url('views/tahfidz/semester_recap.php'); ?>"
                     class="<?php echo isActive('tahfidz/semester_recap'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('tahfidz/semester_recap'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5M9 11.25v1.5M12 9v3.75m3-6v6" />
-                    </svg>
+                    <?php renderIcon('fa-file-lines', getIconClass('tahfidz/semester_recap')); ?>
                     Rekap Semester
                 </a>
 
-                
+
                 <?php
             endif; ?>
 
@@ -904,108 +618,63 @@ if ($is_admin) {
                 <!-- Data Asrama -->
                 <a href="<?php url('views/boarding/rooms/index.php'); ?>"
                     class="<?php echo isActive('boarding/rooms'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('boarding/rooms'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-3h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
-                    </svg>
+                    <?php renderIcon('fa-bed', getIconClass('boarding/rooms')); ?>
                     Data Asrama
                 </a>
 
                 <!-- Absensi Asrama -->
                 <a href="<?php url('views/boarding/attendance/index.php'); ?>"
                     class="<?php echo isActive('boarding/attendance'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('boarding/attendance'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.423 48.423 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V18.75m-7.5-10.5h6.375c.621 0 1.125.504 1.125 1.125v9.375m-8.25-3l1.5 1.5 3-3.75" />
-                    </svg>
+                    <?php renderIcon('fa-clipboard-user', getIconClass('boarding/attendance')); ?>
                     Absensi Asrama
                 </a>
 
                 <!-- Kelola Pelanggaran -->
                 <a href="<?php url('views/boarding/violations/index.php'); ?>"
                     class="<?php echo isActive('boarding/violations/index.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('boarding/violations/index.php'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-                    </svg>
+                    <?php renderIcon('fa-triangle-exclamation', getIconClass('boarding/violations/index.php')); ?>
                     Kelola Pelanggaran
                 </a>
 
                 <!-- Jenis Pelanggaran -->
                 <a href="<?php url('views/boarding/violation_types/index.php'); ?>"
                     class="<?php echo isActive('boarding/violation_types/index.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('boarding/violation_types/index.php'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-2.25 5.25h.008v.008H1.875V17.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-                    </svg>
+                    <?php renderIcon('fa-list-ul', getIconClass('boarding/violation_types/index.php')); ?>
                     Jenis Pelanggaran
                 </a>
 
                 <!-- Monitoring Perpulangan -->
                 <a href="<?php url('views/boarding/perpulangan/index.php'); ?>"
                     class="<?php echo isActive('boarding/perpulangan/index.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('boarding/perpulangan/index.php'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z" />
-                    </svg>
+                    <?php renderIcon('fa-plane-departure', getIconClass('boarding/perpulangan/index.php')); ?>
                     Monitoring Perpulangan
                 </a>
 
                 <!-- Kelola Liburan -->
                 <a href="<?php url('views/boarding/holidays/index.php'); ?>"
                     class="<?php echo isActive('boarding/holidays'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('boarding/holidays'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5m-9-6h.008v.008H12v-.008zM12 15h.008v.008H12V15zm0 2.25h.008v.008H12v-.008zM9.75 15h.008v.008H9.75V15zm0 2.25h.008v.008H9.75v-.008zM7.5 15h.008v.008H7.5V15zm0 2.25h.008v.008H7.5v-.008zm6.75-4.5h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V15zm0 2.25h.008v.008h-.008v-.008zm2.25-4.5h.008v.008H16.5v-.008zm0 2.25h.008v.008H16.5V15z" />
-                    </svg>
+                    <?php renderIcon('fa-umbrella-beach', getIconClass('boarding/holidays')); ?>
                     Kelola Liburan
                 </a>
 
                 <!-- Kelola Kepulangan Santri -->
                 <a href="<?php url('views/boarding/returns/index.php'); ?>"
                     class="<?php echo isActive('boarding/returns/index.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('boarding/returns/index.php'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
-                    </svg>
+                    <?php renderIcon('fa-right-from-bracket', getIconClass('boarding/returns/index.php')); ?>
                     Kelola Kepulangan Santri
                 </a>
 
                 <!-- Kelola Izin Santri -->
                 <a href="<?php url('views/boarding/permits/index.php'); ?>"
                     class="<?php echo isActive('boarding/permits/index.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('boarding/permits/index.php'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M11.35 3.836c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15a2.25 2.25 0 011.65 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m8.9-4.414c.376.023.75.05 1.124.08 1.131.094 1.976 1.057 1.976 2.192V16.5A2.25 2.25 0 0118 18.75h-2.25m-7.5-10.5H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V18.75m-7.5-10.5h6.375c.621 0 1.125.504 1.125 1.125v9.375m-8.25-3l1.5 1.5 3-3.75" />
-                    </svg>
+                    <?php renderIcon('fa-id-card', getIconClass('boarding/permits/index.php')); ?>
                     Kelola Izin Santri
                 </a>
 
                 <!-- Monitoring Absensi Makan -->
                 <a href="<?php url('views/meal_attendance/monitor.php'); ?>"
                     class="<?php echo isActive('meal_attendance/monitor.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('meal_attendance/monitor.php'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M12 8.25v-1.5m0 1.5c-1.355 0-2.697.056-4.024.166C6.845 8.51 6 9.473 6 10.608v2.513m6-4.871c1.355 0 2.697.056 4.024.166C17.155 8.51 18 9.473 18 10.608v2.513M15 8.25v-1.5m-6 1.5v-1.5m12 9.75l-1.5.75a3.354 3.354 0 01-3 0 3.354 3.354 0 00-3 0 3.354 3.354 0 01-3 0 3.354 3.354 0 00-3 0 3.354 3.354 0 01-3 0L3 16.5m15-3.375a33.75 33.75 0 00-12 0m12 0v1.5m0-1.5a3.354 3.354 0 013 0 3.354 3.354 0 003 0m-18 0a3.354 3.354 0 00-3 0 3.354 3.354 0 01-3 0m3 0v1.5m0-1.5a3.354 3.354 0 013 0 3.354 3.354 0 003 0m0 0a3.354 3.354 0 013 0 3.354 3.354 0 003 0z" />
-                    </svg>
+                    <?php renderIcon('fa-utensils', getIconClass('meal_attendance/monitor.php')); ?>
                     Monitoring Makan
                 </a>
                 <?php
@@ -1022,36 +691,21 @@ if ($is_admin) {
                 <!-- Dashboard Statistik -->
                 <a href="<?php url('views/amaliyah/dashboard.php'); ?>"
                     class="<?php echo isActive('views/amaliyah/dashboard'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('views/amaliyah/dashboard'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18c-2.305 0-4.408.867-6 2.292m0-14.25v14.25" />
-                    </svg>
+                    <?php renderIcon('fa-chart-line', getIconClass('views/amaliyah/dashboard')); ?>
                     Statistik Aktivitas
                 </a>
 
                 <!-- Master Jenis Aktivitas -->
                 <a href="<?php url('views/amaliyah/activity_types.php'); ?>"
                     class="<?php echo isActive('views/amaliyah/activity_types'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('views/amaliyah/activity_types'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M11.35 3.836c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15a2.25 2.25 0 011.65 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m8.9-4.414c.376.023.75.05 1.124.08 1.131.094 1.976 1.057 1.976 2.192V16.5A2.25 2.25 0 0118 18.75h-2.25m-7.5-10.5H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V18.75m-7.5-10.5h6.375c.621 0 1.125.504 1.125 1.125v9.375m-8.25-3l1.5 1.5 3-3.75" />
-                    </svg>
+                    <?php renderIcon('fa-list-check', getIconClass('views/amaliyah/activity_types')); ?>
                     Jenis Aktivitas
                 </a>
 
                 <!-- Monitoring Aktivitas -->
                 <a href="<?php url('views/amaliyah/monitoring.php'); ?>"
                     class="<?php echo isActive('views/amaliyah/monitoring'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('views/amaliyah/monitoring'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.423 48.423 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V18.75m-7.5-10.5h6.375c.621 0 1.125.504 1.125 1.125v9.375m-8.25-3l1.5 1.5 3-3.75" />
-                    </svg>
+                    <?php renderIcon('fa-eye', getIconClass('views/amaliyah/monitoring')); ?>
                     Monitoring Aktivitas
                 </a>
             <?php endif; ?>
@@ -1065,37 +719,117 @@ if ($is_admin) {
                 <!-- Struktur Lokasi -->
                 <a href="<?php url('views/inventory/locations_tree.php'); ?>"
                     class="<?php echo isActive('inventory/locations_tree.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('inventory/locations_tree.php'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5M9 11.25v1.5M12 9v3.75m3-6v6" />
-                    </svg>
+                    <?php renderIcon('fa-location-dot', getIconClass('inventory/locations_tree.php')); ?>
                     Kelola Lokasi
                 </a>
 
                 <!-- Kelola Inventaris -->
                 <a href="<?php url('views/inventory/items.php'); ?>"
                     class="<?php echo isActive('inventory/items.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('inventory/items.php'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
-                    </svg>
+                    <?php renderIcon('fa-boxes-stacked', getIconClass('inventory/items.php')); ?>
                     Kelola Inventaris
                 </a>
 
                 <!-- Monitoring Lokasi -->
                 <a href="<?php url('views/inventory/monitoring.php'); ?>"
                     class="<?php echo isActive('inventory/monitoring.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
-                    <svg class="mr-3 flex-shrink-0 h-5 w-5 <?php echo getIconClass('inventory/monitoring.php'); ?> transition-colors"
-                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
-                    </svg>
+                    <?php renderIcon('fa-desktop', getIconClass('inventory/monitoring.php')); ?>
                     Monitoring Inventaris
+                </a>
+            <?php endif; ?>
+
+            <!-- Surat & Dokumen Digital -->
+            <?php if ($can_manage_documents): ?>
+                <div class="pt-4 pb-2">
+                    <p class="px-3 text-xs font-semibold text-white/40 uppercase tracking-wider">Persuratan Digital</p>
+                </div>
+
+                <!-- Dashboard -->
+                <a href="<?php url('views/documents/index.php'); ?>"
+                    class="<?php echo isActive('documents/index.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
+                    <?php renderIcon('fa-table-columns', getIconClass('documents/index.php')); ?>
+                    Dashboard Dokumen
+                </a>
+
+                <!-- Surat Keluar -->
+                <a href="<?php url('views/documents/outgoing.php'); ?>"
+                    class="<?php echo isActive('documents/outgoing.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
+                    <?php renderIcon('fa-paper-plane', getIconClass('documents/outgoing.php')); ?>
+                    Surat Keluar
+                </a>
+
+                <!-- Surat Masuk -->
+                <a href="<?php url('views/documents/incoming.php'); ?>"
+                    class="<?php echo isActive('documents/incoming.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
+                    <?php renderIcon('fa-file-import', getIconClass('documents/incoming.php')); ?>
+                    Surat Masuk
+                </a>
+
+                <!-- Approval -->
+                <a href="<?php url('views/documents/approval.php'); ?>"
+                    class="<?php echo isActive('documents/approval.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
+                    <?php renderIcon('fa-signature', getIconClass('documents/approval.php')); ?>
+                    Approval Surat
+                </a>
+
+                <!-- Disposisi -->
+                <a href="<?php url('views/documents/disposition.php'); ?>"
+                    class="<?php echo isActive('documents/disposition.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
+                    <?php renderIcon('fa-share-nodes', getIconClass('documents/disposition.php')); ?>
+                    Disposisi Surat
+                </a>
+
+                <!-- Template Surat (Katalog) -->
+                <a href="<?php url('views/documents/templates.php'); ?>"
+                    class="<?php echo isActive('documents/templates.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
+                    <?php renderIcon('fa-file-invoice', getIconClass('documents/templates.php')); ?>
+                    Template Surat
+                </a>
+
+                <!-- Arsip Digital -->
+                <a href="<?php url('views/documents/archive.php'); ?>"
+                    class="<?php echo isActive('documents/archive.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
+                    <?php renderIcon('fa-box-archive', getIconClass('documents/archive.php')); ?>
+                    Arsip Digital
+                </a>
+
+                <!-- Verifikasi Dokumen -->
+                <a href="<?php url('views/documents/verify.php'); ?>"
+                    class="<?php echo isActive('documents/verify.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
+                    <?php renderIcon('fa-stamp', getIconClass('documents/verify.php')); ?>
+                    Verifikasi Dokumen
+                </a>
+
+                <!-- Pengaturan Penerima Surat (Admin Only) -->
+                <?php if ($is_admin): ?>
+                    <a href="<?php url('views/documents/routing_config.php'); ?>"
+                        class="<?php echo isActive('documents/routing_config.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
+                        <?php renderIcon('fa-sliders', getIconClass('documents/routing_config.php')); ?>
+                        Pengaturan Penerima
+                    </a>
+                <?php endif; ?>
+
+                <!-- Laporan -->
+                <a href="<?php url('views/documents/reports.php'); ?>"
+                    class="<?php echo isActive('documents/reports.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
+                    <?php renderIcon('fa-chart-simple', getIconClass('documents/reports.php')); ?>
+                    Laporan Persuratan
+                </a>
+
+                <!-- Pengaturan Template -->
+                <?php if (hasPermission($user_id, 'document.template.manage') || $is_admin): ?>
+                    <a href="<?php url('views/documents/template_config.php'); ?>"
+                        class="<?php echo isActive('documents/template_config.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
+                        <?php renderIcon('fa-gear', getIconClass('documents/template_config.php')); ?>
+                        Pengaturan Template
+                    </a>
+                <?php endif; ?>
+
+                <!-- Tanda Tangan Saya -->
+                <a href="<?php url('views/documents/signature.php'); ?>"
+                    class="<?php echo isActive('documents/signature.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
+                    <?php renderIcon('fa-file-signature', getIconClass('documents/signature.php')); ?>
+                    Tanda Tangan Saya
                 </a>
             <?php endif; ?>
 
@@ -1122,13 +856,9 @@ if ($is_admin) {
                     <?php echo htmlspecialchars($_SESSION['position_name'] ?? 'Pegawai'); ?>
                 </p>
             </div>
-            <a href="<?php url('logic/auth/logout.php'); ?>" class="text-white/60 hover:text-red-400 transition-colors"
+            <a href="<?php url('logic/auth/logout.php'); ?>" class="text-white/60 hover:text-red-400 transition-colors flex items-center justify-center w-5 h-5"
                 title="Sign Out">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                    stroke="currentColor" class="w-5 h-5">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
-                </svg>
+                <i class="fa-solid fa-right-from-bracket text-base"></i>
             </a>
         </div>
     </div>

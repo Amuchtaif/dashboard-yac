@@ -24,9 +24,7 @@ include '../../layouts/header.php';
         <div class="mt-4 sm:mt-0">
             <button onclick="openModal('modal-add-type')" 
                 class="inline-flex items-center justify-center rounded-lg bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-500 transition-all">
-                <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
+                <i class="fa-solid fa-plus -ml-1 mr-2 h-4 w-4"></i>
                 Tambah Jenis
             </button>
         </div>
@@ -62,9 +60,7 @@ include '../../layouts/header.php';
                             </td>
                             <td class="px-6 py-4 text-right">
                                 <button onclick="deleteType(<?php echo $t['id']; ?>)" class="text-slate-400 hover:text-red-600 p-2 transition-colors">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                    </svg>
+                                    <i class="fa-solid fa-trash h-4 w-4"></i>
                                 </button>
                             </td>
                         </tr>
