@@ -83,10 +83,17 @@ try {
         $stmtWali->execute([$user_id]);
         $isWali = (int)$stmtWali->fetchColumn() > 0;
 
+        // Fetch resolved Tahfidz Scope
+        require_once __DIR__ . '/../app/Services/Tahfidz/DashboardTahfidzService.php';
+        $tahfidzService = new DashboardTahfidzService();
+        $tahfidzScope = $tahfidzService->resolveScope($user_id);
+        $allowedTahfidzUnits = $tahfidzScope['units'] ?? [];
+
         $permissions = [
             "can_create_meeting" => (int)hasPermission($user_id, 'create_meeting'),
             "can_approve_permits" => (int)hasPermission($user_id, 'approve_permits'),
             "can_access_tahfidz" => (int)hasPermission($user_id, 'access_tahfidz'),
+            "can_access_tahfidz_monitoring" => (int)hasPermission($user_id, 'access_tahfidz_monitoring'),
             "can_access_education" => (hasPermission($user_id, 'access_education') || $isTeacher) ? 1 : 0,
             "can_manage_news" => (int)hasPermission($user_id, 'manage_news'),
             "can_create_assignment" => (int)hasPermission($user_id, 'manage_assignments'),
@@ -103,7 +110,8 @@ try {
                 "position_id" => $row['position_id'] ? (int)$row['position_id'] : null,
                 "position_name" => $row['position_name'] ?? 'No Position',
                 "position_level" => $row['position_level'] ? (int)$row['position_level'] : 99,
-                "permissions" => $permissions
+                "permissions" => $permissions,
+                "allowed_tahfidz_units" => $allowedTahfidzUnits
             ]
         ]);
     } else {

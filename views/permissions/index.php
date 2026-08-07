@@ -88,6 +88,7 @@ $query = "
         p.can_create_meeting,
         p.can_approve_permits,
         p.can_access_tahfidz,
+        p.can_access_tahfidz_monitoring,
         p.can_access_education,
         p.can_manage_news,
         p.can_manage_assignments,
@@ -167,9 +168,10 @@ include '../layouts/header.php';
                             <!-- Category Row -->
                             <tr>
                                 <th colspan="3" class="bg-slate-50 border-b border-slate-200 sticky-col z-20"></th>
-                                <th colspan="4" class="group-header border-l border-slate-200">Akses Utama Portal</th>
+                                <th colspan="5" class="group-header border-l border-slate-200">Akses Utama Portal</th>
                                 <th colspan="2" class="group-header border-l border-slate-200 bg-cyan-50/30 text-cyan-700">Fitur Operasional</th>
                                 <th colspan="2" class="group-header border-l border-slate-200 bg-indigo-50/30 text-indigo-700">Manajemen Konten</th>
+                                <th colspan="1" class="group-header border-l border-slate-200 bg-teal-50/30 text-teal-700">Scope Unit</th>
                             </tr>
                             <tr class="bg-slate-50/80 backdrop-blur-sm text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                                 <th scope="col" class="sticky-col py-3.5 pl-4 pr-3 text-left sm:pl-6 w-12 border-b border-slate-200">No.</th>
@@ -180,6 +182,7 @@ include '../layouts/header.php';
                                 <th scope="col" class="px-3 py-3.5 text-center border-b border-slate-200 border-l border-slate-100 min-w-[100px]">Kepala Bidang</th>
                                 <th scope="col" class="px-3 py-3.5 text-center border-b border-slate-200 min-w-[100px]">Kesantrian</th>
                                 <th scope="col" class="px-3 py-3.5 text-center border-b border-slate-200 min-w-[100px]">Tahfidz</th>
+                                <th scope="col" class="px-3 py-3.5 text-center border-b border-slate-200 min-w-[120px] bg-teal-50/40 text-teal-800">Tahfidz Monitoring (Pimpinan)</th>
                                 <th scope="col" class="px-3 py-3.5 text-center border-b border-slate-200 min-w-[100px]">Pendidikan</th>
                                 
                                 <!-- Operasional -->
@@ -188,7 +191,10 @@ include '../layouts/header.php';
                                 
                                 <!-- Manajemen -->
                                 <th scope="col" class="px-3 py-3.5 text-center border-b border-slate-200 border-l border-slate-100 min-w-[100px]">Berita</th>
-                                <th scope="col" class="px-3 py-3.5 text-center border-b border-slate-200 min-w-[100px] border-none">Penugasan</th>
+                                <th scope="col" class="px-3 py-3.5 text-center border-b border-slate-200 min-w-[100px]">Penugasan</th>
+                                
+                                <!-- Scope Unit -->
+                                <th scope="col" class="px-3 py-3.5 text-center border-b border-slate-200 border-l border-slate-100 min-w-[120px]">Unit Tahfidz</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 bg-white">
@@ -206,14 +212,15 @@ include '../layouts/header.php';
                                         <!-- Column Toggles (Compact) -->
                                         <?php 
                                             $perms = [
-                                                ['type' => 'can_access_kabid',      'color' => 'orange', 'val' => $pos['can_access_kabid'] ?? 0],
-                                                ['type' => 'can_access_kesantrian', 'color' => 'pink',   'val' => $pos['can_access_kesantrian'] ?? 0],
-                                                ['type' => 'can_access_tahfidz',    'color' => 'blue',   'val' => $pos['can_access_tahfidz'] ?? 0],
-                                                ['type' => 'can_access_education',  'color' => 'violet', 'val' => $pos['can_access_education'] ?? 0],
-                                                ['type' => 'can_create_meeting',   'color' => 'cyan',   'val' => $pos['can_create_meeting'] ?? 0],
-                                                ['type' => 'can_approve_permits',   'color' => 'emerald','val' => $pos['can_approve_permits'] ?? 0],
-                                                ['type' => 'can_manage_news',       'color' => 'rose',   'val' => $pos['can_manage_news'] ?? 0],
-                                                ['type' => 'can_manage_assignments','color' => 'indigo', 'val' => $pos['can_manage_assignments'] ?? 0]
+                                                ['type' => 'can_access_kabid',              'color' => 'orange', 'val' => $pos['can_access_kabid'] ?? 0],
+                                                ['type' => 'can_access_kesantrian',         'color' => 'pink',   'val' => $pos['can_access_kesantrian'] ?? 0],
+                                                ['type' => 'can_access_tahfidz',            'color' => 'blue',   'val' => $pos['can_access_tahfidz'] ?? 0],
+                                                ['type' => 'can_access_tahfidz_monitoring', 'color' => 'teal',   'val' => $pos['can_access_tahfidz_monitoring'] ?? 0],
+                                                ['type' => 'can_access_education',          'color' => 'violet', 'val' => $pos['can_access_education'] ?? 0],
+                                                ['type' => 'can_create_meeting',           'color' => 'cyan',   'val' => $pos['can_create_meeting'] ?? 0],
+                                                ['type' => 'can_approve_permits',           'color' => 'emerald','val' => $pos['can_approve_permits'] ?? 0],
+                                                ['type' => 'can_manage_news',               'color' => 'rose',   'val' => $pos['can_manage_news'] ?? 0],
+                                                ['type' => 'can_manage_assignments',        'color' => 'indigo', 'val' => $pos['can_manage_assignments'] ?? 0]
                                             ];
                                             
                                             foreach($perms as $p):
@@ -229,6 +236,14 @@ include '../layouts/header.php';
                                             </div>
                                         </td>
                                         <?php endforeach; ?>
+
+                                        <!-- Unit Tahfidz Button -->
+                                        <td class="whitespace-nowrap px-3 py-4 text-center border-l border-slate-100">
+                                            <button type="button" onclick="openTahfidzUnitsModal('position', <?php echo $pos['id']; ?>, '<?php echo htmlspecialchars($pos['name'], ENT_QUOTES); ?>')" class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold bg-teal-50 text-teal-700 hover:bg-teal-100 border border-teal-200 rounded-lg transition-colors shadow-sm">
+                                                <i class="fa-solid fa-layer-group text-teal-600"></i>
+                                                Unit Tahfidz
+                                            </button>
+                                        </td>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
@@ -437,6 +452,110 @@ function showNotification(type, message) {
         setTimeout(() => notif.remove(), 300);
     }, 3000);
 }
+
+// --- Tahfidz Units Scope Modal Logic ---
+const TAHFIDZ_UNITS_LIST = ['SDIT', 'MTS', 'MA', 'MAHAD ALY', 'TKIT', 'PLAY GROUP', 'TPA', 'IDAD LUGOH'];
+let currentTahfidzTarget = { type: '', id: 0, name: '' };
+
+function openTahfidzUnitsModal(type, id, name) {
+    currentTahfidzTarget = { type, id, name };
+    document.getElementById('tahfidzModalTargetName').innerText = (type === 'position' ? 'Jabatan: ' : 'Karyawan: ') + name;
+    
+    const container = document.getElementById('tahfidzUnitsContainer');
+    container.innerHTML = '<div class="col-span-2 text-center text-xs text-slate-400 py-4"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Memuat data unit...</div>';
+    document.getElementById('tahfidzUnitsModal').classList.remove('hidden');
+
+    fetch(`../../logic/permissions/save_tahfidz_units?type=${type}&id=${id}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                const activeUnits = data.units || [];
+                renderTahfidzUnitsCheckboxes(activeUnits);
+            } else {
+                showNotification('error', data.message || 'Gagal memuat data unit');
+                renderTahfidzUnitsCheckboxes([]);
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            renderTahfidzUnitsCheckboxes([]);
+        });
+}
+
+function renderTahfidzUnitsCheckboxes(activeUnits) {
+    const container = document.getElementById('tahfidzUnitsContainer');
+    let html = '';
+    TAHFIDZ_UNITS_LIST.forEach(unit => {
+        const isChecked = activeUnits.includes(unit);
+        html += `
+            <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition-colors text-xs font-medium text-slate-700">
+                <input type="checkbox" value="${unit}" class="tahfidz-unit-cb rounded text-teal-600 focus:ring-teal-500 w-4 h-4" ${isChecked ? 'checked' : ''}>
+                <span>${unit}</span>
+            </label>
+        `;
+    });
+    container.innerHTML = html;
+}
+
+function closeTahfidzUnitsModal() {
+    document.getElementById('tahfidzUnitsModal').classList.add('hidden');
+}
+
+function saveTahfidzUnits(isRevert = false) {
+    const checked = [];
+    if (!isRevert) {
+        document.querySelectorAll('.tahfidz-unit-cb:checked').forEach(cb => checked.push(cb.value));
+    }
+
+    fetch('../../logic/permissions/save_tahfidz_units', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            type: currentTahfidzTarget.type,
+            id: currentTahfidzTarget.id,
+            units: checked,
+            revert: isRevert
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('success', data.message);
+            closeTahfidzUnitsModal();
+        } else {
+            showNotification('error', data.message || 'Gagal menyimpan unit');
+        }
+    })
+    .catch(err => {
+        showNotification('error', 'Error: ' + err.message);
+    });
+}
 </script>
+
+<!-- Tahfidz Units Modal -->
+<div id="tahfidzUnitsModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 transform transition-all">
+        <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+            <div>
+                <h3 class="text-base font-bold text-slate-800">Akses Unit Monitoring Tahfidz</h3>
+                <p id="tahfidzModalTargetName" class="text-xs text-slate-500 mt-0.5"></p>
+            </div>
+            <button onclick="closeTahfidzUnitsModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+        </div>
+        <div class="py-4 space-y-3">
+            <p class="text-xs text-slate-500 font-medium">Pilih unit mana saja yang dapat dilihat pada Dashboard Monitoring Tahfidz (jika tidak ada yang dicentang, akan menampilkan semua unit sesuai level jabatan):</p>
+            <div class="grid grid-cols-2 gap-2" id="tahfidzUnitsContainer">
+                <!-- Checkboxes -->
+            </div>
+        </div>
+        <div class="flex items-center justify-between pt-4 border-t border-slate-100">
+            <button type="button" onclick="saveTahfidzUnits(true)" class="text-xs text-red-600 hover:text-red-700 font-semibold">Reset ke Default</button>
+            <div class="flex gap-2">
+                <button type="button" onclick="closeTahfidzUnitsModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Batal</button>
+                <button type="button" onclick="saveTahfidzUnits(false)" class="px-4 py-2 text-xs font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-lg shadow-sm">Simpan</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <?php include '../layouts/footer.php'; ?>

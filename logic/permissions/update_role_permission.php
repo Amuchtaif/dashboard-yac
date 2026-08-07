@@ -48,6 +48,7 @@ $allowed_columns = [
     'can_create_meeting', 
     'can_approve_permits', 
     'can_access_tahfidz', 
+    'can_access_tahfidz_monitoring',
     'can_access_education',
     'can_manage_employees',
     'can_manage_academic',

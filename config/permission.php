@@ -73,6 +73,22 @@ if (!function_exists('hasPermission')) {
             }
 
             // 1.1 Alias Check for user_permissions (to match web admin naming)
+            if ($permission_name === 'can_access_tahfidz_monitoring' || $permission_name === 'access_tahfidz_monitoring') {
+                $stmtAlias = $conn->prepare("SELECT is_allowed FROM user_permissions WHERE employee_id = ? AND permission_name IN ('can_access_tahfidz_monitoring', 'access_tahfidz_monitoring') LIMIT 1");
+                $stmtAlias->execute([$employee_id]);
+                $alias_perm = $stmtAlias->fetch(PDO::FETCH_ASSOC);
+                if ($alias_perm) {
+                    return (bool) $alias_perm['is_allowed'];
+                }
+            }
+            if ($permission_name === 'can_access_tahfidz' || $permission_name === 'access_tahfidz') {
+                $stmtAlias = $conn->prepare("SELECT is_allowed FROM user_permissions WHERE employee_id = ? AND permission_name IN ('can_access_tahfidz', 'access_tahfidz', 'manage_tahfidz') LIMIT 1");
+                $stmtAlias->execute([$employee_id]);
+                $alias_perm = $stmtAlias->fetch(PDO::FETCH_ASSOC);
+                if ($alias_perm) {
+                    return (bool) $alias_perm['is_allowed'];
+                }
+            }
             if ($permission_name === 'create_meeting') {
                 $stmtAlias = $conn->prepare("SELECT is_allowed FROM user_permissions WHERE employee_id = ? AND permission_name = 'access_meeting' LIMIT 1");
                 $stmtAlias->execute([$employee_id]);
@@ -101,6 +117,8 @@ if (!function_exists('hasPermission')) {
             // 2. SECOND PRIORITY: Role-based Permissions (Database 'positions')
             $permission_map = [
                 'access_tahfidz' => 'can_access_tahfidz',
+                'access_tahfidz_monitoring' => 'can_access_tahfidz_monitoring',
+                'can_access_tahfidz_monitoring' => 'can_access_tahfidz_monitoring',
                 'create_meeting' => 'can_create_meeting',
                 'approve_permits' => 'can_approve_permits',
                 'access_education' => 'can_access_education',

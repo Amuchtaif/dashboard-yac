@@ -18,14 +18,90 @@ class MemorizationService {
 
     private function loadQuranData() {
         $json_path = __DIR__ . '/../../../api/quran/surat.json';
+        if (!file_exists($json_path)) {
+            $json_path = __DIR__ . '/../../api/quran/surat.json';
+        }
         if (file_exists($json_path)) {
             $data = json_decode(file_get_contents($json_path), true);
             if (isset($data['data'])) {
                 $this->quran_data = [];
                 foreach ($data['data'] as $s) {
-                    $this->quran_data[$s['nomor']] = $s;
+                    $this->quran_data[(int)$s['nomor']] = $s;
+                    $this->quran_data[strtolower(trim($s['namaLatin']))] = $s;
+                    $cleanName = strtolower(preg_replace('/[^a-z0-9]/i', '', $s['namaLatin']));
+                    if (!empty($cleanName)) {
+                        $this->quran_data[$cleanName] = $s;
+                    }
                 }
             }
+        }
+    }
+
+    public function resolveSurahInfo($val) {
+        if ($val === null || $val === '') return null;
+        if (is_numeric($val) && isset($this->quran_data[(int)$val])) {
+            return $this->quran_data[(int)$val];
+        }
+        $str = strtolower(trim((string)$val));
+        if (isset($this->quran_data[$str])) {
+            return $this->quran_data[$str];
+        }
+        $cleanStr = preg_replace('/[^a-z0-9]/i', '', $str);
+        if (!empty($cleanStr) && isset($this->quran_data[$cleanStr])) {
+            return $this->quran_data[$cleanStr];
+        }
+        return null;
+    }
+
+    public function normalizeData(&$data) {
+        // Normalize entry_type
+        if (isset($data['entry_type']) && !empty($data['entry_type'])) {
+            $data['entry_type'] = strtoupper($data['entry_type']);
+        } elseif (isset($data['jenis_setoran']) && !empty($data['jenis_setoran'])) {
+            $data['entry_type'] = strtoupper($data['jenis_setoran']);
+        } else {
+            $data['entry_type'] = 'HAFALAN_BARU';
+        }
+
+        // Normalize start surah
+        $start_val = !empty($data['start_surah_id']) ? $data['start_surah_id'] : (!empty($data['surah_start']) ? $data['surah_start'] : (!empty($data['surah_id']) ? $data['surah_id'] : null));
+        $start_info = $this->resolveSurahInfo($start_val);
+        if ($start_info) {
+            $data['start_surah_id'] = (int)$start_info['nomor'];
+            $data['surah_id'] = (int)$start_info['nomor'];
+            $data['surah_start'] = $start_info['namaLatin'];
+        } else if (is_numeric($start_val) && (int)$start_val > 0) {
+            $data['start_surah_id'] = (int)$start_val;
+            $data['surah_id'] = (int)$start_val;
+            $data['surah_start'] = "Surah " . (int)$start_val;
+        } else if (!empty($start_val)) {
+            $data['surah_start'] = (string)$start_val;
+        }
+
+        // Normalize end surah
+        $end_val = !empty($data['end_surah_id']) ? $data['end_surah_id'] : (!empty($data['surah_end']) ? $data['surah_end'] : $start_val);
+        $end_info = $this->resolveSurahInfo($end_val);
+        if ($end_info) {
+            $data['end_surah_id'] = (int)$end_info['nomor'];
+            $data['surah_end'] = $end_info['namaLatin'];
+        } else if (is_numeric($end_val) && (int)$end_val > 0) {
+            $data['end_surah_id'] = (int)$end_val;
+            $data['surah_end'] = "Surah " . (int)$end_val;
+        } else if (!empty($end_val)) {
+            $data['surah_end'] = (string)$end_val;
+        }
+
+        // Normalize ayahs
+        if (!isset($data['start_ayah']) && isset($data['ayat_start'])) {
+            $data['start_ayah'] = (int)$data['ayat_start'];
+        }
+        if (!isset($data['end_ayah']) && isset($data['ayat_end'])) {
+            $data['end_ayah'] = (int)$data['ayat_end'];
+        }
+
+        // Normalize lines
+        if (!isset($data['line_count']) && isset($data['total_baris'])) {
+            $data['line_count'] = (int)$data['total_baris'];
         }
     }
 
@@ -82,6 +158,7 @@ class MemorizationService {
     }
 
     public function createEntry($data) {
+        $this->normalizeData($data);
         $this->validateEntry($data);
 
         $student_id = (int)$data['student_id'];
@@ -103,8 +180,8 @@ class MemorizationService {
         $teacher_id = isset($data['teacher_id']) ? (int)$data['teacher_id'] : null;
 
         // Fetch Surah Names for backward compatibility columns
-        $surah_start_name = isset($this->quran_data[$start_surah_id]) ? $this->quran_data[$start_surah_id]['namaLatin'] : "";
-        $surah_end_name = isset($this->quran_data[$end_surah_id]) ? $this->quran_data[$end_surah_id]['namaLatin'] : "";
+        $surah_start_name = isset($data['surah_start']) ? $data['surah_start'] : (isset($this->quran_data[$start_surah_id]) ? $this->quran_data[$start_surah_id]['namaLatin'] : "");
+        $surah_end_name = isset($data['surah_end']) ? $data['surah_end'] : (isset($this->quran_data[$end_surah_id]) ? $this->quran_data[$end_surah_id]['namaLatin'] : "");
 
         // Use provided status or fallback to category-based status
         $status = 'Lancar';
@@ -169,6 +246,7 @@ class MemorizationService {
 
         // Merge with existing data for validation
         $merged = array_merge($existing, $data);
+        $this->normalizeData($merged);
         $this->validateEntry($merged);
 
         $date = $merged['date'];
@@ -189,8 +267,8 @@ class MemorizationService {
         $teacher_id = isset($merged['teacher_id']) ? (int)$merged['teacher_id'] : null;
 
         // Fetch Surah Names for backward compatibility columns
-        $surah_start_name = isset($this->quran_data[$start_surah_id]) ? $this->quran_data[$start_surah_id]['namaLatin'] : "";
-        $surah_end_name = isset($this->quran_data[$end_surah_id]) ? $this->quran_data[$end_surah_id]['namaLatin'] : "";
+        $surah_start_name = isset($merged['surah_start']) ? $merged['surah_start'] : (isset($this->quran_data[$start_surah_id]) ? $this->quran_data[$start_surah_id]['namaLatin'] : "");
+        $surah_end_name = isset($merged['surah_end']) ? $merged['surah_end'] : (isset($this->quran_data[$end_surah_id]) ? $this->quran_data[$end_surah_id]['namaLatin'] : "");
 
         // Use provided status or fallback to category-based status
         $status = 'Lancar';

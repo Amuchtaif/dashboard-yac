@@ -46,10 +46,56 @@ class DashboardTahfidzService {
             ];
         }
         
+        $position_id = isset($user_info['position_id']) ? (int)$user_info['position_id'] : 0;
         $role_name = strtolower($user_info['position_name'] ?? '');
         $level = isset($user_info['level']) ? (int)$user_info['level'] : 99;
         $unit_id = isset($user_info['unit_id']) ? (int)$user_info['unit_id'] : 0;
 
+        // Priority 1: Employee-specific override (user_tahfidz_units)
+        $user_units = [];
+        $u_stmt = $this->mysqli->prepare("SELECT unit_name FROM user_tahfidz_units WHERE employee_id = ?");
+        if ($u_stmt) {
+            $u_stmt->bind_param("i", $user_id);
+            $u_stmt->execute();
+            $res = $u_stmt->get_result();
+            while ($r = $res->fetch_assoc()) {
+                $user_units[] = strtoupper(trim($r['unit_name']));
+            }
+            $u_stmt->close();
+        }
+
+        if (!empty($user_units)) {
+            return [
+                'role' => 'custom',
+                'units' => array_values(array_unique($user_units)),
+                'halaqahs' => []
+            ];
+        }
+
+        // Priority 2: Position-specific custom configuration (position_tahfidz_units)
+        $pos_units = [];
+        if ($position_id > 0) {
+            $p_stmt = $this->mysqli->prepare("SELECT unit_name FROM position_tahfidz_units WHERE position_id = ?");
+            if ($p_stmt) {
+                $p_stmt->bind_param("i", $position_id);
+                $p_stmt->execute();
+                $res = $p_stmt->get_result();
+                while ($r = $res->fetch_assoc()) {
+                    $pos_units[] = strtoupper(trim($r['unit_name']));
+                }
+                $p_stmt->close();
+            }
+        }
+
+        if (!empty($pos_units)) {
+            return [
+                'role' => 'custom',
+                'units' => array_values(array_unique($pos_units)),
+                'halaqahs' => []
+            ];
+        }
+
+        // Fallback to role level defaults
         $unit_name = '';
         if ($unit_id > 0) {
             $stmt = $this->mysqli->prepare("SELECT name FROM units WHERE id = ?");
@@ -444,7 +490,7 @@ class DashboardTahfidzService {
     }
 
     // API 3: Live Activity
-    public function getLiveActivity($user_id, $filters = [], $limit = 10, $page = 1) {
+    public function getLiveActivity($user_id, $filters = [], $limit = 15, $page = 1) {
         $scope = $this->resolveScope($user_id);
         $sf = $this->buildScopeAndFilters($scope, $filters);
         
@@ -461,14 +507,27 @@ class DashboardTahfidzService {
                     COALESCE(gl.name, s.kelas) as student_class,
                     me.date,
                     me.entry_type,
+                    me.start_surah_id,
+                    me.start_ayah,
+                    me.end_surah_id,
+                    me.end_ayah,
+                    me.line_count,
+                    me.juz,
+                    me.surah_id,
+                    me.notes,
                     me.created_at,
                     e.full_name as teacher_name,
-                    me.notes
+                    sur.name_latin as surah_name,
+                    sur_start.name_latin as start_surah_name,
+                    sur_end.name_latin as end_surah_name
                 FROM memorization_entries me
                 JOIN students s ON me.student_id = s.id
                 LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = ? AND sch.status = 'ACTIVE'
                 LEFT JOIN grade_levels gl ON sch.class_id = gl.id
                 LEFT JOIN employees e ON me.teacher_id = e.id
+                LEFT JOIN surahs sur ON me.surah_id = sur.id
+                LEFT JOIN surahs sur_start ON me.start_surah_id = sur_start.id
+                LEFT JOIN surahs sur_end ON me.end_surah_id = sur_end.id
                 WHERE s.status = 'Aktif'" . $where_clause . " 
                 ORDER BY me.created_at DESC, me.id DESC 
                 LIMIT ? OFFSET ?";
@@ -480,8 +539,7 @@ class DashboardTahfidzService {
         $activities = [];
         if ($res) {
             while ($row = $res->fetch_assoc()) {
-                // Map activity type into Indonesian readable format
-                $act_type = 'Aktivitas';
+                $act_type = 'Setoran';
                 switch ($row['entry_type']) {
                     case 'HAFALAN_BARU':
                         $act_type = 'Setoran Hafalan Baru';
@@ -496,6 +554,35 @@ class DashboardTahfidzService {
                         $act_type = 'Ujian Hafalan';
                         break;
                 }
+
+                // Format detail surah & ayat
+                $surah_display = $row['surah_name'] ?? $row['start_surah_name'] ?? $row['end_surah_name'] ?? '';
+                $detail_text = "";
+                if (!empty($surah_display)) {
+                    $detail_text = "Surah " . $surah_display;
+                    if (!empty($row['start_ayah'])) {
+                        $detail_text .= ": " . $row['start_ayah'];
+                        if (!empty($row['end_ayah']) && $row['end_ayah'] != $row['start_ayah']) {
+                            $detail_text .= "-" . $row['end_ayah'];
+                        }
+                    }
+                }
+                
+                // Format meta (baris & juz)
+                $meta_items = [];
+                if (!empty($row['line_count']) && (int)$row['line_count'] > 0) {
+                    $meta_items[] = (int)$row['line_count'] . " Baris";
+                }
+                if (!empty($row['juz']) && (int)$row['juz'] > 0) {
+                    $meta_items[] = "Juz " . (int)$row['juz'];
+                }
+                $hafalan_meta = implode(" • ", $meta_items);
+
+                $start_s_name = $row['start_surah_name'] ?? $row['surah_name'] ?? '';
+                $end_s_name = $row['end_surah_name'] ?? $row['surah_name'] ?? '';
+                $start_a = $row['start_ayah'] ?? null;
+                $end_a = $row['end_ayah'] ?? null;
+
                 $activities[] = [
                     'id' => $row['id'],
                     'student_id' => $row['student_id'],
@@ -504,7 +591,13 @@ class DashboardTahfidzService {
                     'date' => $row['date'],
                     'activity_name' => $act_type,
                     'teacher_name' => $row['teacher_name'] ?? 'Sistem',
-                    'notes' => $row['notes'],
+                    'start_surah' => $start_s_name,
+                    'start_ayah' => $start_a,
+                    'end_surah' => $end_s_name,
+                    'end_ayah' => $end_a,
+                    'hafalan_detail' => $detail_text,
+                    'hafalan_meta' => $hafalan_meta,
+                    'notes' => (!empty($notes_clean) && $notes_clean !== '-') ? $notes_clean : null,
                     'timestamp' => $row['created_at']
                 ];
             }
@@ -522,7 +615,10 @@ class DashboardTahfidzService {
         $ay = $this->getActiveAcademicYear();
         $ay_id = $ay ? (int)$ay['id'] : 0;
         
-        // Cumulative memorization lines to Juz conversion for active year
+        $start_date = $ay ? $ay['start_date'] : date('Y-01-01');
+        $end_date = $ay ? $ay['end_date'] : date('Y-12-31');
+
+        // Total memorization lines to Juz conversion for active year in selected scope
         $sql = "SELECT 
                     SUM(CASE WHEN me.entry_type = 'HAFALAN_BARU' THEN me.line_count ELSE 0 END) as total_new_lines,
                     COUNT(DISTINCT s.id) as active_count
@@ -530,9 +626,6 @@ class DashboardTahfidzService {
                 LEFT JOIN memorization_entries me ON me.student_id = s.id AND me.date BETWEEN ? AND ?
                 WHERE s.status = 'Aktif'" . $where_clause;
                 
-        $start_date = $ay ? $ay['start_date'] : date('Y-01-01');
-        $end_date = $ay ? $ay['end_date'] : date('Y-12-31');
-        
         $params = array_merge([$start_date, $end_date], $sf['params']);
         $types = "ss" . $sf['types'];
         
@@ -540,30 +633,69 @@ class DashboardTahfidzService {
         $row = $res ? $res->fetch_assoc() : null;
         
         $new_lines = $row ? (int)$row['total_new_lines'] : 0;
+        $active_count = $row ? (int)$row['active_count'] : 0;
         $total_hafalan_semester = round($new_lines / 300.0, 2);
         
-        // Sum targets
-        $sql = "SELECT SUM(t.target_juz) as sum_target
-                FROM target_hafalan t
-                JOIN student_class_history sch ON t.kelas_id = sch.class_id AND sch.academic_year_id = ? AND sch.status = 'ACTIVE'
-                JOIN students s ON sch.student_id = s.id
-                WHERE t.tahun_ajaran_id = ? AND s.status = 'Aktif'" . $where_clause;
-                
+        // Query target_hafalan specific to the selected unit/kelas filter & scope
+        $sql_target = "SELECT AVG(t.target_juz) as avg_target
+                        FROM students s
+                        JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = ? AND sch.status = 'ACTIVE'
+                        JOIN grade_levels gl ON sch.class_id = gl.id
+                        LEFT JOIN education_units eu ON gl.education_unit_id = eu.id
+                        JOIN target_hafalan t ON (
+                            t.kelas_id = gl.id 
+                            OR t.unit_id = gl.education_unit_id
+                            OR t.kelas_id = (SELECT id FROM grade_levels WHERE name = s.kelas LIMIT 1)
+                        ) AND (t.tahun_ajaran_id = ? OR t.tahun_ajaran_id IS NULL OR t.tahun_ajaran_id = 0) AND t.status_aktif = 'Aktif'
+                        WHERE s.status = 'Aktif'" . $where_clause;
+                        
         $params_target = array_merge([$ay_id, $ay_id], $sf['params']);
         $types_target = "ii" . $sf['types'];
-        $res_target = $this->queryWithParams($sql, $params_target, $types_target);
-        $target_row = $res_target ? $res_target->fetch_assoc() : null;
-        $target_juz = $target_row ? (float)$target_row['sum_target'] : 0.0;
         
+        $res_target = $this->queryWithParams($sql_target, $params_target, $types_target);
+        $target_row = $res_target ? $res_target->fetch_assoc() : null;
+        
+        $target_juz = 0.0;
+        if ($target_row && !empty($target_row['avg_target']) && (float)$target_row['avg_target'] > 0) {
+            $target_juz = round((float)$target_row['avg_target'], 2);
+        } else {
+            // Fallback query matching target_hafalan by unit_id / unit name if filter has unit
+            $unit_filter_where = "";
+            $unit_filter_params = [];
+            $unit_filter_types = "";
+            if (!empty($filters['unit'])) {
+                $unit_name = strtoupper(trim($filters['unit']));
+                $unit_filter_where = " AND (UPPER(TRIM(eu.name)) = ? OR UPPER(TRIM(eu.code)) = ?)";
+                $unit_filter_params = [$unit_name, $unit_name];
+                $unit_filter_types = "ss";
+            }
+            $sql_fallback = "SELECT AVG(t.target_juz) as avg_target 
+                             FROM target_hafalan t 
+                             LEFT JOIN education_units eu ON t.unit_id = eu.id
+                             WHERE t.status_aktif = 'Aktif'" . $unit_filter_where;
+            $res_fb = $this->queryWithParams($sql_fallback, $unit_filter_params, $unit_filter_types);
+            $fb_row = $res_fb ? $res_fb->fetch_assoc() : null;
+            
+            if ($fb_row && !empty($fb_row['avg_target']) && (float)$fb_row['avg_target'] > 0) {
+                $target_juz = round((float)$fb_row['avg_target'], 2);
+            } else {
+                $target_juz = 2.0; // Default fallback target per student (2 Juz)
+            }
+        }
+        
+        // Progress percentage calculation
         $progress_percentage = 0.00;
-        if ($target_juz > 0) {
+        if ($target_juz > 0 && $active_count > 0) {
+            $total_target_group = $target_juz * $active_count;
+            $progress_percentage = round(($total_hafalan_semester / $total_target_group) * 100.0, 2);
+        } else if ($target_juz > 0) {
             $progress_percentage = round(($total_hafalan_semester / $target_juz) * 100.0, 2);
         }
 
         return [
             'total_hafalan_baru_juz' => $total_hafalan_semester,
             'target_semester_juz' => $target_juz,
-            'target_tahunan_juz' => $target_juz * 2.0, // Yearly is double semester target
+            'target_tahunan_juz' => round($target_juz * 2.0, 2),
             'progress_percentage' => $progress_percentage
         ];
     }
@@ -1091,8 +1223,8 @@ class DashboardTahfidzService {
                 FROM students s
                 LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = ? AND sch.status = 'ACTIVE'
                 LEFT JOIN grade_levels gl ON sch.class_id = gl.id
-                LEFT JOIN halaqah_members hm ON hm.student_id = s.id
-                LEFT JOIN halaqah_groups hg ON hm.group_id = hg.id
+                JOIN halaqah_members hm ON hm.student_id = s.id
+                JOIN halaqah_groups hg ON hm.group_id = hg.id
                 LEFT JOIN employees e ON hg.teacher_id = e.id
                 " . $where_clause . "
                 ORDER BY s.nama_siswa ASC
@@ -1273,8 +1405,8 @@ class DashboardTahfidzService {
                 FROM students s
                 LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = ? AND sch.status = 'ACTIVE'
                 LEFT JOIN grade_levels gl ON sch.class_id = gl.id
-                LEFT JOIN halaqah_members hm ON hm.student_id = s.id
-                LEFT JOIN halaqah_groups hg ON hm.group_id = hg.id
+                JOIN halaqah_members hm ON hm.student_id = s.id
+                JOIN halaqah_groups hg ON hm.group_id = hg.id
                 LEFT JOIN employees e ON hg.teacher_id = e.id
                 WHERE s.status = 'Aktif'" . $where_clause;
                 
@@ -1623,13 +1755,25 @@ class DashboardTahfidzService {
                 $available_units = array_intersect($available_units, array_map('strtoupper', $scope['units']));
             }
             foreach ($available_units as $unit) {
+                $unit_cond = "1=1";
+                if ($unit === 'MTS') {
+                    $unit_cond = "(UPPER(TRIM(eu.name)) = 'MTS' OR gl.name LIKE '7%' OR gl.name LIKE '8%' OR gl.name LIKE '9%' OR gl.name LIKE 'VII%' OR gl.name LIKE 'VIII%' OR gl.name LIKE 'IX%') AND gl.name NOT LIKE '10%' AND gl.name NOT LIKE '11%' AND gl.name NOT LIKE '12%' AND gl.name NOT LIKE 'X%' AND gl.name NOT LIKE 'XI%' AND gl.name NOT LIKE 'XII%'";
+                } else if ($unit === 'MA') {
+                    $unit_cond = "(UPPER(TRIM(eu.name)) = 'MA' OR gl.name LIKE '10%' OR gl.name LIKE '11%' OR gl.name LIKE '12%' OR gl.name LIKE 'X%' OR gl.name LIKE 'XI%' OR gl.name LIKE 'XII%') AND gl.name NOT LIKE '7%' AND gl.name NOT LIKE '8%' AND gl.name NOT LIKE '9%' AND gl.name NOT LIKE 'VII%' AND gl.name NOT LIKE 'VIII%' AND gl.name NOT LIKE 'IX%'";
+                } else {
+                    $escaped_unit = $this->mysqli->real_escape_string($unit);
+                    $unit_cond = "UPPER(TRIM(eu.name)) = '$escaped_unit'";
+                }
+
                 $stmt = $this->mysqli->prepare("
-                    SELECT COUNT(*) 
+                    SELECT COUNT(DISTINCT s.id) 
                     FROM students s
                     JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = ? AND sch.status = 'ACTIVE'
-                    WHERE s.status = 'Aktif' AND s.tingkat = ?
+                    JOIN grade_levels gl ON sch.class_id = gl.id
+                    LEFT JOIN education_units eu ON gl.education_unit_id = eu.id
+                    WHERE s.status = 'Aktif' AND $unit_cond
                 ");
-                $stmt->bind_param("is", $ay_id, $unit);
+                $stmt->bind_param("i", $ay_id);
                 $stmt->execute();
                 $count = $stmt->get_result()->fetch_row()[0];
                 $stmt->close();
@@ -1641,18 +1785,31 @@ class DashboardTahfidzService {
                 ];
             }
         } else if ($level === 'class' && $parent_id) {
-            // Drill down to Classes of selected Unit (tingkat)
-            $unit = strtoupper($parent_id);
+            // Drill down to Classes of selected Unit
+            $unit = strtoupper(trim($parent_id));
+            $unit_cond = "1=1";
+            if ($unit === 'MTS') {
+                $unit_cond = "(UPPER(TRIM(eu.name)) = 'MTS' OR gl.name LIKE '7%' OR gl.name LIKE '8%' OR gl.name LIKE '9%' OR gl.name LIKE 'VII%' OR gl.name LIKE 'VIII%' OR gl.name LIKE 'IX%') AND gl.name NOT LIKE '10%' AND gl.name NOT LIKE '11%' AND gl.name NOT LIKE '12%' AND gl.name NOT LIKE 'X%' AND gl.name NOT LIKE 'XI%' AND gl.name NOT LIKE 'XII%'";
+            } else if ($unit === 'MA') {
+                $unit_cond = "(UPPER(TRIM(eu.name)) = 'MA' OR gl.name LIKE '10%' OR gl.name LIKE '11%' OR gl.name LIKE '12%' OR gl.name LIKE 'X%' OR gl.name LIKE 'XI%' OR gl.name LIKE 'XII%') AND gl.name NOT LIKE '7%' AND gl.name NOT LIKE '8%' AND gl.name NOT LIKE '9%' AND gl.name NOT LIKE 'VII%' AND gl.name NOT LIKE 'VIII%' AND gl.name NOT LIKE 'IX%'";
+            } else if ($unit === 'SDIT') {
+                $unit_cond = "(UPPER(TRIM(eu.name)) = 'SDIT' OR gl.name LIKE '1%' OR gl.name LIKE '2%' OR gl.name LIKE '3%' OR gl.name LIKE '4%' OR gl.name LIKE '5%' OR gl.name LIKE '6%') AND gl.name NOT LIKE '7%' AND gl.name NOT LIKE '8%' AND gl.name NOT LIKE '9%' AND gl.name NOT LIKE '10%' AND gl.name NOT LIKE '11%' AND gl.name NOT LIKE '12%'";
+            } else {
+                $escaped_unit = $this->mysqli->real_escape_string($unit);
+                $unit_cond = "UPPER(TRIM(eu.name)) = '$escaped_unit'";
+            }
+
             $stmt = $this->mysqli->prepare("
-                SELECT gl.name as kelas, COUNT(*) as count 
-                FROM students s
-                JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = ? AND sch.status = 'ACTIVE'
-                JOIN grade_levels gl ON sch.class_id = gl.id
-                WHERE s.status = 'Aktif' AND s.tingkat = ? 
-                GROUP BY gl.name 
+                SELECT gl.name as kelas, COUNT(DISTINCT s.id) as count 
+                FROM grade_levels gl
+                LEFT JOIN education_units eu ON gl.education_unit_id = eu.id
+                LEFT JOIN student_class_history sch ON sch.class_id = gl.id AND sch.academic_year_id = ? AND sch.status = 'ACTIVE'
+                LEFT JOIN students s ON s.id = sch.student_id AND s.status = 'Aktif'
+                WHERE $unit_cond
+                GROUP BY gl.id, gl.name 
                 ORDER BY gl.name ASC
             ");
-            $stmt->bind_param("is", $ay_id, $unit);
+            $stmt->bind_param("i", $ay_id);
             $stmt->execute();
             $res = $stmt->get_result();
             while ($row = $res->fetch_assoc()) {
@@ -1666,7 +1823,12 @@ class DashboardTahfidzService {
             $stmt->close();
         } else if ($level === 'halaqah' && $parent_id) {
             // Drill down to Halaqahs inside selected class/unit
-            $class_name = $parent_id;
+            $class_name = trim($parent_id);
+            $clean_class_name = $class_name;
+            if (strpos(strtolower($clean_class_name), 'kelas ') === 0) {
+                $clean_class_name = trim(substr($clean_class_name, 6));
+            }
+            
             $sql = "SELECT DISTINCT hg.id, hg.group_name, e.full_name as teacher_name
                     FROM halaqah_groups hg
                     JOIN halaqah_members hm ON hm.group_id = hg.id
@@ -1674,10 +1836,12 @@ class DashboardTahfidzService {
                     JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = ? AND sch.status = 'ACTIVE'
                     JOIN grade_levels gl ON sch.class_id = gl.id
                     LEFT JOIN employees e ON hg.teacher_id = e.id
-                    WHERE s.status = 'Aktif' AND gl.name = ? " . $where_clause;
+                    WHERE s.status = 'Aktif' 
+                      AND (gl.name = ? OR gl.name = ? OR gl.name = ?) " . $where_clause;
                     
-            $params = array_merge([$ay_id, $class_name], $sf['params']);
-            $types = "is" . $sf['types'];
+            $full_class_name = "Kelas " . $clean_class_name;
+            $params = array_merge([$ay_id, $class_name, $clean_class_name, $full_class_name], $sf['params']);
+            $types = "isss" . $sf['types'];
             
             $res = $this->queryWithParams($sql, $params, $types);
             if ($res) {

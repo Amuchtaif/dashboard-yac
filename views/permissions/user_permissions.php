@@ -66,6 +66,7 @@ $query = "
         COALESCE(p.can_create_meeting, 0) as role_meeting,
         COALESCE(p.can_approve_permits, 0) as role_permits,
         COALESCE(p.can_access_tahfidz, 0) as role_tahfidz,
+        COALESCE(p.can_access_tahfidz_monitoring, 0) as role_tahfidz_monitoring,
         COALESCE(p.can_access_education, 0) as role_education,
         COALESCE(p.can_manage_news, 0) as role_news,
         COALESCE(p.can_manage_assignments, 0) as role_assignments,
@@ -75,6 +76,7 @@ $query = "
         up_meet.is_allowed as override_meeting,
         up_permits.is_allowed as override_permits,
         up_tahfidz.is_allowed as override_tahfidz,
+        up_tahfidz_mon.is_allowed as override_tahfidz_monitoring,
         up_attend.is_allowed as override_attendance,
         up_edu.is_allowed as override_education,
         up_news.is_allowed as override_news,
@@ -89,6 +91,8 @@ $query = "
         ON e.id = up_permits.employee_id AND up_permits.permission_name = 'approve_permits'
     LEFT JOIN user_permissions up_tahfidz 
         ON e.id = up_tahfidz.employee_id AND up_tahfidz.permission_name = 'access_tahfidz'
+    LEFT JOIN user_permissions up_tahfidz_mon 
+        ON e.id = up_tahfidz_mon.employee_id AND up_tahfidz_mon.permission_name = 'access_tahfidz_monitoring'
     LEFT JOIN user_permissions up_attend 
         ON e.id = up_attend.employee_id AND up_attend.permission_name = 'access_attendance'
     LEFT JOIN user_permissions up_edu 
@@ -233,9 +237,10 @@ include '../layouts/header.php';
                             <!-- Category Row -->
                             <tr>
                                 <th colspan="3" class="bg-slate-50 border-b border-slate-200 sticky-col z-20"></th>
-                                <th colspan="5" class="group-header border-l border-slate-200 bg-slate-50">Portal & Kategori</th>
+                                <th colspan="6" class="group-header border-l border-slate-200 bg-slate-50">Portal & Kategori</th>
                                 <th colspan="2" class="group-header border-l border-slate-200 bg-cyan-50/30 text-cyan-700">Operasional</th>
                                 <th colspan="2" class="group-header border-l border-slate-200 bg-indigo-50/30 text-indigo-700">Manajemen</th>
+                                <th colspan="1" class="group-header border-l border-slate-200 bg-teal-50/30 text-teal-700">Scope Unit</th>
                             </tr>
                             <tr class="bg-slate-50/80 backdrop-blur-sm">
                                 <th scope="col" class="sticky-col py-3.5 pl-4 pr-3 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500 sm:pl-6 border-b border-slate-200">No.</th>
@@ -246,6 +251,7 @@ include '../layouts/header.php';
                                 <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200 border-l border-slate-100">Kabid</th>
                                 <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">Kesantrian</th>
                                 <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">Tahfidz</th>
+                                <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-teal-800 bg-teal-50/40 border-b border-slate-200">Tahfidz Monitoring (Pimpinan)</th>
                                 <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">Pendidikan</th>
                                 <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">Absensi</th>
                                 
@@ -256,6 +262,9 @@ include '../layouts/header.php';
                                 <!-- Manajemen -->
                                 <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200 border-l border-slate-100">Berita</th>
                                 <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">Penugasan</th>
+
+                                <!-- Scope Unit -->
+                                <th scope="col" class="px-3 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200 border-l border-slate-100">Unit Tahfidz</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 bg-white">
@@ -263,15 +272,16 @@ include '../layouts/header.php';
                                 <?php foreach ($employees as $index => $emp): 
                                     // Calculate all effective permissions
                                     $p_list = [
-                                        ['name' => 'can_access_kabid',       'eff' => ($emp['override_kabid'] !== null ? (int)$emp['override_kabid'] : (int)$emp['role_kabid']), 'src' => ($emp['override_kabid'] !== null && (int)$emp['override_kabid'] !== (int)$emp['role_kabid'] ? 'override' : 'role'), 'role' => (int)$emp['role_kabid']],
-                                        ['name' => 'can_access_kesantrian',  'eff' => ($emp['override_kesantrian'] !== null ? (int)$emp['override_kesantrian'] : (int)$emp['role_kesantrian']), 'src' => ($emp['override_kesantrian'] !== null && (int)$emp['override_kesantrian'] !== (int)$emp['role_kesantrian'] ? 'override' : 'role'), 'role' => (int)$emp['role_kesantrian']],
-                                        ['name' => 'access_tahfidz',         'eff' => ($emp['override_tahfidz'] !== null ? (int)$emp['override_tahfidz'] : (int)$emp['role_tahfidz']), 'src' => ($emp['override_tahfidz'] !== null && (int)$emp['override_tahfidz'] !== (int)$emp['role_tahfidz'] ? 'override' : 'role'), 'role' => (int)$emp['role_tahfidz']],
-                                        ['name' => 'access_education',       'eff' => ($emp['override_education'] !== null ? (int)$emp['override_education'] : (int)$emp['role_education']), 'src' => ($emp['override_education'] !== null && (int)$emp['override_education'] !== (int)$emp['role_education'] ? 'override' : 'role'), 'role' => (int)$emp['role_education']],
-                                        ['name' => 'access_attendance',      'eff' => ($emp['override_attendance'] !== null ? (int)$emp['override_attendance'] : 0), 'src' => ($emp['override_attendance'] !== null && (int)$emp['override_attendance'] !== 0 ? 'override' : 'role'), 'role' => 0],
-                                        ['name' => 'access_meeting',         'eff' => ($emp['override_meeting'] !== null ? (int)$emp['override_meeting'] : (int)$emp['role_meeting']), 'src' => ($emp['override_meeting'] !== null && (int)$emp['override_meeting'] !== (int)$emp['role_meeting'] ? 'override' : 'role'), 'role' => (int)$emp['role_meeting']],
-                                        ['name' => 'approve_permits',        'eff' => ($emp['override_permits'] !== null ? (int)$emp['override_permits'] : (int)$emp['role_permits']), 'src' => ($emp['override_permits'] !== null && (int)$emp['override_permits'] !== (int)$emp['role_permits'] ? 'override' : 'role'), 'role' => (int)$emp['role_permits']],
-                                        ['name' => 'manage_news',            'eff' => ($emp['override_news'] !== null ? (int)$emp['override_news'] : (int)$emp['role_news']), 'src' => ($emp['override_news'] !== null && (int)$emp['override_news'] !== (int)$emp['role_news'] ? 'override' : 'role'), 'role' => (int)$emp['role_news']],
-                                        ['name' => 'manage_assignments',     'eff' => ($emp['override_assignments'] !== null ? (int)$emp['override_assignments'] : (int)$emp['role_assignments']), 'src' => ($emp['override_assignments'] !== null && (int)$emp['override_assignments'] !== (int)$emp['role_assignments'] ? 'override' : 'role'), 'role' => (int)$emp['role_assignments']]
+                                        ['name' => 'can_access_kabid',           'eff' => ($emp['override_kabid'] !== null ? (int)$emp['override_kabid'] : (int)$emp['role_kabid']), 'src' => ($emp['override_kabid'] !== null && (int)$emp['override_kabid'] !== (int)$emp['role_kabid'] ? 'override' : 'role'), 'role' => (int)$emp['role_kabid']],
+                                        ['name' => 'can_access_kesantrian',      'eff' => ($emp['override_kesantrian'] !== null ? (int)$emp['override_kesantrian'] : (int)$emp['role_kesantrian']), 'src' => ($emp['override_kesantrian'] !== null && (int)$emp['override_kesantrian'] !== (int)$emp['role_kesantrian'] ? 'override' : 'role'), 'role' => (int)$emp['role_kesantrian']],
+                                        ['name' => 'access_tahfidz',             'eff' => ($emp['override_tahfidz'] !== null ? (int)$emp['override_tahfidz'] : (int)$emp['role_tahfidz']), 'src' => ($emp['override_tahfidz'] !== null && (int)$emp['override_tahfidz'] !== (int)$emp['role_tahfidz'] ? 'override' : 'role'), 'role' => (int)$emp['role_tahfidz']],
+                                        ['name' => 'access_tahfidz_monitoring',  'eff' => ($emp['override_tahfidz_monitoring'] !== null ? (int)$emp['override_tahfidz_monitoring'] : (int)$emp['role_tahfidz_monitoring']), 'src' => ($emp['override_tahfidz_monitoring'] !== null && (int)$emp['override_tahfidz_monitoring'] !== (int)$emp['role_tahfidz_monitoring'] ? 'override' : 'role'), 'role' => (int)$emp['role_tahfidz_monitoring']],
+                                        ['name' => 'access_education',           'eff' => ($emp['override_education'] !== null ? (int)$emp['override_education'] : (int)$emp['role_education']), 'src' => ($emp['override_education'] !== null && (int)$emp['override_education'] !== (int)$emp['role_education'] ? 'override' : 'role'), 'role' => (int)$emp['role_education']],
+                                        ['name' => 'access_attendance',          'eff' => ($emp['override_attendance'] !== null ? (int)$emp['override_attendance'] : 0), 'src' => ($emp['override_attendance'] !== null && (int)$emp['override_attendance'] !== 0 ? 'override' : 'role'), 'role' => 0],
+                                        ['name' => 'access_meeting',             'eff' => ($emp['override_meeting'] !== null ? (int)$emp['override_meeting'] : (int)$emp['role_meeting']), 'src' => ($emp['override_meeting'] !== null && (int)$emp['override_meeting'] !== (int)$emp['role_meeting'] ? 'override' : 'role'), 'role' => (int)$emp['role_meeting']],
+                                        ['name' => 'approve_permits',            'eff' => ($emp['override_permits'] !== null ? (int)$emp['override_permits'] : (int)$emp['role_permits']), 'src' => ($emp['override_permits'] !== null && (int)$emp['override_permits'] !== (int)$emp['role_permits'] ? 'override' : 'role'), 'role' => (int)$emp['role_permits']],
+                                        ['name' => 'manage_news',                'eff' => ($emp['override_news'] !== null ? (int)$emp['override_news'] : (int)$emp['role_news']), 'src' => ($emp['override_news'] !== null && (int)$emp['override_news'] !== (int)$emp['role_news'] ? 'override' : 'role'), 'role' => (int)$emp['role_news']],
+                                        ['name' => 'manage_assignments',         'eff' => ($emp['override_assignments'] !== null ? (int)$emp['override_assignments'] : (int)$emp['role_assignments']), 'src' => ($emp['override_assignments'] !== null && (int)$emp['override_assignments'] !== (int)$emp['role_assignments'] ? 'override' : 'role'), 'role' => (int)$emp['role_assignments']]
                                     ];
                                 ?>
                                     <tr class="hover:bg-slate-50 transition-colors group">
@@ -301,11 +311,19 @@ include '../layouts/header.php';
                                             <?php renderToggle($emp['id'], $p['name'], $p['eff'], $p['src'], $p['role']); ?>
                                         </td>
                                         <?php endforeach; ?>
+
+                                        <!-- Unit Tahfidz Button -->
+                                        <td class="whitespace-nowrap px-3 py-4 text-center border-l border-slate-100">
+                                            <button type="button" onclick="openTahfidzUnitsModal('employee', <?php echo $emp['id']; ?>, '<?php echo htmlspecialchars($emp['full_name'], ENT_QUOTES); ?>')" class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold bg-teal-50 text-teal-700 hover:bg-teal-100 border border-teal-200 rounded-lg transition-colors shadow-sm">
+                                                <i class="fa-solid fa-layer-group text-teal-600"></i>
+                                                Unit Tahfidz
+                                            </button>
+                                        </td>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <tr>
-                                    <td colspan="12" class="py-10 text-center text-sm text-slate-500 italic">Data karyawan tidak ditemukan.</td>
+                                    <td colspan="13" class="py-10 text-center text-sm text-slate-500 italic">Data karyawan tidak ditemukan.</td>
                                 </tr>
                             <?php endif; ?>
                         </tbody>
@@ -500,12 +518,116 @@ function showNotification(type, message) {
     }
     
     document.body.appendChild(notif);
-    
+    // Auto hide
     setTimeout(() => {
         notif.style.animation = 'slideUp 0.3s ease-out forwards';
         setTimeout(() => notif.remove(), 300);
     }, 3000);
 }
+
+// --- Tahfidz Units Scope Modal Logic ---
+const TAHFIDZ_UNITS_LIST = ['SDIT', 'MTS', 'MA', 'MAHAD ALY', 'TKIT', 'PLAY GROUP', 'TPA', 'IDAD LUGOH'];
+let currentTahfidzTarget = { type: '', id: 0, name: '' };
+
+function openTahfidzUnitsModal(type, id, name) {
+    currentTahfidzTarget = { type, id, name };
+    document.getElementById('tahfidzModalTargetName').innerText = (type === 'position' ? 'Jabatan: ' : 'Karyawan: ') + name;
+    
+    const container = document.getElementById('tahfidzUnitsContainer');
+    container.innerHTML = '<div class="col-span-2 text-center text-xs text-slate-400 py-4"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Memuat data unit...</div>';
+    document.getElementById('tahfidzUnitsModal').classList.remove('hidden');
+
+    fetch(`../../logic/permissions/save_tahfidz_units?type=${type}&id=${id}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                const activeUnits = data.units || [];
+                renderTahfidzUnitsCheckboxes(activeUnits);
+            } else {
+                showNotification('error', data.message || 'Gagal memuat data unit');
+                renderTahfidzUnitsCheckboxes([]);
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            renderTahfidzUnitsCheckboxes([]);
+        });
+}
+
+function renderTahfidzUnitsCheckboxes(activeUnits) {
+    const container = document.getElementById('tahfidzUnitsContainer');
+    let html = '';
+    TAHFIDZ_UNITS_LIST.forEach(unit => {
+        const isChecked = activeUnits.includes(unit);
+        html += `
+            <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition-colors text-xs font-medium text-slate-700">
+                <input type="checkbox" value="${unit}" class="tahfidz-unit-cb rounded text-teal-600 focus:ring-teal-500 w-4 h-4" ${isChecked ? 'checked' : ''}>
+                <span>${unit}</span>
+            </label>
+        `;
+    });
+    container.innerHTML = html;
+}
+
+function closeTahfidzUnitsModal() {
+    document.getElementById('tahfidzUnitsModal').classList.add('hidden');
+}
+
+function saveTahfidzUnits(isRevert = false) {
+    const checked = [];
+    if (!isRevert) {
+        document.querySelectorAll('.tahfidz-unit-cb:checked').forEach(cb => checked.push(cb.value));
+    }
+
+    fetch('../../logic/permissions/save_tahfidz_units', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            type: currentTahfidzTarget.type,
+            id: currentTahfidzTarget.id,
+            units: checked,
+            revert: isRevert
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('success', data.message);
+            closeTahfidzUnitsModal();
+        } else {
+            showNotification('error', data.message || 'Gagal menyimpan unit');
+        }
+    })
+    .catch(err => {
+        showNotification('error', 'Error: ' + err.message);
+    });
+}
 </script>
+
+<!-- Tahfidz Units Modal -->
+<div id="tahfidzUnitsModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 transform transition-all">
+        <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+            <div>
+                <h3 class="text-base font-bold text-slate-800">Akses Unit Monitoring Tahfidz</h3>
+                <p id="tahfidzModalTargetName" class="text-xs text-slate-500 mt-0.5"></p>
+            </div>
+            <button onclick="closeTahfidzUnitsModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+        </div>
+        <div class="py-4 space-y-3">
+            <p class="text-xs text-slate-500 font-medium">Pilih unit mana saja yang dapat dilihat pada Dashboard Monitoring Tahfidz (jika tidak ada yang dicentang, akan menggunakan akses default jabatan/level):</p>
+            <div class="grid grid-cols-2 gap-2" id="tahfidzUnitsContainer">
+                <!-- Checkboxes -->
+            </div>
+        </div>
+        <div class="flex items-center justify-between pt-4 border-t border-slate-100">
+            <button type="button" onclick="saveTahfidzUnits(true)" class="text-xs text-red-600 hover:text-red-700 font-semibold">Reset ke Default</button>
+            <div class="flex gap-2">
+                <button type="button" onclick="closeTahfidzUnitsModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Batal</button>
+                <button type="button" onclick="saveTahfidzUnits(false)" class="px-4 py-2 text-xs font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-lg shadow-sm">Simpan</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <?php include '../layouts/footer.php'; ?>
