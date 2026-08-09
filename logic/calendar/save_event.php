@@ -45,7 +45,8 @@ try {
     $stmt->bindParam(':is_holiday', $is_holiday);
 
     if ($stmt->execute()) {
-        echo json_encode(['success' => true]);
+        $msg = !empty($data['id']) ? 'Kegiatan berhasil diperbarui' : 'Kegiatan berhasil ditambahkan';
+        echo json_encode(['success' => true, 'message' => $msg]);
     } else {
         echo json_encode(['success' => false, 'message' => 'Gagal menyimpan ke database']);
     }

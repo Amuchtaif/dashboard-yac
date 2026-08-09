@@ -17,7 +17,7 @@ $year = isset($_GET['year']) ? (int)$_GET['year'] : (int)date('Y');
 
 $first_day_ts = strtotime("$year-$month-01");
 $days_in_month = date('t', $first_day_ts);
-$start_day_of_week = date('w', $first_day_ts); // 0 (Sun) to 6 (Sat)
+$start_day_of_week = date('N', $first_day_ts) - 1; // 0 (Mon) to 6 (Sun)
 
 // Indonesian Month Names
 $indo_months = [
@@ -373,33 +373,96 @@ include '../layouts/header.php';
         border-style: solid;
         border-color: #1e293b transparent transparent transparent;
     }
+
+    /* Premium Datepicker Input Styling */
+    input[type="date"] {
+        cursor: pointer;
+    }
+    input[type="date"]::-webkit-calendar-picker-indicator {
+        cursor: pointer;
+        opacity: 0.5;
+        padding: 4px;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+    input[type="date"]::-webkit-calendar-picker-indicator:hover {
+        opacity: 1;
+        background-color: rgba(0, 0, 0, 0.05);
+        transform: scale(1.1);
+    }
 </style>
 
-<div class="pb-10">
+<div class="pb-10 space-y-6">
+    <!-- Header Action Bar -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <div>
+            <h1 class="text-2xl font-black tracking-tight text-slate-900">Kalender Akademik</h1>
+            <p class="text-sm text-slate-500">Pusat pengelolaan agenda kegiatan dan kalender akademik YAC</p>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <button type="button" onclick="openImportModal()" class="inline-flex items-center justify-center px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-700 font-semibold text-xs hover:bg-slate-50 transition-all shadow-sm gap-2">
+                <i class="fa-solid fa-file-import text-blue-600 text-sm shrink-0"></i>
+                <span>Import Data</span>
+            </button>
+            <button type="button" onclick="openResetModal()" class="inline-flex items-center justify-center px-4 py-2.5 rounded-xl border border-red-200 bg-red-50 text-red-700 font-semibold text-xs hover:bg-red-100 hover:border-red-300 transition-all shadow-sm gap-2">
+                <i class="fa-solid fa-rotate-left text-red-600 text-sm shrink-0"></i>
+                <span>Reset Data</span>
+            </button>
+            <a href="<?php url('agenda-pendidikan'); ?>" target="_blank" class="inline-flex items-center justify-center px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-md transition-all gap-2">
+                <span>Agenda Publik</span>
+                <i class="fa-solid fa-arrow-up-right-from-square text-xs shrink-0"></i>
+            </a>
+        </div>
+    </div>
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
         
         <!-- Main Calendar (Left) -->
         <div class="lg:col-span-8">
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200">
-                <!-- Calendar Header -->
-                <div class="p-6 flex items-center justify-between border-b border-slate-100">
-                    <h2 class="text-xl font-bold text-slate-800"><?php echo $month_name . " " . $year; ?></h2>
+                <!-- Calendar Header with Month & Year Dropdown Selector -->
+                <div class="p-5 flex flex-wrap items-center justify-between gap-4 border-b border-slate-100">
+                    <div class="flex items-center gap-3">
+                        <h2 class="text-xl font-bold text-slate-800 shrink-0 hidden sm:block"><?php echo $month_name . " " . $year; ?></h2>
+                        
+                        <!-- Month & Year Select Dropdowns -->
+                        <div class="flex items-center gap-2">
+                            <select id="select_month" onchange="jumpToMonthYear()" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-all outline-none cursor-pointer">
+                                <?php for ($m = 1; $m <= 12; $m++): ?>
+                                    <option value="<?php echo $m; ?>" <?php echo $m == $month ? 'selected' : ''; ?>>
+                                        <?php echo $indo_months[$m]; ?>
+                                    </option>
+                                <?php endfor; ?>
+                            </select>
+                            <select id="select_year" onchange="jumpToMonthYear()" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-all outline-none cursor-pointer">
+                                <?php for ($y = date('Y') - 3; $y <= date('Y') + 3; $y++): ?>
+                                    <option value="<?php echo $y; ?>" <?php echo $y == $year ? 'selected' : ''; ?>>
+                                        <?php echo $y; ?>
+                                    </option>
+                                <?php endfor; ?>
+                            </select>
+                        </div>
+                    </div>
+
                     <div class="flex items-center gap-2">
-                        <a href="?month=<?php echo $prev_month; ?>&year=<?php echo $prev_year; ?>" class="p-2 hover:bg-slate-100 rounded-lg transition-all">
-                            <i class="fa-solid fa-chevron-left h-5 w-5 text-slate-500"></i>
+                        <a href="?month=<?php echo $prev_month; ?>&year=<?php echo $prev_year; ?>" title="Bulan Sebelumnya" class="w-9 h-9 flex items-center justify-center hover:bg-slate-100 rounded-xl transition-all text-slate-600 border border-slate-200/80">
+                            <i class="fa-solid fa-chevron-left text-xs"></i>
                         </a>
-                        <a href="index.php" class="px-4 py-2 text-sm font-semibold text-slate-600 bg-slate-50 hover:bg-slate-100 rounded-lg transition-all">Bulan Ini</a>
-                        <a href="?month=<?php echo $next_month; ?>&year=<?php echo $next_year; ?>" class="p-2 hover:bg-slate-100 rounded-lg transition-all">
-                            <i class="fa-solid fa-chevron-right h-5 w-5 text-slate-500"></i>
+                        <a href="index.php" class="px-3.5 py-2 text-xs font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 rounded-xl transition-all flex items-center gap-1.5 border border-slate-200/80">
+                            <i class="fa-solid fa-calendar-day text-blue-600 text-xs"></i>
+                            <span>Bulan Ini</span>
+                        </a>
+                        <a href="?month=<?php echo $next_month; ?>&year=<?php echo $next_year; ?>" title="Bulan Berikutnya" class="w-9 h-9 flex items-center justify-center hover:bg-slate-100 rounded-xl transition-all text-slate-600 border border-slate-200/80">
+                            <i class="fa-solid fa-chevron-right text-xs"></i>
                         </a>
                     </div>
                 </div>
 
                 <!-- Calendar Grid Wrapper for Responsiveness -->
-                <div class="overflow-x-auto">
+                <div class="overflow-x-auto p-5">
                     <div class="calendar-grid min-w-[700px] md:min-w-full">
                         <?php 
-                        $headers = ["AHAD", "SEN", "SEL", "RAB", "KAM", "JUM", "SAB"];
+                        $headers = ["SEN", "SEL", "RAB", "KAM", "JUM", "SAB", "AHAD"];
                         foreach ($headers as $h) echo "<div class='calendar-day-header'>$h</div>";
 
                         // Empty cells for padding
@@ -410,7 +473,7 @@ include '../layouts/header.php';
                         // Actual days
                         for ($day = 1; $day <= $days_in_month; $day++) {
                             $isToday = ($day == (int)date('d') && $month == (int)date('m') && $year == (int)date('Y'));
-                            $isSunday = (($day + $start_day_of_week - 1) % 7 == 0);
+                            $isSunday = (($day + $start_day_of_week - 1) % 7 == 6);
                             $class = "calendar-cell" . ($isToday ? " today" : "") . ($isSunday ? " sunday" : "");
                             
                             echo "<div class='$class'>";
@@ -436,12 +499,19 @@ include '../layouts/header.php';
                             
                             echo "</div>";
                         }
+
+                        // Trailing empty cells to complete last row
+                        $total_cells = $start_day_of_week + $days_in_month;
+                        $trailing_empty = (7 - ($total_cells % 7)) % 7;
+                        for ($i = 0; $i < $trailing_empty; $i++) {
+                            echo "<div class='calendar-cell bg-slate-50/30'></div>";
+                        }
                         ?>
                     </div>
                 </div>
 
                 <!-- Desktop Legend -->
-                <div class="p-6 bg-slate-50 border-t border-slate-100 flex flex-wrap gap-8 items-center justify-center sm:justify-start">
+                <div class="p-5 bg-slate-50 border-t border-slate-100 flex flex-wrap gap-8 items-center justify-center sm:justify-start">
                     <div class="flex items-center gap-3">
                         <span class="w-3.5 h-3.5 rounded-full bg-red-500 shadow-sm"></span>
                         <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">LIBUR NASIONAL</span>
@@ -473,8 +543,8 @@ include '../layouts/header.php';
             <div class="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)]">
                 <div class="px-8 pt-8 pb-5 border-b border-slate-50 bg-gradient-to-r from-slate-50/50 to-white">
                     <div class="flex items-center gap-4">
-                        <div class="h-12 w-12 rounded-2xl bg-cyan-50 flex items-center justify-center text-cyan-600 shadow-sm border border-cyan-100/50">
-                            <i class="fa-solid fa-circle-plus h-6 w-6"></i>
+                        <div class="h-12 w-12 rounded-2xl bg-cyan-50 flex items-center justify-center text-cyan-600 shadow-sm border border-cyan-100/50 shrink-0">
+                            <i class="fa-solid fa-circle-plus text-xl"></i>
                         </div>
                         <div>
                             <h3 class="text-lg font-extrabold text-slate-800 tracking-tight" id="sideHeaderTitle">Tambah Kegiatan</h3>
@@ -489,8 +559,8 @@ include '../layouts/header.php';
                     <div class="group">
                         <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2.5 group-focus-within:text-cyan-600 transition-colors">Nama Kegiatan</label>
                         <div class="relative transition-all">
-                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                <i class="fa-solid fa-pen-to-square h-5 w-5 text-slate-300 group-focus-within:text-cyan-400 transition-colors"></i>
+                            <div class="absolute inset-y-0 left-0 w-11 flex items-center justify-center pointer-events-none">
+                                <i class="fa-solid fa-pen-to-square text-sm text-slate-300 group-focus-within:text-cyan-400 transition-colors"></i>
                             </div>
                             <input type="text" name="title" id="sideFormTitle" required placeholder="Contoh: Rapat Kerja Kurikulum"
                                 class="w-full pl-11 rounded-2xl border-slate-200 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 bg-slate-50/30 text-sm py-3.5 font-semibold text-slate-700 placeholder:text-slate-300 transition-all">
@@ -501,13 +571,17 @@ include '../layouts/header.php';
                     <div class="grid grid-cols-2 gap-5">
                         <div class="group">
                             <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2.5 group-focus-within:text-cyan-600 transition-colors">Tanggal Mulai</label>
-                            <input type="date" name="start_date" id="sideFormStartDate" required
-                                class="w-full rounded-2xl border-slate-200 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 bg-slate-50/30 text-sm py-3.5 font-semibold text-slate-700 transition-all">
+                            <div class="relative cursor-pointer" onclick="try { document.getElementById('sideFormStartDate').showPicker(); } catch(e) {}">
+                                <input type="date" name="start_date" id="sideFormStartDate" required onclick="try { this.showPicker(); } catch(e) {}"
+                                    class="w-full rounded-2xl border-slate-200 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 bg-slate-50/30 text-xs py-3.5 px-4 font-semibold text-slate-700 cursor-pointer transition-all">
+                            </div>
                         </div>
                         <div class="group">
                             <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2.5 group-focus-within:text-cyan-600 transition-colors">Tanggal Selesai</label>
-                            <input type="date" name="end_date" id="sideFormEndDate"
-                                class="w-full rounded-2xl border-slate-200 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 bg-slate-50/30 text-sm py-3.5 font-semibold text-slate-700 transition-all">
+                            <div class="relative cursor-pointer" onclick="try { document.getElementById('sideFormEndDate').showPicker(); } catch(e) {}">
+                                <input type="date" name="end_date" id="sideFormEndDate" onclick="try { this.showPicker(); } catch(e) {}"
+                                    class="w-full rounded-2xl border-slate-200 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 bg-slate-50/30 text-xs py-3.5 px-4 font-semibold text-slate-700 cursor-pointer transition-all">
+                            </div>
                         </div>
                     </div>
 
@@ -517,15 +591,15 @@ include '../layouts/header.php';
                         <div class="custom-select-container" id="categorySelectSidebar">
                             <input type="hidden" name="category" id="categoryInputSidebar" value="Libur Nasional">
                             <div class="custom-select-trigger transition-all">
-                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <i class="fa-solid fa-grip h-5 w-5 text-slate-300 group-focus-within:text-cyan-400 transition-colors"></i>
+                                <div class="absolute inset-y-0 left-0 w-11 flex items-center justify-center pointer-events-none">
+                                    <i class="fa-solid fa-grip text-sm text-slate-300 group-focus-within:text-cyan-400 transition-colors"></i>
                                 </div>
                                 <span class="selected-text flex items-center gap-2">
                                     <span class="color-dot bg-red-500"></span>
                                     Libur Nasional
                                 </span>
-                                <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                                    <i class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 transition-transform"></i>
+                                <div class="absolute inset-y-0 right-0 w-10 flex items-center justify-center pointer-events-none">
+                                    <i class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform"></i>
                                 </div>
                             </div>
                             <div class="custom-select-options">
@@ -559,7 +633,7 @@ include '../layouts/header.php';
                         <button type="submit" class="group/btn relative w-full inline-flex items-center justify-center px-8 py-4 font-bold text-white transition-all duration-200 bg-cyan-600 rounded-2xl hover:bg-cyan-700 focus:outline-none focus:ring-4 focus:ring-cyan-500/20 active:scale-[0.97] overflow-hidden">
                             <span class="absolute inset-0 w-full h-full bg-gradient-to-br from-white/10 to-transparent"></span>
                             <span class="relative flex items-center gap-2">
-                                <i class="fa-solid fa-check h-5 w-5 group-hover/btn:translate-x-1 transition-transform"></i>
+                                <i class="fa-solid fa-check text-sm group-hover/btn:translate-x-0.5 transition-transform"></i>
                                 <span id="sideBtnText">Simpan Kegiatan</span>
                             </span>
                         </button>
@@ -618,12 +692,13 @@ include '../layouts/header.php';
             </div>
 
         </div>
-    </div>
-</div>
-
-</div>
-
 <script>
+function jumpToMonthYear() {
+    const month = document.getElementById('select_month').value;
+    const year = document.getElementById('select_year').value;
+    window.location.href = `?month=${month}&year=${year}`;
+}
+
 // Custom Select Logic
 function initCustomSelect(containerId, inputId) {
     const container = document.getElementById(containerId);
@@ -757,8 +832,10 @@ function submitEvent(data) {
     })
     .then(r => r.json())
     .then(res => {
-        if (res.success) location.reload();
-        else alert('Error: ' + res.message);
+        if (res.success) {
+            alert(res.message || 'Kegiatan berhasil disimpan!');
+            location.reload();
+        } else alert('Error: ' + res.message);
     });
 }
 
@@ -801,36 +878,335 @@ function confirmDeleteEvent() {
     })
     .then(r => r.json())
     .then(res => {
-        if (res.success) location.reload();
-        else alert('Error: ' + res.message);
+        if (res.success) {
+            closeCalendarDeleteModal();
+            alert(res.message || 'Kegiatan berhasil dihapus!');
+            location.reload();
+        } else {
+            alert('Error: ' + (res.message || 'Gagal menghapus kegiatan'));
+        }
+    });
+}
+
+function openImportModal() {
+    document.getElementById('importFile').value = '';
+    document.getElementById('importPreviewSection').classList.add('hidden');
+    document.getElementById('btnConfirmImport').classList.add('hidden');
+
+    const modal = document.getElementById('importModal');
+    const backdrop = document.getElementById('importBackdrop');
+    const panel = document.getElementById('importPanel');
+
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        backdrop.classList.remove('opacity-0');
+        panel.classList.remove('opacity-0', 'scale-95');
+    }, 10);
+}
+
+function closeImportModal() {
+    const modal = document.getElementById('importModal');
+    const backdrop = document.getElementById('importBackdrop');
+    const panel = document.getElementById('importPanel');
+
+    backdrop.classList.add('opacity-0');
+    panel.classList.add('opacity-0', 'scale-95');
+    setTimeout(() => {
+        modal.classList.add('hidden');
+    }, 300);
+}
+
+function openResetModal() {
+    const modal = document.getElementById('resetModal');
+    const backdrop = document.getElementById('resetBackdrop');
+    const panel = document.getElementById('resetPanel');
+
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        backdrop.classList.remove('opacity-0');
+        panel.classList.remove('opacity-0', 'scale-95');
+    }, 10);
+}
+
+function closeResetModal() {
+    const modal = document.getElementById('resetModal');
+    const backdrop = document.getElementById('resetBackdrop');
+    const panel = document.getElementById('resetPanel');
+
+    backdrop.classList.add('opacity-0');
+    panel.classList.add('opacity-0', 'scale-95');
+    setTimeout(() => {
+        modal.classList.add('hidden');
+    }, 300);
+}
+
+function confirmResetCalendarEvents() {
+    fetch('../../logic/calendar/reset_events.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(r => r.json())
+    .then(res => {
+        closeResetModal();
+        if (res.success) {
+            alert(res.message || 'Seluruh data agenda berhasil direset!');
+            location.reload();
+        } else {
+            alert('Error: ' + (res.message || 'Gagal mereset data agenda'));
+        }
+    })
+    .catch(err => {
+        alert('Terjadi kesalahan koneksi server');
+    });
+}
+
+let parsedImportRows = [];
+
+function uploadImportFile() {
+    const fileInput = document.getElementById('importFile');
+    if (!fileInput.files || fileInput.files.length === 0) {
+        alert('Silakan pilih file CSV/XLSX terlebih dahulu.');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+
+    fetch('<?php url("api/calendar/import.php?action=preview"); ?>', {
+        method: 'POST',
+        body: formData
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (!res.success) {
+            alert(res.message || 'Gagal memproses file');
+            return;
+        }
+
+        parsedImportRows = res.rows || [];
+        const summary = res.summary;
+
+        document.getElementById('countTotal').innerText = summary.total;
+        document.getElementById('countValid').innerText = summary.valid;
+        document.getElementById('countDuplicate').innerText = summary.duplicate;
+        document.getElementById('countError').innerText = summary.error;
+
+        const tbody = document.getElementById('importPreviewTbody');
+        tbody.innerHTML = '';
+
+        parsedImportRows.forEach(r => {
+            const tr = document.createElement('tr');
+            tr.className = 'border-b border-slate-100 text-[11px]';
+            
+            let statusBadge = '';
+            if (r.status === 'valid') {
+                statusBadge = '<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">✓ Valid</span>';
+            } else if (r.status === 'duplicate') {
+                statusBadge = '<span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold">⚠ Duplikat</span>';
+            } else {
+                statusBadge = '<span class="px-2 py-0.5 rounded-full bg-red-100 text-red-800 font-bold">⚠ Error</span>';
+            }
+
+            const errorText = r.errors && r.errors.length > 0 ? r.errors.join(', ') : '-';
+
+            tr.innerHTML = `
+                <td class="p-2 text-center font-bold text-slate-500">${r.row_num}</td>
+                <td class="p-2 font-bold text-slate-800">${r.title}</td>
+                <td class="p-2">${r.start_date} ${r.end_date && r.end_date !== r.start_date ? 's/d ' + r.end_date : ''}</td>
+                <td class="p-2">${r.category}</td>
+                <td class="p-2">${r.source_type}</td>
+                <td class="p-2 text-center">${statusBadge}</td>
+                <td class="p-2 text-slate-500">${errorText}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        document.getElementById('importPreviewSection').classList.remove('hidden');
+        if (summary.valid > 0) {
+            document.getElementById('btnConfirmImport').classList.remove('hidden');
+        } else {
+            document.getElementById('btnConfirmImport').classList.add('hidden');
+        }
+    })
+    .catch(err => alert('Terjadi kesalahan koneksi server'));
+}
+
+function confirmImportData() {
+    const validRows = parsedImportRows.filter(r => r.status === 'valid');
+    if (validRows.length === 0) {
+        if (typeof showToast === 'function') {
+            showToast('Tidak ada data valid yang dapat diimport.', 'error');
+        } else {
+            alert('Tidak ada data valid yang dapat diimport.');
+        }
+        return;
+    }
+
+    fetch('<?php url("api/calendar/import.php?action=confirm"); ?>', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rows: validRows })
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (res.success) {
+            closeImportModal();
+            const msg = res.message || `${validRows.length} agenda berhasil diimport ke Kalender Akademik.`;
+            if (typeof showToast === 'function') {
+                showToast(msg, 'success');
+            } else {
+                alert(msg);
+            }
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
+        } else {
+            const errorMsg = res.message || 'Gagal mengimport data agenda.';
+            if (typeof showToast === 'function') {
+                showToast(errorMsg, 'error');
+            } else {
+                alert(errorMsg);
+            }
+        }
+    })
+    .catch(err => {
+        if (typeof showToast === 'function') {
+            showToast('Terjadi kesalahan koneksi server.', 'error');
+        } else {
+            alert('Terjadi kesalahan koneksi server');
+        }
     });
 }
 </script>
 
 <!-- Custom Delete Modal for Calendar -->
 <div id="calendarDeleteModal" class="fixed inset-0 z-[60] hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-    <div id="calDeleteBackdrop" class="fixed inset-0 bg-slate-900/50 transition-opacity duration-300 opacity-0 backdrop-blur-sm"></div>
-    <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-        <div id="calDeletePanel" class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all duration-300 opacity-0 scale-95 sm:my-8 sm:w-full sm:max-w-md">
-            <div class="bg-white px-4 pb-4 pt-5 sm:p-8 sm:pb-6">
-                <div class="sm:flex sm:items-start">
-                    <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-red-50 sm:mx-0 sm:h-12 sm:w-12">
-                        <i class="fa-solid fa-trash h-6 w-6 text-red-600"></i>
+    <div id="calDeleteBackdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0"></div>
+    <div class="flex min-h-full items-center justify-center p-4 text-center">
+        <div id="calDeletePanel" class="relative transform overflow-hidden rounded-3xl bg-white text-left shadow-2xl transition-all duration-300 opacity-0 scale-95 sm:my-8 sm:w-full sm:max-w-md">
+            <div class="bg-white p-6 sm:p-7">
+                <div class="flex items-start gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-red-100/80 text-red-600 flex items-center justify-center shrink-0 border border-red-200/60 shadow-2xs">
+                        <i class="fa-solid fa-trash-can text-xl leading-none"></i>
                     </div>
-                    <div class="mt-3 text-center sm:ml-6 sm:mt-0 sm:text-left">
-                        <h3 class="text-xl font-bold leading-6 text-slate-900" id="modal-title">Hapus Kegiatan?</h3>
-                        <div class="mt-3">
-                            <p class="text-sm text-slate-500 leading-relaxed font-medium">Apakah Anda yakin ingin menghapus kegiatan ini dari kalender? Tindakan ini tidak dapat dibatalkan.</p>
-                        </div>
+                    <div class="space-y-1.5 pt-0.5">
+                        <h3 class="text-lg font-extrabold text-slate-900 leading-snug">Hapus Kegiatan?</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed font-medium">Apakah Anda yakin ingin menghapus kegiatan ini dari kalender? Tindakan ini tidak dapat dibatalkan.</p>
                     </div>
                 </div>
             </div>
-            <div class="bg-slate-50 px-6 py-4 sm:flex sm:flex-row-reverse gap-3">
-                <button type="button" onclick="confirmDeleteEvent()" class="inline-flex w-full justify-center rounded-xl bg-red-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-red-500 sm:w-auto transition-all transform active:scale-95">
-                    Hapus Sekarang
-                </button>
-                <button type="button" onclick="closeCalendarDeleteModal()" class="mt-3 inline-flex w-full justify-center rounded-xl bg-white px-5 py-2.5 text-sm font-bold text-slate-600 shadow-sm ring-1 ring-inset ring-slate-200 hover:bg-slate-50 sm:mt-0 sm:w-auto transition-all">
+            <div class="bg-slate-50 px-6 py-4 flex flex-col-reverse sm:flex-row sm:justify-end gap-2.5 border-t border-slate-100">
+                <button type="button" onclick="closeCalendarDeleteModal()" class="px-5 py-2.5 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all">
                     Batalkan
+                </button>
+                <button type="button" onclick="confirmDeleteEvent()" class="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-xs font-bold text-white shadow-md shadow-red-500/20 transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-trash-can text-xs"></i>
+                    <span>Hapus Sekarang</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Import Data -->
+<div id="importModal" class="fixed inset-0 z-[60] hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div id="importBackdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0" onclick="closeImportModal()"></div>
+    <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+        <div id="importPanel" class="relative transform overflow-hidden rounded-3xl bg-white text-left shadow-2xl transition-all duration-300 opacity-0 scale-95 sm:my-8 max-w-3xl w-full">
+            <div class="px-6 py-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-file-import text-blue-600 text-lg"></i>
+                    <h3 class="text-base font-extrabold text-slate-800">Import Data Kalender Akademik</h3>
+                </div>
+                <button onclick="closeImportModal()" class="w-8 h-8 rounded-full hover:bg-slate-200 flex items-center justify-center text-slate-500 text-sm transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="p-6 space-y-4 text-xs">
+                <div class="p-4 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-between">
+                    <div>
+                        <h4 class="font-extrabold text-blue-900">Format File Import</h4>
+                        <p class="text-blue-700 text-[11px]">Gunakan format CSV atau Excel (.xlsx). Unduh template acuan jika belum memilikinya.</p>
+                    </div>
+                    <a href="<?php url('api/calendar/template.php'); ?>" download class="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold flex items-center gap-1.5 shadow-sm">
+                        <i class="fa-solid fa-download"></i> Unduh Template
+                    </a>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <input type="file" id="importFile" accept=".csv, .xlsx, .xls" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer">
+                    <button onclick="uploadImportFile()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold flex items-center gap-1.5 shadow-sm shrink-0">
+                        <i class="fa-solid fa-magnifying-glass"></i> Pratinjau
+                    </button>
+                </div>
+
+                <!-- Preview Section -->
+                <div id="importPreviewSection" class="space-y-3 hidden pt-2 border-t border-slate-100">
+                    <div class="flex items-center justify-between">
+                        <h4 class="font-extrabold text-slate-800 uppercase tracking-wide">Pratinjau Data</h4>
+                        <div class="flex items-center gap-2 font-bold text-[11px]">
+                            <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700">Total: <b id="countTotal">0</b></span>
+                            <span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800">Valid: <b id="countValid">0</b></span>
+                            <span class="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800">Duplikat: <b id="countDuplicate">0</b></span>
+                            <span class="px-2 py-0.5 rounded-md bg-red-100 text-red-800">Error: <b id="countError">0</b></span>
+                        </div>
+                    </div>
+
+                    <div class="max-h-60 overflow-y-auto border border-slate-200 rounded-2xl">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-slate-50 sticky top-0 border-b border-slate-200 text-[10px] font-extrabold uppercase text-slate-600">
+                                <tr>
+                                    <th class="p-2 text-center w-10">No</th>
+                                    <th class="p-2">Kegiatan</th>
+                                    <th class="p-2">Mulai - Selesai</th>
+                                    <th class="p-2">Kategori</th>
+                                    <th class="p-2">Sumber</th>
+                                    <th class="p-2 text-center">Status</th>
+                                    <th class="p-2">Keterangan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="importPreviewTbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="closeImportModal()" class="px-4 py-2 rounded-xl border border-slate-300 font-bold text-slate-600 hover:bg-slate-100">
+                        Batal
+                    </button>
+                    <button id="btnConfirmImport" type="button" onclick="confirmImportData()" class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-md hidden">
+                        Import Sekarang
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Reset Data Kalender -->
+<div id="resetModal" class="fixed inset-0 z-[60] hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div id="resetBackdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0" onclick="closeResetModal()"></div>
+    <div class="flex min-h-full items-center justify-center p-4 text-center">
+        <div id="resetPanel" class="relative transform overflow-hidden rounded-3xl bg-white text-left shadow-2xl transition-all duration-300 opacity-0 scale-95 sm:my-8 sm:w-full sm:max-w-md">
+            <div class="bg-white p-6 sm:p-7">
+                <div class="flex items-start gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-red-100/80 text-red-600 flex items-center justify-center shrink-0 border border-red-200/60 shadow-2xs">
+                        <i class="fa-solid fa-triangle-exclamation text-xl leading-none"></i>
+                    </div>
+                    <div class="space-y-1.5 pt-0.5">
+                        <h3 class="text-lg font-extrabold text-slate-900 leading-snug" id="modal-title">Reset Semua Data Agenda?</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed font-medium">Apakah Anda yakin ingin menghapus <b>SELURUH</b> data agenda kegiatan dari kalender akademik? Semua agenda lokal yang tersimpan akan terhapus secara permanen dan tindakan ini tidak dapat dibatalkan.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-slate-50 px-6 py-4 flex flex-col-reverse sm:flex-row sm:justify-end gap-2.5 border-t border-slate-100">
+                <button type="button" onclick="closeResetModal()" class="px-5 py-2.5 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all">
+                    Batal
+                </button>
+                <button type="button" onclick="confirmResetCalendarEvents()" class="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-xs font-bold text-white shadow-md shadow-red-500/20 transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-trash-can text-xs"></i>
+                    <span>Ya, Reset Sekarang</span>
                 </button>
             </div>
         </div>

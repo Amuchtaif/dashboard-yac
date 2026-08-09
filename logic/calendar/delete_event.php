@@ -18,7 +18,7 @@ $conn = $db->getConnection();
 try {
     $stmt = $conn->prepare("DELETE FROM academic_calendar WHERE id = ?");
     if ($stmt->execute([$data['id']])) {
-        echo json_encode(['success' => true]);
+        echo json_encode(['success' => true, 'message' => 'Kegiatan berhasil dihapus dari kalender']);
     } else {
         echo json_encode(['success' => false, 'message' => 'Gagal menghapus data']);
     }

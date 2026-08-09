@@ -489,6 +489,41 @@ class DashboardTahfidzService {
         ];
     }
 
+    private function resolveSurahName($value) {
+        if (empty($value)) return '';
+        $val_str = trim((string)$value);
+        if (empty($val_str) || $val_str === '0') return '';
+        if (!is_numeric($val_str)) return $val_str;
+
+        $surahs = [
+            1 => 'Al-Fatihah', 2 => 'Al-Baqarah', 3 => 'Ali \'Imran', 4 => 'An-Nisa\'', 5 => 'Al-Ma\'idah',
+            6 => 'Al-An\'am', 7 => 'Al-A\'raf', 8 => 'Al-Anfal', 9 => 'At-Tawbah', 10 => 'Yunus',
+            11 => 'Hud', 12 => 'Yusuf', 13 => 'Ar-Ra\'d', 14 => 'Ibrahim', 15 => 'Al-Hijr',
+            16 => 'An-Nahl', 17 => 'Al-Isra\'', 18 => 'Al-Kahf', 19 => 'Maryam', 20 => 'Taha',
+            21 => 'Al-Anbiya\'', 22 => 'Al-Hajj', 23 => 'Al-Mu\'minun', 24 => 'An-Nur', 25 => 'Al-Furqan',
+            26 => 'Ash-Shu\'ara\'', 27 => 'An-Naml', 28 => 'Al-Qasas', 29 => 'Al-\'Ankabut', 30 => 'Ar-Rum',
+            31 => 'Luqman', 32 => 'As-Sajdah', 33 => 'Al-Ahzab', 34 => 'Saba\'', 35 => 'Fatir',
+            36 => 'Ya-Sin', 37 => 'As-Saffat', 38 => 'Sad', 39 => 'Az-Zumar', 40 => 'Ghafir',
+            41 => 'Fussilat', 42 => 'Ash-Shura', 43 => 'Az-Zukhruf', 44 => 'Ad-Dukhan', 45 => 'Al-Jathiyah',
+            46 => 'Al-Ahqaf', 47 => 'Muhammad', 48 => 'Al-Fath', 49 => 'Al-Hujurat', 50 => 'Qaf',
+            51 => 'Adh-Dhariyat', 52 => 'At-Tur', 53 => 'An-Najm', 54 => 'Al-Qamar', 55 => 'Ar-Rahman',
+            56 => 'Al-Waqi\'ah', 57 => 'Al-Hadid', 58 => 'Al-Mujadila', 59 => 'Al-Hashr', 60 => 'Al-Mumtahanah',
+            61 => 'As-Saff', 62 => 'Al-Jumu\'ah', 63 => 'Al-Munafiqun', 64 => 'At-Taghabun', 65 => 'At-Talaq',
+            66 => 'At-Tahrim', 67 => 'Al-Mulk', 68 => 'Al-Qalam', 69 => 'Al-Haqqah', 70 => 'Al-Ma\'arij',
+            71 => 'Nuh', 72 => 'Al-Jinn', 73 => 'Al-Muzzammil', 74 => 'Al-Muddaththir', 75 => 'Al-Qiyamah',
+            76 => 'Al-Insan', 77 => 'Al-Mursalat', 78 => 'An-Naba\'', 79 => 'An-Nazi\'at', 80 => '\'Abasa',
+            81 => 'At-Takwir', 82 => 'Al-Infitar', 83 => 'Al-Mutaffifin', 84 => 'Al-Inshiqaq', 85 => 'Al-Buruj',
+            86 => 'At-Tariq', 87 => 'Al-A\'la', 88 => 'Al-Ghashiyah', 89 => 'Al-Fajr', 90 => 'Al-Balad',
+            91 => 'Ash-Shams', 92 => 'Al-Layl', 93 => 'Ad-Duha', 94 => 'Ash-Sharh', 95 => 'At-Tin',
+            96 => 'Al-\'Alaq', 97 => 'Al-Qadr', 98 => 'Al-Bayyinah', 99 => 'Az-Zalzalah', 100 => 'Al-\'Adiyat',
+            101 => 'Al-Qari\'ah', 102 => 'At-Takathur', 103 => 'Al-\'Asr', 104 => 'Al-Humazah', 105 => 'Al-Fil',
+            106 => 'Quraysh', 107 => 'Al-Ma\'un', 108 => 'Al-Kawthar', 109 => 'Al-Kafirun', 110 => 'An-Nasr',
+            111 => 'Al-Masad', 112 => 'Al-Ikhlas', 113 => 'Al-Falaq', 114 => 'An-Nas'
+        ];
+        $id = (int)$val_str;
+        return $surahs[$id] ?? "Surah $id";
+    }
+
     // API 3: Live Activity
     public function getLiveActivity($user_id, $filters = [], $limit = 15, $page = 1) {
         $scope = $this->resolveScope($user_id);
@@ -512,22 +547,19 @@ class DashboardTahfidzService {
                     me.end_surah_id,
                     me.end_ayah,
                     me.line_count,
+                    me.total_baris,
                     me.juz,
                     me.surah_id,
+                    me.surah_start,
+                    me.surah_end,
                     me.notes,
                     me.created_at,
-                    e.full_name as teacher_name,
-                    sur.name_latin as surah_name,
-                    sur_start.name_latin as start_surah_name,
-                    sur_end.name_latin as end_surah_name
+                    e.full_name as teacher_name
                 FROM memorization_entries me
                 JOIN students s ON me.student_id = s.id
                 LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = ? AND sch.status = 'ACTIVE'
                 LEFT JOIN grade_levels gl ON sch.class_id = gl.id
                 LEFT JOIN employees e ON me.teacher_id = e.id
-                LEFT JOIN surahs sur ON me.surah_id = sur.id
-                LEFT JOIN surahs sur_start ON me.start_surah_id = sur_start.id
-                LEFT JOIN surahs sur_end ON me.end_surah_id = sur_end.id
                 WHERE s.status = 'Aktif'" . $where_clause . " 
                 ORDER BY me.created_at DESC, me.id DESC 
                 LIMIT ? OFFSET ?";
@@ -555,33 +587,57 @@ class DashboardTahfidzService {
                         break;
                 }
 
-                // Format detail surah & ayat
-                $surah_display = $row['surah_name'] ?? $row['start_surah_name'] ?? $row['end_surah_name'] ?? '';
+                // Resolve Start & End Surah names dynamically
+                $start_s_name = $this->resolveSurahName($row['surah_start']);
+                if (empty($start_s_name)) {
+                    $start_s_name = $this->resolveSurahName($row['start_surah_id']);
+                }
+                if (empty($start_s_name)) {
+                    $start_s_name = $this->resolveSurahName($row['surah_id']);
+                }
+
+                $end_s_name = $this->resolveSurahName($row['surah_end']);
+                if (empty($end_s_name)) {
+                    $end_s_name = $this->resolveSurahName($row['end_surah_id']);
+                }
+                if (empty($end_s_name)) {
+                    $end_s_name = $start_s_name;
+                }
+                if (empty($start_s_name)) {
+                    $start_s_name = $end_s_name;
+                }
+
+                $start_a = !empty($row['start_ayah']) ? (int)$row['start_ayah'] : null;
+                $end_a = !empty($row['end_ayah']) ? (int)$row['end_ayah'] : $start_a;
+
+                // Format detail surah & ayat text
                 $detail_text = "";
-                if (!empty($surah_display)) {
-                    $detail_text = "Surah " . $surah_display;
-                    if (!empty($row['start_ayah'])) {
-                        $detail_text .= ": " . $row['start_ayah'];
-                        if (!empty($row['end_ayah']) && $row['end_ayah'] != $row['start_ayah']) {
-                            $detail_text .= "-" . $row['end_ayah'];
+                if (!empty($start_s_name)) {
+                    $detail_text = "Surah " . $start_s_name;
+                    if (!empty($start_a)) {
+                        $detail_text .= ": " . $start_a;
+                        if (!empty($end_a) && ($end_a != $start_a || $end_s_name != $start_s_name)) {
+                            if ($end_s_name != $start_s_name && !empty($end_s_name)) {
+                                $detail_text .= " s/d Surah " . $end_s_name . ": " . $end_a;
+                            } else {
+                                $detail_text .= "-" . $end_a;
+                            }
                         }
                     }
                 }
                 
                 // Format meta (baris & juz)
+                $lines = !empty($row['line_count']) ? (int)$row['line_count'] : (!empty($row['total_baris']) ? (int)$row['total_baris'] : 0);
                 $meta_items = [];
-                if (!empty($row['line_count']) && (int)$row['line_count'] > 0) {
-                    $meta_items[] = (int)$row['line_count'] . " Baris";
+                if ($lines > 0) {
+                    $meta_items[] = $lines . " Baris";
                 }
                 if (!empty($row['juz']) && (int)$row['juz'] > 0) {
                     $meta_items[] = "Juz " . (int)$row['juz'];
                 }
                 $hafalan_meta = implode(" • ", $meta_items);
 
-                $start_s_name = $row['start_surah_name'] ?? $row['surah_name'] ?? '';
-                $end_s_name = $row['end_surah_name'] ?? $row['surah_name'] ?? '';
-                $start_a = $row['start_ayah'] ?? null;
-                $end_a = $row['end_ayah'] ?? null;
+                $notes_clean = trim($row['notes'] ?? '');
 
                 $activities[] = [
                     'id' => $row['id'],
