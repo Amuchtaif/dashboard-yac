@@ -72,13 +72,18 @@ function get_public_holidays($year) {
 
 $api_holidays = get_public_holidays($year);
 
+// --- Fetch Units for dropdown ---
+$units_stmt = $conn->query("SELECT id, name FROM education_units ORDER BY name ASC");
+$units = $units_stmt ? $units_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
+
 // --- Fetch Events for this month ---
 $first_of_month = date('Y-m-d', $first_day_ts);
 $last_of_month = date('Y-m-t', $first_day_ts);
 
-$query = "SELECT * FROM academic_calendar 
-          WHERE (start_date <= :last_day AND (end_date >= :first_day OR end_date IS NULL)) 
-          ORDER BY start_date ASC";
+$query = "SELECT a.*, u.name as unit_name FROM academic_calendar a 
+          LEFT JOIN education_units u ON a.unit_id = u.id
+          WHERE (a.start_date <= :last_day AND (a.end_date >= :first_day OR a.end_date IS NULL)) 
+          ORDER BY a.start_date ASC";
 $stmt = $conn->prepare($query);
 $stmt->execute([':first_day' => $first_of_month, ':last_day' => $last_of_month]);
 $events = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -125,9 +130,10 @@ for ($i = 1; $i <= $days_in_month; $i++) {
 $current_month_start = sprintf('%04d-%02d-01', $year, $month);
 $current_month_end = date('Y-m-t', strtotime($current_month_start));
 
-$upcoming_query = "SELECT * FROM academic_calendar 
-                   WHERE (start_date <= :end AND (end_date >= :start OR end_date IS NULL))
-                   ORDER BY start_date ASC";
+$upcoming_query = "SELECT a.*, u.name as unit_name FROM academic_calendar a 
+                   LEFT JOIN education_units u ON a.unit_id = u.id
+                   WHERE (a.start_date <= :end AND (a.end_date >= :start OR a.end_date IS NULL))
+                   ORDER BY a.start_date ASC";
 $upcoming_stmt = $conn->prepare($upcoming_query);
 $upcoming_stmt->execute([':start' => $current_month_start, ':end' => $current_month_end]);
 $upcoming_db_events = $upcoming_stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -253,6 +259,12 @@ include '../layouts/header.php';
     .bg-meeting { background-color: #f5f3ff; color: #7c3aed; border-color: #ddd6fe; }
     .bg-yayasan { background-color: #f0fdfa; color: #0d9488; border-color: #ccfbf1; }
     .bg-other { background-color: #f8fafc; color: #475569; border-color: #e2e8f0; }
+
+    /* Source Type Left Border Indicators */
+    .src-bidang { border-left: 3px solid #6366f1 !important; }
+    .src-unit { border-left: 3px solid #10b981 !important; }
+    .src-yayasan { border-left: 3px solid #14b8a6 !important; }
+    .src-api { border-left: 3px solid #ef4444 !important; }
 
     .glass-card {
         background: rgba(255, 255, 255, 0.95);
@@ -489,11 +501,33 @@ include '../layouts/header.php';
                                 if ($ev['category'] == 'Rapat') $catClass = "bg-meeting";
                                 if ($ev['category'] == 'Kegiatan Yayasan') $catClass = "bg-yayasan";
                                 
+                                // Source type left border indicator
+                                $srcClass = 'src-bidang';
+                                $srcLabel = '📋 Bid. Pendidikan';
+                                if (!empty($ev['is_api'])) {
+                                    $srcClass = 'src-api';
+                                    $srcLabel = '🔴 API';
+                                } elseif (isset($ev['source_type']) && $ev['source_type'] == 'unit') {
+                                    $srcClass = 'src-unit';
+                                    $srcLabel = '🏫 ' . (!empty($ev['unit_name']) ? htmlspecialchars($ev['unit_name']) : 'Unit');
+                                } elseif (isset($ev['source_type']) && $ev['source_type'] == 'yayasan') {
+                                    $srcClass = 'src-yayasan';
+                                    $srcLabel = '🏛️ Yayasan';
+                                }
+                                
                                 $title = htmlspecialchars($ev['title']);
+                                $unitBadge = !empty($ev['unit_name']) ? " (" . htmlspecialchars($ev['unit_name']) . ")" : "";
+                                $locInfo = !empty($ev['location']) ? "📍 " . htmlspecialchars($ev['location']) : "";
+                                
+                                $tooltipTxt = $title . $unitBadge;
+                                $tooltipTxt .= "<br>" . $srcLabel;
+                                if ($locInfo) $tooltipTxt .= "<br>" . $locInfo;
+                                
+                                $jsonEv = json_encode($ev, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
                                 echo "
                                 <div class='tooltip-container'>
-                                    <div onclick='editEvent(".json_encode($ev).")' class='event-pill $catClass'>$title</div>
-                                    <div class='custom-tooltip'>$title</div>
+                                    <div onclick='editEvent($jsonEv)' class='event-pill $catClass $srcClass'>$title$unitBadge</div>
+                                    <div class='custom-tooltip'>$tooltipTxt</div>
                                 </div>";
                             }
                             
@@ -510,7 +544,7 @@ include '../layouts/header.php';
                     </div>
                 </div>
 
-                <!-- Desktop Legend -->
+                <!-- Desktop Legend: Categories -->
                 <div class="p-5 bg-slate-50 border-t border-slate-100 flex flex-wrap gap-8 items-center justify-center sm:justify-start">
                     <div class="flex items-center gap-3">
                         <span class="w-3.5 h-3.5 rounded-full bg-red-500 shadow-sm"></span>
@@ -533,6 +567,27 @@ include '../layouts/header.php';
                         <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">KEGIATAN YAYASAN</span>
                     </div>
                 </div>
+
+                <!-- Desktop Legend: Source Type -->
+                <div class="px-5 pb-4 flex flex-wrap gap-x-6 gap-y-2 items-center">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Sumber Agenda:</span>
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-3 h-3 rounded-sm" style="background:#6366f1;"></span>
+                        <span class="text-[10px] font-bold text-slate-600">Bidang Pendidikan</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-3 h-3 rounded-sm" style="background:#10b981;"></span>
+                        <span class="text-[10px] font-bold text-slate-600">Unit Pendidikan</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-3 h-3 rounded-sm" style="background:#14b8a6;"></span>
+                        <span class="text-[10px] font-bold text-slate-600">Yayasan</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-3 h-3 rounded-sm" style="background:#ef4444;"></span>
+                        <span class="text-[10px] font-bold text-slate-600">Libur Nasional (API)</span>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -553,41 +608,63 @@ include '../layouts/header.php';
                     </div>
                 </div>
 
-                <form id="sideForm" onsubmit="saveEventSide(event)" class="px-8 pb-8 space-y-7">
+                <form id="sideForm" onsubmit="saveEventSide(event)" class="px-8 pb-8 space-y-6">
                     <input type="hidden" name="id" id="sideFormID">
                     <!-- Title Input -->
                     <div class="group">
-                        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2.5 group-focus-within:text-cyan-600 transition-colors">Nama Kegiatan</label>
+                        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2 group-focus-within:text-cyan-600 transition-colors">Nama Kegiatan <span class="text-red-500">*</span></label>
                         <div class="relative transition-all">
                             <div class="absolute inset-y-0 left-0 w-11 flex items-center justify-center pointer-events-none">
                                 <i class="fa-solid fa-pen-to-square text-sm text-slate-300 group-focus-within:text-cyan-400 transition-colors"></i>
                             </div>
-                            <input type="text" name="title" id="sideFormTitle" required placeholder="Contoh: Rapat Kerja Kurikulum"
-                                class="w-full pl-11 rounded-2xl border-slate-200 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 bg-slate-50/30 text-sm py-3.5 font-semibold text-slate-700 placeholder:text-slate-300 transition-all">
+                            <input type="text" name="title" id="sideFormTitle" required placeholder="Contoh: Rapat Kegiatan Wajib"
+                                class="w-full pl-11 rounded-2xl border-slate-200 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 bg-slate-50/30 text-sm py-3 font-semibold text-slate-700 placeholder:text-slate-300 transition-all">
                         </div>
                     </div>
 
-                    <!-- Date Selection -->
-                    <div class="grid grid-cols-2 gap-5">
+                    <!-- Sumber Agenda & Unit Select -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div class="group">
-                            <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2.5 group-focus-within:text-cyan-600 transition-colors">Tanggal Mulai</label>
-                            <div class="relative cursor-pointer" onclick="try { document.getElementById('sideFormStartDate').showPicker(); } catch(e) {}">
-                                <input type="date" name="start_date" id="sideFormStartDate" required onclick="try { this.showPicker(); } catch(e) {}"
-                                    class="w-full rounded-2xl border-slate-200 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 bg-slate-50/30 text-xs py-3.5 px-4 font-semibold text-slate-700 cursor-pointer transition-all">
+                            <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2 group-focus-within:text-cyan-600 transition-colors">Sumber Agenda</label>
+                            <div class="relative transition-all">
+                                <div class="absolute inset-y-0 left-0 w-10 flex items-center justify-center pointer-events-none">
+                                    <i class="fa-solid fa-sitemap text-xs text-slate-300 group-focus-within:text-cyan-400 transition-colors"></i>
+                                </div>
+                                <select name="source_type" id="sideFormSourceType" onchange="toggleUnitSelect()"
+                                    class="w-full pl-9 pr-7 rounded-2xl border-slate-200 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 bg-slate-50/30 text-xs py-3 font-bold text-slate-700 cursor-pointer transition-all appearance-none">
+                                    <option value="bidang_pendidikan">Bid. Pendidikan</option>
+                                    <option value="yayasan">Yayasan</option>
+                                    <option value="unit">Unit Pendidikan</option>
+                                </select>
+                                <div class="absolute inset-y-0 right-0 w-7 flex items-center justify-center pointer-events-none text-slate-400">
+                                    <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                                </div>
                             </div>
                         </div>
-                        <div class="group">
-                            <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2.5 group-focus-within:text-cyan-600 transition-colors">Tanggal Selesai</label>
-                            <div class="relative cursor-pointer" onclick="try { document.getElementById('sideFormEndDate').showPicker(); } catch(e) {}">
-                                <input type="date" name="end_date" id="sideFormEndDate" onclick="try { this.showPicker(); } catch(e) {}"
-                                    class="w-full rounded-2xl border-slate-200 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 bg-slate-50/30 text-xs py-3.5 px-4 font-semibold text-slate-700 cursor-pointer transition-all">
+
+                        <div class="group" id="unitSelectContainer">
+                            <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2 group-focus-within:text-cyan-600 transition-colors">Pilihan Unit</label>
+                            <div class="relative transition-all">
+                                <div class="absolute inset-y-0 left-0 w-10 flex items-center justify-center pointer-events-none">
+                                    <i class="fa-solid fa-school text-xs text-slate-300 group-focus-within:text-cyan-400 transition-colors"></i>
+                                </div>
+                                <select name="unit_id" id="sideFormUnitId"
+                                    class="w-full pl-9 pr-7 rounded-2xl border-slate-200 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 bg-slate-50/30 text-xs py-3 font-bold text-slate-700 cursor-pointer transition-all appearance-none">
+                                    <option value="">-- Pilih Unit --</option>
+                                    <?php foreach ($units as $u): ?>
+                                        <option value="<?php echo $u['id']; ?>"><?php echo htmlspecialchars($u['name']); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <div class="absolute inset-y-0 right-0 w-7 flex items-center justify-center pointer-events-none text-slate-400">
+                                    <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Kategori Select (Custom UI) -->
                     <div class="group">
-                        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2.5 group-focus-within:text-cyan-600 transition-colors">Kategori Kegiatan</label>
+                        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2 group-focus-within:text-cyan-600 transition-colors">Kategori Kegiatan</label>
                         <div class="custom-select-container" id="categorySelectSidebar">
                             <input type="hidden" name="category" id="categoryInputSidebar" value="Libur Nasional">
                             <div class="custom-select-trigger transition-all">
@@ -621,10 +698,49 @@ include '../layouts/header.php';
                                 <div class="custom-select-option" data-value="Kegiatan Yayasan" data-label="Kegiatan Yayasan" data-color="bg-teal-500">
                                     <span class="color-dot bg-teal-500"></span> Kegiatan Yayasan
                                 </div>
-                                <div class="custom-select-option" data-value="Kegiatan" data-label="Kegiatan Sekolah" data-color="bg-purple-500">
-                                    <span class="color-dot bg-purple-500"></span> Kegiatan Sekolah
+                                <div class="custom-select-option" data-value="Kegiatan" data-label="Kegiatan Sekolah / Unit" data-color="bg-purple-500">
+                                    <span class="color-dot bg-purple-500"></span> Kegiatan Sekolah / Unit
                                 </div>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Date Selection -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="group">
+                            <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2 group-focus-within:text-cyan-600 transition-colors">Tanggal Mulai <span class="text-red-500">*</span></label>
+                            <div class="relative cursor-pointer" onclick="try { document.getElementById('sideFormStartDate').showPicker(); } catch(e) {}">
+                                <input type="date" name="start_date" id="sideFormStartDate" required onclick="try { this.showPicker(); } catch(e) {}"
+                                    class="w-full rounded-2xl border-slate-200 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 bg-slate-50/30 text-xs py-3 px-3 font-semibold text-slate-700 cursor-pointer transition-all">
+                            </div>
+                        </div>
+                        <div class="group">
+                            <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2 group-focus-within:text-cyan-600 transition-colors">Tanggal Selesai</label>
+                            <div class="relative cursor-pointer" onclick="try { document.getElementById('sideFormEndDate').showPicker(); } catch(e) {}">
+                                <input type="date" name="end_date" id="sideFormEndDate" onclick="try { this.showPicker(); } catch(e) {}"
+                                    class="w-full rounded-2xl border-slate-200 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 bg-slate-50/30 text-xs py-3 px-3 font-semibold text-slate-700 cursor-pointer transition-all">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Location Input -->
+                    <div class="group">
+                        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2 group-focus-within:text-cyan-600 transition-colors">Lokasi Kegiatan</label>
+                        <div class="relative transition-all">
+                            <div class="absolute inset-y-0 left-0 w-11 flex items-center justify-center pointer-events-none">
+                                <i class="fa-solid fa-location-dot text-sm text-slate-300 group-focus-within:text-cyan-400 transition-colors"></i>
+                            </div>
+                            <input type="text" name="location" id="sideFormLocation" placeholder="Contoh: Aula Assunnah / Zoom"
+                                class="w-full pl-11 rounded-2xl border-slate-200 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 bg-slate-50/30 text-xs py-3 font-semibold text-slate-700 placeholder:text-slate-300 transition-all">
+                        </div>
+                    </div>
+
+                    <!-- Description Input -->
+                    <div class="group">
+                        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2 group-focus-within:text-cyan-600 transition-colors">Deskripsi / Detail</label>
+                        <div class="relative transition-all">
+                            <textarea name="description" id="sideFormDescription" rows="2" placeholder="Catatan tambahan mengenai kegiatan..."
+                                class="w-full p-3.5 rounded-2xl border-slate-200 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 bg-slate-50/30 text-xs font-medium text-slate-700 placeholder:text-slate-300 transition-all"></textarea>
                         </div>
                     </div>
 
@@ -780,15 +896,101 @@ function initCustomSelect(containerId, inputId) {
 
 const sidebarSelect = initCustomSelect('categorySelectSidebar', 'categoryInputSidebar');
 
+function toggleUnitSelect() {
+    const sourceType = document.getElementById('sideFormSourceType').value;
+    const unitContainer = document.getElementById('unitSelectContainer');
+    if (sourceType === 'unit') {
+        unitContainer.classList.remove('opacity-60');
+    } else {
+        unitContainer.classList.add('opacity-60');
+    }
+}
+
+// --- Premium Toast Notification Handler (Fixed-position overlay) ---
+function notifyToast(message, type = 'success') {
+    // Always use a fixed-position floating container so toast is visible regardless of scroll
+    let container = document.getElementById('calendarToastContainer');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'calendarToastContainer';
+        container.style.cssText = 'position:fixed;top:20px;right:20px;z-index:99999;display:flex;flex-direction:column;gap:12px;max-width:420px;width:100%;pointer-events:none;';
+        document.body.appendChild(container);
+    }
+    
+    const toast = document.createElement('div');
+    const isSuccess = type === 'success';
+    const bgColor = isSuccess ? '#059669' : '#e11d48';
+    const borderColor = isSuccess ? 'rgba(16,185,129,0.3)' : 'rgba(244,63,94,0.3)';
+    const iconClass = isSuccess ? 'fa-circle-check' : 'fa-circle-xmark';
+    const titleText = isSuccess ? 'Berhasil!' : 'Error!';
+    
+    toast.setAttribute('role', 'alert');
+    toast.style.cssText = `
+        pointer-events:auto;
+        margin-bottom:8px;
+        border-radius:16px;
+        box-shadow:0 25px 50px -12px rgba(0,0,0,0.25),0 0 25px rgba(0,0,0,0.1);
+        padding:16px 20px;
+        border:1px solid ${borderColor};
+        background:${bgColor};
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:12px;
+        opacity:0;
+        transform:translateX(100%);
+        transition:all 0.5s cubic-bezier(0.34,1.56,0.64,1);
+    `;
+    toast.innerHTML = `
+        <div style="display:flex;align-items:center;gap:14px;">
+            <div style="flex-shrink:0;background:rgba(255,255,255,0.2);padding:10px;border-radius:12px;display:flex;align-items:center;justify-content:center;">
+                <i class="fa-solid ${iconClass}" style="font-size:18px;color:#fff;"></i>
+            </div>
+            <div>
+                 <p style="font-size:10px;font-weight:900;color:rgba(255,255,255,0.8);text-transform:uppercase;letter-spacing:2px;line-height:1;margin:0 0 4px 0;">${titleText}</p>
+                 <p style="font-size:14px;font-weight:700;color:#fff;margin:0;line-height:1.3;">${message}</p>
+            </div>
+        </div>
+        <button type="button" onclick="this.closest('[role=alert]').style.opacity='0';this.closest('[role=alert]').style.transform='translateX(100%)';setTimeout(()=>this.closest('[role=alert]')&&this.closest('[role=alert]').remove(),500)" style="color:rgba(255,255,255,0.7);background:none;border:none;cursor:pointer;padding:8px;border-radius:8px;display:flex;align-items:center;transition:all 0.2s;">
+            <i class="fa-solid fa-xmark" style="font-size:16px;"></i>
+        </button>
+    `;
+
+    container.appendChild(toast);
+
+    // Animate in (slide from right)
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateX(0)';
+        });
+    });
+
+    // Auto remove after 4 seconds
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (toast.parentNode) toast.remove();
+        }, 500);
+    }, 4000);
+}
+
 function editEvent(event) {
     if (event.is_api) {
-        showToast('Hari Libur Nasional (API) tidak dapat diubah.', 'error');
+        notifyToast('Hari Libur Nasional (API) tidak dapat diubah.', 'error');
         return;
     }
     document.getElementById('sideFormID').value = event.id;
     document.getElementById('sideFormTitle').value = event.title;
     document.getElementById('sideFormStartDate').value = event.start_date;
     document.getElementById('sideFormEndDate').value = event.end_date || '';
+    document.getElementById('sideFormSourceType').value = event.source_type || 'bidang_pendidikan';
+    document.getElementById('sideFormUnitId').value = event.unit_id || '';
+    document.getElementById('sideFormLocation').value = event.location || '';
+    document.getElementById('sideFormDescription').value = event.description || '';
+    
+    toggleUnitSelect();
     
     // Set custom select value
     sidebarSelect.setValue(event.category || 'Kegiatan');
@@ -805,6 +1007,11 @@ function editEvent(event) {
 function resetSideForm() {
     document.getElementById('sideForm').reset();
     document.getElementById('sideFormID').value = '';
+    document.getElementById('sideFormSourceType').value = 'bidang_pendidikan';
+    document.getElementById('sideFormUnitId').value = '';
+    document.getElementById('sideFormLocation').value = '';
+    document.getElementById('sideFormDescription').value = '';
+    toggleUnitSelect();
     document.getElementById('sideHeaderTitle').innerText = 'Tambah Kegiatan';
     document.getElementById('sideBtnText').innerText = 'Simpan Kegiatan';
     document.getElementById('cancelEditBtn').classList.add('hidden');
@@ -833,9 +1040,17 @@ function submitEvent(data) {
     .then(r => r.json())
     .then(res => {
         if (res.success) {
-            alert(res.message || 'Kegiatan berhasil disimpan!');
+            const msg = res.message || 'Kegiatan berhasil disimpan!';
+            sessionStorage.setItem('toast_message', msg);
+            sessionStorage.setItem('toast_type', 'success');
             location.reload();
-        } else alert('Error: ' + res.message);
+        } else {
+            const errorMsg = res.message || 'Gagal menyimpan kegiatan.';
+            notifyToast(errorMsg, 'error');
+        }
+    })
+    .catch(err => {
+        notifyToast('Terjadi kesalahan koneksi server', 'error');
     });
 }
 
@@ -878,13 +1093,20 @@ function confirmDeleteEvent() {
     })
     .then(r => r.json())
     .then(res => {
+        closeCalendarDeleteModal();
         if (res.success) {
-            closeCalendarDeleteModal();
-            alert(res.message || 'Kegiatan berhasil dihapus!');
+            const msg = res.message || 'Kegiatan berhasil dihapus!';
+            sessionStorage.setItem('toast_message', msg);
+            sessionStorage.setItem('toast_type', 'success');
             location.reload();
         } else {
-            alert('Error: ' + (res.message || 'Gagal menghapus kegiatan'));
+            const errorMsg = res.message || 'Gagal menghapus kegiatan';
+            notifyToast(errorMsg, 'error');
         }
+    })
+    .catch(err => {
+        closeCalendarDeleteModal();
+        notifyToast('Terjadi kesalahan koneksi server', 'error');
     });
 }
 
@@ -949,14 +1171,18 @@ function confirmResetCalendarEvents() {
     .then(res => {
         closeResetModal();
         if (res.success) {
-            alert(res.message || 'Seluruh data agenda berhasil direset!');
+            const msg = res.message || 'Seluruh data agenda berhasil direset!';
+            sessionStorage.setItem('toast_message', msg);
+            sessionStorage.setItem('toast_type', 'success');
             location.reload();
         } else {
-            alert('Error: ' + (res.message || 'Gagal mereset data agenda'));
+            const errorMsg = res.message || 'Gagal mereset data agenda';
+            notifyToast(errorMsg, 'error');
         }
     })
     .catch(err => {
-        alert('Terjadi kesalahan koneksi server');
+        closeResetModal();
+        notifyToast('Terjadi kesalahan koneksi server', 'error');
     });
 }
 
@@ -965,7 +1191,7 @@ let parsedImportRows = [];
 function uploadImportFile() {
     const fileInput = document.getElementById('importFile');
     if (!fileInput.files || fileInput.files.length === 0) {
-        alert('Silakan pilih file CSV/XLSX terlebih dahulu.');
+        notifyToast('Silakan pilih file CSV/XLSX terlebih dahulu.', 'error');
         return;
     }
 
@@ -979,7 +1205,7 @@ function uploadImportFile() {
     .then(r => r.json())
     .then(res => {
         if (!res.success) {
-            alert(res.message || 'Gagal memproses file');
+            notifyToast(res.message || 'Gagal memproses file', 'error');
             return;
         }
 
@@ -1028,17 +1254,13 @@ function uploadImportFile() {
             document.getElementById('btnConfirmImport').classList.add('hidden');
         }
     })
-    .catch(err => alert('Terjadi kesalahan koneksi server'));
+    .catch(err => notifyToast('Terjadi kesalahan koneksi server', 'error'));
 }
 
 function confirmImportData() {
     const validRows = parsedImportRows.filter(r => r.status === 'valid');
     if (validRows.length === 0) {
-        if (typeof showToast === 'function') {
-            showToast('Tidak ada data valid yang dapat diimport.', 'error');
-        } else {
-            alert('Tidak ada data valid yang dapat diimport.');
-        }
+        notifyToast('Tidak ada data valid yang dapat diimport.', 'error');
         return;
     }
 
@@ -1052,31 +1274,31 @@ function confirmImportData() {
         if (res.success) {
             closeImportModal();
             const msg = res.message || `${validRows.length} agenda berhasil diimport ke Kalender Akademik.`;
-            if (typeof showToast === 'function') {
-                showToast(msg, 'success');
-            } else {
-                alert(msg);
-            }
-            setTimeout(() => {
-                location.reload();
-            }, 1500);
+            sessionStorage.setItem('toast_message', msg);
+            sessionStorage.setItem('toast_type', 'success');
+            location.reload();
         } else {
             const errorMsg = res.message || 'Gagal mengimport data agenda.';
-            if (typeof showToast === 'function') {
-                showToast(errorMsg, 'error');
-            } else {
-                alert(errorMsg);
-            }
+            notifyToast(errorMsg, 'error');
         }
     })
     .catch(err => {
-        if (typeof showToast === 'function') {
-            showToast('Terjadi kesalahan koneksi server.', 'error');
-        } else {
-            alert('Terjadi kesalahan koneksi server');
-        }
+        notifyToast('Terjadi kesalahan koneksi server.', 'error');
     });
 }
+
+// On Page Load: Check if there is a pending toast from previous page reload
+window.addEventListener('load', () => {
+    const toastMsg = sessionStorage.getItem('toast_message');
+    const toastType = sessionStorage.getItem('toast_type') || 'success';
+    if (toastMsg) {
+        sessionStorage.removeItem('toast_message');
+        sessionStorage.removeItem('toast_type');
+        setTimeout(() => {
+            notifyToast(toastMsg, toastType);
+        }, 300);
+    }
+});
 </script>
 
 <!-- Custom Delete Modal for Calendar -->

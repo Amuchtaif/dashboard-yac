@@ -165,6 +165,25 @@ function handlePreview($conn) {
             }
         }
 
+        // Auto-detect unit from title if unit_id is not yet resolved
+        if (!$unit_id && !empty($row['title'])) {
+            $titleLower = strtolower($row['title']);
+            if (strpos($titleLower, 'salsabila') !== false || strpos($titleLower, 'sdit') !== false) {
+                if (isset($unitsMap['sdit'])) $unit_id = $unitsMap['sdit'];
+            } elseif (strpos($titleLower, 'mts') !== false) {
+                if (isset($unitsMap['mts'])) $unit_id = $unitsMap['mts'];
+            } elseif (preg_match('/\bph\s*[12345]\b/i', $titleLower) || strpos($titleLower, ' ma') !== false || strpos($titleLower, 'ma ') !== false || strpos($titleLower, 'madrasah aliyah') !== false) {
+                if (isset($unitsMap['ma'])) $unit_id = $unitsMap['ma'];
+            } elseif (strpos($titleLower, 'tkit') !== false) {
+                if (isset($unitsMap['tkit'])) $unit_id = $unitsMap['tkit'];
+            }
+        }
+
+        // Force source_type to 'unit' if unit_id is present
+        if ($unit_id) {
+            $src_type = 'unit';
+        }
+
         // Category default
         $category = !empty($row['category']) ? $row['category'] : 'Kegiatan Bidang Pendidikan';
 
@@ -246,6 +265,12 @@ function handleConfirm($conn, $user_id) {
             elseif ($r['category'] === 'Libur Sekolah') $color = '#16a34a';
             elseif ($r['category'] === 'Rapat') $color = '#7c3aed';
 
+            $unit_id = !empty($r['unit_id']) ? $r['unit_id'] : null;
+            $src_type = !empty($r['source_type']) ? $r['source_type'] : 'bidang_pendidikan';
+            if ($unit_id) {
+                $src_type = 'unit';
+            }
+
             $stmt->execute([
                 ':title' => $r['title'],
                 ':description' => $r['description'] ?? '',
@@ -255,8 +280,8 @@ function handleConfirm($conn, $user_id) {
                 ':end_time' => !empty($r['end_time']) ? $r['end_time'] : null,
                 ':location' => $r['location'] ?? '',
                 ':category' => $r['category'] ?? 'Kegiatan Bidang Pendidikan',
-                ':source_type' => $r['source_type'] ?? 'bidang_pendidikan',
-                ':unit_id' => !empty($r['unit_id']) ? $r['unit_id'] : null,
+                ':source_type' => $src_type,
+                ':unit_id' => $unit_id,
                 ':academic_year_id' => !empty($r['academic_year_id']) ? $r['academic_year_id'] : null,
                 ':semester' => 'Ganjil',
                 ':visibility' => 'public',

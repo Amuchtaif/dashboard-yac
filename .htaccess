@@ -4,7 +4,7 @@ Options -Indexes
 <IfModule mod_rewrite.c>
     # Aktifkan Rewrite Engine
     RewriteEngine On
-    RewriteBase /
+    RewriteBase /dashboard-yac/
 
     # Public Agenda Route (Dukungan dengan atau tanpa trailing slash)
     RewriteRule ^agenda-pendidikan/?$ views/agenda/public.php [QSA,NC,L]

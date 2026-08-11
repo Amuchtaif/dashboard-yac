@@ -25,8 +25,8 @@ if (file_exists($rateLimitFile)) {
 } else {
     $rateData = ['start_time' => $now, 'count' => 1];
 }
-if (!is_dir(__DIR__ . '/../../tmp')) mkdir(__DIR__ . '/../../tmp', 0777, true);
-file_put_contents($rateLimitFile, json_encode($rateData));
+if (!is_dir(__DIR__ . '/../../tmp')) @mkdir(__DIR__ . '/../../tmp', 0777, true);
+@file_put_contents($rateLimitFile, json_encode($rateData));
 
 $db = new Database();
 $conn = $db->getConnection();
@@ -202,6 +202,12 @@ $active_ay_id = !empty($active_ay) ? reset($active_ay)['id'] : (!empty($academic
         .bg-yayasan { background-color: #f0fdfa; color: #0d9488; border-color: #ccfbf1; }
         .bg-other { background-color: #f8fafc; color: #475569; border-color: #e2e8f0; }
 
+        /* Source Type Left Border Indicators */
+        .src-bidang { border-left: 3px solid #6366f1 !important; }
+        .src-unit { border-left: 3px solid #10b981 !important; }
+        .src-yayasan { border-left: 3px solid #14b8a6 !important; }
+        .src-api { border-left: 3px solid #ef4444 !important; }
+
         .timeline-container {
             display: flex;
             overflow-x: auto;
@@ -213,6 +219,26 @@ $active_ay_id = !empty($active_ay) ? reset($active_ay)['id'] : (!empty($academic
             min-width: 240px;
             max-width: 280px;
             flex-shrink: 0;
+        }
+
+        /* Smooth Modal Animation Styles */
+        .modal-backdrop {
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .modal-backdrop.open {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-card {
+            transform: scale(0.92) translateY(16px);
+            opacity: 0;
+            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .modal-backdrop.open .modal-card {
+            transform: scale(1) translateY(0);
+            opacity: 1;
         }
     </style>
 </head>
@@ -231,77 +257,61 @@ $active_ay_id = !empty($active_ay) ? reset($active_ay)['id'] : (!empty($academic
                     <p class="text-xs text-slate-500 font-semibold">Yayasan Assunnah Cirebon</p>
                 </div>
             </div>
-            <div class="hidden sm:block text-right text-xs text-slate-800 font-medium">
-                Pusat Informasi Kegiatan Bidang Pendidikan & Unit YAC
+            
+            <div class="flex items-center gap-3">
+                <button type="button" onclick="openFilterModal()" class="relative inline-flex items-center justify-center px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs transition-all shadow-sm gap-2 cursor-pointer">
+                    <i class="fa-solid fa-filter text-blue-600 text-sm"></i>
+                    <span>Filter Agenda</span>
+                    <span id="filterActiveBadge" class="hidden w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+                </button>
+                <div class="hidden sm:block text-right text-xs text-slate-800 font-medium border-l border-slate-200 pl-4">
+                    Pusat Informasi Kegiatan Bidang Pendidikan & Unit YAC
+                </div>
             </div>
         </div>
     </header>
 
     <main class="w-full max-w-full px-4 sm:px-6 lg:px-10 xl:px-14 py-8 space-y-6">
 
-        <!-- Three Column Grid Layout: Filter (Col 3), Calendar (Col 6), Agenda Cards 1 & 2 (Col 3) -->
+        <!-- Three Column Grid Layout: Card Agenda Hari Ini & Coming Soon (Col 3), Calendar (Col 6), Agenda Cards (Col 3) -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-            <!-- Left Column: Card Filter Agenda & Coming Soon Timeline (lg:col-span-3) -->
+            <!-- Left Column: Card Agenda Hari Ini & Coming Soon Timeline (lg:col-span-3) -->
             <div class="lg:col-span-3 space-y-6">
-                <!-- Card Filter Agenda -->
+                
+                <!-- Card Agenda Hari Ini -->
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                    <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-1">
-                        <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-                            <i class="fa-solid fa-filter text-blue-600"></i>
-                            Filter Agenda
-                        </h3>
+                    <div class="pb-3 border-b border-slate-100">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                                <i class="fa-solid fa-calendar-day text-blue-600"></i>
+                                Agenda Hari Ini
+                            </h3>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100">Hari Ini</span>
+                        </div>
+                        <p id="today_date_display" class="text-[11px] font-semibold text-slate-500 mt-1"></p>
                     </div>
 
-                    <div class="space-y-3">
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-600 mb-1 uppercase tracking-wider">Tahun Akademik</label>
-                            <select id="filter_academic_year_id" onchange="loadPublicAgenda()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-all outline-none cursor-pointer">
-                                <option value="">Semua Tahun</option>
-                                <?php foreach ($academic_years as $ay): ?>
-                                    <option value="<?php echo $ay['id']; ?>" <?php echo $ay['id'] == $active_ay_id ? 'selected' : ''; ?>>
-                                        <?php echo htmlspecialchars($ay['name']); ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
+                    <!-- Agenda Bidang Pendidikan Hari Ini -->
+                    <div class="space-y-2">
+                        <h4 class="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-bullhorn text-indigo-500 text-[10px]"></i>
+                            Bidang Pendidikan
+                        </h4>
+                        <div id="today_bidang_agenda_list" class="space-y-2 max-h-[160px] overflow-y-auto pr-1"></div>
+                    </div>
 
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-600 mb-1 uppercase tracking-wider">Semester</label>
-                            <select id="filter_semester" onchange="loadPublicAgenda()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-all outline-none cursor-pointer">
-                                <option value="Semua">Semua Semester</option>
-                                <option value="Ganjil">Ganjil</option>
-                                <option value="Genap">Genap</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-600 mb-1 uppercase tracking-wider">Sumber Agenda</label>
-                            <select id="filter_source_type" onchange="loadPublicAgenda()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-all outline-none cursor-pointer">
-                                <option value="Semua">Semua Sumber</option>
-                                <option value="yayasan">Yayasan</option>
-                                <option value="bidang_pendidikan">Bidang Pendidikan</option>
-                                <option value="unit">Unit Pendidikan</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-600 mb-1 uppercase tracking-wider">Kategori</label>
-                            <select id="filter_category" onchange="loadPublicAgenda()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-all outline-none cursor-pointer">
-                                <option value="Semua">Semua Kategori</option>
-                                <option value="Libur Nasional">Libur Nasional</option>
-                                <option value="Libur Sekolah">Libur Sekolah</option>
-                                <option value="Cuti Bersama">Cuti Bersama</option>
-                                <option value="Rapat">Rapat</option>
-                                <option value="Kegiatan Yayasan">Kegiatan Yayasan</option>
-                                <option value="Kegiatan Bidang Pendidikan">Kegiatan Bidang Pendidikan</option>
-                                <option value="Kegiatan Unit">Kegiatan Unit</option>
-                            </select>
-                        </div>
+                    <!-- Agenda Unit Pendidikan Hari Ini -->
+                    <div class="space-y-2 pt-2 border-t border-slate-100">
+                        <h4 class="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-school text-emerald-500 text-[10px]"></i>
+                            Unit Pendidikan
+                        </h4>
+                        <div id="today_unit_agenda_list" class="space-y-2 max-h-[160px] overflow-y-auto pr-1"></div>
                     </div>
                 </div>
 
-                <!-- Card Coming Soon Timeline (Dibawah Card Filter) -->
+                <!-- Card Coming Soon Timeline (Bulan Depan) -->
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4">
                     <div>
                         <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
@@ -309,6 +319,7 @@ $active_ay_id = !empty($active_ay) ? reset($active_ay)['id'] : (!empty($academic
                                 <i class="fa-solid fa-clock-rotate-left text-amber-500"></i>
                                 Coming Soon Timeline
                             </h3>
+                            <span id="coming_soon_month_badge" class="text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200/80 px-2 py-0.5 rounded-full uppercase"></span>
                         </div>
 
                         <div id="coming_soon_timeline" class="space-y-3 max-h-[300px] overflow-y-auto pr-1"></div>
@@ -366,6 +377,27 @@ $active_ay_id = !empty($active_ay) ? reset($active_ay)['id'] : (!empty($academic
                     <div class="overflow-x-auto p-5">
                         <div class="calendar-grid min-w-[650px] md:min-w-full" id="calendar_grid"></div>
                     </div>
+
+                    <!-- Source Type Legend -->
+                    <div class="px-5 pb-4 flex flex-wrap gap-x-5 gap-y-2 items-center">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Sumber:</span>
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-3 h-3 rounded-sm" style="background:#6366f1;"></span>
+                            <span class="text-[10px] font-bold text-slate-600">Bidang Pendidikan</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-3 h-3 rounded-sm" style="background:#10b981;"></span>
+                            <span class="text-[10px] font-bold text-slate-600">Unit Pendidikan</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-3 h-3 rounded-sm" style="background:#14b8a6;"></span>
+                            <span class="text-[10px] font-bold text-slate-600">Yayasan</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-3 h-3 rounded-sm" style="background:#ef4444;"></span>
+                            <span class="text-[10px] font-bold text-slate-600">Libur Nasional (API)</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -375,10 +407,14 @@ $active_ay_id = !empty($active_ay) ? reset($active_ay)['id'] : (!empty($academic
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4">
                     <div>
                         <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
-                            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-                                <i class="fa-solid fa-bullhorn text-indigo-600"></i>
-                                Agenda Bidang Pendidikan
-                            </h3>
+                            <div>
+                                <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                                    <i class="fa-solid fa-bullhorn text-indigo-600"></i>
+                                    Agenda Bidang Pendidikan
+                                </h3>
+                                <p class="this-week-range-display text-[10px] font-semibold text-slate-400 mt-0.5"></p>
+                            </div>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100 shrink-0">Pekan Ini</span>
                         </div>
 
                         <div id="bidang_agenda_list" class="space-y-3 max-h-[300px] overflow-y-auto pr-1"></div>
@@ -389,10 +425,14 @@ $active_ay_id = !empty($active_ay) ? reset($active_ay)['id'] : (!empty($academic
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4">
                     <div>
                         <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
-                            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-                                <i class="fa-solid fa-school text-emerald-600"></i>
-                                Agenda Unit Pendidikan
-                            </h3>
+                            <div>
+                                <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                                    <i class="fa-solid fa-school text-emerald-600"></i>
+                                    Agenda Unit Pendidikan
+                                </h3>
+                                <p class="this-week-range-display text-[10px] font-semibold text-slate-400 mt-0.5"></p>
+                            </div>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100 shrink-0">Pekan Ini</span>
                         </div>
 
                         <div id="unit_agenda_list" class="space-y-3 max-h-[300px] overflow-y-auto pr-1"></div>
@@ -428,15 +468,82 @@ $active_ay_id = !empty($active_ay) ? reset($active_ay)['id'] : (!empty($academic
             <div id="unit_cards_container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"></div>
         </div>
 
-
-
     </main>
 </div>
 
+<!-- Modal Filter Agenda Popup -->
+<div id="filterModal" onclick="if(event.target === this) closeModal('filterModal')" class="modal-backdrop fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="modal-card bg-white rounded-3xl max-w-md w-full shadow-2xl overflow-hidden">
+        <div class="px-6 py-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+            <h3 class="text-base font-extrabold text-slate-800 flex items-center gap-2">
+                <i class="fa-solid fa-filter text-blue-600"></i>
+                Filter Agenda
+            </h3>
+            <button type="button" onclick="closeModal('filterModal')" class="w-8 h-8 rounded-full hover:bg-slate-200 flex items-center justify-center text-slate-500 text-sm transition-colors">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div class="p-6 space-y-4">
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wider">Tahun Akademik</label>
+                <select id="filter_academic_year_id" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-all outline-none cursor-pointer">
+                    <option value="">Semua Tahun</option>
+                    <?php foreach ($academic_years as $ay): ?>
+                        <option value="<?php echo $ay['id']; ?>" <?php echo $ay['id'] == $active_ay_id ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($ay['name']); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wider">Semester</label>
+                <select id="filter_semester" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-all outline-none cursor-pointer">
+                    <option value="Semua">Semua Semester</option>
+                    <option value="Ganjil">Ganjil</option>
+                    <option value="Genap">Genap</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wider">Sumber Agenda</label>
+                <select id="filter_source_type" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-all outline-none cursor-pointer">
+                    <option value="Semua">Semua Sumber</option>
+                    <option value="yayasan">Yayasan</option>
+                    <option value="bidang_pendidikan">Bidang Pendidikan</option>
+                    <option value="unit">Unit Pendidikan</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wider">Kategori</label>
+                <select id="filter_category" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-all outline-none cursor-pointer">
+                    <option value="Semua">Semua Kategori</option>
+                    <option value="Libur Nasional">Libur Nasional</option>
+                    <option value="Libur Sekolah">Libur Sekolah</option>
+                    <option value="Cuti Bersama">Cuti Bersama</option>
+                    <option value="Rapat">Rapat</option>
+                    <option value="Kegiatan Yayasan">Kegiatan Yayasan</option>
+                    <option value="Kegiatan Bidang Pendidikan">Kegiatan Bidang Pendidikan</option>
+                    <option value="Kegiatan Unit">Kegiatan Unit</option>
+                </select>
+            </div>
+
+            <div class="pt-3 flex items-center justify-end gap-2 border-t border-slate-100">
+                <button type="button" onclick="resetFilters()" class="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 transition-all cursor-pointer">
+                    Reset
+                </button>
+                <button type="button" onclick="applyFilters()" class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md transition-all cursor-pointer">
+                    Terapkan Filter
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Modal Detail Day Events -->
-<div id="dayDetailModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl overflow-hidden">
+<div id="dayDetailModal" onclick="if(event.target === this) closeModal('dayDetailModal')" class="modal-backdrop fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="modal-card bg-white rounded-3xl max-w-lg w-full shadow-2xl overflow-hidden">
         <div class="px-6 py-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
             <h3 id="dayDetailTitle" class="text-base font-extrabold text-slate-800">Agenda Tanggal</h3>
             <button onclick="closeModal('dayDetailModal')" class="w-8 h-8 rounded-full hover:bg-slate-200 flex items-center justify-center text-slate-500 text-sm">
@@ -452,12 +559,78 @@ $active_ay_id = !empty($active_ay) ? reset($active_ay)['id'] : (!empty($academic
     let currentYear = <?php echo (int)date('Y'); ?>;
     let agendaData = [];
     let activeUnitTab = 'Semua';
+    const defaultAcademicYearId = "<?php echo $active_ay_id; ?>";
 
     const indoMonths = ["", "Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
 
     document.addEventListener('DOMContentLoaded', () => {
+        const todayObj = new Date();
+        const days = ["Ahad", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+        const todayFormatted = `${days[todayObj.getDay()]}, ${todayObj.getDate()} ${indoMonths[todayObj.getMonth() + 1]} ${todayObj.getFullYear()}`;
+        if (document.getElementById('today_date_display')) {
+            document.getElementById('today_date_display').innerText = todayFormatted;
+        }
+
         loadPublicAgenda();
+        loadTodayAgenda();
+        loadThisWeekAgenda();
+        loadComingSoonNextMonth();
     });
+
+    function openModal(id) {
+        const modal = document.getElementById(id);
+        if (!modal) return;
+        modal.classList.remove('hidden');
+        void modal.offsetWidth;
+        modal.classList.add('open');
+    }
+
+    function openFilterModal() {
+        openModal('filterModal');
+    }
+
+    function closeModal(id) {
+        const modal = document.getElementById(id);
+        if (!modal) return;
+        modal.classList.remove('open');
+        setTimeout(() => {
+            if (!modal.classList.contains('open')) {
+                modal.classList.add('hidden');
+            }
+        }, 250);
+    }
+
+    function applyFilters() {
+        checkFilterBadge();
+        loadPublicAgenda();
+        loadThisWeekAgenda();
+        closeModal('filterModal');
+    }
+
+    function resetFilters() {
+        document.getElementById('filter_academic_year_id').value = defaultAcademicYearId;
+        document.getElementById('filter_semester').value = 'Semua';
+        document.getElementById('filter_source_type').value = 'Semua';
+        document.getElementById('filter_category').value = 'Semua';
+        checkFilterBadge();
+        loadPublicAgenda();
+        loadThisWeekAgenda();
+        closeModal('filterModal');
+    }
+
+    function checkFilterBadge() {
+        const ay = document.getElementById('filter_academic_year_id').value;
+        const sem = document.getElementById('filter_semester').value;
+        const src = document.getElementById('filter_source_type').value;
+        const cat = document.getElementById('filter_category').value;
+
+        const isFiltered = (ay !== defaultAcademicYearId) || (sem !== 'Semua') || (src !== 'Semua') || (cat !== 'Semua');
+        const badge = document.getElementById('filterActiveBadge');
+        if (badge) {
+            if (isFiltered) badge.classList.remove('hidden');
+            else badge.classList.add('hidden');
+        }
+    }
 
     function jumpPublicMonthYear() {
         currentMonth = parseInt(document.getElementById('select_month').value);
@@ -504,10 +677,94 @@ $active_ay_id = !empty($active_ay) ? reset($active_ay)['id'] : (!empty($academic
                 if (res.success) {
                     agendaData = res.data || [];
                     renderCalendarGrid();
-                    renderBidangAgenda();
-                    renderUnitAgendaList();
                     renderUnitCards();
-                    renderComingSoonTimeline();
+                }
+            });
+    }
+
+    // Load Today's Agendas (Agenda Bidang & Agenda Unit khusus Hari Ini)
+    function loadTodayAgenda() {
+        const todayObj = new Date();
+        const tMonth = todayObj.getMonth() + 1;
+        const tYear = todayObj.getFullYear();
+        const todayStr = `${tYear}-${String(tMonth).padStart(2, '0')}-${String(todayObj.getDate()).padStart(2, '0')}`;
+
+        fetch(`<?php url('api/agenda/public.php'); ?>?month=${tMonth}&year=${tYear}`)
+            .then(res => res.json())
+            .then(res => {
+                if (res.success) {
+                    const allMonthEvents = res.data || [];
+                    const todayEvents = allMonthEvents.filter(e => todayStr >= e.start_date && todayStr <= (e.end_date || e.start_date));
+                    renderTodayAgendaSection(todayEvents);
+                }
+            });
+    }
+
+    function renderTodayAgendaSection(events) {
+        const bidangList = document.getElementById('today_bidang_agenda_list');
+        const unitList = document.getElementById('today_unit_agenda_list');
+        bidangList.innerHTML = '';
+        unitList.innerHTML = '';
+
+        const bidangToday = events.filter(e => !e.unit_id && (e.source_type === 'bidang_pendidikan' || e.source_type === 'yayasan'));
+        const unitToday = events.filter(e => Boolean(e.unit_id) || e.source_type === 'unit');
+
+        if (bidangToday.length === 0) {
+            bidangList.innerHTML = `<div class="text-slate-400 font-medium text-[11px] py-1 italic">Tidak ada agenda hari ini</div>`;
+        } else {
+            bidangToday.forEach(e => {
+                const card = document.createElement('div');
+                card.className = 'p-2.5 rounded-xl border border-indigo-100 bg-indigo-50/40 space-y-0.5';
+                card.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <span class="font-extrabold text-slate-800 text-xs truncate">${e.title}</span>
+                        <span class="text-[9px] font-bold text-indigo-600 shrink-0">${e.category}</span>
+                    </div>
+                    ${e.start_time ? `<div class="text-[10px] text-slate-500 font-medium"><i class="fa-regular fa-clock mr-1 text-slate-400"></i>${e.start_time.substring(0,5)}</div>` : ''}
+                `;
+                bidangList.appendChild(card);
+            });
+        }
+
+        if (unitToday.length === 0) {
+            unitList.innerHTML = `<div class="text-slate-400 font-medium text-[11px] py-1 italic">Tidak ada agenda hari ini</div>`;
+        } else {
+            unitToday.forEach(e => {
+                const card = document.createElement('div');
+                card.className = 'p-2.5 rounded-xl border border-emerald-100 bg-emerald-50/40 space-y-0.5';
+                card.innerHTML = `
+                    <div class="flex items-center justify-between gap-1">
+                        <span class="text-[9px] font-bold px-2 py-0.5 rounded-full border ${getUnitBadgeStyle(e.unit_name, e.unit_id)}">${e.unit_name || 'Unit'}</span>
+                        <span class="text-[9px] font-bold text-emerald-600 truncate">${e.category}</span>
+                    </div>
+                    <h5 class="font-extrabold text-slate-800 text-xs truncate mt-0.5">${e.title}</h5>
+                    ${e.start_time ? `<div class="text-[10px] text-slate-500 font-medium"><i class="fa-regular fa-clock mr-1 text-slate-400"></i>${e.start_time.substring(0,5)}</div>` : ''}
+                `;
+                unitList.appendChild(card);
+            });
+        }
+    }
+
+    // Load Coming Soon Timeline for Next Month relative to current date
+    function loadComingSoonNextMonth() {
+        const todayObj = new Date();
+        let nextM = todayObj.getMonth() + 2; // +1 for 1-based, +1 for next month => +2
+        let nextY = todayObj.getFullYear();
+        if (nextM > 12) {
+            nextM = 1;
+            nextY++;
+        }
+
+        const badge = document.getElementById('coming_soon_month_badge');
+        if (badge) {
+            badge.innerText = `${indoMonths[nextM]} ${nextY}`;
+        }
+
+        fetch(`<?php url('api/agenda/public.php'); ?>?month=${nextM}&year=${nextY}`)
+            .then(res => res.json())
+            .then(res => {
+                if (res.success) {
+                    renderComingSoonTimeline(res.data || []);
                 }
             });
     }
@@ -563,16 +820,39 @@ $active_ay_id = !empty($active_ay) ? reset($active_ay)['id'] : (!empty($academic
                 else if (e.category === 'Rapat') catClass = "bg-meeting";
                 else if (e.category === 'Kegiatan Yayasan') catClass = "bg-yayasan";
 
+                // Source type left border indicator
+                let srcClass = '';
+                if (e.is_api) srcClass = 'src-api';
+                else if (e.source_type === 'unit') srcClass = 'src-unit';
+                else if (e.source_type === 'yayasan') srcClass = 'src-yayasan';
+                else srcClass = 'src-bidang';
+
                 const ttContainer = document.createElement('div');
                 ttContainer.className = 'tooltip-container';
 
                 const pill = document.createElement('div');
-                pill.className = `event-pill ${catClass}`;
-                pill.innerText = (e.start_time ? e.start_time.substring(0,5) + ' ' : '') + e.title;
+                pill.className = `event-pill ${catClass} ${srcClass}`;
+                
+                // Prefix unit name for unit agenda
+                let pillText = (e.start_time ? e.start_time.substring(0,5) + ' ' : '') + e.title;
+                if (e.source_type === 'unit' && e.unit_name) {
+                    pillText = e.unit_name + ': ' + e.title;
+                }
+                pill.innerText = pillText;
 
+                // Enhanced tooltip with source info
                 const tt = document.createElement('div');
                 tt.className = 'custom-tooltip';
-                tt.innerText = e.title;
+                let tooltipHtml = `<strong>${e.title}</strong>`;
+                if (e.source_type === 'unit' && e.unit_name) {
+                    tooltipHtml += `<br><span style="opacity:0.8">🏫 ${e.unit_name}</span>`;
+                } else if (e.source_type === 'bidang_pendidikan') {
+                    tooltipHtml += `<br><span style="opacity:0.8">📋 Bidang Pendidikan</span>`;
+                } else if (e.source_type === 'yayasan') {
+                    tooltipHtml += `<br><span style="opacity:0.8">🏛️ Yayasan</span>`;
+                }
+                if (e.location) tooltipHtml += `<br><span style="opacity:0.7">📍 ${e.location}</span>`;
+                tt.innerHTML = tooltipHtml;
 
                 ttContainer.appendChild(pill);
                 ttContainer.appendChild(tt);
@@ -613,15 +893,15 @@ $active_ay_id = !empty($active_ay) ? reset($active_ay)['id'] : (!empty($academic
             bidangScrollInterval = null;
         }
 
-        // Check if content overflows container
-        if (container.scrollHeight <= container.clientHeight) {
-            return;
-        }
+        // Remove any previous clones
+        container.querySelectorAll('[data-clone]').forEach(el => el.remove());
 
-        // Duplicate elements for seamless infinite looping
+        if (container.scrollHeight <= container.clientHeight) return;
+
         const originalCards = Array.from(container.children);
         originalCards.forEach(card => {
             const clone = card.cloneNode(true);
+            clone.setAttribute('data-clone', 'true');
             container.appendChild(clone);
         });
 
@@ -643,19 +923,97 @@ $active_ay_id = !empty($active_ay) ? reset($active_ay)['id'] : (!empty($academic
         }, 30);
     }
 
-    function renderBidangAgenda() {
+    function getThisWeekRange() {
+        const today = new Date();
+        const dayOfWeek = (today.getDay() + 6) % 7; // Monday = 0, Sunday = 6
+        
+        const monday = new Date(today);
+        monday.setDate(today.getDate() - dayOfWeek);
+        monday.setHours(0, 0, 0, 0);
+
+        const sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+        sunday.setHours(23, 59, 59, 999);
+
+        const formatYMD = (d) => {
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+        };
+
+        return {
+            startDate: formatYMD(monday),
+            endDate: formatYMD(sunday),
+            mondayObj: monday,
+            sundayObj: sunday
+        };
+    }
+
+    function formatWeekRangeIndo(mondayObj, sundayObj) {
+        const mDay = mondayObj.getDate();
+        const sDay = sundayObj.getDate();
+        const mMonth = mondayObj.getMonth() + 1;
+        const sMonth = sundayObj.getMonth() + 1;
+        const mYear = mondayObj.getFullYear();
+        const sYear = sundayObj.getFullYear();
+
+        const shortIndoMonths = ["", "Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agt", "Sep", "Okt", "Nov", "Des"];
+
+        if (mYear === sYear && mMonth === sMonth) {
+            return `${mDay} - ${sDay} ${shortIndoMonths[mMonth]} ${mYear}`;
+        } else if (mYear === sYear) {
+            return `${mDay} ${shortIndoMonths[mMonth]} - ${sDay} ${shortIndoMonths[sMonth]} ${mYear}`;
+        } else {
+            return `${mDay} ${shortIndoMonths[mMonth]} ${mYear} - ${sDay} ${shortIndoMonths[sMonth]} ${sYear}`;
+        }
+    }
+
+    function loadThisWeekAgenda() {
+        const weekRange = getThisWeekRange();
+        const rangeText = formatWeekRangeIndo(weekRange.mondayObj, weekRange.sundayObj);
+        document.querySelectorAll('.this-week-range-display').forEach(el => {
+            el.innerText = rangeText;
+        });
+
+        const ay = document.getElementById('filter_academic_year_id') ? document.getElementById('filter_academic_year_id').value : '';
+        const sem = document.getElementById('filter_semester') ? document.getElementById('filter_semester').value : 'Semua';
+        const src = document.getElementById('filter_source_type') ? document.getElementById('filter_source_type').value : 'Semua';
+        const cat = document.getElementById('filter_category') ? document.getElementById('filter_category').value : 'Semua';
+
+        const params = new URLSearchParams({
+            start_date: weekRange.startDate,
+            end_date: weekRange.endDate
+        });
+        if (ay) params.append('academic_year_id', ay);
+        if (sem !== 'Semua') params.append('semester', sem);
+        if (src !== 'Semua') params.append('source_type', src);
+        if (cat !== 'Semua') params.append('category', cat);
+
+        fetch(`<?php url('api/agenda/public.php'); ?>?${params.toString()}`)
+            .then(res => res.json())
+            .then(res => {
+                if (res.success) {
+                    const weekEvents = res.data || [];
+                    renderBidangAgenda(weekEvents);
+                    renderUnitAgendaList(weekEvents);
+                }
+            });
+    }
+
+    function renderBidangAgenda(events = []) {
         const container = document.getElementById('bidang_agenda_list');
+        if (!container) return;
         if (bidangScrollInterval) {
             clearInterval(bidangScrollInterval);
             bidangScrollInterval = null;
         }
         container.innerHTML = '';
 
-        // Agenda Bidang Pendidikan / Yayasan (Events without specific unit_id)
-        const bidangEvents = agendaData.filter(e => !e.unit_id && (e.source_type === 'bidang_pendidikan' || e.source_type === 'yayasan'));
+        const bidangEvents = events.filter(e => !e.unit_id && (e.source_type === 'bidang_pendidikan' || e.source_type === 'yayasan'));
 
         if (bidangEvents.length === 0) {
-            container.innerHTML = `<div class="text-center py-8 text-slate-400 font-medium text-xs">Belum ada agenda Bidang Pendidikan di bulan ini</div>`;
+            container.innerHTML = `<div class="text-center py-8 text-slate-400 font-medium text-xs">Belum ada agenda Bidang Pendidikan pekan ini</div>`;
             return;
         }
 
@@ -668,7 +1026,7 @@ $active_ay_id = !empty($active_ay) ? reset($active_ay)['id'] : (!empty($academic
                 </div>
                 <h4 class="font-extrabold text-slate-800 text-xs">${e.title}</h4>
                 <div class="text-[11px] text-slate-500 font-medium flex items-center gap-3">
-                    <span><i class="fa-regular fa-calendar mr-1 text-slate-400"></i>${formatDateIndo(e.start_date)}</span>
+                    <span><i class="fa-regular fa-calendar mr-1 text-slate-400"></i>${formatDateRangeIndo(e.start_date, e.end_date)}</span>
                     ${e.start_time ? `<span><i class="fa-regular fa-clock mr-1 text-slate-400"></i>${e.start_time.substring(0,5)}</span>` : ''}
                 </div>
                 ${e.location ? `<div class="text-[11px] text-slate-500 font-medium"><i class="fa-solid fa-location-dot mr-1 text-slate-400"></i>${e.location}</div>` : ''}
@@ -692,15 +1050,15 @@ $active_ay_id = !empty($active_ay) ? reset($active_ay)['id'] : (!empty($academic
             unitScrollInterval = null;
         }
 
-        // Check if content overflows container
-        if (container.scrollHeight <= container.clientHeight) {
-            return;
-        }
+        // Remove any previous clones
+        container.querySelectorAll('[data-clone]').forEach(el => el.remove());
 
-        // Duplicate elements for seamless infinite looping
+        if (container.scrollHeight <= container.clientHeight) return;
+
         const originalCards = Array.from(container.children);
         originalCards.forEach(card => {
             const clone = card.cloneNode(true);
+            clone.setAttribute('data-clone', 'true');
             container.appendChild(clone);
         });
 
@@ -747,7 +1105,7 @@ $active_ay_id = !empty($active_ay) ? reset($active_ay)['id'] : (!empty($academic
         return styles[index];
     }
 
-    function renderUnitAgendaList() {
+    function renderUnitAgendaList(events = []) {
         const container = document.getElementById('unit_agenda_list');
         if (!container) return;
 
@@ -758,11 +1116,10 @@ $active_ay_id = !empty($active_ay) ? reset($active_ay)['id'] : (!empty($academic
 
         container.innerHTML = '';
 
-        // Agenda Unit Pendidikan (Events with specific unit_id or source_type unit)
-        const unitEvents = agendaData.filter(e => Boolean(e.unit_id) || e.source_type === 'unit');
+        const unitEvents = events.filter(e => Boolean(e.unit_id) || e.source_type === 'unit');
 
         if (unitEvents.length === 0) {
-            container.innerHTML = `<div class="text-center py-8 text-slate-400 font-medium text-xs">Belum ada agenda Unit Pendidikan di bulan ini</div>`;
+            container.innerHTML = `<div class="text-center py-8 text-slate-400 font-medium text-xs">Belum ada agenda Unit Pendidikan pekan ini</div>`;
             return;
         }
 
@@ -776,7 +1133,7 @@ $active_ay_id = !empty($active_ay) ? reset($active_ay)['id'] : (!empty($academic
                 </div>
                 <h4 class="font-extrabold text-slate-800 text-xs">${e.title}</h4>
                 <div class="text-[11px] text-slate-500 font-medium flex items-center gap-3">
-                    <span><i class="fa-regular fa-calendar mr-1 text-slate-400"></i>${formatDateIndo(e.start_date)}</span>
+                    <span><i class="fa-regular fa-calendar mr-1 text-slate-400"></i>${formatDateRangeIndo(e.start_date, e.end_date)}</span>
                     ${e.start_time ? `<span><i class="fa-regular fa-clock mr-1 text-slate-400"></i>${e.start_time.substring(0,5)}</span>` : ''}
                 </div>
                 ${e.location ? `<div class="text-[11px] text-slate-500 font-medium"><i class="fa-solid fa-location-dot mr-1 text-slate-400"></i>${e.location}</div>` : ''}
@@ -857,12 +1214,8 @@ $active_ay_id = !empty($active_ay) ? reset($active_ay)['id'] : (!empty($academic
             comingSoonScrollInterval = null;
         }
 
-        // Check if content overflows container
-        if (container.scrollHeight <= container.clientHeight) {
-            return;
-        }
+        if (container.scrollHeight <= container.clientHeight) return;
 
-        // Duplicate elements for seamless infinite looping
         const originalCards = Array.from(container.children);
         originalCards.forEach(card => {
             const clone = card.cloneNode(true);
@@ -887,7 +1240,7 @@ $active_ay_id = !empty($active_ay) ? reset($active_ay)['id'] : (!empty($academic
         }, 30);
     }
 
-    function renderComingSoonTimeline() {
+    function renderComingSoonTimeline(events) {
         const container = document.getElementById('coming_soon_timeline');
         if (!container) return;
 
@@ -898,10 +1251,10 @@ $active_ay_id = !empty($active_ay) ? reset($active_ay)['id'] : (!empty($academic
 
         container.innerHTML = '';
 
-        const sortedEvents = [...agendaData].sort((a, b) => a.start_date.localeCompare(b.start_date));
+        const sortedEvents = [...events].sort((a, b) => a.start_date.localeCompare(b.start_date));
 
         if (sortedEvents.length === 0) {
-            container.innerHTML = `<div class="text-center py-8 text-slate-400 font-medium text-xs">Belum ada agenda mendatang</div>`;
+            container.innerHTML = `<div class="text-center py-8 text-slate-400 font-medium text-xs">Belum ada agenda di bulan depan</div>`;
             return;
         }
 
@@ -909,16 +1262,14 @@ $active_ay_id = !empty($active_ay) ? reset($active_ay)['id'] : (!empty($academic
             const card = document.createElement('div');
             card.className = 'p-3.5 rounded-2xl border border-slate-100 bg-slate-50/70 space-y-1';
             
-            const dateObj = new Date(e.start_date);
-            const dayNum = dateObj.getDate();
-            const monthShort = indoMonths[dateObj.getMonth() + 1].substring(0, 3).toUpperCase();
+            const dateBadgeText = formatEventDateBadge(e.start_date, e.end_date);
             const badgeLabel = e.unit_name ? e.unit_name : (e.source_type ? e.source_type.replace('_', ' ').toUpperCase() : 'YAC');
 
             card.innerHTML = `
                 <div class="flex items-center justify-between">
                     <span class="text-[10px] font-black px-2 py-0.5 rounded-lg bg-blue-600 text-white shadow-sm flex items-center gap-1">
                         <i class="fa-regular fa-clock text-[9px]"></i>
-                        ${dayNum} ${monthShort}
+                        ${dateBadgeText}
                     </span>
                     <span class="text-[10px] font-bold text-slate-500" style="color:${e.color || '#3b82f6'}">${e.category}</span>
                 </div>
@@ -937,6 +1288,31 @@ $active_ay_id = !empty($active_ay) ? reset($active_ay)['id'] : (!empty($academic
         }, 150);
     }
 
+    function formatEventDateBadge(startDateStr, endDateStr) {
+        if (!startDateStr) return '';
+        const startParts = startDateStr.split('-');
+        if (startParts.length < 3) return startDateStr;
+        const sDay = parseInt(startParts[2]);
+        const sMonth = parseInt(startParts[1]);
+        const sMonthShort = indoMonths[sMonth] ? indoMonths[sMonth].substring(0, 3).toUpperCase() : '';
+
+        if (!endDateStr || endDateStr === startDateStr) {
+            return `${sDay} ${sMonthShort}`;
+        }
+
+        const endParts = endDateStr.split('-');
+        if (endParts.length < 3) return `${sDay} ${sMonthShort}`;
+        const eDay = parseInt(endParts[2]);
+        const eMonth = parseInt(endParts[1]);
+        const eMonthShort = indoMonths[eMonth] ? indoMonths[eMonth].substring(0, 3).toUpperCase() : '';
+
+        if (startParts[0] === endParts[0] && sMonth === eMonth) {
+            return `${sDay} - ${eDay} ${sMonthShort}`;
+        } else {
+            return `${sDay} ${sMonthShort} - ${eDay} ${eMonthShort}`;
+        }
+    }
+
     function openDayDetail(dateStr) {
         const modal = document.getElementById('dayDetailModal');
         const title = document.getElementById('dayDetailTitle');
@@ -952,9 +1328,28 @@ $active_ay_id = !empty($active_ay) ? reset($active_ay)['id'] : (!empty($academic
         } else {
             dayEvents.forEach(e => {
                 const item = document.createElement('div');
+
+                // Source type left border
+                let borderStyle = 'border-left: 4px solid #6366f1;'; // default bidang
+                let sourceLabel = '📋 Bidang Pendidikan';
+                if (e.is_api) {
+                    borderStyle = 'border-left: 4px solid #ef4444;';
+                    sourceLabel = '🔴 Libur Nasional (API)';
+                } else if (e.source_type === 'unit') {
+                    borderStyle = 'border-left: 4px solid #10b981;';
+                    sourceLabel = '🏫 ' + (e.unit_name || 'Unit Pendidikan');
+                } else if (e.source_type === 'yayasan') {
+                    borderStyle = 'border-left: 4px solid #14b8a6;';
+                    sourceLabel = '🏛️ Yayasan';
+                }
+
                 item.className = 'p-3.5 rounded-2xl border border-slate-200 bg-slate-50 space-y-1.5';
+                item.style.cssText = borderStyle;
                 item.innerHTML = `
-                    <span class="px-2 py-0.5 rounded-md text-[10px] font-bold text-white inline-block mb-1" style="background-color:${e.color || '#3b82f6'}">${e.category}</span>
+                    <div class="flex items-center gap-2 flex-wrap mb-1">
+                        <span class="px-2 py-0.5 rounded-md text-[10px] font-bold text-white inline-block" style="background-color:${e.color || '#3b82f6'}">${e.category}</span>
+                        <span class="text-[10px] font-bold text-slate-500">${sourceLabel}</span>
+                    </div>
                     <h4 class="font-extrabold text-slate-800 text-xs">${e.title}</h4>
                     <p class="text-[11px] text-slate-500 font-medium">${e.description || 'Tanpa deskripsi'}</p>
                     <div class="text-[10px] text-slate-400 flex items-center gap-3 pt-1">
@@ -966,11 +1361,38 @@ $active_ay_id = !empty($active_ay) ? reset($active_ay)['id'] : (!empty($academic
             });
         }
 
-        modal.classList.remove('hidden');
+        openModal('dayDetailModal');
     }
 
     function closeModal(id) {
         document.getElementById(id).classList.add('hidden');
+    }
+
+    function formatDateRangeIndo(startDateStr, endDateStr) {
+        if (!startDateStr) return '';
+        const sParts = startDateStr.split('-');
+        if (sParts.length < 3) return startDateStr;
+        const sDay = parseInt(sParts[2]);
+        const sMonth = parseInt(sParts[1]);
+        const sYear = sParts[0];
+
+        if (!endDateStr || endDateStr === startDateStr) {
+            return `${sDay} ${indoMonths[sMonth]} ${sYear}`;
+        }
+
+        const eParts = endDateStr.split('-');
+        if (eParts.length < 3) return `${sDay} ${indoMonths[sMonth]} ${sYear}`;
+        const eDay = parseInt(eParts[2]);
+        const eMonth = parseInt(eParts[1]);
+        const eYear = eParts[0];
+
+        if (sYear === eYear && sMonth === eMonth) {
+            return `${sDay} - ${eDay} ${indoMonths[sMonth]} ${sYear}`;
+        } else if (sYear === eYear) {
+            return `${sDay} ${indoMonths[sMonth]} - ${eDay} ${indoMonths[eMonth]} ${sYear}`;
+        } else {
+            return `${sDay} ${indoMonths[sMonth]} ${sYear} - ${eDay} ${indoMonths[eMonth]} ${eYear}`;
+        }
     }
 
     function formatDateIndo(dateStr) {

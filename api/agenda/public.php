@@ -74,6 +74,8 @@ try {
     $source_type = isset($_GET['source_type']) && $_GET['source_type'] !== '' && $_GET['source_type'] !== 'Semua' ? $_GET['source_type'] : null;
     $category = isset($_GET['category']) && $_GET['category'] !== '' && $_GET['category'] !== 'Semua' ? $_GET['category'] : null;
     $unit_id = isset($_GET['unit_id']) && $_GET['unit_id'] !== '' && $_GET['unit_id'] !== 'Semua' ? (int)$_GET['unit_id'] : null;
+    $start_date = isset($_GET['start_date']) && $_GET['start_date'] !== '' ? $_GET['start_date'] : null;
+    $end_date = isset($_GET['end_date']) && $_GET['end_date'] !== '' ? $_GET['end_date'] : null;
     $month = isset($_GET['month']) && $_GET['month'] !== '' ? (int)$_GET['month'] : null;
     $year = isset($_GET['year']) && $_GET['year'] !== '' ? (int)$_GET['year'] : null;
 
@@ -100,7 +102,11 @@ try {
         $conditions[] = "a.unit_id = :unit_id";
         $params[':unit_id'] = $unit_id;
     }
-    if ($month && $year) {
+    if ($start_date && $end_date) {
+        $conditions[] = "(a.start_date <= :end_date AND (a.end_date >= :start_date OR a.end_date IS NULL))";
+        $params[':start_date'] = $start_date;
+        $params[':end_date'] = $end_date;
+    } elseif ($month && $year) {
         $first_day = sprintf('%04d-%02d-01', $year, $month);
         $last_day = date('Y-m-t', strtotime($first_day));
         $conditions[] = "(a.start_date <= :last_day AND (a.end_date >= :first_day OR a.end_date IS NULL))";
@@ -127,14 +133,16 @@ try {
 
     // Fetch Public Holidays from API if filters allow national holidays
     if (!$unit_id && (!$source_type || $source_type === 'yayasan') && (!$category || $category === 'Libur Nasional')) {
-        $targetYear = $year ? $year : (int)date('Y');
+        $targetYear = $start_date ? (int)substr($start_date, 0, 4) : ($year ? $year : (int)date('Y'));
         $apiHolidays = get_public_holidays($targetYear);
 
         foreach ($apiHolidays as $h) {
             if (!isset($h['date']) || !isset($h['description'])) continue;
             $hDate = $h['date'];
 
-            if ($month && $year) {
+            if ($start_date && $end_date) {
+                if ($hDate < $start_date || $hDate > $end_date) continue;
+            } elseif ($month && $year) {
                 $first_day = sprintf('%04d-%02d-01', $year, $month);
                 $last_day = date('Y-m-t', strtotime($first_day));
                 if ($hDate < $first_day || $hDate > $last_day) continue;
