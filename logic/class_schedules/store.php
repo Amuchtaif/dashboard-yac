@@ -15,6 +15,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $day = $_POST['day'];
     $lesson_period_ids = isset($_POST['lesson_period_ids']) ? $_POST['lesson_period_ids'] : [];
 
+    $valid_from = !empty($_POST['valid_from']) ? $_POST['valid_from'] : date('Y-m-d');
+
     if (!empty($academic_year_id) && !empty($grade_level_id) && !empty($employee_id) && !empty($subject_id) && !empty($day) && !empty($lesson_period_ids) && is_array($lesson_period_ids)) {
 
         $db = new Database();
@@ -46,7 +48,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $unit_stmt->execute([$grade_level_id]);
             $unit_id = $unit_stmt->fetchColumn();
 
-            // Check for conflicts
+            // Check for conflicts against active schedules valid on valid_from date
             $sql_conflict = "
                 SELECT cs.id, s.name as subject_name, gl.name as class_name 
                 FROM class_schedules cs
@@ -58,6 +60,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                   AND cs.day = :day 
                   AND cs.academic_year_id = :ay_id
                   AND lp_start.education_unit_id = :unit_id
+                  AND cs.is_active = 1
+                  AND (:valid_from BETWEEN cs.valid_from AND COALESCE(cs.valid_until, '9999-12-31'))
                   AND (
                       GREATEST(:start_num, lp_start.period_number) <= LEAST(:end_num, COALESCE(lp_end.period_number, lp_start.period_number))
                   )
@@ -68,6 +72,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 ':day' => $day,
                 ':ay_id' => $academic_year_id,
                 ':unit_id' => $unit_id,
+                ':valid_from' => $valid_from,
                 ':start_num' => $start_p_num,
                 ':end_num' => $end_p_num
             ]);
@@ -89,8 +94,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             ];
             $day_of_week = $day_map[$day] ?? 0;
 
-            // Insert single row representing the block
-            $stmt = $conn->prepare("INSERT INTO class_schedules (academic_year_id, grade_level_id, employee_id, subject_id, day, day_of_week, lesson_period_id, end_lesson_period_id) VALUES (:ay, :gl, :emp, :sub, :day, :dow, :lp, :elp)");
+            // Insert single row representing the block with effective date
+            $stmt = $conn->prepare("INSERT INTO class_schedules (academic_year_id, grade_level_id, employee_id, subject_id, day, day_of_week, lesson_period_id, end_lesson_period_id, valid_from, valid_until, is_active) VALUES (:ay, :gl, :emp, :sub, :day, :dow, :lp, :elp, :valid_from, NULL, 1)");
             $stmt->execute([
                 ':ay' => $academic_year_id,
                 ':gl' => $grade_level_id,
@@ -99,7 +104,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 ':day' => $day,
                 ':dow' => $day_of_week,
                 ':lp' => $start_lp_id,
-                ':elp' => ($start_lp_id != $end_lp_id) ? $end_lp_id : null
+                ':elp' => ($start_lp_id != $end_lp_id) ? $end_lp_id : null,
+                ':valid_from' => $valid_from
             ]);
             
             $conn->commit();

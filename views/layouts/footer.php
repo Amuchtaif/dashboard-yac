@@ -164,8 +164,7 @@
             <div class="flex items-center gap-4">
                 <div class="flex-shrink-0 bg-white/20 p-2 rounded-xl flex items-center justify-center">
                     ${iconHtml}
-                </div>`
-,StartLine:155,TargetContent:
+                </div>
                 <div>
                      <p class="text-[11px] font-black ${titleColor} uppercase tracking-widest leading-none mb-1">${titleText}</p>
                      <p class="text-sm font-bold text-white">${message}</p>
@@ -195,9 +194,14 @@
     // --- Custom Dropdown Logic ---
     let activeDropdownId = null;
 
-    function toggleDropdown(id) {
+    function toggleDropdown(id, event = null) {
+        if (event && typeof event.stopPropagation === 'function') {
+            event.stopPropagation();
+        }
+
         const menu = document.getElementById(id + '-menu');
         const arrow = document.getElementById(id + '-arrow');
+        const container = document.getElementById(id + '-container');
 
         if (!menu) return;
 
@@ -205,21 +209,23 @@
         if (activeDropdownId && activeDropdownId !== id) {
             const activeMenu = document.getElementById(activeDropdownId + '-menu');
             const activeArrow = document.getElementById(activeDropdownId + '-arrow');
+            const activeContainer = document.getElementById(activeDropdownId + '-container');
             if (activeMenu) activeMenu.classList.add('hidden');
-            if (activeArrow) {
-                activeArrow.classList.remove('rotate-180');
-            }
+            if (activeArrow) activeArrow.classList.remove('rotate-180');
+            if (activeContainer) activeContainer.classList.remove('z-[60]');
         }
 
         if (menu.classList.contains('hidden')) {
             // Open
             menu.classList.remove('hidden');
             if (arrow) arrow.classList.add('rotate-180');
+            if (container) container.classList.add('z-[60]');
             activeDropdownId = id;
         } else {
             // Close
             menu.classList.add('hidden');
             if (arrow) arrow.classList.remove('rotate-180');
+            if (container) container.classList.remove('z-[60]');
             activeDropdownId = null;
         }
     }
@@ -234,8 +240,10 @@
         // Manual toggle to close
         const menu = document.getElementById(id + '-menu');
         const arrow = document.getElementById(id + '-arrow');
+        const container = document.getElementById(id + '-container');
         if (menu) menu.classList.add('hidden');
         if (arrow) arrow.classList.remove('rotate-180');
+        if (container) container.classList.remove('z-[60]');
         activeDropdownId = null;
     }
 

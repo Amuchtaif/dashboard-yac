@@ -41,6 +41,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $return_filters = isset($_POST['return_filters']) ? $_POST['return_filters'] : '';
 $redirect_qs_amp = $return_filters ? "&" . $return_filters : "";
 
+$valid_from = !empty($_POST['valid_from']) ? $_POST['valid_from'] : date('Y-m-d');
+$import_mode = isset($_POST['import_mode']) ? $_POST['import_mode'] : 'archive_existing';
+$archived_classes = [];
+
 $file_key = isset($_FILES['import_file']) ? 'import_file' : 'csv_file';
 if (!isset($_FILES[$file_key]) || $_FILES[$file_key]['error'] !== UPLOAD_ERR_OK) {
     header("Location: " . BASE_URL . "/views/class_schedules/import.php?error=" . urlencode("Upload failed or no file selected") . $redirect_qs_amp);
@@ -51,6 +55,19 @@ $file = $_FILES[$file_key]['tmp_name'];
 
 $db = new Database();
 $conn = $db->getConnection();
+
+// Ensure legacy single-version UNIQUE constraints are dropped to support schedule archiving & effective dates
+try {
+    $check_index = $conn->query("SHOW INDEX FROM class_schedules WHERE Key_name IN ('uq_class_schedule', 'uq_teacher_schedule')");
+    if ($check_index && $check_index->rowCount() > 0) {
+        $existing_keys = array_unique(array_column($check_index->fetchAll(PDO::FETCH_ASSOC), 'Key_name'));
+        foreach ($existing_keys as $key_name) {
+            $conn->exec("ALTER TABLE class_schedules DROP INDEX `" . $key_name . "`");
+        }
+    }
+} catch (Exception $e) {
+    // Ignore if index doesn't exist or already dropped
+}
 
 $successCount = 0;
 $errorCount = 0;
@@ -281,8 +298,16 @@ try {
         ];
         $day_of_week = $day_map[$day] ?? 0;
 
+        // --- Auto-Archive Active Schedules for this Class if archive_existing mode ---
+        if ($import_mode === 'archive_existing' && !in_array($grade_id . '_' . $ay_id, $archived_classes)) {
+            $archive_date = date('Y-m-d', strtotime($valid_from . ' -1 day'));
+            $arch_stmt = $conn->prepare("UPDATE class_schedules SET is_active = 0, valid_until = :archive_date WHERE grade_level_id = :grade AND academic_year_id = :ay AND is_active = 1");
+            $arch_stmt->execute([':archive_date' => $archive_date, ':grade' => $grade_id, ':ay' => $ay_id]);
+            $archived_classes[] = $grade_id . '_' . $ay_id;
+        }
+
         // 7. Duplicate & Conflict Check
-        // a. Check if Class/Grade already has a schedule at this time
+        // a. Check if Class/Grade already has an active schedule at this time
         $stmtCheck = $conn->prepare("
             SELECT cs.id FROM class_schedules cs
             JOIN lesson_periods lp_start ON cs.lesson_period_id = lp_start.id
@@ -291,6 +316,8 @@ try {
               AND cs.grade_level_id = :grade 
               AND cs.day_of_week = :dow 
               AND lp_start.education_unit_id = :unit_id
+              AND cs.is_active = 1
+              AND (:valid_from BETWEEN cs.valid_from AND COALESCE(cs.valid_until, '9999-12-31'))
               AND (
                   (:start_p <= COALESCE(lp_end.period_number, lp_start.period_number) AND :end_p >= lp_start.period_number)
               )
@@ -301,6 +328,7 @@ try {
             ':grade' => $grade_id,
             ':dow' => $day_of_week,
             ':unit_id' => $unit_id,
+            ':valid_from' => $valid_from,
             ':start_p' => $start_period,
             ':end_p' => $end_period
         ]);
@@ -311,7 +339,7 @@ try {
             continue;
         }
 
-        // b. Check if Teacher (Employee) already has a schedule at this time (prevent uq_teacher_schedule error)
+        // b. Check if Teacher (Employee) already has an active schedule at this time
         $stmtTeacherCheck = $conn->prepare("
             SELECT cs.id FROM class_schedules cs
             JOIN lesson_periods lp_start ON cs.lesson_period_id = lp_start.id
@@ -320,6 +348,8 @@ try {
               AND cs.employee_id = :emp 
               AND cs.day_of_week = :dow 
               AND lp_start.education_unit_id = :unit_id
+              AND cs.is_active = 1
+              AND (:valid_from BETWEEN cs.valid_from AND COALESCE(cs.valid_until, '9999-12-31'))
               AND (
                   (:start_p <= COALESCE(lp_end.period_number, lp_start.period_number) AND :end_p >= lp_start.period_number)
               )
@@ -330,6 +360,7 @@ try {
             ':emp' => $teacher_id,
             ':dow' => $day_of_week,
             ':unit_id' => $unit_id,
+            ':valid_from' => $valid_from,
             ':start_p' => $start_period,
             ':end_p' => $end_period
         ]);
@@ -344,9 +375,9 @@ try {
         $stmt = $conn->prepare("
             INSERT INTO class_schedules (
                 academic_year_id, employee_id, subject_id, grade_level_id, 
-                lesson_period_id, end_lesson_period_id, day, day_of_week
+                lesson_period_id, end_lesson_period_id, day, day_of_week, valid_from, valid_until, is_active
             ) VALUES (
-                :ay, :emp, :sub, :grade, :lp, :lp_end, :day, :dow
+                :ay, :emp, :sub, :grade, :lp, :lp_end, :day, :dow, :valid_from, NULL, 1
             )
         ");
         $stmt->execute([
@@ -357,7 +388,8 @@ try {
             ':lp' => $lp_id,
             ':lp_end' => $lp_end_id ?: $lp_id,
             ':day' => $day,
-            ':dow' => $day_of_week
+            ':dow' => $day_of_week,
+            ':valid_from' => $valid_from
         ]);
 
         $successCount++;

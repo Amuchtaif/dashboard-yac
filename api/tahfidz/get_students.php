@@ -25,21 +25,49 @@ try {
     // 1. Get active academic year
     $activeYear = "";
     $activeYearId = 0;
-    $yearQuery = "SELECT id, name FROM academic_years WHERE is_active = 1 LIMIT 1";
-    $yearResult = $mysqli->query($yearQuery);
-    
-    if ($yearResult && $yearResult->num_rows > 0) {
-        $yearRow = $yearResult->fetch_assoc();
-        $activeYearId = (int)$yearRow['id'];
-        $activeYear = $yearRow['name'];
+
+    if (!empty($_GET['academic_year_id'])) {
+        $yearIdParam = (int)$_GET['academic_year_id'];
+        $yearQuery = "SELECT id, name FROM academic_years WHERE id = $yearIdParam LIMIT 1";
+        $yearResult = $mysqli->query($yearQuery);
+        if ($yearResult && $yearResult->num_rows > 0) {
+            $yearRow = $yearResult->fetch_assoc();
+            $activeYearId = (int)$yearRow['id'];
+            $activeYear = $yearRow['name'];
+        }
     }
 
-    // 2. Fetch all students (filtered by status Aktif and excluding specific units)
-    $exclude = ["'TKIT'", "'SDIT'", "'PLAY GROUP'"];
-    $exclude_str = implode(',', $exclude);
+    if ($activeYearId === 0) {
+        $yearQuery = "SELECT id, name FROM academic_years WHERE is_active = 1 LIMIT 1";
+        $yearResult = $mysqli->query($yearQuery);
+        if ($yearResult && $yearResult->num_rows > 0) {
+            $yearRow = $yearResult->fetch_assoc();
+            $activeYearId = (int)$yearRow['id'];
+            $activeYear = $yearRow['name'];
+        }
+    }
+
+    if ($activeYearId === 0) {
+        $activeYearId = 1;
+    }
+
+    // 2. Fetch active students dynamically via student_class_history matching active academic year
+    $tahfidzOnly = isset($_GET['tahfidz_only']) && $_GET['tahfidz_only'] == '1';
+    $whereConditions = ["(s.status = 'Aktif' OR LOWER(s.status) = 'aktif' OR s.status LIKE 'Aktif%')"];
+    if ($tahfidzOnly) {
+        $exclude = ["'TKIT'", "'SDIT'", "'PLAY GROUP'"];
+        $exclude_str = implode(',', $exclude);
+        $whereConditions[] = "(gl.category NOT IN ($exclude_str) OR s.tingkat NOT IN ($exclude_str) OR s.tingkat IS NULL)";
+    }
+    $whereSql = "WHERE " . implode(" AND ", $whereConditions);
+
+    // Primary query using JOIN on student_class_history for the active academic year (matching teacher/get_students_by_schedule.php pattern)
     $query = "SELECT s.*, 
                      s.nomor_induk as nis,
                      COALESCE(gl.name, s.kelas, '-') as kelas,
+                     COALESCE(gl.category, s.tingkat, '-') as tingkat,
+                     sch.class_id,
+                     sch.academic_year_id as sch_academic_year_id,
                      COALESCE((SELECT baseline_juz FROM memorization_baselines WHERE student_id = s.id AND academic_year_id = $activeYearId LIMIT 1), 
                               (SELECT baseline_juz FROM memorization_baselines WHERE student_id = s.id ORDER BY id DESC LIMIT 1), 
                               0.0) as baseline_juz,
@@ -50,13 +78,40 @@ try {
                               (SELECT baseline_juz FROM memorization_baselines WHERE student_id = s.id ORDER BY id DESC LIMIT 1), 
                               0.0) as initial_juz
               FROM students s 
-              LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = $activeYearId
-              LEFT JOIN grade_levels gl ON sch.class_id = gl.id
-              WHERE s.status = 'Aktif' 
-              AND (s.tingkat NOT IN ($exclude_str) OR s.tingkat IS NULL)
+              JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = $activeYearId
+              JOIN grade_levels gl ON sch.class_id = gl.id
+              $whereSql
               ORDER BY s.nama_siswa ASC";
+
     $formatted_students = [];
     $filled_count = 0;
+
+    $result = $mysqli->query($query);
+
+    // Fallback if INNER JOIN produces no rows (e.g. students not yet linked to class history)
+    if (!$result || $result->num_rows === 0) {
+        $fallbackQuery = "SELECT s.*, 
+                             s.nomor_induk as nis,
+                             COALESCE(gl.name, s.kelas, '-') as kelas,
+                             COALESCE(gl.category, s.tingkat, '-') as tingkat,
+                             sch.class_id,
+                             sch.academic_year_id as sch_academic_year_id,
+                             COALESCE((SELECT baseline_juz FROM memorization_baselines WHERE student_id = s.id AND academic_year_id = $activeYearId LIMIT 1), 
+                                      (SELECT baseline_juz FROM memorization_baselines WHERE student_id = s.id ORDER BY id DESC LIMIT 1), 
+                                      0.0) as baseline_juz,
+                             COALESCE((SELECT baseline_juz FROM memorization_baselines WHERE student_id = s.id AND academic_year_id = $activeYearId LIMIT 1), 
+                                      (SELECT baseline_juz FROM memorization_baselines WHERE student_id = s.id ORDER BY id DESC LIMIT 1), 
+                                      0.0) as baseline,
+                             COALESCE((SELECT baseline_juz FROM memorization_baselines WHERE student_id = s.id AND academic_year_id = $activeYearId LIMIT 1), 
+                                      (SELECT baseline_juz FROM memorization_baselines WHERE student_id = s.id ORDER BY id DESC LIMIT 1), 
+                                      0.0) as initial_juz
+                      FROM students s 
+                      LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = $activeYearId
+                      LEFT JOIN grade_levels gl ON sch.class_id = gl.id
+                      $whereSql
+                      ORDER BY s.nama_siswa ASC";
+        $result = $mysqli->query($fallbackQuery);
+    }
 
     if ($result) {
         while ($row = $result->fetch_assoc()) {

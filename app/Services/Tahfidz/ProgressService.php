@@ -80,39 +80,119 @@ class ProgressService {
         $total_juz = $baseline_juz + $memorized_juz_semester;
 
         // 4. Get Target Hafalan for student's grade/unit
-        // We need student's unit_id and kelas_id
-        $stmt = $this->mysqli->prepare("SELECT tahun_ajaran, tingkat, kelas FROM students WHERE id = ?");
-        $stmt->bind_param("i", $student_id);
-        $stmt->execute();
-        $stud_info = $stmt->get_result()->fetch_assoc();
-        $stmt->close();
-
         $target_juz = 0.0;
-        if ($stud_info) {
-            // Map student grade to unit_id and kelas_id if needed, or query target_hafalan
-            // Let's check target_hafalan schema again: it matches tahun_ajaran_id (which is academic_year_id), unit_id, kelas_id.
-            // Let's write a query to fetch target based on academic_year_id and student's class
-            // To do this accurately, we find target_hafalan records.
-            // Let's get the class name and match target_hafalan.
-            // Let's see: target_hafalan matches unit_id, kelas_id (which are from education_units and grade_levels, or simple integers).
-            // Let's query target_hafalan with a join on students/grade levels.
-            // Since student has 'tingkat' and 'kelas', let's search if there's target_hafalan matches.
-            // Let's write a lookup query:
-            $target_query = "SELECT t.target_juz 
-                             FROM target_hafalan t
-                             JOIN students s ON s.id = ?
-                             WHERE t.tahun_ajaran_id = ? 
-                               AND (t.kelas_id = s.kelas OR t.kelas_id = (SELECT id FROM grade_levels WHERE name = s.kelas LIMIT 1) OR t.kelas_id = CAST(s.kelas AS UNSIGNED))
-                             LIMIT 1";
-            $stmt = $this->mysqli->prepare($target_query);
-            $stmt->bind_param("ii", $student_id, $academic_year_id);
-            $stmt->execute();
-            $target_row = $stmt->get_result()->fetch_assoc();
-            $stmt->close();
-            
-            if ($target_row) {
-                $target_juz = (float)$target_row['target_juz'];
+
+        // Fetch class & unit info from student_class_history for the active academic year
+        $class_id = null;
+        $class_name = '';
+        $sch_stmt = $this->mysqli->prepare("
+            SELECT sch.class_id, gl.name as class_name, gl.category as unit_name
+            FROM student_class_history sch
+            JOIN grade_levels gl ON sch.class_id = gl.id
+            WHERE sch.student_id = ? AND sch.academic_year_id = ?
+            LIMIT 1
+        ");
+        $sch_stmt->bind_param("ii", $student_id, $academic_year_id);
+        $sch_stmt->execute();
+        $sch_row = $sch_stmt->get_result()->fetch_assoc();
+        $sch_stmt->close();
+
+        if ($sch_row) {
+            $class_id = (int)$sch_row['class_id'];
+            $class_name = $sch_row['class_name'] ?? '';
+        } else {
+            $st_stmt = $this->mysqli->prepare("SELECT kelas, tingkat FROM students WHERE id = ? LIMIT 1");
+            $st_stmt->bind_param("i", $student_id);
+            $st_stmt->execute();
+            $st_row = $st_stmt->get_result()->fetch_assoc();
+            $st_stmt->close();
+            if ($st_row) {
+                $class_name = $st_row['kelas'] ?? '';
             }
+        }
+
+        // Extract grade number from class_name (e.g., '8A' -> 8, 'Kelas 8' -> 8, '8' -> 8, 'VIII' -> 8)
+        $grade_num = null;
+        if (!empty($class_name)) {
+            if (preg_match('/(\d+)/', $class_name, $m)) {
+                $grade_num = (int)$m[1];
+            } else if (stripos($class_name, 'VIII') !== false) {
+                $grade_num = 8;
+            } else if (stripos($class_name, 'VII') !== false) {
+                $grade_num = 7;
+            } else if (stripos($class_name, 'IX') !== false) {
+                $grade_num = 9;
+            } else if (stripos($class_name, 'XII') !== false) {
+                $grade_num = 12;
+            } else if (stripos($class_name, 'XI') !== false) {
+                $grade_num = 11;
+            } else if (stripos($class_name, 'X') !== false) {
+                $grade_num = 10;
+            }
+        }
+
+        // Tier 1: Try exact match by class_id or grade_num in target_hafalan for active academic year
+        if ($class_id !== null || $grade_num !== null) {
+            $t_where = [];
+            if ($class_id !== null) $t_where[] = "kelas_id = $class_id";
+            if ($grade_num !== null) $t_where[] = "kelas_id = $grade_num";
+            
+            $t_query = "SELECT target_juz FROM target_hafalan 
+                        WHERE tahun_ajaran_id = ? 
+                          AND (" . implode(" OR ", $t_where) . ")
+                        LIMIT 1";
+            $stmt = $this->mysqli->prepare($t_query);
+            $stmt->bind_param("i", $academic_year_id);
+            $stmt->execute();
+            $t_row = $stmt->get_result()->fetch_assoc();
+            $stmt->close();
+            if ($t_row && (float)$t_row['target_juz'] > 0) {
+                $target_juz = (float)$t_row['target_juz'];
+            }
+        }
+
+        // Tier 2: Try grade_levels name match for active academic year
+        if ($target_juz == 0.0 && !empty($class_name)) {
+            $t_query2 = "SELECT th.target_juz FROM target_hafalan th
+                         LEFT JOIN grade_levels gl ON th.kelas_id = gl.id
+                         WHERE th.tahun_ajaran_id = ?
+                           AND (gl.name = ? OR LOWER(gl.name) LIKE LOWER(?))
+                         LIMIT 1";
+            $search_name = "%$class_name%";
+            $stmt = $this->mysqli->prepare($t_query2);
+            $stmt->bind_param("iss", $academic_year_id, $class_name, $search_name);
+            $stmt->execute();
+            $t_row2 = $stmt->get_result()->fetch_assoc();
+            $stmt->close();
+            if ($t_row2 && (float)$t_row2['target_juz'] > 0) {
+                $target_juz = (float)$t_row2['target_juz'];
+            }
+        }
+
+        // Tier 3: Try grade_num across target_hafalan for any academic year
+        if ($target_juz == 0.0 && $grade_num !== null) {
+            $t_query3 = "SELECT target_juz FROM target_hafalan WHERE kelas_id = ? ORDER BY id DESC LIMIT 1";
+            $stmt = $this->mysqli->prepare($t_query3);
+            $stmt->bind_param("i", $grade_num);
+            $stmt->execute();
+            $t_row3 = $stmt->get_result()->fetch_assoc();
+            $stmt->close();
+            if ($t_row3 && (float)$t_row3['target_juz'] > 0) {
+                $target_juz = (float)$t_row3['target_juz'];
+            }
+        }
+
+        // Tier 4: Fallback default target per grade level (e.g. 2.0 juz per semester for grade 8)
+        if ($target_juz == 0.0 && $grade_num !== null) {
+            $default_targets = [
+                7 => 2.0,
+                8 => 2.0,
+                9 => 2.0,
+                10 => 2.0,
+                11 => 2.0,
+                12 => 2.0,
+            ];
+            $target_juz = $default_targets[$grade_num] ?? 2.0;
         }
 
         // Calculate progress percentage

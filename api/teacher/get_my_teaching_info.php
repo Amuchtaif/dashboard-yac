@@ -29,7 +29,7 @@ try {
         JOIN grade_levels gl ON cs.grade_level_id = gl.id
         LEFT JOIN education_units eu ON gl.education_unit_id = eu.id
         JOIN subjects s ON cs.subject_id = s.id
-        WHERE cs.employee_id = :employee_id AND cs.academic_year_id = :active_year_id
+        WHERE cs.employee_id = :employee_id AND cs.academic_year_id = :active_year_id AND cs.is_active = 1
     ";
     $stmt = $conn->prepare($sql);
     $stmt->execute([':employee_id' => $employee_id, ':active_year_id' => $active_year_id]);

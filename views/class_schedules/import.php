@@ -83,6 +83,22 @@ include '../layouts/header.php';
                 </div>
             </div>
 
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-900 mb-1">Mulai Berlaku (Tanggal Effective)</label>
+                    <input type="date" name="valid_from" value="<?php echo date('Y-m-d'); ?>" required class="block w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all">
+                    <p class="text-xs text-slate-500 mt-1">Tanggal pertama jadwal hasil import mulai aktif berlaku.</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-900 mb-1">Mode Import Jadwal</label>
+                    <select name="import_mode" class="block w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all">
+                        <option value="archive_existing">Arsipkan Jadwal Aktif Lama (Revisi Total / Versi Baru)</option>
+                        <option value="append">Gabungkan / Tambahkan ke Jadwal yang Sudah Ada</option>
+                    </select>
+                    <p class="text-xs text-slate-500 mt-1">Jika memilih Revisi Total, jadwal aktif kelas yang diimport akan ditutup secara aman.</p>
+                </div>
+            </div>
+
             <!-- Filename Display -->
             <div id="file-name" class="hidden text-sm text-slate-700 bg-slate-100 p-2 rounded border border-slate-200">
             </div>

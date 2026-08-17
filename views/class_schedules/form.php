@@ -78,25 +78,42 @@ $days = [
 include '../layouts/header.php';
 ?>
 
-<div class="w-full pb-10">
-    <div class="md:flex md:items-center md:justify-between mb-8">
+<div class="w-full pb-12">
+    <!-- Page Header -->
+    <div class="md:flex md:items-center md:justify-between mb-6">
         <div class="flex-1 min-w-0">
-            <h2 class="text-2xl font-bold leading-7 text-slate-900 sm:text-3xl"><?php echo $page_title; ?></h2>
-            <p class="mt-1 text-sm text-slate-500">Definisikan guru, kelas, mata pelajaran, dan waktu.</p>
+            <h2 class="text-2xl font-bold leading-7 text-slate-900 sm:text-3xl tracking-tight"><?php echo $page_title; ?></h2>
+            <p class="mt-1.5 text-sm text-slate-500">Definisikan guru, kelas, mata pelajaran, waktu mengajar, dan tanggal efektif berlaku.</p>
         </div>
         <div class="mt-4 flex md:mt-0 md:ml-4">
             <a href="index.php?<?php echo $query_string; ?>"
-                class="inline-flex items-center px-4 py-2 border border-slate-300 rounded-lg shadow-sm text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors">Kembali</a>
+                class="inline-flex items-center gap-2 px-4 py-2.5 border border-slate-300 rounded-xl shadow-sm text-sm font-semibold text-slate-700 bg-white hover:bg-slate-50 hover:text-slate-900 transition-all active:scale-95">
+                <i class="fa-solid fa-arrow-left text-slate-400 text-xs"></i>
+                Kembali
+            </a>
         </div>
     </div>
 
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm relative">
+    <!-- Form Card -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
         <form action="../../logic/class_schedules/<?php echo $id ? 'update.php' : 'store.php'; ?>" method="POST"
-            class="p-6 sm:p-8 space-y-6">
+            class="p-6 sm:p-10 space-y-8">
             <?php if ($id): ?><input type="hidden" name="id" value="<?php echo $id; ?>"><?php endif; ?>
             <input type="hidden" name="redirect_params" value="<?php echo htmlspecialchars($query_string); ?>">
 
-            <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
+            <!-- Form Card Subtitle -->
+            <div class="flex items-center gap-3 pb-2">
+                <div class="w-10 h-10 rounded-xl bg-cyan-50 border border-cyan-100 flex items-center justify-center text-cyan-600 text-lg shadow-xs">
+                    <i class="fa-solid fa-calendar-plus"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-slate-900">Formulir Jadwal Pelajaran</h3>
+                    <p class="text-xs text-slate-500">Lengkapi data rincian kelas, mata pelajaran, guru, jam pelajaran, dan tanggal berlaku.</p>
+                </div>
+            </div>
+
+            <!-- Form Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-6">
 
                 <!-- Tahun Akademik (Custom Dropdown) -->
                 <div class="sm:col-span-1">
@@ -376,16 +393,16 @@ include '../layouts/header.php';
 
                 <!-- Jam Pelajaran (Checkboxes) -->
                 <div class="sm:col-span-1">
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Jam Pelajaran <span
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Jam Pelajaran <span
                             class="text-red-500">*</span></label>
                     <div class="relative" id="container-lesson_periods" style="z-index: 35;">
                         <button type="button" onclick="toggleFormDropdown('lesson_periods')"
-                            class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all">
+                            class="flex w-full items-center justify-between rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 transition-all">
                             <span id="text-lesson_periods" class="block truncate">Pilih Jam...</span>
                             <i id="arrow-lesson_periods" class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 transition-transform duration-200"></i>
                         </button>
                         <div id="menu-lesson_periods"
-                            class="hidden absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-slate-200">
+                            class="hidden absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-xl bg-white py-1 shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-slate-100">
                             <ul class="py-1" id="list-lesson_periods">
                                 <?php foreach ($lesson_periods as $lp): ?>
                                     <li data-unit="<?php echo $lp['education_unit_id']; ?>"
@@ -403,11 +420,28 @@ include '../layouts/header.php';
                         </div>
                     </div>
                 </div>
+
+                <!-- Tanggal Mulai Berlaku (Effective Date) -->
+                <div class="sm:col-span-1">
+                    <label for="valid_from" class="block text-sm font-semibold text-slate-700 mb-1.5">Mulai Berlaku (Tanggal Effective) <span class="text-red-500">*</span></label>
+                    <input type="date" name="valid_from" id="valid_from" 
+                        value="<?php echo ($schedule && !empty($schedule['valid_from'])) ? $schedule['valid_from'] : date('Y-m-d'); ?>" 
+                        required 
+                        class="block w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 transition-all">
+                    <p class="text-xs text-slate-500 mt-1">Tanggal pertama jadwal ini mulai aktif berlaku di kelas.</p>
+                </div>
+
             </div>
 
-            <div class="pt-6 flex justify-end gap-3 border-t border-slate-100">
+            <!-- Bottom Actions -->
+            <div class="mt-8 flex items-center justify-end gap-3">
+                <a href="index.php?<?php echo $query_string; ?>"
+                    class="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-700 text-sm font-semibold hover:bg-slate-50 hover:text-slate-900 transition-all active:scale-95">
+                    Batal
+                </a>
                 <button type="submit"
-                    class="inline-flex items-center px-6 py-2.5 rounded-lg shadow-sm text-sm font-bold text-white bg-cyan-600 hover:bg-cyan-700 focus:ring-2 focus:ring-cyan-500 transition-all">
+                    class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl shadow-md text-sm font-bold text-white bg-cyan-600 hover:bg-cyan-700 focus:ring-4 focus:ring-cyan-500/20 transition-all active:scale-95">
+                    <i class="fa-solid fa-floppy-disk"></i>
                     Simpan Jadwal
                 </button>
             </div>

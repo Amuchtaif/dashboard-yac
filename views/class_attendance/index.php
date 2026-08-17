@@ -114,7 +114,9 @@ $sql = "
     LEFT JOIN lesson_periods lp_end ON cs.end_lesson_period_id = lp_end.id
     JOIN employees e ON cs.employee_id = e.id
     LEFT JOIN class_journals cj ON cs.id = cj.class_schedule_id AND cj.date = :date
-    WHERE cs.day = :day AND cs.academic_year_id = :selected_year_id
+    WHERE cs.day = :day 
+      AND cs.academic_year_id = :selected_year_id
+      AND (:date BETWEEN cs.valid_from AND COALESCE(cs.valid_until, '9999-12-31'))
 ";
 
 $params = [':date' => $date, ':day' => $english_day, ':selected_year_id' => $selected_year_id];

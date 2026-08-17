@@ -20,7 +20,7 @@ try {
         FROM class_schedules cs
         JOIN grade_levels gl ON cs.grade_level_id = gl.id
         JOIN education_units eu ON gl.education_unit_id = eu.id
-        WHERE cs.employee_id = ?
+        WHERE cs.employee_id = ? AND cs.is_active = 1
         ORDER BY eu.name ASC
     ";
     $stmt1 = $db->prepare($q_units);
@@ -32,7 +32,7 @@ try {
         SELECT DISTINCT gl.id, gl.name, gl.education_unit_id
         FROM class_schedules cs
         JOIN grade_levels gl ON cs.grade_level_id = gl.id
-        WHERE cs.employee_id = ?
+        WHERE cs.employee_id = ? AND cs.is_active = 1
         ORDER BY gl.name ASC
     ";
     $stmt2 = $db->prepare($q_classes);
@@ -44,7 +44,7 @@ try {
         SELECT DISTINCT s.id, s.name, cs.grade_level_id
         FROM class_schedules cs
         JOIN subjects s ON cs.subject_id = s.id
-        WHERE cs.employee_id = ?
+        WHERE cs.employee_id = ? AND cs.is_active = 1
         ORDER BY s.name ASC
     ";
     $stmt3 = $db->prepare($q_subjects);

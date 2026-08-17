@@ -275,7 +275,7 @@ include '../layouts/header.php';
             <!-- Unit Filter (Jenjang) -->
             <div class="relative group" id="filter-unit-container">
                 <input type="hidden" name="unit_id" id="filter-unit-input" value="<?php echo $unit_id; ?>">
-                <button type="button" onclick="toggleDropdown('filter-unit')"
+                <button type="button" onclick="toggleDropdown('filter-unit', event)"
                     class="inline-flex items-center justify-between gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-colors w-32">
                     <span id="filter-unit-text" class="truncate">
                         <?php
@@ -308,7 +308,7 @@ include '../layouts/header.php';
             <!-- Class Filter (Kelas) -->
             <div class="relative group" id="filter-class-container">
                 <input type="hidden" name="class_id" id="filter-class-input" value="<?php echo $class_id; ?>">
-                <button type="button" onclick="toggleDropdown('filter-class')"
+                <button type="button" onclick="toggleDropdown('filter-class', event)"
                     class="inline-flex items-center justify-between gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-colors w-32">
                     <span id="filter-class-text" class="truncate">
                         <?php
@@ -341,7 +341,7 @@ include '../layouts/header.php';
             <!-- Status Filter -->
             <div class="relative group" id="filter-status-container">
                 <input type="hidden" name="status" id="filter-status-input" value="<?php echo $status; ?>">
-                <button type="button" onclick="toggleDropdown('filter-status')"
+                <button type="button" onclick="toggleDropdown('filter-status', event)"
                     class="inline-flex items-center justify-between gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-colors w-32">
                     <span id="filter-status-text" class="truncate">
                         <?php
@@ -383,7 +383,7 @@ include '../layouts/header.php';
         <div class="flex items-center gap-2">
             <span class="text-xs font-medium text-slate-600">Tampilkan:</span>
             <div class="relative" id="limit-dropdown-container">
-                <button type="button" onclick="toggleDropdown('limit-dropdown')"
+                <button type="button" onclick="toggleDropdown('limit-dropdown', event)"
                     class="inline-flex items-center justify-between gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-colors min-w-[80px]">
                     <span id="limit-text"><?php echo $limit; ?> baris</span>
                     <i id="limit-dropdown-arrow" class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 transition-transform duration-200"></i>

@@ -48757,8 +48757,6 @@ ALTER TABLE `class_journals`
 --
 ALTER TABLE `class_schedules`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `uq_class_schedule` (`academic_year_id`,`grade_level_id`,`day_of_week`,`lesson_period_id`),
-  ADD UNIQUE KEY `uq_teacher_schedule` (`academic_year_id`,`employee_id`,`day_of_week`,`lesson_period_id`),
   ADD KEY `idx_day` (`day`),
   ADD KEY `idx_grade_level` (`grade_level_id`),
   ADD KEY `idx_employee` (`employee_id`),

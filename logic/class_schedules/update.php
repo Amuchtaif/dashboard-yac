@@ -92,19 +92,46 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             ];
             $day_of_week = $day_map[$day] ?? 0;
 
-            // Update original record with start and end
-            $stmt = $conn->prepare("UPDATE class_schedules SET academic_year_id = :ay, grade_level_id = :gl, employee_id = :emp, subject_id = :sub, day = :day, day_of_week = :dow, lesson_period_id = :lp, end_lesson_period_id = :elp WHERE id = :id");
-            $stmt->execute([
-                ':ay' => $academic_year_id,
-                ':gl' => $grade_level_id,
-                ':emp' => $employee_id,
-                ':sub' => $subject_id,
-                ':day' => $day,
-                ':dow' => $day_of_week,
-                ':lp' => $start_lp_id,
-                ':elp' => ($start_lp_id != $end_lp_id) ? $end_lp_id : null,
-                ':id' => $id
-            ]);
+            // Check if class_journals already exist for this schedule
+            $check_j_stmt = $conn->prepare("SELECT COUNT(*) FROM class_journals WHERE class_schedule_id = ?");
+            $check_j_stmt->execute([$id]);
+            $journal_count = $check_j_stmt->fetchColumn();
+
+            if ($journal_count > 0) {
+                // Archive old schedule as of yesterday, and insert a new active version starting today
+                $yesterday = date('Y-m-d', strtotime('-1 day'));
+                $today = date('Y-m-d');
+
+                $archive_stmt = $conn->prepare("UPDATE class_schedules SET valid_until = :yesterday, is_active = 0 WHERE id = :id");
+                $archive_stmt->execute([':yesterday' => $yesterday, ':id' => $id]);
+
+                $insert_stmt = $conn->prepare("INSERT INTO class_schedules (academic_year_id, grade_level_id, employee_id, subject_id, day, day_of_week, lesson_period_id, end_lesson_period_id, valid_from, valid_until, is_active) VALUES (:ay, :gl, :emp, :sub, :day, :dow, :lp, :elp, :valid_from, NULL, 1)");
+                $insert_stmt->execute([
+                    ':ay' => $academic_year_id,
+                    ':gl' => $grade_level_id,
+                    ':emp' => $employee_id,
+                    ':sub' => $subject_id,
+                    ':day' => $day,
+                    ':dow' => $day_of_week,
+                    ':lp' => $start_lp_id,
+                    ':elp' => ($start_lp_id != $end_lp_id) ? $end_lp_id : null,
+                    ':valid_from' => $today
+                ]);
+            } else {
+                // Update original record directly
+                $stmt = $conn->prepare("UPDATE class_schedules SET academic_year_id = :ay, grade_level_id = :gl, employee_id = :emp, subject_id = :sub, day = :day, day_of_week = :dow, lesson_period_id = :lp, end_lesson_period_id = :elp WHERE id = :id");
+                $stmt->execute([
+                    ':ay' => $academic_year_id,
+                    ':gl' => $grade_level_id,
+                    ':emp' => $employee_id,
+                    ':sub' => $subject_id,
+                    ':day' => $day,
+                    ':dow' => $day_of_week,
+                    ':lp' => $start_lp_id,
+                    ':elp' => ($start_lp_id != $end_lp_id) ? $end_lp_id : null,
+                    ':id' => $id
+                ]);
+            }
 
             $conn->commit();
             $final_redirect = $redirect_url . ($redirect_params ? "&" : "?") . "success=" . urlencode("Jadwal berhasil diperbarui");

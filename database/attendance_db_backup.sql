@@ -567,8 +567,6 @@ CREATE TABLE `class_schedules` (
   `day` enum('Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday') NOT NULL,
   `day_of_week` tinyint(4) NOT NULL COMMENT '1=Monday ... 7=Sunday',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uq_class_schedule` (`academic_year_id`,`grade_level_id`,`day_of_week`,`lesson_period_id`),
-  UNIQUE KEY `uq_teacher_schedule` (`academic_year_id`,`employee_id`,`day_of_week`,`lesson_period_id`),
   KEY `idx_day` (`day`),
   KEY `idx_grade_level` (`grade_level_id`),
   KEY `idx_employee` (`employee_id`),

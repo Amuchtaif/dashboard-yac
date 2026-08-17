@@ -23,6 +23,7 @@ $unit_id = isset($_GET['unit_id']) ? $_GET['unit_id'] : '';
 $grade_id = isset($_GET['grade_id']) ? $_GET['grade_id'] : '';
 $day = isset($_GET['day']) ? $_GET['day'] : '';
 $ay_id = isset($_GET['ay_id']) ? $_GET['ay_id'] : '';
+$status = isset($_GET['status']) ? $_GET['status'] : 'active';
 
 $is_admin = (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Administrator');
 
@@ -43,6 +44,12 @@ $params = [];
 if ($selected_year_id) {
     $where_clauses[] = "cs.academic_year_id = :selected_year_id";
     $params[':selected_year_id'] = $selected_year_id;
+}
+
+if ($status === 'active') {
+    $where_clauses[] = "(cs.is_active = 1 AND (cs.valid_until IS NULL OR cs.valid_until >= CURRENT_DATE))";
+} elseif ($status === 'archived') {
+    $where_clauses[] = "(cs.is_active = 0 OR (cs.valid_until IS NOT NULL AND cs.valid_until < CURRENT_DATE))";
 }
 
 // --- Fetch Logged-in User Info for Role-based Scoping ---
@@ -222,23 +229,23 @@ include '../layouts/header.php';
     <!-- Filter Bar -->
     <form id="filterForm" class="mt-8 bg-white p-6 rounded-xl border border-slate-200 shadow-sm" method="GET">
         <input type="hidden" name="limit" id="input-limit" value="<?php echo $limit; ?>">
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 items-end">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-7 gap-3 items-end">
             <!-- Search -->
             <div class="relative">
                 <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                     <i class="fa-solid fa-magnifying-glass h-4 w-4 text-slate-400"></i>
                 </div>
                 <input type="text" name="search" value="<?php echo htmlspecialchars($search); ?>"
-                    class="block w-full rounded-lg border-slate-200 pl-10 text-sm focus:border-cyan-500 focus:ring-cyan-500 bg-slate-50 border placeholder:text-slate-400 text-slate-600 py-2.5"
-                    placeholder="Cari guru, mapel...">
+                    class="block w-full rounded-lg border-slate-200 pl-9 text-sm focus:border-cyan-500 focus:ring-cyan-500 bg-slate-50 border placeholder:text-slate-400 text-slate-700 py-2.5"
+                    placeholder="Cari guru/mapel...">
             </div>
 
             <!-- Custom Academic Year Dropdown -->
             <div class="relative" id="container-ay_id">
                 <input type="hidden" name="ay_id" id="input-ay_id" value="<?php echo $selected_year_id; ?>">
                 <button type="button" onclick="toggleFormDropdown('ay_id')"
-                    class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-slate-50 px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all">
-                    <span id="text-ay_id" class="block truncate">
+                    class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all">
+                    <span id="text-ay_id" class="block truncate text-xs font-medium">
                         <?php 
                         $ayTitle = "Pilih Tahun Ajaran";
                         foreach($academic_years as $ay) {
@@ -250,7 +257,7 @@ include '../layouts/header.php';
                         echo htmlspecialchars($ayTitle);
                         ?>
                     </span>
-                    <i id="arrow-ay_id" class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 transition-transform"></i>
+                    <i id="arrow-ay_id" class="fa-solid fa-chevron-down h-3.5 w-3.5 text-slate-400 transition-transform"></i>
                 </button>
                 <div id="menu-ay_id" class="hidden absolute z-30 mt-1 max-h-60 w-full overflow-auto rounded-xl bg-white py-1 text-base shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
                     <ul id="list-ay_id">
@@ -267,15 +274,15 @@ include '../layouts/header.php';
             <div class="relative" id="container-unit_id">
                 <input type="hidden" name="unit_id" id="input-unit_id" value="<?php echo $unit_id; ?>">
                 <button type="button" onclick="toggleFormDropdown('unit_id')"
-                    class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-slate-50 px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all">
-                    <span id="text-unit_id" class="block truncate">
+                    class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all">
+                    <span id="text-unit_id" class="block truncate text-xs font-medium">
                         <?php 
                         $unitTitle = "Semua Unit";
                         foreach($units as $u) if((string)$u['id'] === (string)$unit_id) $unitTitle = $u['name'];
                         echo htmlspecialchars($unitTitle);
                         ?>
                     </span>
-                    <i id="arrow-unit_id" class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 transition-transform"></i>
+                    <i id="arrow-unit_id" class="fa-solid fa-chevron-down h-3.5 w-3.5 text-slate-400 transition-transform"></i>
                 </button>
                 <div id="menu-unit_id" class="hidden absolute z-30 mt-1 max-h-60 w-full overflow-auto rounded-xl bg-white py-1 text-base shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
                     <div class="sticky top-0 z-10 bg-white px-2 py-1.5">
@@ -296,15 +303,15 @@ include '../layouts/header.php';
             <div class="relative" id="container-grade_id">
                 <input type="hidden" name="grade_id" id="input-grade_id" value="<?php echo $grade_id; ?>">
                 <button type="button" onclick="toggleFormDropdown('grade_id')"
-                    class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-slate-50 px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all">
-                    <span id="text-grade_id" class="block truncate">
+                    class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all">
+                    <span id="text-grade_id" class="block truncate text-xs font-medium">
                         <?php 
                         $gradeTitle = "Semua Kelas";
                         foreach($grades as $g) if($g['id'] == $grade_id) $gradeTitle = $g['name'] . ($g['is_active'] ? '' : ' (Non-aktif)');
                         echo htmlspecialchars($gradeTitle);
                         ?>
                     </span>
-                    <i id="arrow-grade_id" class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 transition-transform"></i>
+                    <i id="arrow-grade_id" class="fa-solid fa-chevron-down h-3.5 w-3.5 text-slate-400 transition-transform"></i>
                 </button>
                 <div id="menu-grade_id" class="hidden absolute z-30 mt-1 max-h-60 w-full overflow-auto rounded-xl bg-white py-1 text-base shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
                     <div class="sticky top-0 z-10 bg-white px-2 py-1.5">
@@ -328,11 +335,11 @@ include '../layouts/header.php';
             <div class="relative" id="container-day">
                 <input type="hidden" name="day" id="input-day" value="<?php echo $day; ?>">
                 <button type="button" onclick="toggleFormDropdown('day')"
-                    class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-slate-50 px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all">
-                    <span id="text-day" class="block truncate">
+                    class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all">
+                    <span id="text-day" class="block truncate text-xs font-medium">
                         <?php echo $day ? ($indo_days[$day] ?? $day) : "Semua Hari"; ?>
                     </span>
-                    <i id="arrow-day" class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 transition-transform"></i>
+                    <i id="arrow-day" class="fa-solid fa-chevron-down h-3.5 w-3.5 text-slate-400 transition-transform"></i>
                 </button>
                 <div id="menu-day" class="hidden absolute z-30 mt-1 max-h-60 w-full overflow-auto rounded-xl bg-white py-1 text-base shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
                     <ul id="list-day">
@@ -346,11 +353,34 @@ include '../layouts/header.php';
                 </div>
             </div>
 
+            <!-- Custom Status Dropdown -->
+            <div class="relative" id="container-status">
+                <input type="hidden" name="status" id="input-status" value="<?php echo htmlspecialchars($status); ?>">
+                <button type="button" onclick="toggleFormDropdown('status')"
+                    class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all">
+                    <span id="text-status" class="block truncate text-xs font-medium">
+                        <?php 
+                        if ($status === 'archived') echo 'Di-arsipkan';
+                        elseif ($status === 'all') echo 'Semua Versi';
+                        else echo 'Jadwal Aktif';
+                        ?>
+                    </span>
+                    <i id="arrow-status" class="fa-solid fa-chevron-down h-3.5 w-3.5 text-slate-400 transition-transform"></i>
+                </button>
+                <div id="menu-status" class="hidden absolute z-30 mt-1 max-h-60 w-full overflow-auto rounded-xl bg-white py-1 text-base shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                    <ul id="list-status">
+                        <li onclick="selectFilterOption('status', 'active', 'Jadwal Aktif')" class="relative cursor-pointer select-none py-2 pl-3 pr-9 text-slate-600 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">Jadwal Aktif</li>
+                        <li onclick="selectFilterOption('status', 'archived', 'Di-arsipkan')" class="relative cursor-pointer select-none py-2 pl-3 pr-9 text-slate-600 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">Di-arsipkan</li>
+                        <li onclick="selectFilterOption('status', 'all', 'Semua Versi')" class="relative cursor-pointer select-none py-2 pl-3 pr-9 text-slate-600 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">Semua Versi</li>
+                    </ul>
+                </div>
+            </div>
+
             <!-- Reset Button -->
             <div>
                 <a href="index.php" 
-                    class="flex items-center justify-center w-full px-4 py-2.5 rounded-lg bg-slate-800 text-white text-sm font-semibold hover:bg-slate-900 shadow-sm transition-all active:scale-95">
-                    <i class="fa-solid fa-xmark w-4 h-4 mr-2"></i>
+                    class="flex items-center justify-center w-full px-3 py-2.5 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200 shadow-xs transition-all active:scale-95 whitespace-nowrap">
+                    <i class="fa-solid fa-xmark w-3.5 h-3.5 mr-1.5 text-slate-400 group-hover:text-rose-600"></i>
                     Hapus Filter
                 </a>
             </div>
@@ -447,6 +477,8 @@ include '../layouts/header.php';
                             Kelas</th>
                         <th class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
                             Guru</th>
+                        <th class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                            Status & Masa Berlaku</th>
                         <th
                             class="relative py-3.5 pl-3 pr-4 sm:pr-6 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">
                             Aksi</th>
@@ -455,7 +487,7 @@ include '../layouts/header.php';
                 <tbody class="divide-y divide-gray-200 bg-white">
                     <?php if (empty($schedules)): ?>
                         <tr>
-                            <td colspan="8" class="py-10 text-center text-sm text-slate-500">Belum ada data jadwal.</td>
+                            <td colspan="9" class="py-10 text-center text-sm text-slate-500">Belum ada data jadwal.</td>
                         </tr>
                     <?php endif; ?>
                     <?php foreach ($schedules as $index => $sch): ?>
@@ -494,6 +526,27 @@ include '../layouts/header.php';
                             <td class="whitespace-nowrap px-3 py-4 text-sm">
                                 <div class="font-medium text-gray-900">
                                     <?php echo htmlspecialchars($sch['teacher_name']); ?>
+                                </div>
+                            </td>
+                            <td class="whitespace-nowrap px-3 py-4 text-xs">
+                                <?php 
+                                $today_str = date('Y-m-d');
+                                $is_currently_active = ($sch['is_active'] == 1 && (empty($sch['valid_until']) || $sch['valid_until'] >= $today_str));
+                                ?>
+                                <?php if ($is_currently_active): ?>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
+                                        <i class="fa-solid fa-circle-check w-3 h-3 mr-1"></i> Aktif
+                                    </span>
+                                <?php else: ?>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">
+                                        <i class="fa-solid fa-box-archive w-3 h-3 mr-1"></i> Archived
+                                    </span>
+                                <?php endif; ?>
+                                <div class="text-[11px] text-slate-500 mt-1">
+                                    Mulai: <?php echo !empty($sch['valid_from']) ? date('d/m/Y', strtotime($sch['valid_from'])) : '-'; ?><br>
+                                    <?php if (!empty($sch['valid_until'])): ?>
+                                        Selesai: <?php echo date('d/m/Y', strtotime($sch['valid_until'])); ?>
+                                    <?php endif; ?>
                                 </div>
                             </td>
                             <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">

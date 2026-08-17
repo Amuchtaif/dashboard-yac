@@ -53,6 +53,7 @@ try {
         WHERE
             e.status = 'active'
             AND cs.academic_year_id = ?
+            AND cs.is_active = 1
     ";
 
     if (!empty($search)) {

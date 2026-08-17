@@ -55,7 +55,11 @@ try {
         JOIN grade_levels gl ON cs.grade_level_id = gl.id
         LEFT JOIN lesson_periods lp ON cs.lesson_period_id = lp.id
         LEFT JOIN lesson_periods lp_end ON cs.end_lesson_period_id = lp_end.id
-        WHERE cs.employee_id = :employee_id AND cs.day = :day AND cs.academic_year_id = :active_year_id
+        WHERE cs.employee_id = :employee_id 
+          AND cs.day = :day 
+          AND cs.academic_year_id = :active_year_id
+          AND cs.is_active = 1
+          AND (:date BETWEEN cs.valid_from AND COALESCE(cs.valid_until, '9999-12-31'))
         ORDER BY lp.start_time ASC
     ";
 
