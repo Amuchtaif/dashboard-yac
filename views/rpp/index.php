@@ -17,12 +17,29 @@ $offset = ($page - 1) * $limit;
 $is_draft = isset($_GET['draft']) ? (int)$_GET['draft'] : 0;
 $search = $_GET['search'] ?? '';
 
-$is_admin = (isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Administrator');
+$user_stmt = $conn->prepare("
+    SELECT p.name as position_name
+    FROM employees e 
+    LEFT JOIN positions p ON e.position_id = p.id 
+    WHERE e.id = :user_id LIMIT 1
+");
+$user_stmt->execute([':user_id' => $_SESSION['user_id']]);
+$user_data = $user_stmt->fetch(PDO::FETCH_ASSOC);
+$position_name = $user_data['position_name'] ?? $_SESSION['position_name'] ?? '';
+
+$is_guru_position = (strpos(strtolower($position_name), 'guru') !== false);
+
+// Check if user has a teaching schedule
+$sched_stmt = $conn->prepare("SELECT COUNT(*) FROM class_schedules WHERE employee_id = :user_id");
+$sched_stmt->execute([':user_id' => $_SESSION['user_id']]);
+$has_schedule = ($sched_stmt->fetchColumn() > 0);
+
+$is_guru = ($is_guru_position || $has_schedule);
 
 $where = "WHERE r.is_draft = :draft";
 $params = [':draft' => $is_draft];
 
-if (!$is_admin) {
+if ($is_guru) {
     $where .= " AND r.employee_id = :current_user_id";
     $params[':current_user_id'] = $_SESSION['user_id'];
 }

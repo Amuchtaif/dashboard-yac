@@ -18,32 +18,25 @@ $is_admin = (isset($_SESSION['position_name']) && $_SESSION['position_name'] ===
 
 // --- Fetch Logged-in User Info for Role-based Scoping ---
 $user_stmt = $conn->prepare("
-    SELECT e.unit_id, p.level, u.name as unit_name
+    SELECT p.name as position_name
     FROM employees e 
     LEFT JOIN positions p ON e.position_id = p.id 
-    LEFT JOIN units u ON e.unit_id = u.id
     WHERE e.id = :user_id LIMIT 1
 ");
 $user_stmt->execute([':user_id' => $_SESSION['user_id']]);
 $user_data = $user_stmt->fetch(PDO::FETCH_ASSOC);
-$user_level = $user_data ? (int)$user_data['level'] : 5;
-$user_unit_name = $user_data ? $user_data['unit_name'] : '';
-$user_unit_id_raw = $user_data ? $user_data['unit_id'] : null;
+$position_name = $user_data['position_name'] ?? $_SESSION['position_name'] ?? '';
 
-$mapped_education_unit_ids = [];
-if (!empty($user_unit_name)) {
-    $clean_unit_name = str_replace(["'", " "], ["", ""], strtolower($user_unit_name));
-    $edu_stmt = $conn->query("SELECT id, name FROM education_units");
-    while ($edu_row = $edu_stmt->fetch(PDO::FETCH_ASSOC)) {
-        $clean_edu_name = str_replace(["'", " "], ["", ""], strtolower($edu_row['name']));
-        if (strpos($clean_unit_name, $clean_edu_name) !== false || strpos($clean_edu_name, $clean_unit_name) !== false) {
-            $mapped_education_unit_ids[] = (int)$edu_row['id'];
-        }
-    }
-}
+$is_guru_position = (strpos(strtolower($position_name), 'guru') !== false);
 
-$is_teacher_only = (!$is_admin && $user_level >= 5 && empty($mapped_education_unit_ids));
-if ($is_teacher_only) {
+// Check if user has a teaching schedule
+$sched_stmt = $conn->prepare("SELECT COUNT(*) FROM class_schedules WHERE employee_id = :user_id");
+$sched_stmt->execute([':user_id' => $_SESSION['user_id']]);
+$has_schedule = ($sched_stmt->fetchColumn() > 0);
+
+$is_guru = ($is_guru_position || $has_schedule);
+
+if ($is_guru) {
     $employee_id = $_SESSION['user_id'];
 }
 
@@ -59,20 +52,15 @@ if ($grade_id) {
     $params[':grade_id'] = $grade_id;
 }
 
-if (!$is_admin && !empty($mapped_education_unit_ids)) {
-    $where_clauses[] = "gl.education_unit_id IN (" . implode(',', $mapped_education_unit_ids) . ")";
-}
-
 if ($employee_id) {
     $where_clauses[] = "cj.teacher_id = :employee_id";
     $params[':employee_id'] = $employee_id;
 }
-// Note: Joining required for filters
 
 $where_sql = "WHERE " . implode(" AND ", $where_clauses);
 
 // --- Data Master --
-if (!$is_admin && $user_level >= 5 && empty($mapped_education_unit_ids)) {
+if ($is_guru) {
     $grades_query = "
         SELECT DISTINCT gl.id, gl.name, gl.education_unit_id 
         FROM grade_levels gl
@@ -92,16 +80,6 @@ if (!$is_admin && $user_level >= 5 && empty($mapped_education_unit_ids)) {
     }
     
     $employees = $conn->query("SELECT id, full_name FROM employees WHERE id = " . (int)$_SESSION['user_id'])->fetchAll(PDO::FETCH_ASSOC);
-} else if (!$is_admin && !empty($mapped_education_unit_ids)) {
-    $units = $conn->query("SELECT id, name FROM education_units WHERE id IN (" . implode(',', $mapped_education_unit_ids) . ") ORDER BY FIELD(name, 'Playgroup', 'TKIT', 'SDIT', 'MTs', 'Idad Lughoh', 'MA', 'Mahad Aly') ASC, name ASC")->fetchAll(PDO::FETCH_ASSOC);
-    $grades = $conn->query("SELECT id, name, education_unit_id FROM grade_levels WHERE education_unit_id IN (" . implode(',', $mapped_education_unit_ids) . ") ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
-    
-    $employees_query = "SELECT id, full_name FROM employees WHERE status = 'active'";
-    if ($user_unit_id_raw) {
-        $employees_query .= " AND unit_id = " . (int)$user_unit_id_raw;
-    }
-    $employees_query .= " ORDER BY full_name ASC";
-    $employees = $conn->query($employees_query)->fetchAll(PDO::FETCH_ASSOC);
 } else {
     $units = $conn->query("SELECT id, name FROM education_units ORDER BY FIELD(name, 'Playgroup', 'TKIT', 'SDIT', 'MTs', 'Idad Lughoh', 'MA', 'Mahad Aly') ASC, name ASC")->fetchAll(PDO::FETCH_ASSOC);
     $grades = $conn->query("SELECT id, name, education_unit_id FROM grade_levels ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
