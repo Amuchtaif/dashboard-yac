@@ -43,6 +43,9 @@ try {
                   WHERE cs.grade_level_id = :class_id 
                     AND cs.day = :day_name 
                     AND cs.academic_year_id = :active_year_id
+                    AND cs.is_active = 1
+                    AND (cs.valid_from IS NULL OR cs.valid_from <= :target_date)
+                    AND (cs.valid_until IS NULL OR cs.valid_until >= :target_date)
                   ORDER BY lp.start_time ASC";
         
         $stmt = $db->prepare($query);
@@ -72,7 +75,11 @@ try {
                     gl.name as class_name, 
                     (SELECT COUNT(*) FROM class_journals cj 
                      JOIN class_schedules cs ON cj.class_schedule_id = cs.id
-                     WHERE cs.grade_level_id = gl.id AND cj.date = :target_date) as attendance_count
+                     WHERE cs.grade_level_id = gl.id 
+                       AND cj.date = :target_date
+                       AND cs.is_active = 1
+                       AND (cs.valid_from IS NULL OR cs.valid_from <= :target_date)
+                       AND (cs.valid_until IS NULL OR cs.valid_until >= :target_date)) as attendance_count
                   FROM grade_levels gl
                   WHERE gl.category = :unit
                   ORDER BY gl.name ASC";

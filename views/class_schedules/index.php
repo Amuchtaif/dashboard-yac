@@ -226,169 +226,287 @@ include '../layouts/header.php';
         <?php unset($_SESSION['import_errors']); ?>
     <?php endif; ?>
 
-    <!-- Filter Bar -->
-    <form id="filterForm" class="mt-8 bg-white p-6 rounded-xl border border-slate-200 shadow-sm" method="GET">
+    <!-- Filter Card -->
+    <?php
+    $has_active_filters = false;
+    $applied_filters = [];
+    if (!empty($search)) {
+        $has_active_filters = true;
+        $applied_filters[] = ['key' => 'search', 'label' => 'Cari: "' . htmlspecialchars($search) . '"'];
+    }
+    if (!empty($selected_year_id) && $selected_year_id != $active_year_id) {
+        $has_active_filters = true;
+        $ay_name_found = "Tahun Ajaran";
+        foreach($academic_years as $ay) { if($ay['id'] == $selected_year_id) { $ay_name_found = $ay['name']; break; } }
+        $applied_filters[] = ['key' => 'ay_id', 'label' => 'TA: ' . $ay_name_found];
+    }
+    if (!empty($unit_id)) {
+        $has_active_filters = true;
+        $unit_name_found = "Unit";
+        foreach($units as $u) { if((string)$u['id'] === (string)$unit_id) { $unit_name_found = $u['name']; break; } }
+        $applied_filters[] = ['key' => 'unit_id', 'label' => 'Unit: ' . $unit_name_found];
+    }
+    if (!empty($grade_id)) {
+        $has_active_filters = true;
+        $grade_name_found = "Kelas";
+        foreach($grades as $g) { if($g['id'] == $grade_id) { $grade_name_found = $g['name']; break; } }
+        $applied_filters[] = ['key' => 'grade_id', 'label' => 'Kelas: ' . $grade_name_found];
+    }
+    if (!empty($day)) {
+        $has_active_filters = true;
+        $applied_filters[] = ['key' => 'day', 'label' => 'Hari: ' . ($indo_days[$day] ?? $day)];
+    }
+    if ($status !== 'active') {
+        $has_active_filters = true;
+        $status_label = $status === 'archived' ? 'Di-arsipkan' : 'Semua Versi';
+        $applied_filters[] = ['key' => 'status', 'label' => 'Status: ' . $status_label];
+    }
+    ?>
+
+    <form id="filterForm" class="mt-6 bg-white rounded-2xl border border-slate-200/80 shadow-xs relative z-20 transition-all" method="GET">
         <input type="hidden" name="limit" id="input-limit" value="<?php echo $limit; ?>">
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-7 gap-3 items-end">
-            <!-- Search -->
-            <div class="relative">
-                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                    <i class="fa-solid fa-magnifying-glass h-4 w-4 text-slate-400"></i>
+        
+        <!-- Header bar inside filter card -->
+        <div class="px-6 py-4 bg-slate-50/60 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 rounded-t-2xl">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-cyan-50 border border-cyan-100 flex items-center justify-center text-cyan-600">
+                    <i class="fa-solid fa-sliders text-xs"></i>
                 </div>
-                <input type="text" name="search" value="<?php echo htmlspecialchars($search); ?>"
-                    class="block w-full rounded-lg border-slate-200 pl-9 text-sm focus:border-cyan-500 focus:ring-cyan-500 bg-slate-50 border placeholder:text-slate-400 text-slate-700 py-2.5"
-                    placeholder="Cari guru/mapel...">
+                <div>
+                    <h2 class="text-sm font-bold text-slate-800">Filter &amp; Pencarian</h2>
+                    <p class="text-xs text-slate-500">Saring data berdasarkan kelas, hari, unit, atau status arsip</p>
+                </div>
             </div>
 
-            <!-- Custom Academic Year Dropdown -->
-            <div class="relative" id="container-ay_id">
-                <input type="hidden" name="ay_id" id="input-ay_id" value="<?php echo $selected_year_id; ?>">
-                <button type="button" onclick="toggleFormDropdown('ay_id')"
-                    class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all">
-                    <span id="text-ay_id" class="block truncate text-xs font-medium">
-                        <?php 
-                        $ayTitle = "Pilih Tahun Ajaran";
-                        foreach($academic_years as $ay) {
-                            if($ay['id'] == $selected_year_id) {
-                                $ayTitle = $ay['name'] . ' - ' . $ay['semester'] . ($ay['is_active'] == 1 ? ' (Aktif)' : '');
-                                break;
+            <div class="flex flex-wrap items-center gap-3">
+                <!-- Segmented Status Tabs -->
+                <div class="flex items-center bg-slate-200/70 p-1 rounded-xl text-xs font-semibold">
+                    <button type="button" onclick="selectFilterOption('status', 'active', 'Jadwal Aktif')" 
+                        class="px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 <?php echo $status === 'active' ? 'bg-white text-emerald-700 shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900'; ?>">
+                        <span class="w-2 h-2 rounded-full <?php echo $status === 'active' ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'; ?>"></span>
+                        Jadwal Aktif
+                    </button>
+                    <button type="button" onclick="selectFilterOption('status', 'archived', 'Di-arsipkan')" 
+                        class="px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 <?php echo $status === 'archived' ? 'bg-white text-amber-700 shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900'; ?>">
+                        <span class="w-2 h-2 rounded-full <?php echo $status === 'archived' ? 'bg-amber-500' : 'bg-slate-400'; ?>"></span>
+                        Di-arsipkan
+                    </button>
+                    <button type="button" onclick="selectFilterOption('status', 'all', 'Semua Versi')" 
+                        class="px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 <?php echo $status === 'all' ? 'bg-white text-cyan-700 shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900'; ?>">
+                        <span class="w-2 h-2 rounded-full <?php echo $status === 'all' ? 'bg-cyan-500' : 'bg-slate-400'; ?>"></span>
+                        Semua Versi
+                    </button>
+                    <input type="hidden" name="status" id="input-status" value="<?php echo htmlspecialchars($status); ?>">
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Controls Grid -->
+        <div class="p-6 space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                
+                <!-- Search Input Column -->
+                <div class="lg:col-span-1">
+                    <label class="block text-xs font-semibold text-slate-600 mb-1.5 flex items-center gap-1.5">
+                        <i class="fa-solid fa-magnifying-glass text-slate-400 text-xs"></i> Cari Guru / Mapel
+                    </label>
+                    <div class="relative">
+                        <input type="text" name="search" value="<?php echo htmlspecialchars($search); ?>"
+                            class="block w-full rounded-xl border border-slate-200 bg-slate-50/50 text-xs shadow-2xs hover:border-slate-300 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 text-slate-700 py-2.5 pl-3 pr-8 transition-all"
+                            placeholder="Ketik nama...">
+                        <?php if(!empty($search)): ?>
+                            <button type="button" onclick="clearSingleFilter('search')" class="absolute right-2.5 top-2.5 text-slate-400 hover:text-rose-500 transition-colors">
+                                <i class="fa-solid fa-xmark text-xs"></i>
+                            </button>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <!-- Academic Year Dropdown -->
+                <div class="relative" id="container-ay_id">
+                    <label class="block text-xs font-semibold text-slate-600 mb-1.5 flex items-center gap-1.5">
+                        <i class="fa-solid fa-calendar-days text-slate-400 text-xs"></i> Tahun Ajaran
+                    </label>
+                    <input type="hidden" name="ay_id" id="input-ay_id" value="<?php echo $selected_year_id; ?>">
+                    <button type="button" onclick="toggleFormDropdown('ay_id')"
+                        class="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2.5 text-xs text-slate-700 shadow-2xs hover:border-slate-300 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all">
+                        <span id="text-ay_id" class="block truncate font-medium">
+                            <?php 
+                            $ayTitle = "Pilih Tahun Ajaran";
+                            foreach($academic_years as $ay) {
+                                if($ay['id'] == $selected_year_id) {
+                                    $ayTitle = $ay['name'] . ' - ' . $ay['semester'] . ($ay['is_active'] == 1 ? ' (Aktif)' : '');
+                                    break;
+                                }
                             }
-                        }
-                        echo htmlspecialchars($ayTitle);
-                        ?>
-                    </span>
-                    <i id="arrow-ay_id" class="fa-solid fa-chevron-down h-3.5 w-3.5 text-slate-400 transition-transform"></i>
-                </button>
-                <div id="menu-ay_id" class="hidden absolute z-30 mt-1 max-h-60 w-full overflow-auto rounded-xl bg-white py-1 text-base shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                    <ul id="list-ay_id">
-                        <?php foreach ($academic_years as $ay): ?>
-                            <li onclick="selectFilterOption('ay_id', '<?php echo $ay['id']; ?>', '<?php echo htmlspecialchars($ay['name'] . ' - ' . $ay['semester'] . ($ay['is_active'] == 1 ? ' (Aktif)' : ''), ENT_QUOTES); ?>')" class="relative cursor-pointer select-none py-2 pl-3 pr-9 text-slate-600 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
-                                <?php echo htmlspecialchars($ay['name'] . ' - ' . $ay['semester'] . ($ay['is_active'] == 1 ? ' (Aktif)' : '')); ?>
-                            </li>
-                        <?php endforeach; ?>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Custom Education Unit Dropdown -->
-            <div class="relative" id="container-unit_id">
-                <input type="hidden" name="unit_id" id="input-unit_id" value="<?php echo $unit_id; ?>">
-                <button type="button" onclick="toggleFormDropdown('unit_id')"
-                    class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all">
-                    <span id="text-unit_id" class="block truncate text-xs font-medium">
-                        <?php 
-                        $unitTitle = "Semua Unit";
-                        foreach($units as $u) if((string)$u['id'] === (string)$unit_id) $unitTitle = $u['name'];
-                        echo htmlspecialchars($unitTitle);
-                        ?>
-                    </span>
-                    <i id="arrow-unit_id" class="fa-solid fa-chevron-down h-3.5 w-3.5 text-slate-400 transition-transform"></i>
-                </button>
-                <div id="menu-unit_id" class="hidden absolute z-30 mt-1 max-h-60 w-full overflow-auto rounded-xl bg-white py-1 text-base shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                    <div class="sticky top-0 z-10 bg-white px-2 py-1.5">
-                        <input type="text" id="search-unit_id" onkeyup="filterDropdownSearch('unit_id')" placeholder="Cari unit..." class="block w-full rounded-md border-slate-200 py-1.5 pl-3 text-sm focus:border-cyan-500 focus:ring-cyan-500">
+                            echo htmlspecialchars($ayTitle);
+                            ?>
+                        </span>
+                        <i id="arrow-ay_id" class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform ml-1 shrink-0"></i>
+                    </button>
+                    <div id="menu-ay_id" class="hidden absolute z-50 mt-1.5 max-h-60 w-full overflow-auto rounded-xl bg-white py-1 text-xs shadow-xl ring-1 ring-slate-900/5 focus:outline-none">
+                        <ul id="list-ay_id">
+                            <?php foreach ($academic_years as $ay): ?>
+                                <li onclick="selectFilterOption('ay_id', '<?php echo $ay['id']; ?>', '<?php echo htmlspecialchars($ay['name'] . ' - ' . $ay['semester'] . ($ay['is_active'] == 1 ? ' (Aktif)' : ''), ENT_QUOTES); ?>')" 
+                                    class="relative cursor-pointer select-none py-2 px-3 text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors flex items-center justify-between">
+                                    <span><?php echo htmlspecialchars($ay['name'] . ' - ' . $ay['semester'] . ($ay['is_active'] == 1 ? ' (Aktif)' : '')); ?></span>
+                                    <?php if($ay['id'] == $selected_year_id): ?>
+                                        <i class="fa-solid fa-check text-cyan-600 text-xs"></i>
+                                    <?php endif; ?>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
                     </div>
-                    <ul id="list-unit_id">
-                        <li onclick="selectFilterOption('unit_id', '', 'Semua Unit')" class="relative cursor-pointer select-none py-2 pl-3 pr-9 text-slate-600 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">Semua Unit</li>
-                        <?php foreach ($units as $u): ?>
-                            <li onclick="selectFilterOption('unit_id', '<?php echo $u['id']; ?>', '<?php echo htmlspecialchars($u['name'], ENT_QUOTES); ?>')" class="relative cursor-pointer select-none py-2 pl-3 pr-9 text-slate-600 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
-                                <?php echo htmlspecialchars($u['name']); ?>
-                            </li>
-                        <?php endforeach; ?>
-                    </ul>
                 </div>
-            </div>
 
-            <!-- Custom Grade Level Dropdown -->
-            <div class="relative" id="container-grade_id">
-                <input type="hidden" name="grade_id" id="input-grade_id" value="<?php echo $grade_id; ?>">
-                <button type="button" onclick="toggleFormDropdown('grade_id')"
-                    class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all">
-                    <span id="text-grade_id" class="block truncate text-xs font-medium">
-                        <?php 
-                        $gradeTitle = "Semua Kelas";
-                        foreach($grades as $g) if($g['id'] == $grade_id) $gradeTitle = $g['name'] . ($g['is_active'] ? '' : ' (Non-aktif)');
-                        echo htmlspecialchars($gradeTitle);
-                        ?>
-                    </span>
-                    <i id="arrow-grade_id" class="fa-solid fa-chevron-down h-3.5 w-3.5 text-slate-400 transition-transform"></i>
-                </button>
-                <div id="menu-grade_id" class="hidden absolute z-30 mt-1 max-h-60 w-full overflow-auto rounded-xl bg-white py-1 text-base shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                    <div class="sticky top-0 z-10 bg-white px-2 py-1.5">
-                        <input type="text" id="search-grade_id" onkeyup="filterDropdownSearch('grade_id')" placeholder="Cari kelas..." class="block w-full rounded-md border-slate-200 py-1.5 pl-3 text-sm focus:border-cyan-500 focus:ring-cyan-500">
+                <!-- Education Unit Dropdown -->
+                <div class="relative" id="container-unit_id">
+                    <label class="block text-xs font-semibold text-slate-600 mb-1.5 flex items-center gap-1.5">
+                        <i class="fa-solid fa-school text-slate-400 text-xs"></i> Unit Pendidikan
+                    </label>
+                    <input type="hidden" name="unit_id" id="input-unit_id" value="<?php echo $unit_id; ?>">
+                    <button type="button" onclick="toggleFormDropdown('unit_id')"
+                        class="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2.5 text-xs text-slate-700 shadow-2xs hover:border-slate-300 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all">
+                        <span id="text-unit_id" class="block truncate font-medium">
+                            <?php 
+                            $unitTitle = "Semua Unit";
+                            foreach($units as $u) if((string)$u['id'] === (string)$unit_id) $unitTitle = $u['name'];
+                            echo htmlspecialchars($unitTitle);
+                            ?>
+                        </span>
+                        <i id="arrow-unit_id" class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform ml-1 shrink-0"></i>
+                    </button>
+                    <div id="menu-unit_id" class="hidden absolute z-50 mt-1.5 max-h-60 w-full overflow-auto rounded-xl bg-white py-1 text-xs shadow-xl ring-1 ring-slate-900/5 focus:outline-none">
+                        <div class="sticky top-0 z-10 bg-white px-2 py-1.5 border-b border-slate-100">
+                            <input type="text" id="search-unit_id" onkeyup="filterDropdownSearch('unit_id')" placeholder="Cari unit..." class="block w-full rounded-lg border-slate-200 py-1.5 px-2.5 text-xs focus:border-cyan-500 focus:ring-cyan-500 bg-slate-50">
+                        </div>
+                        <ul id="list-unit_id">
+                            <li onclick="selectFilterOption('unit_id', '', 'Semua Unit')" class="relative cursor-pointer select-none py-2 px-3 text-slate-600 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">Semua Unit</li>
+                            <?php foreach ($units as $u): ?>
+                                <li onclick="selectFilterOption('unit_id', '<?php echo $u['id']; ?>', '<?php echo htmlspecialchars($u['name'], ENT_QUOTES); ?>')" class="relative cursor-pointer select-none py-2 px-3 text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors flex items-center justify-between">
+                                    <span><?php echo htmlspecialchars($u['name']); ?></span>
+                                    <?php if((string)$u['id'] === (string)$unit_id): ?>
+                                        <i class="fa-solid fa-check text-cyan-600 text-xs"></i>
+                                    <?php endif; ?>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
                     </div>
-                    <ul id="list-grade_id">
-                        <li onclick="selectFilterOption('grade_id', '', 'Semua Kelas')" class="relative cursor-pointer select-none py-2 pl-3 pr-9 text-slate-600 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">Semua Kelas</li>
-                        <?php foreach ($grades as $g): ?>
-                            <li onclick="selectFilterOption('grade_id', '<?php echo $g['id']; ?>', '<?php echo htmlspecialchars($g['name'] . ($g['is_active'] ? '' : ' (Non-aktif)'), ENT_QUOTES); ?>')" 
-                                data-unit="<?php echo $g['education_unit_id']; ?>"
-                                class="grade-option relative cursor-pointer select-none py-2 pl-3 pr-9 text-slate-600 hover:bg-cyan-50 hover:text-cyan-700 transition-colors"
-                                <?php echo ($unit_id && $g['education_unit_id'] != $unit_id) ? 'style="display:none"' : ''; ?>>
-                                <?php echo htmlspecialchars($g['name'] . ($g['is_active'] ? '' : ' (Non-aktif)')); ?>
-                            </li>
+                </div>
+
+                <!-- Grade Level Dropdown -->
+                <div class="relative" id="container-grade_id">
+                    <label class="block text-xs font-semibold text-slate-600 mb-1.5 flex items-center gap-1.5">
+                        <i class="fa-solid fa-graduation-cap text-slate-400 text-xs"></i> Kelas
+                    </label>
+                    <input type="hidden" name="grade_id" id="input-grade_id" value="<?php echo $grade_id; ?>">
+                    <button type="button" onclick="toggleFormDropdown('grade_id')"
+                        class="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2.5 text-xs text-slate-700 shadow-2xs hover:border-slate-300 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all">
+                        <span id="text-grade_id" class="block truncate font-medium">
+                            <?php 
+                            $gradeTitle = "Semua Kelas";
+                            foreach($grades as $g) if($g['id'] == $grade_id) $gradeTitle = $g['name'] . ($g['is_active'] ? '' : ' (Non-aktif)');
+                            echo htmlspecialchars($gradeTitle);
+                            ?>
+                        </span>
+                        <i id="arrow-grade_id" class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform ml-1 shrink-0"></i>
+                    </button>
+                    <div id="menu-grade_id" class="hidden absolute z-50 mt-1.5 max-h-60 w-full overflow-auto rounded-xl bg-white py-1 text-xs shadow-xl ring-1 ring-slate-900/5 focus:outline-none">
+                        <div class="sticky top-0 z-10 bg-white px-2 py-1.5 border-b border-slate-100">
+                            <input type="text" id="search-grade_id" onkeyup="filterDropdownSearch('grade_id')" placeholder="Cari kelas..." class="block w-full rounded-lg border-slate-200 py-1.5 px-2.5 text-xs focus:border-cyan-500 focus:ring-cyan-500 bg-slate-50">
+                        </div>
+                        <ul id="list-grade_id">
+                            <li onclick="selectFilterOption('grade_id', '', 'Semua Kelas')" class="relative cursor-pointer select-none py-2 px-3 text-slate-600 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">Semua Kelas</li>
+                            <?php foreach ($grades as $g): ?>
+                                <li onclick="selectFilterOption('grade_id', '<?php echo $g['id']; ?>', '<?php echo htmlspecialchars($g['name'] . ($g['is_active'] ? '' : ' (Non-aktif)'), ENT_QUOTES); ?>')" 
+                                    data-unit="<?php echo $g['education_unit_id']; ?>"
+                                    class="grade-option relative cursor-pointer select-none py-2 px-3 text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors flex items-center justify-between"
+                                    <?php echo ($unit_id && $g['education_unit_id'] != $unit_id) ? 'style="display:none"' : ''; ?>>
+                                    <span><?php echo htmlspecialchars($g['name'] . ($g['is_active'] ? '' : ' (Non-aktif)')); ?></span>
+                                    <?php if($g['id'] == $grade_id): ?>
+                                        <i class="fa-solid fa-check text-cyan-600 text-xs"></i>
+                                    <?php endif; ?>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Day Dropdown -->
+                <div class="relative" id="container-day">
+                    <label class="block text-xs font-semibold text-slate-600 mb-1.5 flex items-center gap-1.5">
+                        <i class="fa-solid fa-clock text-slate-400 text-xs"></i> Hari
+                    </label>
+                    <input type="hidden" name="day" id="input-day" value="<?php echo $day; ?>">
+                    <button type="button" onclick="toggleFormDropdown('day')"
+                        class="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2.5 text-xs text-slate-700 shadow-2xs hover:border-slate-300 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all">
+                        <span id="text-day" class="block truncate font-medium">
+                            <?php echo $day ? ($indo_days[$day] ?? $day) : "Semua Hari"; ?>
+                        </span>
+                        <i id="arrow-day" class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform ml-1 shrink-0"></i>
+                    </button>
+                    <div id="menu-day" class="hidden absolute z-50 mt-1.5 max-h-60 w-full overflow-auto rounded-xl bg-white py-1 text-xs shadow-xl ring-1 ring-slate-900/5 focus:outline-none">
+                        <ul id="list-day">
+                            <li onclick="selectFilterOption('day', '', 'Semua Hari')" class="relative cursor-pointer select-none py-2 px-3 text-slate-600 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">Semua Hari</li>
+                            <?php foreach ($indo_days as $eng => $idn): ?>
+                                <li onclick="selectFilterOption('day', '<?php echo $eng; ?>', '<?php echo $idn; ?>')" class="relative cursor-pointer select-none py-2 px-3 text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors flex items-center justify-between">
+                                    <span><?php echo $idn; ?></span>
+                                    <?php if($day === $eng): ?>
+                                        <i class="fa-solid fa-check text-cyan-600 text-xs"></i>
+                                    <?php endif; ?>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Active Filter Badges Bar -->
+            <?php if ($has_active_filters): ?>
+                <div class="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="text-xs font-bold text-slate-500 flex items-center gap-1.5">
+                            <i class="fa-solid fa-filter text-cyan-600 text-xs"></i> Filter Aktif:
+                        </span>
+                        <?php foreach($applied_filters as $filter): ?>
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-cyan-50 border border-cyan-200/60 text-cyan-800 text-xs font-medium">
+                                <?php echo $filter['label']; ?>
+                                <button type="button" onclick="clearSingleFilter('<?php echo $filter['key']; ?>')" class="text-cyan-500 hover:text-cyan-900 transition-colors">
+                                    <i class="fa-solid fa-xmark text-xs"></i>
+                                </button>
+                            </span>
                         <?php endforeach; ?>
-                    </ul>
+                    </div>
+                    <a href="index.php" class="text-xs font-semibold text-rose-600 hover:text-rose-800 transition-colors flex items-center gap-1">
+                        <i class="fa-solid fa-rotate-left text-xs"></i> Reset Semua Filter
+                    </a>
                 </div>
-            </div>
+            <?php endif; ?>
 
-            <!-- Custom Day Dropdown -->
-            <div class="relative" id="container-day">
-                <input type="hidden" name="day" id="input-day" value="<?php echo $day; ?>">
-                <button type="button" onclick="toggleFormDropdown('day')"
-                    class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all">
-                    <span id="text-day" class="block truncate text-xs font-medium">
-                        <?php echo $day ? ($indo_days[$day] ?? $day) : "Semua Hari"; ?>
-                    </span>
-                    <i id="arrow-day" class="fa-solid fa-chevron-down h-3.5 w-3.5 text-slate-400 transition-transform"></i>
-                </button>
-                <div id="menu-day" class="hidden absolute z-30 mt-1 max-h-60 w-full overflow-auto rounded-xl bg-white py-1 text-base shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                    <ul id="list-day">
-                        <li onclick="selectFilterOption('day', '', 'Semua Hari')" class="relative cursor-pointer select-none py-2 pl-3 pr-9 text-slate-600 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">Semua Hari</li>
-                        <?php foreach ($indo_days as $eng => $idn): ?>
-                            <li onclick="selectFilterOption('day', '<?php echo $eng; ?>', '<?php echo $idn; ?>')" class="relative cursor-pointer select-none py-2 pl-3 pr-9 text-slate-600 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
-                                <?php echo $idn; ?>
-                            </li>
-                        <?php endforeach; ?>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Custom Status Dropdown -->
-            <div class="relative" id="container-status">
-                <input type="hidden" name="status" id="input-status" value="<?php echo htmlspecialchars($status); ?>">
-                <button type="button" onclick="toggleFormDropdown('status')"
-                    class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all">
-                    <span id="text-status" class="block truncate text-xs font-medium">
-                        <?php 
-                        if ($status === 'archived') echo 'Di-arsipkan';
-                        elseif ($status === 'all') echo 'Semua Versi';
-                        else echo 'Jadwal Aktif';
-                        ?>
-                    </span>
-                    <i id="arrow-status" class="fa-solid fa-chevron-down h-3.5 w-3.5 text-slate-400 transition-transform"></i>
-                </button>
-                <div id="menu-status" class="hidden absolute z-30 mt-1 max-h-60 w-full overflow-auto rounded-xl bg-white py-1 text-base shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                    <ul id="list-status">
-                        <li onclick="selectFilterOption('status', 'active', 'Jadwal Aktif')" class="relative cursor-pointer select-none py-2 pl-3 pr-9 text-slate-600 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">Jadwal Aktif</li>
-                        <li onclick="selectFilterOption('status', 'archived', 'Di-arsipkan')" class="relative cursor-pointer select-none py-2 pl-3 pr-9 text-slate-600 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">Di-arsipkan</li>
-                        <li onclick="selectFilterOption('status', 'all', 'Semua Versi')" class="relative cursor-pointer select-none py-2 pl-3 pr-9 text-slate-600 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">Semua Versi</li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Reset Button -->
-            <div>
-                <a href="index.php" 
-                    class="flex items-center justify-center w-full px-3 py-2.5 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200 shadow-xs transition-all active:scale-95 whitespace-nowrap">
-                    <i class="fa-solid fa-xmark w-3.5 h-3.5 mr-1.5 text-slate-400 group-hover:text-rose-600"></i>
-                    Hapus Filter
-                </a>
-            </div>
         </div>
         <button type="submit" class="hidden">Filter</button>
     </form>
 
     <script>
+    function clearSingleFilter(key) {
+        if (key === 'search') {
+            const inputSearch = document.querySelector('input[name="search"]');
+            if (inputSearch) inputSearch.value = '';
+        } else if (key === 'unit_id') {
+            document.getElementById('input-unit_id').value = '';
+            document.getElementById('input-grade_id').value = '';
+        } else if (key === 'grade_id') {
+            document.getElementById('input-grade_id').value = '';
+        } else if (key === 'day') {
+            document.getElementById('input-day').value = '';
+        } else if (key === 'status') {
+            document.getElementById('input-status').value = 'active';
+        } else if (key === 'ay_id') {
+            document.getElementById('input-ay_id').value = '<?php echo $active_year_id; ?>';
+        }
+        document.getElementById('filterForm').submit();
+    }
     function toggleFormDropdown(id) {
         const menu = document.getElementById('menu-' + id);
         const arrow = document.getElementById('arrow-' + id);
@@ -408,9 +526,12 @@ include '../layouts/header.php';
 
     function selectFilterOption(id, value, text) {
         document.getElementById('input-' + id).value = value;
-        document.getElementById('text-' + id).innerText = text;
-        document.getElementById('menu-' + id).classList.add('hidden');
-        document.getElementById('arrow-' + id).classList.remove('rotate-180');
+        var textEl = document.getElementById('text-' + id);
+        if (textEl) textEl.innerText = text;
+        var menuEl = document.getElementById('menu-' + id);
+        if (menuEl) menuEl.classList.add('hidden');
+        var arrowEl = document.getElementById('arrow-' + id);
+        if (arrowEl) arrowEl.classList.remove('rotate-180');
 
         if (id === 'unit_id') {
             document.getElementById('input-grade_id').value = '';

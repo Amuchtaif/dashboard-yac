@@ -95,7 +95,7 @@ include '../layouts/header.php';
     </div>
 
     <!-- Form Card -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm relative">
         <form action="../../logic/class_schedules/<?php echo $id ? 'update.php' : 'store.php'; ?>" method="POST"
             class="p-6 sm:p-10 space-y-8">
             <?php if ($id): ?><input type="hidden" name="id" value="<?php echo $id; ?>"><?php endif; ?>
@@ -119,7 +119,7 @@ include '../layouts/header.php';
                 <div class="sm:col-span-1">
                     <label for="academic_year_id" class="block text-sm font-semibold text-slate-700 mb-1">Tahun Akademik
                         <span class="text-red-500">*</span></label>
-                    <div class="relative" id="container-academic_year_id">
+                    <div class="relative z-[50]" id="container-academic_year_id" style="z-index: 50;">
                         <input type="hidden" name="academic_year_id" id="input-academic_year_id" value="<?php
                         if ($schedule) {
                             echo $schedule['academic_year_id'];
@@ -158,7 +158,7 @@ include '../layouts/header.php';
                             <i id="arrow-academic_year_id" class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 transition-transform duration-200"></i>
                         </button>
                         <div id="menu-academic_year_id"
-                            class="hidden absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                            class="hidden absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-slate-100">
                             <ul class="py-1">
                                 <?php foreach ($academic_years as $ay): ?>
                                     <li onclick="selectFormOption('academic_year_id', '<?php echo $ay['id']; ?>', '<?php echo htmlspecialchars(addslashes($ay['name'] . ' - ' . $ay['semester'] . ($ay['is_active'] == 1 ? ' (Aktif)' : '')), ENT_QUOTES); ?>')"
@@ -176,7 +176,7 @@ include '../layouts/header.php';
                 <div class="sm:col-span-1">
                     <label for="education_unit_id" class="block text-sm font-semibold text-slate-700 mb-1">Jenjang <span
                             class="text-red-500">*</span></label>
-                    <div class="relative" id="container-education_unit_id" style="z-index: 40;">
+                    <div class="relative z-[45]" id="container-education_unit_id" style="z-index: 45;">
                         <input type="hidden" name="education_unit_id" id="input-education_unit_id"
                             value="<?php echo $current_unit_id; ?>">
                         <button type="button" onclick="toggleFormDropdown('education_unit_id')"
@@ -198,7 +198,7 @@ include '../layouts/header.php';
                             <i id="arrow-education_unit_id" class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 transition-transform duration-200"></i>
                         </button>
                         <div id="menu-education_unit_id"
-                            class="hidden absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                            class="hidden absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-slate-100">
                             <ul class="py-1">
                                 <?php foreach ($education_units as $unit): ?>
                                     <li onclick="selectFormOption('education_unit_id', '<?php echo $unit['id']; ?>', '<?php echo htmlspecialchars(addslashes($unit['name']), ENT_QUOTES); ?>')"
@@ -215,7 +215,7 @@ include '../layouts/header.php';
                 <div class="sm:col-span-1">
                     <label for="grade_level_id" class="block text-sm font-semibold text-slate-700 mb-1">Kelas <span
                             class="text-red-500">*</span></label>
-                    <div class="relative" id="container-grade_level_id" style="z-index: 39;">
+                    <div class="relative z-[40]" id="container-grade_level_id" style="z-index: 40;">
                         <input type="hidden" name="grade_level_id" id="input-grade_level_id"
                             value="<?php echo $schedule ? $schedule['grade_level_id'] : ''; ?>">
                         <button type="button" onclick="toggleFormDropdown('grade_level_id')"
@@ -237,7 +237,7 @@ include '../layouts/header.php';
                             <i id="arrow-grade_level_id" class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 transition-transform duration-200"></i>
                         </button>
                         <div id="menu-grade_level_id"
-                            class="hidden absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                            class="hidden absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-slate-100">
                             <div class="sticky top-0 z-50 bg-white px-2 py-1.5 border-b border-slate-100">
                                 <input type="text" id="search-grade_level_id"
                                     onkeyup="filterDropdownSearch('grade_level_id')" placeholder="Cari kelas..."
@@ -264,7 +264,7 @@ include '../layouts/header.php';
                 <div class="sm:col-span-1">
                     <label for="employee_id" class="block text-sm font-semibold text-slate-700 mb-1">Guru / Pengajar
                         <span class="text-red-500">*</span></label>
-                    <div class="relative" id="container-employee_id" style="z-index: 38;">
+                    <div class="relative z-[35]" id="container-employee_id" style="z-index: 35;">
                         <input type="hidden" name="employee_id" id="input-employee_id"
                             value="<?php echo $schedule ? $schedule['employee_id'] : ''; ?>">
                         <button type="button" onclick="toggleFormDropdown('employee_id')"
@@ -286,7 +286,7 @@ include '../layouts/header.php';
                             <i id="arrow-employee_id" class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 transition-transform duration-200"></i>
                         </button>
                         <div id="menu-employee_id"
-                            class="hidden absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                            class="hidden absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-slate-100">
                             <div class="sticky top-0 z-50 bg-white px-2 py-1.5 border-b border-slate-100">
                                 <input type="text" id="search-employee_id" onkeyup="filterDropdownSearch('employee_id')"
                                     placeholder="Cari guru..."
@@ -311,7 +311,7 @@ include '../layouts/header.php';
                 <div class="sm:col-span-1">
                     <label for="subject_id" class="block text-sm font-semibold text-slate-700 mb-1">Mata Pelajaran <span
                             class="text-red-500">*</span></label>
-                    <div class="relative" id="container-subject_id" style="z-index: 37;">
+                    <div class="relative z-[30]" id="container-subject_id" style="z-index: 30;">
                         <input type="hidden" name="subject_id" id="input-subject_id"
                             value="<?php echo $schedule ? $schedule['subject_id'] : ''; ?>">
                         <button type="button" onclick="toggleFormDropdown('subject_id')"
@@ -333,7 +333,7 @@ include '../layouts/header.php';
                             <i id="arrow-subject_id" class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 transition-transform duration-200"></i>
                         </button>
                         <div id="menu-subject_id"
-                            class="hidden absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                            class="hidden absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-slate-100">
                             <div class="sticky top-0 z-50 bg-white px-2 py-1.5 border-b border-slate-100">
                                 <input type="text" id="search-subject_id" onkeyup="filterDropdownSearch('subject_id')"
                                     placeholder="Cari mata pelajaran..."
@@ -359,7 +359,7 @@ include '../layouts/header.php';
                 <div class="sm:col-span-1">
                     <label for="day" class="block text-sm font-semibold text-slate-700 mb-1">Hari <span
                             class="text-red-500">*</span></label>
-                    <div class="relative" id="container-day" style="z-index: 36;">
+                    <div class="relative z-[25]" id="container-day" style="z-index: 25;">
                         <input type="hidden" name="day" id="input-day"
                             value="<?php echo $schedule ? $schedule['day'] : 'Monday'; ?>">
                         <button type="button" onclick="toggleFormDropdown('day')"
@@ -373,7 +373,7 @@ include '../layouts/header.php';
                             <i id="arrow-day" class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 transition-transform duration-200"></i>
                         </button>
                         <div id="menu-day"
-                            class="hidden absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                            class="hidden absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-slate-100">
                             <div class="sticky top-0 z-50 bg-white px-2 py-1.5 border-b border-slate-100">
                                 <input type="text" id="search-day" onkeyup="filterDropdownSearch('day')"
                                     placeholder="Cari hari..."
@@ -395,7 +395,7 @@ include '../layouts/header.php';
                 <div class="sm:col-span-1">
                     <label class="block text-sm font-semibold text-slate-700 mb-1.5">Jam Pelajaran <span
                             class="text-red-500">*</span></label>
-                    <div class="relative" id="container-lesson_periods" style="z-index: 35;">
+                    <div class="relative z-[20]" id="container-lesson_periods" style="z-index: 20;">
                         <button type="button" onclick="toggleFormDropdown('lesson_periods')"
                             class="flex w-full items-center justify-between rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 transition-all">
                             <span id="text-lesson_periods" class="block truncate">Pilih Jam...</span>

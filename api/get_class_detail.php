@@ -49,6 +49,8 @@ try {
                       LEFT JOIN lesson_periods lp_end ON cs.end_lesson_period_id = lp_end.id
                       LEFT JOIN employees e ON cs.employee_id = e.id
                       WHERE cs.grade_level_id = :id AND cs.day = :day AND cs.is_active = 1
+                        AND (cs.valid_from IS NULL OR cs.valid_from <= CURRENT_DATE)
+                        AND (cs.valid_until IS NULL OR cs.valid_until >= CURRENT_DATE)
                       ORDER BY lp.start_time ASC";
     $stmtSched = $db->prepare($querySchedule);
     $stmtSched->bindParam(':id', $class_id);
