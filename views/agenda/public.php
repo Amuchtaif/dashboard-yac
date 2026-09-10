@@ -838,7 +838,9 @@ $active_ay_id = !empty($active_ay) ? reset($active_ay)['id'] : (!empty($academic
                 if (e.source_type === 'unit' && e.unit_name) {
                     pillText = e.unit_name + ': ' + e.title;
                 }
-                pill.innerText = pillText;
+                const lockIcon = (e.visibility === 'internal') ? ' <i class="fa-solid fa-lock text-[8px] opacity-80" title="Internal"></i>' : '';
+                const recIcon = (e.is_recurring == 1) ? ' <i class="fa-solid fa-arrows-rotate text-[8px] opacity-80" title="Berulang"></i>' : '';
+                pill.innerHTML = pillText + lockIcon + recIcon;
 
                 // Enhanced tooltip with source info
                 const tt = document.createElement('div');
@@ -852,6 +854,8 @@ $active_ay_id = !empty($active_ay) ? reset($active_ay)['id'] : (!empty($academic
                     tooltipHtml += `<br><span style="opacity:0.8">🏛️ Yayasan</span>`;
                 }
                 if (e.location) tooltipHtml += `<br><span style="opacity:0.7">📍 ${e.location}</span>`;
+                if (e.visibility === 'internal') tooltipHtml += `<br><span style="color:#fcd34d">🔒 Internal Bid. Pendidikan</span>`;
+                if (e.is_recurring == 1) tooltipHtml += `<br><span style="color:#67e8f9">🔄 Agenda Berulang (${(e.recurrence_type || '').toUpperCase()})</span>`;
                 tt.innerHTML = tooltipHtml;
 
                 ttContainer.appendChild(pill);

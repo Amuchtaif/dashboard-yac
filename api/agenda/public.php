@@ -79,8 +79,15 @@ try {
     $month = isset($_GET['month']) && $_GET['month'] !== '' ? (int)$_GET['month'] : null;
     $year = isset($_GET['year']) && $_GET['year'] !== '' ? (int)$_GET['year'] : null;
 
-    $conditions = ["a.visibility = 'public'"];
-    $params = [];
+    $visibility = isset($_GET['visibility']) && in_array($_GET['visibility'], ['public', 'internal']) ? $_GET['visibility'] : null;
+    $conditions = [];
+    if ($visibility) {
+        $conditions[] = "a.visibility = :visibility";
+        $params[':visibility'] = $visibility;
+    } else {
+        $conditions[] = "a.visibility IN ('public', 'internal')";
+    }
+    $params = $params ?? [];
 
     if ($academic_year_id) {
         $conditions[] = "a.academic_year_id = :academic_year_id";
@@ -120,6 +127,7 @@ try {
     $whereClause = implode(' AND ', $conditions);
     $sql = "SELECT a.id, a.title, a.description, a.start_date, a.end_date, a.start_time, a.end_time, 
                    a.location, a.category, a.source_type, a.unit_id, a.academic_year_id, a.semester, 
+                   a.visibility, a.is_recurring, a.recurrence_type, a.repeat_group_id,
                    a.status, a.color, a.is_holiday, u.name as unit_name, ay.name as academic_year_name 
             FROM academic_calendar a 
             LEFT JOIN education_units u ON a.unit_id = u.id 

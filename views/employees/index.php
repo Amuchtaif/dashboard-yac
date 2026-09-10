@@ -23,6 +23,7 @@ $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $division_id = isset($_GET['division_id']) ? $_GET['division_id'] : '';
 $unit_id = isset($_GET['unit_id']) ? $_GET['unit_id'] : '';
 $position_id = isset($_GET['position_id']) ? $_GET['position_id'] : '';
+$schedule_id = isset($_GET['schedule_id']) ? $_GET['schedule_id'] : '';
 $status = isset($_GET['status']) ? $_GET['status'] : '';
 
 // Build Where Clause
@@ -45,6 +46,10 @@ if ($position_id) {
     $where_clauses[] = "e.position_id = :position_id";
     $params[':position_id'] = $position_id;
 }
+if ($schedule_id !== '') {
+    $where_clauses[] = "COALESCE(e.schedule_id, u.schedule_id, d.schedule_id, 1) = :schedule_id";
+    $params[':schedule_id'] = $schedule_id;
+}
 if ($status) {
     if ($status === 'active') {
         $where_clauses[] = "(e.status = 'active' OR e.status IS NULL)";
@@ -56,7 +61,13 @@ if ($status) {
 $where_sql = implode(" AND ", $where_clauses);
 
 // Total Count with filters
-$count_query = "SELECT COUNT(*) FROM employees e WHERE $where_sql";
+$count_query = "
+    SELECT COUNT(*) 
+    FROM employees e 
+    LEFT JOIN divisions d ON e.division_id = d.id 
+    LEFT JOIN units u ON e.unit_id = u.id 
+    WHERE $where_sql
+";
 $total_stmt = $conn->prepare($count_query);
 $total_stmt->execute($params);
 $total_rows = $total_stmt->fetchColumn();
@@ -64,11 +75,13 @@ $total_pages = ceil($total_rows / $limit);
 
 // Fetch Data with Limit/Offset
 $query = "
-    SELECT e.*, d.name as division_name, u.name as unit_name, p.name as position_name
+    SELECT e.*, d.name as division_name, u.name as unit_name, p.name as position_name,
+           ws.name as schedule_name
     FROM employees e 
     LEFT JOIN divisions d ON e.division_id = d.id 
     LEFT JOIN units u ON e.unit_id = u.id
     LEFT JOIN positions p ON e.position_id = p.id
+    LEFT JOIN work_schedules ws ON COALESCE(e.schedule_id, u.schedule_id, d.schedule_id, 1) = ws.id
     WHERE $where_sql
     ORDER BY e.full_name ASC
     LIMIT :limit OFFSET :offset
@@ -265,6 +278,43 @@ include '../layouts/header.php';
                 </div>
             </div>
 
+            <!-- Schedule Filter -->
+            <div class="relative" id="filter-schedule-container">
+                <input type="hidden" name="schedule_id" id="filter-schedule-input" value="<?php echo htmlspecialchars($schedule_id); ?>">
+                <button type="button" onclick="toggleDropdown('filter-schedule')"
+                    class="inline-flex items-center justify-between gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] font-bold text-slate-600 hover:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-colors w-full lg:w-40 h-10">
+                    <span id="filter-schedule-text" class="truncate">
+                        <?php
+                        $currSched = "Jadwal: Semua";
+                        if ($schedule_id !== '') {
+                            foreach ($schedules as $s) {
+                                if ((string)$s['id'] === (string)$schedule_id) {
+                                    $currSched = "Jadwal: " . $s['name'];
+                                    break;
+                                }
+                            }
+                        }
+                        echo htmlspecialchars($currSched);
+                        ?>
+                    </span>
+                    <i id="filter-schedule-arrow" class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 transition-transform duration-200"></i>
+                </button>
+                <div id="filter-schedule-menu"
+                    class="hidden absolute top-full left-0 mt-1 w-56 origin-top-left rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50 max-h-60 overflow-y-auto">
+                    <ul class="py-1">
+                        <li onclick="selectFilterOption('schedule', '', 'Jadwal: Semua')"
+                            class="cursor-pointer px-4 py-2 text-xs text-slate-500 hover:bg-slate-50 hover:text-cyan-700">
+                            Jadwal: Semua</li>
+                        <?php foreach ($schedules as $sched): ?>
+                            <li onclick="selectFilterOption('schedule', '<?php echo $sched['id']; ?>', 'Jadwal: <?php echo htmlspecialchars($sched['name'], ENT_QUOTES); ?>')"
+                                class="cursor-pointer px-4 py-2 text-xs text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
+                                <?php echo htmlspecialchars($sched['name']); ?>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
+            </div>
+
             <!-- Status Filter -->
             <div class="relative" id="filter-status-container">
                 <input type="hidden" name="status" id="filter-status-input" value="<?php echo $status; ?>">
@@ -299,7 +349,7 @@ include '../layouts/header.php';
             </div>
 
             <!-- Reset Button -->
-            <div class="col-span-2 md:col-span-1 lg:w-auto">
+            <div class="col-span-1 lg:w-auto">
                 <a href="index.php"
                     class="flex items-center justify-center p-2 rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-colors h-10 w-full lg:w-10"
                     title="Reset Filters">
@@ -572,6 +622,13 @@ include '../layouts/header.php';
                                     title="<?php echo htmlspecialchars($emp['unit_name'] ?? '-'); ?>">
                                     <?php echo htmlspecialchars($emp['unit_name'] ?? '-'); ?>
                                 </div>
+                                <?php if (!empty($emp['schedule_name'])): ?>
+                                    <div class="text-[10px] text-cyan-600 font-medium mt-1 truncate max-w-[140px] flex items-center gap-1"
+                                        title="Jadwal: <?php echo htmlspecialchars($emp['schedule_name']); ?>">
+                                        <i class="fa-regular fa-clock text-[9px] flex-shrink-0"></i>
+                                        <span class="truncate"><?php echo htmlspecialchars($emp['schedule_name']); ?></span>
+                                    </div>
+                                <?php endif; ?>
                             </td>
                             <td class="whitespace-nowrap px-3 py-4">
                                 <?php

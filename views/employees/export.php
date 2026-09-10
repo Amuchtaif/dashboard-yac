@@ -21,6 +21,7 @@ $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $division_id = isset($_GET['division_id']) ? $_GET['division_id'] : '';
 $unit_id = isset($_GET['unit_id']) ? $_GET['unit_id'] : '';
 $position_id = isset($_GET['position_id']) ? $_GET['position_id'] : '';
+$schedule_id = isset($_GET['schedule_id']) ? $_GET['schedule_id'] : '';
 $where_clauses = ["e.id != 1"];
 $params = [];
 
@@ -39,6 +40,10 @@ if ($unit_id) {
 if ($position_id) {
     $where_clauses[] = "e.position_id = :position_id";
     $params[':position_id'] = $position_id;
+}
+if ($schedule_id !== '') {
+    $where_clauses[] = "COALESCE(e.schedule_id, u.schedule_id, d.schedule_id, 1) = :schedule_id";
+    $params[':schedule_id'] = $schedule_id;
 }
 
 // Always filter for active employees as requested

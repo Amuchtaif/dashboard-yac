@@ -15,11 +15,13 @@ $default_end = date('Y-m-d');
 
 $search = isset($_GET['search']) && $_GET['search'] !== '' ? trim($_GET['search']) : null;
 $division_id = isset($_GET['division_id']) && $_GET['division_id'] !== '' ? (int)$_GET['division_id'] : null;
+$unit_id = isset($_GET['unit_id']) && $_GET['unit_id'] !== '' ? (int)$_GET['unit_id'] : null;
 $start_date = isset($_GET['start_date']) && $_GET['start_date'] !== '' ? $_GET['start_date'] : $default_start;
 $end_date = isset($_GET['end_date']) && $_GET['end_date'] !== '' ? $_GET['end_date'] : $default_end;
 
-// Ambil List Bidang (Divisions) untuk Filter
+// Ambil List Bidang (Divisions) dan Unit (Units) untuk Filter Berjenjang
 $divisions = $conn->query("SELECT id, name FROM divisions ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
+$units_all = $conn->query("SELECT id, name, division_id FROM units ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 // --- Logika Paginasi ---
 $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 10;
@@ -43,6 +45,10 @@ if ($search) {
 if ($division_id) {
     $where .= " AND e.division_id = :division_id ";
     $params[':division_id'] = $division_id;
+}
+if ($unit_id) {
+    $where .= " AND e.unit_id = :unit_id ";
+    $params[':unit_id'] = $unit_id;
 }
 if ($start_date) {
     $where .= " AND a.date >= :start_date ";
@@ -99,6 +105,8 @@ if ($has_loc_out) {
             a.*, 
             e.full_name, 
             e.email, 
+            d.name as division_name,
+            u.name as unit_name,
             l.name as location_name, 
             l.latitude as loc_lat_in,
             l.longitude as loc_long_in,
@@ -109,6 +117,8 @@ if ($has_loc_out) {
             l_out.radius_meter as location_radius_out
         FROM attendances a
         JOIN employees e ON a.user_id = e.id
+        LEFT JOIN divisions d ON e.division_id = d.id
+        LEFT JOIN units u ON e.unit_id = u.id
         LEFT JOIN locations l ON a.location_id = l.id
         LEFT JOIN locations l_out ON a.location_id_out = l_out.id
         $where
@@ -121,6 +131,8 @@ if ($has_loc_out) {
             a.*, 
             e.full_name, 
             e.email, 
+            d.name as division_name,
+            u.name as unit_name,
             l.name as location_name, 
             l.latitude as loc_lat_in,
             l.longitude as loc_long_in,
@@ -131,6 +143,8 @@ if ($has_loc_out) {
             l.radius_meter as location_radius_out
         FROM attendances a
         JOIN employees e ON a.user_id = e.id
+        LEFT JOIN divisions d ON e.division_id = d.id
+        LEFT JOIN units u ON e.unit_id = u.id
         LEFT JOIN locations l ON a.location_id = l.id
         $where
         ORDER BY a.date DESC, a.time_in DESC
@@ -156,7 +170,7 @@ include '../layouts/header.php';
             <p class="mt-2 text-sm text-gray-700">Log lengkap absen masuk dan pulang pegawai.</p>
         </div>
         <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-            <a href="export_excel.php?<?php echo http_build_query(['search' => $search ?? '', 'division_id' => $division_id ?? '', 'start_date' => $start_date ?? '', 'end_date' => $end_date ?? '']); ?>" 
+            <a href="export_excel.php?<?php echo http_build_query(['search' => $search ?? '', 'division_id' => $division_id ?? '', 'unit_id' => $unit_id ?? '', 'start_date' => $start_date ?? '', 'end_date' => $end_date ?? '']); ?>" 
                class="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-emerald-600/20 hover:bg-emerald-700 hover:shadow-emerald-600/40 focus:ring-4 focus:ring-emerald-500/30 transition-all active:scale-95">
                 <i class="fa-solid fa-file-lines w-4 h-4"></i>
                 Export Excel
@@ -174,10 +188,10 @@ include '../layouts/header.php';
         </div>
         <form method="GET" class="p-6">
             <input type="hidden" name="limit" value="<?php echo $limit; ?>">
-            <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 lg:gap-6">
                 
                 <!-- Nama Karyawan Filter (Pencarian Nama) -->
-                <div class="md:col-span-3">
+                <div class="col-span-12 md:col-span-6 xl:col-span-3">
                     <label for="search" class="block text-xs font-bold text-slate-500 uppercase mb-2 ml-1">Nama Pegawai</label>
                     <div class="relative group">
                         <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400 group-focus-within:text-cyan-500 transition-colors">
@@ -188,7 +202,7 @@ include '../layouts/header.php';
                 </div>
 
                 <!-- Division Filter (Bidang) -->
-                <div class="md:col-span-3">
+                <div class="col-span-12 md:col-span-3 xl:col-span-2">
                     <label for="division_id" class="block text-xs font-bold text-slate-500 uppercase mb-2 ml-1">Bidang</label>
                     <div class="relative group">
                         <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400 group-focus-within:text-cyan-500 transition-colors">
@@ -208,33 +222,54 @@ include '../layouts/header.php';
                     </div>
                 </div>
 
-                <!-- Date Range Filters -->
-                <div class="md:col-span-4">
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2 ml-1">Rentang Tanggal</label>
-                    <div class="flex items-center gap-3">
-                        <div class="relative w-full group">
-                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400 group-focus-within:text-cyan-500 transition-colors">
-                                <i class="fa-solid fa-calendar-days w-4 h-4"></i>
-                            </div>
-                            <input type="date" name="start_date" id="start_date" value="<?php echo $start_date; ?>" class="block w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl focus:ring-4 focus:ring-cyan-500/10 focus:border-cyan-500 focus:bg-white transition-all">
+                <!-- Unit Filter (Unit Kerja) - Berjenjang dengan Bidang -->
+                <div class="col-span-12 md:col-span-3 xl:col-span-2">
+                    <label for="unit_id" class="block text-xs font-bold text-slate-500 uppercase mb-2 ml-1">Unit Kerja</label>
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400 group-focus-within:text-cyan-500 transition-colors">
+                            <i class="fa-solid fa-building-user w-4 h-4"></i>
                         </div>
-                        <span class="text-slate-400 text-sm font-bold">s/d</span>
+                        <select name="unit_id" id="unit_id" class="block w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl focus:ring-4 focus:ring-cyan-500/10 focus:border-cyan-500 focus:bg-white transition-all appearance-none cursor-pointer">
+                            <option value="">Semua Unit</option>
+                            <?php foreach ($units_all as $u): ?>
+                                <option value="<?php echo $u['id']; ?>" data-division="<?php echo $u['division_id']; ?>" <?php echo $unit_id == $u['id'] ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($u['name']); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
+                            <i class="fa-solid fa-chevron-down w-4 h-4"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Date Range Filters -->
+                <div class="col-span-12 md:col-span-8 xl:col-span-3">
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2 ml-1">Rentang Tanggal</label>
+                    <div class="flex items-center gap-2">
                         <div class="relative w-full group">
                             <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400 group-focus-within:text-cyan-500 transition-colors">
                                 <i class="fa-solid fa-calendar-days w-4 h-4"></i>
                             </div>
-                            <input type="date" name="end_date" id="end_date" value="<?php echo $end_date; ?>" class="block w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl focus:ring-4 focus:ring-cyan-500/10 focus:border-cyan-500 focus:bg-white transition-all">
+                            <input type="date" name="start_date" id="start_date" value="<?php echo $start_date; ?>" class="block w-full pl-9 pr-2 py-2.5 bg-slate-50 border border-slate-200 text-slate-700 text-xs sm:text-sm rounded-xl focus:ring-4 focus:ring-cyan-500/10 focus:border-cyan-500 focus:bg-white transition-all">
+                        </div>
+                        <span class="text-slate-400 text-xs font-bold flex-shrink-0">s/d</span>
+                        <div class="relative w-full group">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400 group-focus-within:text-cyan-500 transition-colors">
+                                <i class="fa-solid fa-calendar-days w-4 h-4"></i>
+                            </div>
+                            <input type="date" name="end_date" id="end_date" value="<?php echo $end_date; ?>" class="block w-full pl-9 pr-2 py-2.5 bg-slate-50 border border-slate-200 text-slate-700 text-xs sm:text-sm rounded-xl focus:ring-4 focus:ring-cyan-500/10 focus:border-cyan-500 focus:bg-white transition-all">
                         </div>
                     </div>
                 </div>
 
                 <!-- Action Buttons -->
-                <div class="md:col-span-2 flex items-end gap-2">
+                <div class="col-span-12 md:col-span-4 xl:col-span-2 flex items-end gap-2">
                     <button type="submit" class="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-cyan-600/20 hover:bg-cyan-700 hover:shadow-cyan-600/40 focus:ring-4 focus:ring-cyan-500/30 transition-all active:scale-95">
                         <i class="fa-solid fa-magnifying-glass w-4 h-4"></i>
                         Terapkan
                     </button>
-                    <?php if ($search || $division_id || $start_date != $default_start || $end_date != $default_end): ?>
+                    <?php if ($search || $division_id || $unit_id || $start_date != $default_start || $end_date != $default_end): ?>
                         <a href="?" class="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-orange-50 text-orange-600 hover:bg-orange-100 transition-all active:scale-95 border border-orange-100" title="Bersihkan Filter">
                             <i class="fa-solid fa-rotate w-5 h-5"></i>
                         </a>
@@ -275,6 +310,12 @@ include '../layouts/header.php';
                                             <div class="text-[11px] text-slate-400 font-medium">
                                                 <?php echo htmlspecialchars($log['email']); ?>
                                             </div>
+                                            <?php if (!empty($log['division_name']) || !empty($log['unit_name'])): ?>
+                                                <div class="text-[10px] text-cyan-600 font-medium mt-0.5 flex items-center gap-1">
+                                                    <i class="fa-solid fa-building text-[9px]"></i>
+                                                    <span><?php echo htmlspecialchars(implode(' • ', array_filter([$log['division_name'] ?? '', $log['unit_name'] ?? '']))); ?></span>
+                                                </div>
+                                            <?php endif; ?>
                                         </td>
                                         <td class="whitespace-nowrap px-3 py-4 text-sm text-slate-500 font-medium">
                                             <?php
@@ -348,10 +389,11 @@ include '../layouts/header.php';
                     <!-- Pagination -->
                     <?php
                     // Helper to build URL with current filters
-                    function buildUrl($p, $l, $d, $s, $e, $search = null) {
+                    function buildUrl($p, $l, $d, $s, $e, $search = null, $u = null) {
                         return "?page=$p&limit=$l" . 
                                ($search ? "&search=" . urlencode($search) : "") .
                                ($d ? "&division_id=$d" : "") . 
+                               ($u ? "&unit_id=$u" : "") . 
                                ($s ? "&start_date=$s" : "") . 
                                ($e ? "&end_date=$e" : "");
                     }
@@ -364,10 +406,10 @@ include '../layouts/header.php';
                             </p>
                             <div class="flex gap-2">
                                 <?php if ($page > 1): ?>
-                                    <a href="<?php echo buildUrl($page - 1, $limit, $division_id, $start_date, $end_date, $search); ?>" class="rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 transition-all">Prev</a>
+                                    <a href="<?php echo buildUrl($page - 1, $limit, $division_id, $start_date, $end_date, $search, $unit_id); ?>" class="rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 transition-all">Prev</a>
                                 <?php endif; ?>
                                 <?php if ($page < $total_pages): ?>
-                                    <a href="<?php echo buildUrl($page + 1, $limit, $division_id, $start_date, $end_date, $search); ?>" class="rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 transition-all">Next</a>
+                                    <a href="<?php echo buildUrl($page + 1, $limit, $division_id, $start_date, $end_date, $search, $unit_id); ?>" class="rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 transition-all">Next</a>
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -376,7 +418,7 @@ include '../layouts/header.php';
                         <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
                             <div class="flex items-center gap-4">
                                 <div class="relative group">
-                                    <select onchange="window.location.href='<?php echo buildUrl(1, '', $division_id, $start_date, $end_date, $search); ?>'.replace('limit=', 'limit='+this.value)"
+                                    <select onchange="window.location.href='<?php echo buildUrl(1, '', $division_id, $start_date, $end_date, $search, $unit_id); ?>'.replace('limit=', 'limit='+this.value)"
                                         class="block rounded-xl border-slate-200 py-1.5 pl-3 pr-8 text-slate-700 text-xs font-bold bg-slate-50 group-hover:bg-white focus:ring-4 focus:ring-cyan-500/10 focus:border-cyan-500 transition-all appearance-none cursor-pointer">
                                         <?php foreach ([10, 20, 50, 100] as $val): ?>
                                             <option value="<?php echo $val; ?>" <?php echo $limit == $val ? 'selected' : ''; ?>>
@@ -396,7 +438,7 @@ include '../layouts/header.php';
                                 <nav class="isolate inline-flex -space-x-px rounded-xl shadow-sm border border-slate-200 overflow-hidden" aria-label="Pagination">
                                     <!-- Prev -->
                                     <?php if ($page > 1): ?>
-                                        <a href="<?php echo buildUrl($page - 1, $limit, $division_id, $start_date, $end_date, $search); ?>"
+                                        <a href="<?php echo buildUrl($page - 1, $limit, $division_id, $start_date, $end_date, $search, $unit_id); ?>"
                                             class="relative inline-flex items-center px-3 py-2 text-slate-400 hover:bg-slate-50 focus:z-20 transition-colors">
                                             <i class="fa-solid fa-chevron-left h-5 w-5"></i>
                                         </a>
@@ -410,7 +452,7 @@ include '../layouts/header.php';
                                     for ($i = 1; $i <= $total_pages; $i++) {
                                         if ($i == 1 || $i == $total_pages || ($i >= $initial_num && $i < $condition_limit_num)) {
                                             ?>
-                                            <a href="<?php echo buildUrl($i, $limit, $division_id, $start_date, $end_date, $search); ?>"
+                                            <a href="<?php echo buildUrl($i, $limit, $division_id, $start_date, $end_date, $search, $unit_id); ?>"
                                                 class="relative inline-flex items-center px-4 py-2 text-sm font-bold <?php echo ($i == $page) ? 'bg-cyan-600 text-white' : 'text-slate-700 hover:bg-slate-50'; ?> border-x border-slate-100 transition-colors">
                                                 <?php echo $i; ?>
                                             </a>
@@ -425,7 +467,7 @@ include '../layouts/header.php';
 
                                     <!-- Next -->
                                     <?php if ($page < $total_pages): ?>
-                                        <a href="<?php echo buildUrl($page + 1, $limit, $division_id, $start_date, $end_date, $search); ?>"
+                                        <a href="<?php echo buildUrl($page + 1, $limit, $division_id, $start_date, $end_date, $search, $unit_id); ?>"
                                             class="relative inline-flex items-center px-3 py-2 text-slate-400 hover:bg-slate-50 focus:z-20 transition-colors">
                                             <i class="fa-solid fa-chevron-right h-5 w-5"></i>
                                         </a>
@@ -438,5 +480,69 @@ include '../layouts/header.php';
             </div>
         </div>
     </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const divisionSelect = document.getElementById('division_id');
+        const unitSelect = document.getElementById('unit_id');
+
+        if (!divisionSelect || !unitSelect) return;
+
+        // Cache list of all units from the DOM
+        const initialUnits = [];
+        const options = unitSelect.querySelectorAll('option');
+        options.forEach(opt => {
+            if (opt.value !== '') {
+                initialUnits.push({
+                    value: opt.value,
+                    text: opt.textContent.trim(),
+                    divisionId: opt.getAttribute('data-division') || ''
+                });
+            }
+        });
+
+        function updateUnitDropdown(selectedDivId, preserveCurrentValue = false) {
+            const currentVal = preserveCurrentValue ? unitSelect.value : '';
+            unitSelect.innerHTML = '';
+
+            // Default placeholder
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = selectedDivId ? 'Semua Unit di Bidang Ini' : 'Semua Unit';
+            unitSelect.appendChild(defaultOption);
+
+            let valueStillValid = false;
+
+            initialUnits.forEach(unit => {
+                // If no division is selected, show all units; if selected, show only matching division
+                if (!selectedDivId || String(unit.divisionId) === String(selectedDivId)) {
+                    const opt = document.createElement('option');
+                    opt.value = unit.value;
+                    opt.textContent = unit.text;
+                    opt.setAttribute('data-division', unit.divisionId);
+                    if (currentVal && String(unit.value) === String(currentVal)) {
+                        opt.selected = true;
+                        valueStillValid = true;
+                    }
+                    unitSelect.appendChild(opt);
+                }
+            });
+
+            if (!valueStillValid) {
+                unitSelect.value = '';
+            }
+        }
+
+        // On division change: filter units dynamically
+        divisionSelect.addEventListener('change', function() {
+            updateUnitDropdown(this.value, false);
+        });
+
+        // Run on initial load if division is already selected
+        if (divisionSelect.value) {
+            updateUnitDropdown(divisionSelect.value, true);
+        }
+    });
+    </script>
 
     <?php include '../layouts/footer.php'; ?>

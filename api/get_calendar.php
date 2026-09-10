@@ -46,10 +46,11 @@ function get_public_holidays($year) {
 try {
     $year = isset($_GET['year']) ? (int)$_GET['year'] : (int)date('Y');
     
-    // 1. Fetch Local Database Events
+    // 1. Fetch Local Database Events (Only public events for general calendar)
     $query = "SELECT id, title, description, start_date, end_date, category, is_holiday, color 
               FROM academic_calendar 
-              WHERE YEAR(start_date) = :year OR YEAR(end_date) = :year
+              WHERE (YEAR(start_date) = :year OR YEAR(end_date) = :year)
+                AND (visibility = 'public' OR visibility IS NULL)
               ORDER BY start_date ASC";
     
     $stmt = $db->prepare($query);

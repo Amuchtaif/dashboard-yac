@@ -35,6 +35,7 @@ $default_end = date('Y-m-d');
 
 $search = isset($_GET['search']) && $_GET['search'] !== '' ? trim($_GET['search']) : null;
 $division_id = isset($_GET['division_id']) && $_GET['division_id'] !== '' ? (int)$_GET['division_id'] : null;
+$unit_id = isset($_GET['unit_id']) && $_GET['unit_id'] !== '' ? (int)$_GET['unit_id'] : null;
 $start_date = isset($_GET['start_date']) && $_GET['start_date'] !== '' ? $_GET['start_date'] : $default_start;
 $end_date = isset($_GET['end_date']) && $_GET['end_date'] !== '' ? $_GET['end_date'] : $default_end;
 
@@ -49,6 +50,10 @@ if ($search) {
 if ($division_id) {
     $where .= " AND e.division_id = :division_id ";
     $params[':division_id'] = $division_id;
+}
+if ($unit_id) {
+    $where .= " AND e.unit_id = :unit_id ";
+    $params[':unit_id'] = $unit_id;
 }
 if ($start_date) {
     $where .= " AND a.date >= :start_date ";
@@ -82,6 +87,7 @@ if ($has_loc_out) {
             e.full_name, 
             e.email, 
             d.name as division_name,
+            u.name as unit_name,
             l.name as location_name,
             l.latitude as loc_lat_in,
             l.longitude as loc_long_in,
@@ -93,6 +99,7 @@ if ($has_loc_out) {
         FROM attendances a
         JOIN employees e ON a.user_id = e.id
         LEFT JOIN divisions d ON e.division_id = d.id
+        LEFT JOIN units u ON e.unit_id = u.id
         LEFT JOIN locations l ON a.location_id = l.id
         LEFT JOIN locations l_out ON a.location_id_out = l_out.id
         $where
@@ -106,6 +113,7 @@ if ($has_loc_out) {
             e.full_name, 
             e.email, 
             d.name as division_name,
+            u.name as unit_name,
             l.name as location_name,
             l.latitude as loc_lat_in,
             l.longitude as loc_long_in,
@@ -117,6 +125,7 @@ if ($has_loc_out) {
         FROM attendances a
         JOIN employees e ON a.user_id = e.id
         LEFT JOIN divisions d ON e.division_id = d.id
+        LEFT JOIN units u ON e.unit_id = u.id
         LEFT JOIN locations l ON a.location_id = l.id
         $where
         ORDER BY a.date DESC, a.time_in DESC
@@ -155,7 +164,7 @@ $headers = [
     'NIK',
     'Nama Pegawai',
     'Email',
-    'Bidang / Divisi',
+    'Bidang / Unit',
     'Tanggal',
     'Jam Masuk',
     'Status Masuk',
@@ -220,7 +229,8 @@ foreach ($logs as $index => $log) {
     $sheet->setCellValueExplicit('B' . $rowNum, $log['nik'] ?? '-', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
     $sheet->setCellValue('C' . $rowNum, $log['full_name']);
     $sheet->setCellValue('D' . $rowNum, $log['email']);
-    $sheet->setCellValue('E' . $rowNum, $log['division_name'] ?? '-');
+    $deptUnitStr = implode(' - ', array_filter([$log['division_name'] ?? '', $log['unit_name'] ?? ''])) ?: '-';
+    $sheet->setCellValue('E' . $rowNum, $deptUnitStr);
     $sheet->setCellValue('F' . $rowNum, $formattedDate);
     $sheet->setCellValue('G' . $rowNum, $log['time_in'] ? date('H:i:s', strtotime($log['time_in'])) : '-');
     $sheet->setCellValue('H' . $rowNum, $log['status'] ?? '-');
