@@ -123,6 +123,89 @@ try {
     // Notifications table might not exist yet, skip silently
     }
 
+        // 4. CARI PENGINGAT JADWAL MENGAJAR (dari schedule_reminder_logs)
+    try {
+        $sqlRem = "
+            SELECT srl.id, srl.schedule_date, srl.schedule_time, srl.sent_at,
+                   s.name as subject_name, gl.name as class_name
+            FROM schedule_reminder_logs srl
+            JOIN class_schedules cs ON srl.class_schedule_id = cs.id
+            JOIN subjects s ON cs.subject_id = s.id
+            JOIN grade_levels gl ON cs.grade_level_id = gl.id
+            WHERE srl.employee_id = :uid 
+              AND srl.schedule_date >= DATE_SUB(CURDATE(), INTERVAL 3 DAY)
+            ORDER BY srl.sent_at DESC
+        ";
+        $stmtRem = $conn->prepare($sqlRem);
+        $stmtRem->execute([':uid' => $user_id]);
+        $reminders = $stmtRem->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($reminders as $row) {
+            $key = "sched_rem_" . $row['id'];
+            if (isset($dismissedSet[$key])) continue;
+
+            $startTimeFormatted = substr($row['schedule_time'], 0, 5);
+            $notifications[] = [
+                'id' => $key,
+                'title' => "Pengingat Mengajar",
+                'body' => "Pelajaran " . $row['subject_name'] . " di kelas " . $row['class_name'] . " (" . $startTimeFormatted . " WIB).",
+                'type' => 'teaching_reminder',
+                'screen' => 'teaching_schedule',
+                'status' => 'Reminder',
+                'created_at' => $row['sent_at']
+            ];
+        }
+    } catch (Exception $e) {
+        // Skip if table not ready
+    }
+
+    // 5. CARI UNDANGAN RAPAT (dari meeting_participants & meetings)
+    try {
+        $checkMeetingTable = $conn->query("SHOW TABLES LIKE 'meetings'");
+        if ($checkMeetingTable->rowCount() > 0) {
+            $sqlMeeting = "SELECT mp.id as participant_id, mp.meeting_id, mp.status as participant_status,
+                                  m.title, m.description, m.meeting_date, m.start_time, m.end_time,
+                                  m.type as meeting_type, m.location, m.created_at,
+                                  e.full_name as creator_name
+                           FROM meeting_participants mp
+                           JOIN meetings m ON mp.meeting_id = m.id
+                           LEFT JOIN employees e ON m.created_by = e.id
+                           WHERE mp.employee_id = :uid
+                             AND mp.status = 'invited'
+                             AND m.meeting_date >= CURDATE()
+                             AND (m.created_at >= DATE_SUB(NOW(), INTERVAL 14 DAY) OR m.meeting_date <= DATE_ADD(CURDATE(), INTERVAL 3 DAY))
+                           ORDER BY m.meeting_date ASC, m.start_time ASC";
+
+            $stmtMeeting = $conn->prepare($sqlMeeting);
+            $stmtMeeting->execute([':uid' => $user_id]);
+            $meetings = $stmtMeeting->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($meetings as $row) {
+                $key = "meet_" . $row['meeting_id'];
+                if (isset($dismissedSet[$key]))
+                    continue;
+
+                $meetingDateFormatted = date('d M Y', strtotime($row['meeting_date']));
+                $startTimeFormatted = substr($row['start_time'], 0, 5);
+                $creator = !empty($row['creator_name']) ? $row['creator_name'] : 'Penyelenggara';
+                $loc = ($row['meeting_type'] === 'online') ? 'Online' : (!empty($row['location']) ? $row['location'] : 'Offline');
+
+                $notifications[] = [
+                    'id' => $key,
+                    'title' => "Undangan Rapat",
+                    'body' => "{$creator} mengundang Anda ke rapat \"{$row['title']}\" pada {$meetingDateFormatted} pukul {$startTimeFormatted} WIB ({$loc}).",
+                    'type' => 'meeting',
+                    'status' => 'Undangan',
+                    'screen' => 'meeting',
+                    'meeting_id' => (int)$row['meeting_id'],
+                    'created_at' => $row['created_at']
+                ];
+            }
+        }
+    } catch (Exception $e) {
+        // Skip if meeting tables not ready
+    }
+
     // Sort by created_at descending
     usort($notifications, function ($a, $b) {
         return strtotime($b['created_at'] ?? '0') - strtotime($a['created_at'] ?? '0');

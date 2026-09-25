@@ -45,6 +45,21 @@ try {
         $stmtDismiss->execute([':uid' => $user_id, ':key' => $key]);
     }
 
+        // Dismiss active meeting invitations (participant)
+    try {
+        $stmtMeet = $conn->prepare("SELECT meeting_id FROM meeting_participants WHERE employee_id = :uid");
+        $stmtMeet->execute([':uid' => $user_id]);
+        $meetings = $stmtMeet->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($meetings as $row) {
+            $key = "meet_" . $row['meeting_id'];
+            $stmtDismiss = $conn->prepare("INSERT IGNORE INTO dismissed_notifications (user_id, notification_key) VALUES (:uid, :key)");
+            $stmtDismiss->execute([':uid' => $user_id, ':key' => $key]);
+        }
+    } catch (Exception $e) {
+        // Skip if table not ready
+    }
+
     echo json_encode(["success" => true, "message" => "All notifications cleared"]);
 
 } catch (PDOException $e) {

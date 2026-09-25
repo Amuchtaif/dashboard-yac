@@ -40,41 +40,127 @@ try {
     $division_id = $user['division_id'];
     $user_unit_id = $user['unit_id'];
 
-    // 2. Tentukan Filter Subordinat berdasarkan Level / Unit Filter
+    // 2. Ambil daftar unit yang diizinkan sesuai hirarki
+    $allowedUnitIds = [];
+    if ($userLevel === 1) {
+        // Mudir: semua unit
+        $stmtUnits = $conn->query("SELECT id FROM units");
+        $allowedUnitIds = $stmtUnits->fetchAll(PDO::FETCH_COLUMN);
+    } else if ($userLevel === 2) {
+        // Kabid: unit di bawah divisinya
+        $stmtUnits = $conn->prepare("SELECT id FROM units WHERE division_id = ?");
+        $stmtUnits->execute([$division_id]);
+        $allowedUnitIds = $stmtUnits->fetchAll(PDO::FETCH_COLUMN);
+    } else if ($userLevel === 3) {
+        // Kepala Unit: unit miliknya & sub-unit jika ada
+        if ($user_unit_id) {
+            $stmtUName = $conn->prepare("SELECT name FROM units WHERE id = ?");
+            $stmtUName->execute([$user_unit_id]);
+            $myUnitName = $stmtUName->fetchColumn() ?: '';
+
+            $hasParentCol = false;
+            try {
+                $chk = $conn->query("SHOW COLUMNS FROM units LIKE 'parent_id'");
+                $hasParentCol = ($chk && $chk->rowCount() > 0);
+            } catch (Exception $e) {}
+
+            if ($hasParentCol) {
+                $stmtUnits = $conn->prepare("
+                    SELECT id FROM units 
+                    WHERE id = ? 
+                       OR parent_id = ? 
+                       OR (division_id = ? AND name LIKE ? AND LOWER(name) NOT LIKE '%ma\'had aly%')
+                ");
+                $stmtUnits->execute([$user_unit_id, $user_unit_id, $division_id, $myUnitName . ' - %']);
+            } else {
+                $stmtUnits = $conn->prepare("
+                    SELECT id FROM units 
+                    WHERE id = ? 
+                       OR (division_id = ? AND name LIKE ? AND LOWER(name) != 'ma\'had aly')
+                ");
+                $stmtUnits->execute([$user_unit_id, $division_id, $myUnitName . ' - %']);
+            }
+            $allowedUnitIds = $stmtUnits->fetchAll(PDO::FETCH_COLUMN);
+
+            // Pastikan unit Ma'had (id 16) dan Ma'had Aly (id 15) benar-benar terpisah
+            if ((int)$user_unit_id === 16 || strtolower($myUnitName) === "ma'had") {
+                $allowedUnitIds = array_values(array_filter($allowedUnitIds, function($id) {
+                    return (int)$id !== 15;
+                }));
+            } else if ((int)$user_unit_id === 15 || strtolower($myUnitName) === "ma'had aly") {
+                $allowedUnitIds = array_values(array_filter($allowedUnitIds, function($id) {
+                    return (int)$id !== 16;
+                }));
+            }
+        }
+    } else {
+        if ($user_unit_id) $allowedUnitIds = [$user_unit_id];
+    }
+
+    $allowedUnitIds = array_map('intval', $allowedUnitIds);
+
+    // 3. Tentukan Filter Subordinat berdasarkan Level / Unit Filter
     $subordinateFilter = "";
     $params = [':target_date' => $target_date, ':user_id' => $user_id];
 
-    if ($unit_id && $unit_id !== '0' && $unit_id !== 'all' && strtolower($unit_id) !== 'semua unit') {
+    $hasSpecificUnit = ($unit_id && $unit_id !== '0' && $unit_id !== 'all' && strtolower($unit_id) !== 'semua unit');
+
+    if ($hasSpecificUnit) {
+        $targetUnitId = null;
         if (is_numeric($unit_id)) {
-            $subordinateFilter = "e.unit_id = :unit_filter_id AND e.id != :user_id";
-            $params[':unit_filter_id'] = $unit_id;
+            $targetUnitId = (int)$unit_id;
         } else {
-            $subordinateFilter = "LOWER(u.name) = LOWER(:unit_filter_name) AND e.id != :user_id";
-            $params[':unit_filter_name'] = $unit_id;
+            $stmtFindUnit = $conn->prepare("SELECT id FROM units WHERE LOWER(name) = LOWER(?) LIMIT 1");
+            $stmtFindUnit->execute([$unit_id]);
+            $foundId = $stmtFindUnit->fetchColumn();
+            if ($foundId) $targetUnitId = (int)$foundId;
         }
-    } else if ($userLevel === 1) {
-        // Mudir: Tampilkan semua Kepala Bidang (Level 2)
-        $subordinateFilter = "p.level = 2";
-    } else if ($userLevel === 2) {
-        // Kepala Bidang (Kabid): Tampilkan Kepala Unit/Sub (Level 3) 
-        // dan Staff Langsung di bawah divisi (Posisi 'Staf' dengan unit_id kosong)
-        $subordinateFilter = "e.division_id = :division_id 
-                             AND e.id != :user_id
-                             AND (
-                                 p.level = 3 
-                                 OR (p.name = 'Staf' AND (e.unit_id IS NULL OR e.unit_id = 0))
-                             )";
-        $params[':division_id'] = $division_id;
-    } else if ($userLevel === 3) {
-        // Kepala Unit/Sub: Tampilkan semua pegawai dalam satu unit
-        $subordinateFilter = "e.unit_id = :user_unit_id AND e.id != :user_id";
-        $params[':user_unit_id'] = $user_unit_id;
-    } else {
-        $subordinateFilter = "e.division_id = :division_id AND e.id != :user_id";
-        $params[':division_id'] = $division_id;
+
+        // Keamanan Hirarki: pastikan unit yang diminta ada dalam unit yang diizinkan
+        if ($userLevel > 1 && !in_array($targetUnitId, $allowedUnitIds, true)) {
+            $targetUnitId = null; // Di luar wewenang
+        }
+
+        if ($targetUnitId) {
+            $subordinateFilter = "e.unit_id = :target_unit_id AND e.id != :user_id";
+            $params[':target_unit_id'] = $targetUnitId;
+        }
     }
 
-    // 3. Ambil List Staff Sesuai Filter
+    // Default jika tidak ada filter unit spesifik atau unit tidak diizinkan
+    if (empty($subordinateFilter)) {
+        if ($userLevel === 1) {
+            // Mudir: Tampilkan semua Kepala Bidang (Level 2)
+            $subordinateFilter = "p.level = 2";
+        } else if ($userLevel === 2) {
+            // Kepala Bidang: Tampilkan Kepala Unit/Sub (Level 3) & staf langsung divisi
+            $subordinateFilter = "e.division_id = :division_id 
+                                 AND e.id != :user_id
+                                 AND (
+                                     p.level = 3 
+                                     OR (p.name = 'Staf' AND (e.unit_id IS NULL OR e.unit_id = 0))
+                                 )";
+            $params[':division_id'] = $division_id;
+        } else if ($userLevel === 3) {
+            // Kepala Unit: Tampilkan semua pegawai dalam unitnya (dan sub-unit jika ada)
+            if (!empty($allowedUnitIds)) {
+                $inClause = implode(',', $allowedUnitIds);
+                $subordinateFilter = "e.unit_id IN ($inClause) AND e.id != :user_id";
+            } else {
+                $subordinateFilter = "1=0";
+            }
+        } else {
+            // Staf/Guru: staff dalam unit yang sama
+            if ($user_unit_id) {
+                $subordinateFilter = "e.unit_id = :user_unit_id AND e.id != :user_id";
+                $params[':user_unit_id'] = $user_unit_id;
+            } else {
+                $subordinateFilter = "1=0";
+            }
+        }
+    }
+
+    // 4. Ambil List Staff Sesuai Filter
     $query = "
         SELECT 
             e.id, 
