@@ -26,6 +26,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['user_photo'] = $user['profile_photo'];
             $_SESSION['position_name'] = $user['position_name'];
             $_SESSION['email'] = $user['email'];
+            $_SESSION['last_activity'] = time();
 
             Logger::auth('LOGIN', 'User logged in successfully');
 

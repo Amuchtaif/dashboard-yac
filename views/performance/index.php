@@ -43,7 +43,7 @@ $query = "
     LEFT JOIN (
         SELECT 
             user_id,
-            SUM(CASE WHEN status = 'Hadir' OR status = 'Tepat Waktu' THEN 1 ELSE 0 END) as hadir_count,
+            SUM(CASE WHEN (status = 'Hadir' OR status = 'Tepat Waktu' OR status = 'Hadir Diluar Batas') THEN 1 ELSE 0 END) as hadir_count,
             SUM(CASE WHEN status = 'Telat' THEN 1 ELSE 0 END) as telat_count,
             SUM(CASE WHEN status_out = 'Pulang' OR status_out = 'Tepat Waktu' THEN 1 ELSE 0 END) as pulang_count,
             SUM(CASE WHEN status_out = 'Pulang Cepat' THEN 1 ELSE 0 END) as cepat_count,

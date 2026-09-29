@@ -24,7 +24,7 @@ if (isset($_SESSION['user_id'])) {
         }
 
         .bg-custom-blue {
-            background-color: #0575E6;
+            background-color: #2B3990;
         }
 
         .text-custom-blue {

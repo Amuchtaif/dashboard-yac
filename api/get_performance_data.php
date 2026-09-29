@@ -58,12 +58,15 @@ try {
         if ($row['status'] == 'Hadir' || $row['status'] == 'Tepat Waktu') {
             $pointsIn = 10;
             $titleIn = "Presensi Masuk Tepat Waktu";
+        } elseif ($row['status'] == 'Hadir Diluar Batas') {
+            $pointsIn = 0;
+            $titleIn = "Presensi Masuk Diluar Batas Waktu Wajar (0 Poin)";
         } elseif ($row['status'] == 'Telat') {
             $pointsIn = -5;
             $titleIn = "Presensi Masuk Terlambat";
         }
 
-        if ($pointsIn != 0) {
+        if ($pointsIn != 0 || $row['status'] == 'Hadir Diluar Batas') {
             $totalPoints += $pointsIn;
             $activityHistory[] = [
                 "title" => $titleIn,
@@ -82,6 +85,9 @@ try {
             if ($row['status_out'] == 'Pulang' || $row['status_out'] == 'Tepat Waktu') {
                 $pointsOut = 10;
                 $titleOut = "Presensi Pulang Sesuai Waktu";
+            } elseif ($row['status_out'] == 'Pulang Diluar Batas') {
+                $pointsOut = 0;
+                $titleOut = "Presensi Pulang Diluar Batas Waktu Wajar";
             } elseif ($row['status_out'] == 'Pulang Cepat') {
                 $pointsOut = -5;
                 $titleOut = "Presensi Pulang Sebelum Waktunya";
@@ -90,7 +96,7 @@ try {
                 $titleOut = "Lupa Melakukan Absen Pulang";
             }
 
-            if ($pointsOut != 0) {
+            if ($pointsOut != 0 || $row['status_out'] == 'Pulang Diluar Batas') {
                 $totalPoints += $pointsOut;
                 $activityHistory[] = [
                     "title" => $titleOut,

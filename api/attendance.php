@@ -225,8 +225,19 @@ if ($action === 'get_history') {
             if ($stmt->rowCount() > 0) {
                 echo json_encode(["success" => false, "message" => "Anda sudah absen masuk hari ini!"]);
             } else {
+                // Batas Awal Absen (Earliest Check-In) - Maksimal 60 menit sebelum jam masuk kerja
+                $earliest_checkin_minutes = 60;
+                $earliest_time = date('H:i:s', strtotime($jam_masuk_kantor . " -{$earliest_checkin_minutes} minutes"));
                 $jam_masuk_toleransi = date('H:i:s', strtotime($jam_masuk_kantor . ' +1 minute'));
-                $status_in = ($now_time >= $jam_masuk_toleransi) ? "Telat" : "Hadir";
+
+                if ($now_time < $earliest_time) {
+                    // Absen lebih awal dari 60 menit sebelum jadwal -> Diizinkan, tetapi status khusus dan tidak mendapat poin
+                    $status_in = "Hadir Diluar Batas";
+                } elseif ($now_time >= $jam_masuk_toleransi) {
+                    $status_in = "Telat";
+                } else {
+                    $status_in = "Hadir";
+                }
                 $insertQuery = "INSERT INTO attendances (user_id, location_id, date, time_in, status, lat_in, long_in) VALUES (:uid, :lid, :date, :time, :stat, :lat, :long)";
                 $stmtInsert = $conn->prepare($insertQuery);
                 $stmtInsert->bindParam(':uid', $user_id);
@@ -255,7 +266,19 @@ if ($action === 'get_history') {
             } elseif ($row['time_out'] != null) {
                 echo json_encode(["success" => false, "message" => "Sudah absen pulang!"]);
             } else {
-                $status_out = ($now_time < $jam_pulang_kantor) ? "Pulang Cepat" : "Pulang";
+                // Batas toleransi kepulangan wajar (60 menit / 1 jam setelah jam kerja berakhir)
+                $latest_checkout_minutes = 60;
+                $latest_time = date('H:i:s', strtotime($jam_pulang_kantor . " +{$latest_checkout_minutes} minutes"));
+
+                if ($now_time < $jam_pulang_kantor) {
+                    $status_out = "Pulang Cepat";
+                } elseif ($latest_time > $jam_pulang_kantor && $now_time > $latest_time) {
+                    // Checkout melewati batas waktu wajar (> 1 jam setelah jam kerja)
+                    // Check-out tetap diizinkan berhasil, namun status khusus dan tidak menambah poin
+                    $status_out = "Pulang Diluar Batas";
+                } else {
+                    $status_out = "Pulang";
+                }
                 $updateQuery = "UPDATE attendances SET time_out = :time, status_out = :stat_out, lat_out = :lat, long_out = :long WHERE id = :id";
                 $stmtUpdate = $conn->prepare($updateQuery);
                 $stmtUpdate->bindParam(':time', $now_time);

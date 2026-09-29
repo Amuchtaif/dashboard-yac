@@ -67,10 +67,54 @@ try {
         throw new Exception("Anda berada di luar radius lokasi yang ditentukan (Jarak: " . round($distance, 2) . "m)");
     }
 
-    // 6. Jika valid → insert ke attendances
-    // Menentukan status (Hadir/Telat) - Opsional, user tidak minta logika telat tapi API sebelumnya punya.
-    // Di sini saya ikuti permintaan user untuk field minimal.
-    $status = "Hadir"; // Default
+    // 5b. Ambil jadwal kerja karyawan untuk validasi Batas Awal Absen (Earliest Check-In)
+    $stmtEmp = $db->prepare("SELECT schedule_id, division_id, unit_id FROM employees WHERE id = :uid");
+    $stmtEmp->bindParam(':uid', $user_id);
+    $stmtEmp->execute();
+    $employee = $stmtEmp->fetch(PDO::FETCH_ASSOC);
+
+    $currentDayName = date('l', strtotime($today));
+    $schedule_id = null;
+    if ($employee) {
+        if (!empty($employee['schedule_id'])) { $schedule_id = $employee['schedule_id']; }
+        if (!$schedule_id && !empty($employee['unit_id'])) {
+            $stmtUnit = $db->prepare("SELECT schedule_id FROM units WHERE id = ?");
+            $stmtUnit->execute([$employee['unit_id']]);
+            $unit = $stmtUnit->fetch(PDO::FETCH_ASSOC);
+            if ($unit && !empty($unit['schedule_id'])) { $schedule_id = $unit['schedule_id']; }
+        }
+        if (!$schedule_id && !empty($employee['division_id'])) {
+            $stmtDiv = $db->prepare("SELECT schedule_id FROM divisions WHERE id = ?");
+            $stmtDiv->execute([$employee['division_id']]);
+            $division = $stmtDiv->fetch(PDO::FETCH_ASSOC);
+            if ($division && !empty($division['schedule_id'])) { $schedule_id = $division['schedule_id']; }
+        }
+    }
+    if (!$schedule_id) { $schedule_id = 1; }
+
+    $stmtSched = $db->prepare("SELECT * FROM work_schedule_details WHERE schedule_id = ? AND day_name = ?");
+    $stmtSched->execute([$schedule_id, $currentDayName]);
+    $dailySched = $stmtSched->fetch(PDO::FETCH_ASSOC);
+
+    if ($dailySched && (int)$dailySched['is_day_off'] === 1) {
+        throw new Exception("Hari libur. Absen masuk ditolak.");
+    }
+
+    $jam_masuk_kantor = ($dailySched && !empty($dailySched['start_time'])) ? $dailySched['start_time'] : '08:00:00';
+
+    // Batas Awal Absen (Earliest Check-In): Maksimal 60 menit sebelum shift
+    $earliest_checkin_minutes = 60;
+    $earliest_time = date('H:i:s', strtotime($jam_masuk_kantor . " -{$earliest_checkin_minutes} minutes"));
+    $jam_masuk_toleransi = date('H:i:s', strtotime($jam_masuk_kantor . ' +1 minute'));
+
+    if ($now_time < $earliest_time) {
+        // Absen lebih awal dari 60 menit sebelum jadwal -> Diizinkan, tetapi status khusus dan tidak mendapat poin
+        $status = "Hadir Diluar Batas";
+    } elseif ($now_time >= $jam_masuk_toleransi) {
+        $status = "Telat";
+    } else {
+        $status = "Hadir";
+    }
     
     $insert_query = "INSERT INTO attendances (user_id, location_id, date, time_in, lat_in, long_in, status) 
                     VALUES (:user_id, :location_id, :date, :time_in, :lat_in, :long_in, :status)";
@@ -84,9 +128,10 @@ try {
     $stmt_insert->bindParam(':status', $status);
 
     if ($stmt_insert->execute()) {
+        $extra = ($status === "Hadir Diluar Batas") ? " (Diluar batas waktu, 0 poin)" : "";
         echo json_encode([
             "status" => true,
-            "message" => "Check-in berhasil"
+            "message" => "Check-in berhasil ($status)$extra"
         ]);
     } else {
         throw new Exception("Gagal menyimpan data absensi");

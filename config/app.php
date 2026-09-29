@@ -28,9 +28,26 @@ if (!defined('BASE_URL')) {
 // App Name
 define('APP_NAME', 'Dashboard YAC');
 
-// Set Session Lifetime to 6 hours (21600 seconds)
-ini_set('session.gc_maxlifetime', 21600);
-session_set_cookie_params(['lifetime' => 21600]);
+// Dedicated Session Directory (mencegah default Garbage Collector XAMPP menghapus sesi di 24 menit)
+$sessionDir = __DIR__ . '/../storage/sessions';
+if (!is_dir($sessionDir)) {
+    @mkdir($sessionDir, 0777, true);
+}
+if (is_dir($sessionDir) && is_writable($sessionDir)) {
+    session_save_path($sessionDir);
+}
+
+// Inactivity / Idle Timeout Configuration: 1 Jam (3600 detik)
+define('SESSION_TIMEOUT_DURATION', 3600);
+
+// Buffer Server Garbage Collection & Cookie Lifetime: 2 Jam (7200 detik)
+ini_set('session.gc_maxlifetime', 7200);
+session_set_cookie_params([
+    'lifetime' => 7200,
+    'path' => '/',
+    'httponly' => true,
+    'samesite' => 'Lax'
+]);
 
 // Start Session
 if (session_status() == PHP_SESSION_NONE) {
@@ -51,13 +68,40 @@ function redirect($path)
 }
 
 /**
- * Helper to check if user is logged in
+ * Helper to check if user is logged in with 1-Hour Inactivity Timeout
  */
 function check_login()
 {
     if (!isset($_SESSION['user_id'])) {
         redirect('views/auth/login.php');
     }
+
+    // Cek Idle / Inactivity Timeout (1 Jam = 3600 detik)
+    $timeout_duration = defined('SESSION_TIMEOUT_DURATION') ? SESSION_TIMEOUT_DURATION : 3600;
+
+    if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) > $timeout_duration) {
+        $user_id = $_SESSION['user_id'] ?? null;
+        if ($user_id && class_exists('Logger')) {
+            Logger::auth('SESSION_TIMEOUT', "Session timed out after 1 hour of inactivity for user ID: {$user_id}");
+        }
+
+        // Hapus data sesi
+        $_SESSION = [];
+        if (ini_get("session.use_cookies")) {
+            $params = session_get_cookie_params();
+            setcookie(session_name(), '', time() - 42000,
+                $params["path"], $params["domain"],
+                $params["secure"], $params["httponly"]
+            );
+        }
+        session_destroy();
+
+        $error_msg = urlencode("Sesi Anda telah berakhir karena tidak ada aktivitas selama 1 jam. Silakan masuk kembali.");
+        redirect("views/auth/login.php?error={$error_msg}");
+    }
+
+    // Perbarui waktu aktivitas terakhir
+    $_SESSION['last_activity'] = time();
 }
 
 /**

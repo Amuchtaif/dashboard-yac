@@ -73,8 +73,49 @@ try {
         throw new Exception("Anda berada di luar radius lokasi (Jarak: " . round($distance, 2) . "m)");
     }
 
-    // 6. Update time_out, lat_out, long_out, location_id_out
-    $status_out = "Pulang"; // Default
+    // 5b. Ambil jadwal kerja karyawan untuk validasi Batas Akhir Absen Pulang
+    $stmtEmp = $db->prepare("SELECT schedule_id, division_id, unit_id FROM employees WHERE id = :uid");
+    $stmtEmp->bindParam(':uid', $user_id);
+    $stmtEmp->execute();
+    $employee = $stmtEmp->fetch(PDO::FETCH_ASSOC);
+
+    $currentDayName = date('l', strtotime($today));
+    $schedule_id = null;
+    if ($employee) {
+        if (!empty($employee['schedule_id'])) { $schedule_id = $employee['schedule_id']; }
+        if (!$schedule_id && !empty($employee['unit_id'])) {
+            $stmtUnit = $db->prepare("SELECT schedule_id FROM units WHERE id = ?");
+            $stmtUnit->execute([$employee['unit_id']]);
+            $unit = $stmtUnit->fetch(PDO::FETCH_ASSOC);
+            if ($unit && !empty($unit['schedule_id'])) { $schedule_id = $unit['schedule_id']; }
+        }
+        if (!$schedule_id && !empty($employee['division_id'])) {
+            $stmtDiv = $db->prepare("SELECT schedule_id FROM divisions WHERE id = ?");
+            $stmtDiv->execute([$employee['division_id']]);
+            $division = $stmtDiv->fetch(PDO::FETCH_ASSOC);
+            if ($division && !empty($division['schedule_id'])) { $schedule_id = $division['schedule_id']; }
+        }
+    }
+    if (!$schedule_id) { $schedule_id = 1; }
+
+    $stmtSched = $db->prepare("SELECT * FROM work_schedule_details WHERE schedule_id = ? AND day_name = ?");
+    $stmtSched->execute([$schedule_id, $currentDayName]);
+    $dailySched = $stmtSched->fetch(PDO::FETCH_ASSOC);
+
+    $jam_pulang_kantor = ($dailySched && !empty($dailySched['end_time'])) ? $dailySched['end_time'] : '16:00:00';
+
+    // Batas Akhir Absen Pulang (Latest Check-Out): Maksimal 60 menit (1 jam) setelah shift berakhir
+    $latest_checkout_minutes = 60;
+    $latest_time = date('H:i:s', strtotime($jam_pulang_kantor . " +{$latest_checkout_minutes} minutes"));
+
+    if ($now_time < $jam_pulang_kantor) {
+        $status_out = "Pulang Cepat";
+    } elseif ($latest_time > $jam_pulang_kantor && $now_time > $latest_time) {
+        // Checkout melewati batas wajar (> 1 jam setelah jam kerja) -> Berhasil checkout namun tidak menambah poin
+        $status_out = "Pulang Diluar Batas";
+    } else {
+        $status_out = "Pulang";
+    }
 
     $has_loc_out = false;
     try {
