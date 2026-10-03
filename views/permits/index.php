@@ -65,11 +65,15 @@ if ($permit_type) {
 $where_sql = implode(" AND ", $where_clauses);
 
 $query = "
-    SELECT p.*, e.full_name, e.position_id, pos.name as position_name, DATEDIFF(p.end_date, p.start_date) + 1 as duration,
+    SELECT p.*, e.full_name, e.profile_photo, e.position_id, pos.name as position_name,
+           d.name as division_name, u.name as unit_name,
+           DATEDIFF(p.end_date, p.start_date) + 1 as duration,
            approver.full_name as approver_name
     FROM permits p
     JOIN employees e ON p.employee_id = e.id
     LEFT JOIN positions pos ON e.position_id = pos.id
+    LEFT JOIN divisions d ON e.division_id = d.id
+    LEFT JOIN units u ON e.unit_id = u.id
     LEFT JOIN employees approver ON p.approved_by = approver.id
     WHERE $where_sql
     ORDER BY p.created_at DESC
@@ -270,15 +274,29 @@ include '../layouts/header.php';
                             <!-- Employee -->
                             <td class="px-6 py-4">
                                 <div class="flex items-center">
-                                    <img class="h-10 w-10 rounded-full object-cover"
-                                        src="https://ui-avatars.com/api/?name=<?php echo urlencode($permit['full_name']); ?>&background=random"
-                                        alt="">
+                                    <?php if (!empty($permit['profile_photo']) && file_exists(BASE_PATH . '/uploads/profile_photos/' . $permit['profile_photo'])): ?>
+                                        <img class="h-10 w-10 rounded-full border border-slate-200 object-cover flex-shrink-0"
+                                            src="<?php echo BASE_URL . '/uploads/profile_photos/' . $permit['profile_photo']; ?>"
+                                            alt="">
+                                    <?php else: ?>
+                                        <img class="h-10 w-10 rounded-full object-cover flex-shrink-0"
+                                            src="https://ui-avatars.com/api/?name=<?php echo urlencode($permit['full_name']); ?>&background=random"
+                                            alt="">
+                                    <?php endif; ?>
                                     <div class="ml-4">
                                         <div class="font-medium text-slate-900">
                                             <?php echo htmlspecialchars($permit['full_name']); ?>
                                         </div>
                                         <div class="text-slate-500 text-xs">
-                                            <?php echo htmlspecialchars($permit['position_name'] ?? 'Pegawai'); ?>
+                                            <?php 
+                                            $pos_name = $permit['position_name'] ?? 'Pegawai';
+                                            $org_info = $permit['unit_name'] ?: ($permit['division_name'] ?? '');
+                                            $full_org_title = trim(($permit['unit_name'] ? 'Unit ' . $permit['unit_name'] : '') . ($permit['division_name'] ? ' (Bidang ' . $permit['division_name'] . ')' : ''));
+                                            ?>
+                                            <span><?php echo htmlspecialchars($pos_name); ?></span>
+                                            <?php if (!empty($org_info)): ?>
+                                                <span class="text-slate-400" title="<?php echo htmlspecialchars($full_org_title); ?>">- <?php echo htmlspecialchars($org_info); ?></span>
+                                            <?php endif; ?>
                                         </div>
                                     </div>
                                 </div>
