@@ -3,6 +3,18 @@
 
 if (!function_exists('hasPermission')) {
     function hasPermission($employee_id, $permission_name) {
+        static $perm_cache = [];
+        $cache_key = "{$employee_id}_{$permission_name}";
+        if (isset($perm_cache[$cache_key])) {
+            return $perm_cache[$cache_key];
+        }
+
+        $result = _checkPermissionInternal($employee_id, $permission_name);
+        $perm_cache[$cache_key] = $result;
+        return $result;
+    }
+
+    function _checkPermissionInternal($employee_id, $permission_name) {
         // Ensure Database class is loaded
         if (!class_exists('Database')) {
             $possible_paths = [
@@ -25,20 +37,27 @@ if (!function_exists('hasPermission')) {
             $db = new Database();
             $conn = $db->getConnection();
 
-            // 0. Preliminary Check: Get Employee Position
-            $pos_name_col = 'name';
-            try {
-                $checkCol = $conn->query("SHOW COLUMNS FROM positions LIKE 'position_name'");
-                if ($checkCol && $checkCol->rowCount() > 0) {
-                    $pos_name_col = 'position_name';
+            // 0. Preliminary Check: Get Employee Position (cached per request)
+            static $emp_cache = [];
+            static $pos_name_col = null;
+            if ($pos_name_col === null) {
+                $pos_name_col = 'name';
+                try {
+                    $checkCol = $conn->query("SHOW COLUMNS FROM positions LIKE 'position_name'");
+                    if ($checkCol && $checkCol->rowCount() > 0) {
+                        $pos_name_col = 'position_name';
+                    }
+                } catch (Exception $e) {
+                    // fallback to 'name'
                 }
-            } catch (Exception $e) {
-                // fallback to 'name'
             }
 
-            $stmtEmp = $conn->prepare("SELECT e.position_id, p.{$pos_name_col} as position_name, p.level FROM employees e LEFT JOIN positions p ON e.position_id = p.id WHERE e.id = ? LIMIT 1");
-            $stmtEmp->execute([$employee_id]);
-            $employee = $stmtEmp->fetch(PDO::FETCH_ASSOC);
+            if (!isset($emp_cache[$employee_id])) {
+                $stmtEmp = $conn->prepare("SELECT e.position_id, p.{$pos_name_col} as position_name, p.level FROM employees e LEFT JOIN positions p ON e.position_id = p.id WHERE e.id = ? LIMIT 1");
+                $stmtEmp->execute([$employee_id]);
+                $emp_cache[$employee_id] = $stmtEmp->fetch(PDO::FETCH_ASSOC);
+            }
+            $employee = $emp_cache[$employee_id];
 
             if (!$employee) return false;
 

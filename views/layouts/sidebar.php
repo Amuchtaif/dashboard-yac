@@ -1,13 +1,13 @@
 <?php
-$current_page = $_SERVER['REQUEST_URI'];
+$current_page = $_SERVER['REQUEST_URI'] ?? '';
 if (!function_exists('isUrlActive')) {
     function isUrlActive($path)
     {
         global $current_page;
 
         // Bersihkan ekstensi .php dari URL saat ini dan path target agar perbandingan akurat
-        $clean_page = str_replace('.php', '', $current_page);
-        $clean_path = str_replace('.php', '', $path);
+        $clean_page = str_replace('.php', '', (string) ($current_page ?? ''));
+        $clean_path = str_replace('.php', '', (string) ($path ?? ''));
 
         // Special case for boarding attendance subpages
         $is_boarding_attendance = (strpos($clean_page, 'boarding/attendance') !== false && $clean_path === 'boarding/attendance');
@@ -314,11 +314,10 @@ if ($is_admin) {
                 <?php
             endif; ?>
 
-            <!-- System Logging Category -->
             <?php 
-            $position = $_SESSION['position_name'] ?? '';
-            $can_view_activity_logs = in_array($position, ['Administrator', 'Manager', 'Developer', 'Super Admin']);
-            $can_view_system_logs = in_array($position, ['Administrator', 'Developer', 'Super Admin']);
+            $user_pos = $_SESSION['position_name'] ?? '';
+            $can_view_activity_logs = in_array($user_pos, ['Administrator', 'Manager', 'Developer', 'Super Admin']);
+            $can_view_system_logs = in_array($user_pos, ['Administrator', 'Developer', 'Super Admin']);
             if ($can_view_activity_logs || $can_view_system_logs): 
             ?>
                 <div class="pt-4 pb-2">

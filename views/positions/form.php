@@ -30,7 +30,11 @@ if ($is_edit) {
         exit;
     }
 }
+$position_data = $position;
 include '../layouts/header.php';
+if (isset($position_data)) {
+    $position = $position_data;
+}
 ?>
 
 <div class="w-full pb-10">

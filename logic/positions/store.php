@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header("Location: " . BASE_URL . "/views/positions/index.php?success=" . urlencode("Jabatan berhasil ditambahkan"));
         exit;
     } catch (PDOException $e) {
-        header("Location: " . BASE_URL . "/views/positions/forms.php?error=" . urlencode("Kesalahan Database: " . $e->getMessage()));
+        header("Location: " . BASE_URL . "/views/positions/form.php?error=" . urlencode("Kesalahan Database: " . $e->getMessage()));
         exit;
     }
 }
