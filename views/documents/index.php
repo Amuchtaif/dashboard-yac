@@ -166,7 +166,7 @@ while ($row = $stmtTypeStats->fetch(PDO::FETCH_ASSOC)) {
 include '../layouts/header.php';
 ?>
 <!-- Font Awesome CDN -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer">
 
 <div class="pb-10">
     <!-- Header -->
@@ -369,7 +369,7 @@ include '../layouts/header.php';
 </div>
 
 <!-- Chart JS -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js" integrity="sha512-sZLif02pOYdWSGSO18HakvSGGR7qB+dwhVOElFJrXQK4BYUi31NcTyD6ah7iWUHzn8e5PRqLMjfFFrtt8QqGDw==" crossorigin="anonymous"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Monthly Chart (Line Chart)

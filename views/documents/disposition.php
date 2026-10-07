@@ -68,7 +68,7 @@ $my_dispositions = $stmtListOut->fetchAll(PDO::FETCH_ASSOC);
 include '../layouts/header.php';
 ?>
 <!-- Font Awesome CDN -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer">
 
 <div class="pb-10">
     <!-- Header -->
@@ -238,6 +238,6 @@ include '../layouts/header.php';
 </div>
 
 <!-- Alpine JS for tabs -->
-<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.8/dist/cdn.min.js" integrity="sha512-yOJKtRNy4uv7xXo39FPUqAgH3jf+C+48vbJiEhQFFQBfJoD0dPSfe8Ta5mmI4Jk+kRA5emkddlDZGdyEGmtQfg==" crossorigin="anonymous" defer></script>
 
 <?php include '../layouts/footer.php'; ?>

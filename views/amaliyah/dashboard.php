@@ -100,7 +100,7 @@ input[type="text"]:focus, input[type="date"]:focus, select:focus, textarea:focus
 </style>
 
 <!-- Include Chart.js CDN -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js" integrity="sha512-sZLif02pOYdWSGSO18HakvSGGR7qB+dwhVOElFJrXQK4BYUi31NcTyD6ah7iWUHzn8e5PRqLMjfFFrtt8QqGDw==" crossorigin="anonymous"></script>
 
 <div class="pb-10">
     <div class="sm:flex sm:items-center justify-between">

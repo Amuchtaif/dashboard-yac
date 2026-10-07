@@ -41,10 +41,20 @@ if (is_dir($sessionDir) && is_writable($sessionDir)) {
 define('SESSION_TIMEOUT_DURATION', 3600);
 
 // Buffer Server Garbage Collection & Cookie Lifetime: 2 Jam (7200 detik)
+$isHttps = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
 ini_set('session.gc_maxlifetime', 7200);
+ini_set('session.cookie_httponly', '1');
+ini_set('session.use_only_cookies', '1');
+ini_set('session.cookie_samesite', 'Lax');
+if ($isHttps) {
+    ini_set('session.cookie_secure', '1');
+}
+
 session_set_cookie_params([
     'lifetime' => 7200,
     'path' => '/',
+    'domain' => '',
+    'secure' => $isHttps,
     'httponly' => true,
     'samesite' => 'Lax'
 ]);
@@ -52,6 +62,17 @@ session_set_cookie_params([
 // Start Session
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
+}
+
+// CSRF Protection Helper
+require_once __DIR__ . '/csrf.php';
+
+// Security Headers (Content-Security-Policy, Nosniff, Frame Options, Referrer Policy)
+if (!headers_sent()) {
+    header("X-Content-Type-Options: nosniff");
+    header("X-Frame-Options: SAMEORIGIN");
+    header("Referrer-Policy: strict-origin-when-cross-origin");
+    header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data: blob: https:; connect-src 'self' https:; frame-src 'self' https:; object-src 'none'; base-uri 'self';");
 }
 
 /**

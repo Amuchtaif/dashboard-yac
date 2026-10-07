@@ -76,6 +76,10 @@
 
 <script>
     function openDeleteModal(url) {
+        const csrfToken = '<?php echo csrf_token(); ?>';
+        if (url && !url.includes('csrf_token=')) {
+            url += (url.includes('?') ? '&' : '?') + 'csrf_token=' + encodeURIComponent(csrfToken);
+        }
         document.getElementById('confirmDeleteBtn').href = url;
         const modal = document.getElementById('deleteModal');
         const backdrop = document.getElementById('deleteModalBackdrop');
@@ -101,6 +105,10 @@
     }
 
     function openConfirmModal(url, title, message, color = 'cyan') {
+        const csrfToken = '<?php echo csrf_token(); ?>';
+        if (url && !url.includes('csrf_token=')) {
+            url += (url.includes('?') ? '&' : '?') + 'csrf_token=' + encodeURIComponent(csrfToken);
+        }
         document.getElementById('confirmModalBtn').href = url;
         document.getElementById('confirm-modal-title').innerText = title;
         document.getElementById('confirm-modal-message').innerText = message;
@@ -462,6 +470,78 @@
             modal.classList.add('hidden');
         }, 300);
     }
+
+    // Global CSRF Protection: Auto-inject token into all POST forms and AJAX requests
+    (function() {
+        const csrfToken = '<?php echo csrf_token(); ?>';
+        
+        function injectCsrfInputs() {
+            document.querySelectorAll('form[method="post" i], form[method="POST"]').forEach(function(form) {
+                if (!form.querySelector('input[name="csrf_token"]')) {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'csrf_token';
+                    input.value = csrfToken;
+                    form.appendChild(input);
+                }
+            });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', injectCsrfInputs);
+        } else {
+            injectCsrfInputs();
+        }
+
+        // Intercept dynamically added forms
+        const observer = new MutationObserver(function() {
+            injectCsrfInputs();
+        });
+        if (document.body) {
+            observer.observe(document.body, { childList: true, subtree: true });
+        }
+
+        // Intercept window.fetch to attach X-CSRF-TOKEN
+        if (window.fetch) {
+            const originalFetch = window.fetch;
+            window.fetch = function(url, options = {}) {
+                if (options.method && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(options.method.toUpperCase())) {
+                    options.headers = options.headers || {};
+                    if (typeof Headers !== 'undefined' && options.headers instanceof Headers) {
+                        if (!options.headers.has('X-CSRF-TOKEN')) {
+                            options.headers.set('X-CSRF-TOKEN', csrfToken);
+                        }
+                    } else if (Array.isArray(options.headers)) {
+                        let hasHeader = options.headers.some(h => h[0].toLowerCase() === 'x-csrf-token');
+                        if (!hasHeader) {
+                            options.headers.push(['X-CSRF-TOKEN', csrfToken]);
+                        }
+                    } else if (typeof options.headers === 'object') {
+                        options.headers['X-CSRF-TOKEN'] = options.headers['X-CSRF-TOKEN'] || csrfToken;
+                    }
+                }
+                return originalFetch(url, options);
+            };
+        }
+
+        // Intercept XMLHttpRequest to attach X-CSRF-TOKEN
+        if (window.XMLHttpRequest) {
+            const origOpen = XMLHttpRequest.prototype.open;
+            const origSend = XMLHttpRequest.prototype.send;
+            XMLHttpRequest.prototype.open = function(method, url) {
+                this._method = method;
+                return origOpen.apply(this, arguments);
+            };
+            XMLHttpRequest.prototype.send = function() {
+                if (this._method && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(this._method.toUpperCase())) {
+                    try {
+                        this.setRequestHeader('X-CSRF-TOKEN', csrfToken);
+                    } catch (e) {}
+                }
+                return origSend.apply(this, arguments);
+            };
+        }
+    })();
 </script>
 
 </body>

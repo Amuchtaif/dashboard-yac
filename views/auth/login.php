@@ -12,11 +12,12 @@ if (isset($_SESSION['user_id'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Masuk - <?php echo APP_NAME; ?></title>
+    <meta name="csrf-token" content="<?php echo csrf_token(); ?>">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer">
     <link rel="icon" type="image/png" href="<?php url('assets/images/favicon.png'); ?>">
     <style>
         body {
@@ -111,6 +112,7 @@ if (isset($_SESSION['user_id'])) {
 
             <!-- Login Form -->
             <form action="<?php url('logic/auth/login.php'); ?>" method="POST" class="space-y-4">
+                <?php echo csrf_field(); ?>
                 
                 <!-- Email Field -->
                 <div>

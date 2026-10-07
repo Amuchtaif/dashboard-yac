@@ -1,11 +1,8 @@
 <?php
 // logic/permissions/save_tahfidz_units.php
 
+require_once '../../config/app.php';
 require_once '../../config/database.php';
-
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
-}
 
 header('Content-Type: application/json');
 

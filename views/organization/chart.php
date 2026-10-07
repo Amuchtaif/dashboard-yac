@@ -229,7 +229,7 @@ include '../layouts/header.php';
     </div>
 </div>
 
-<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js" crossorigin="anonymous"></script>
 <script type="text/javascript">
     google.charts.load('current', { packages: ["orgchart"] });
     google.charts.setOnLoadCallback(drawChart);

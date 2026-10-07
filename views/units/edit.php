@@ -68,6 +68,7 @@ include '../layouts/header.php';
 
     <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl md:col-span-2">
         <form action="<?php url('logic/units/update.php'); ?>" method="POST">
+            <?php echo csrf_field(); ?>
             <input type="hidden" name="id" value="<?php echo $unit['id']; ?>">
 
             <div class="px-4 py-6 sm:p-8">

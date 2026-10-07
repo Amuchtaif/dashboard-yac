@@ -3,6 +3,13 @@ require_once '../../config/database.php';
 require_once '../../config/app.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Validate CSRF token
+    if (!verify_csrf()) {
+        Logger::auth('CSRF_ERROR', 'CSRF token validation failed on web login');
+        header("Location: ../../views/auth/login.php?error=Sesi+kedaluwarsa+atau+token+keamanan+tidak+valid.+Silakan+coba+lagi.");
+        exit;
+    }
+
     $email = trim($_POST['email']);
     $password = trim($_POST['password']);
 

@@ -1,7 +1,12 @@
 <?php
+require_once '../../config/app.php';
 require_once '../../config/database.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!verify_csrf()) {
+        header("Location: ../../views/permits/create.php?error=Token+keamanan+CSRF+tidak+valid.+Silakan+coba+lagi.");
+        exit;
+    }
     $db = new Database();
     $conn = $db->getConnection();
 

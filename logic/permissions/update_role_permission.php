@@ -5,12 +5,8 @@
 ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 
+require_once '../../config/app.php';
 require_once '../../config/database.php';
-
-// Start session if not already started
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
-}
 
 header('Content-Type: application/json');
 

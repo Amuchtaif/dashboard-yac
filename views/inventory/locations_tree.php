@@ -7,7 +7,7 @@ check_login();
 $page_title = "Manajemen Lokasi Inventaris";
 require_once __DIR__ . '/../layouts/header.php';
 ?>
-<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js" integrity="sha512-QEAheCz+x/VkKtxeGoDq6nsGyzTx/0LMINTgQjqZ0h3+NjP+bCsPYz3hn0HnBkGmkIFSr7QcEZT+KyEM7lbLPQ==" crossorigin="anonymous"></script>
 
 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8">
     <div class="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
