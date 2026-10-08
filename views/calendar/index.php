@@ -234,7 +234,8 @@ include '../layouts/header.php';
         padding: 4px 8px;
         border-radius: 8px;
         font-weight: 700;
-        line-height: 1.2;
+        line-height: 1.25;
+        max-height: 2.8em;
         transition: all 0.2s;
         cursor: pointer;
         border: 1px solid transparent;
@@ -243,6 +244,7 @@ include '../layouts/header.php';
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
+        text-overflow: ellipsis;
         box-shadow: 0 2px 4px rgba(0,0,0,0.02);
     }
     .event-pill:hover {
@@ -410,6 +412,20 @@ include '../layouts/header.php';
         background-color: rgba(0, 0, 0, 0.05);
         transform: scale(1.1);
     }
+    /* Custom Scrollbar for side form */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
 </style>
 
 <div class="pb-10 space-y-6">
@@ -435,7 +451,7 @@ include '../layouts/header.php';
             </a>
         </div>
     </div>
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
         <!-- Main Calendar (Left) -->
         <div class="lg:col-span-8">
@@ -539,7 +555,12 @@ include '../layouts/header.php';
                                 if ($isInternal) $tooltipTxt .= "<br><span style='color:#fcd34d;'>🔒 Khusus URL Agenda Pendidikan (Internal)</span>";
                                 if ($isRec) {
                                     $recFreq = ucfirst($ev['recurrence_type'] ?? 'Berulang');
-                                    $tooltipTxt .= "<br><span style='color:#67e8f9;'>🔄 Agenda Berulang ($recFreq)</span>";
+                                    $recRule = !empty($ev['recurrence_rule']) ? json_decode($ev['recurrence_rule'], true) : null;
+                                    $recWeeksTxt = '';
+                                    if (!empty($recRule['weeks']) && count($recRule['weeks']) < 5) {
+                                        $recWeeksTxt = " (Pekan " . implode(', ', $recRule['weeks']) . ")";
+                                    }
+                                    $tooltipTxt .= "<br><span style='color:#67e8f9;'>🔄 Agenda Berulang ({$recFreq}{$recWeeksTxt})</span>";
                                 }
                                 
                                 $jsonEv = json_encode($ev, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
@@ -611,380 +632,416 @@ include '../layouts/header.php';
         </div>
 
         <!-- Sidebar (Right) -->
-        <div class="lg:col-span-4 space-y-6">
+        <div class="lg:col-span-4 space-y-8 lg:space-y-10">
             
             <!-- Add New Form Card (Enhanced UI/UX) -->
-            <div class="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)]">
-                <div class="px-8 pt-8 pb-5 border-b border-slate-50 bg-gradient-to-r from-slate-50/50 to-white">
-                    <div class="flex items-center gap-4">
-                        <div class="h-12 w-12 rounded-2xl bg-cyan-50 flex items-center justify-center text-cyan-600 shadow-sm border border-cyan-100/50 shrink-0">
-                            <i class="fa-solid fa-circle-plus text-xl"></i>
+            <div id="sideFormCard" class="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)]">
+                <!-- Header -->
+                <div class="px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50/50 to-white rounded-t-3xl">
+                    <div class="flex items-center gap-3.5">
+                        <div class="h-10 w-10 rounded-xl bg-cyan-50 flex items-center justify-center text-cyan-600 shadow-sm border border-cyan-100/50 shrink-0">
+                            <i class="fa-solid fa-circle-plus text-lg"></i>
                         </div>
                         <div>
-                            <h3 class="text-lg font-extrabold text-slate-800 tracking-tight" id="sideHeaderTitle">Tambah Kegiatan</h3>
-                            <p class="text-[11px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Agenda Baru Akademik</p>
+                            <h3 class="text-base font-extrabold text-slate-800 tracking-tight" id="sideHeaderTitle">Tambah Kegiatan</h3>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Agenda Baru Akademik</p>
                         </div>
                     </div>
                 </div>
 
-                <form id="sideForm" onsubmit="saveEventSide(event)" class="px-8 pb-8 space-y-6">
+                <form id="sideForm" onsubmit="saveEventSide(event)" class="px-6 py-5 space-y-3.5">
                     <input type="hidden" name="id" id="sideFormID">
                     <input type="hidden" name="repeat_group_id" id="sideFormRepeatGroupId">
-                    <!-- Title Input -->
-                    <div class="group">
-                        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2 group-focus-within:text-cyan-600 transition-colors">Nama Kegiatan <span class="text-red-500">*</span></label>
-                        <div class="relative transition-all">
-                            <div class="absolute inset-y-0 left-0 w-11 flex items-center justify-center pointer-events-none">
-                                <i class="fa-solid fa-pen-to-square text-sm text-slate-300 group-focus-within:text-cyan-400 transition-colors"></i>
-                            </div>
-                            <input type="text" name="title" id="sideFormTitle" required placeholder="Contoh: Rapat Kegiatan Wajib"
-                                class="w-full pl-11 rounded-2xl border-slate-200 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 bg-slate-50/30 text-sm py-3 font-semibold text-slate-700 placeholder:text-slate-300 transition-all">
-                        </div>
-                    </div>
-
-                    <!-- Target Tampilan / Visibilitas Agenda -->
-                    <div class="group">
-                        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2 group-focus-within:text-cyan-600 transition-colors">
-                            Target Tampilan Agenda <span class="text-red-500">*</span>
-                        </label>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <label class="relative flex flex-col p-3 rounded-2xl border-2 cursor-pointer transition-all border-cyan-500 bg-cyan-50/30 hover:border-cyan-500 shadow-sm" id="labelVisPublic">
-                                <input type="radio" name="visibility" value="public" id="visPublic" checked onchange="updateVisibilityUI()" class="sr-only">
-                                <div class="flex items-center gap-2 mb-1">
-                                    <div class="w-7 h-7 rounded-lg bg-cyan-100 text-cyan-700 flex items-center justify-center shrink-0 text-xs">
-                                        <i class="fa-solid fa-globe"></i>
-                                    </div>
-                                    <span class="text-xs font-bold text-slate-800">Semua User</span>
-                                    <i class="fa-solid fa-circle-check text-cyan-600 ml-auto text-sm check-icon"></i>
-                                </div>
-                                <p class="text-[10px] text-slate-500 font-medium leading-tight">Tampil di Kalender & Agenda Pendidikan</p>
-                            </label>
-
-                            <label class="relative flex flex-col p-3 rounded-2xl border-2 cursor-pointer transition-all border-slate-200 bg-slate-50/40 hover:border-slate-300" id="labelVisInternal">
-                                <input type="radio" name="visibility" value="internal" id="visInternal" onchange="updateVisibilityUI()" class="sr-only">
-                                <div class="flex items-center gap-2 mb-1">
-                                    <div class="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 text-xs">
-                                        <i class="fa-solid fa-lock"></i>
-                                    </div>
-                                    <span class="text-xs font-bold text-slate-800">Internal Saja</span>
-                                    <i class="fa-regular fa-circle text-slate-300 ml-auto text-sm check-icon"></i>
-                                </div>
-                                <p class="text-[10px] text-slate-500 font-medium leading-tight">Hanya di URL agenda-pendidikan</p>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Sumber Agenda & Unit Select -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Title Input -->
                         <div class="group">
-                            <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2 group-focus-within:text-cyan-600 transition-colors">Sumber Agenda</label>
+                            <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 group-focus-within:text-cyan-600 transition-colors">Nama Kegiatan <span class="text-red-500">*</span></label>
                             <div class="relative transition-all">
                                 <div class="absolute inset-y-0 left-0 w-10 flex items-center justify-center pointer-events-none">
-                                    <i class="fa-solid fa-sitemap text-xs text-slate-300 group-focus-within:text-cyan-400 transition-colors"></i>
+                                    <i class="fa-solid fa-pen-to-square text-xs text-slate-300 group-focus-within:text-cyan-400 transition-colors"></i>
                                 </div>
-                                <select name="source_type" id="sideFormSourceType" onchange="toggleUnitSelect()"
-                                    class="w-full pl-9 pr-7 rounded-2xl border-slate-200 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 bg-slate-50/30 text-xs py-3 font-bold text-slate-700 cursor-pointer transition-all appearance-none">
-                                    <option value="bidang_pendidikan">Bid. Pendidikan</option>
-                                    <option value="yayasan">Yayasan</option>
-                                    <option value="unit">Unit Pendidikan</option>
-                                </select>
-                                <div class="absolute inset-y-0 right-0 w-7 flex items-center justify-center pointer-events-none text-slate-400">
-                                    <i class="fa-solid fa-chevron-down text-[10px]"></i>
-                                </div>
+                                <input type="text" name="title" id="sideFormTitle" required placeholder="Contoh: Rapat Kegiatan Wajib"
+                                    class="w-full pl-10 pr-3 rounded-xl border-slate-200 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 bg-slate-50/30 text-xs py-2.5 font-semibold text-slate-700 placeholder:text-slate-300 transition-all">
                             </div>
                         </div>
 
-                        <div class="group" id="unitSelectContainer">
-                            <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2 group-focus-within:text-cyan-600 transition-colors">Pilihan Unit</label>
-                            <div class="relative transition-all">
-                                <div class="absolute inset-y-0 left-0 w-10 flex items-center justify-center pointer-events-none">
-                                    <i class="fa-solid fa-school text-xs text-slate-300 group-focus-within:text-cyan-400 transition-colors"></i>
-                                </div>
-                                <select name="unit_id" id="sideFormUnitId"
-                                    class="w-full pl-9 pr-7 rounded-2xl border-slate-200 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 bg-slate-50/30 text-xs py-3 font-bold text-slate-700 cursor-pointer transition-all appearance-none">
-                                    <option value="">-- Pilih Unit --</option>
-                                    <?php foreach ($units as $u): ?>
-                                        <option value="<?php echo $u['id']; ?>"><?php echo htmlspecialchars($u['name']); ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                                <div class="absolute inset-y-0 right-0 w-7 flex items-center justify-center pointer-events-none text-slate-400">
-                                    <i class="fa-solid fa-chevron-down text-[10px]"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Kategori Select (Custom UI) -->
-                    <div class="group">
-                        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2 group-focus-within:text-cyan-600 transition-colors">Kategori Kegiatan</label>
-                        <div class="custom-select-container" id="categorySelectSidebar">
-                            <input type="hidden" name="category" id="categoryInputSidebar" value="Libur Nasional">
-                            <div class="custom-select-trigger transition-all">
-                                <div class="absolute inset-y-0 left-0 w-11 flex items-center justify-center pointer-events-none">
-                                    <i class="fa-solid fa-grip text-sm text-slate-300 group-focus-within:text-cyan-400 transition-colors"></i>
-                                </div>
-                                <span class="selected-text flex items-center gap-2">
-                                    <span class="color-dot bg-red-500"></span>
-                                    Libur Nasional
-                                </span>
-                                <div class="absolute inset-y-0 right-0 w-10 flex items-center justify-center pointer-events-none">
-                                    <i class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform"></i>
-                                </div>
-                            </div>
-                            <div class="custom-select-options">
-                                <div class="custom-select-option selected" data-value="Libur Nasional" data-label="Libur Nasional" data-color="bg-red-500">
-                                    <span class="color-dot bg-red-500"></span> Libur Nasional
-                                </div>
-                                <div class="custom-select-option" data-value="Libur Sekolah" data-label="Libur Sekolah" data-color="bg-green-500">
-                                    <span class="color-dot bg-green-500"></span> Libur Sekolah
-                                </div>
-                                <div class="custom-select-option" data-value="Cuti Bersama" data-label="Cuti Bersama" data-color="bg-yellow-500">
-                                    <span class="color-dot bg-yellow-500"></span> Cuti Bersama
-                                </div>
-                                <div class="custom-select-option" data-value="Akademik" data-label="Akademik" data-color="bg-blue-500">
-                                    <span class="color-dot bg-blue-500"></span> Akademik
-                                </div>
-                                <div class="custom-select-option" data-value="Rapat" data-label="Rapat" data-color="bg-indigo-500">
-                                    <span class="color-dot bg-indigo-500"></span> Rapat
-                                </div>
-                                <div class="custom-select-option" data-value="Kegiatan Yayasan" data-label="Kegiatan Yayasan" data-color="bg-teal-500">
-                                    <span class="color-dot bg-teal-500"></span> Kegiatan Yayasan
-                                </div>
-                                <div class="custom-select-option" data-value="Kegiatan" data-label="Kegiatan Sekolah / Unit" data-color="bg-purple-500">
-                                    <span class="color-dot bg-purple-500"></span> Kegiatan Sekolah / Unit
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Date Selection -->
-                    <div class="grid grid-cols-2 gap-4">
+                        <!-- Target Tampilan / Visibilitas Agenda -->
                         <div class="group">
-                            <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2 group-focus-within:text-cyan-600 transition-colors">Tanggal Mulai <span class="text-red-500">*</span></label>
-                            <div class="relative cursor-pointer" onclick="try { document.getElementById('sideFormStartDate').showPicker(); } catch(e) {}">
-                                <input type="date" name="start_date" id="sideFormStartDate" required onchange="syncStartDayToWeekly()" onclick="try { this.showPicker(); } catch(e) {}"
-                                    class="w-full rounded-2xl border-slate-200 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 bg-slate-50/30 text-xs py-3 px-3 font-semibold text-slate-700 cursor-pointer transition-all">
-                            </div>
-                        </div>
-                        <div class="group">
-                            <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2 group-focus-within:text-cyan-600 transition-colors">Tanggal Selesai</label>
-                            <div class="relative cursor-pointer" onclick="try { document.getElementById('sideFormEndDate').showPicker(); } catch(e) {}">
-                                <input type="date" name="end_date" id="sideFormEndDate" onclick="try { this.showPicker(); } catch(e) {}"
-                                    class="w-full rounded-2xl border-slate-200 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 bg-slate-50/30 text-xs py-3 px-3 font-semibold text-slate-700 cursor-pointer transition-all">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Agenda Berulang Toggle & Settings -->
-                    <div id="recurrenceSection" class="pt-1 pb-1 border-y border-slate-100/80">
-                        <div id="recurrenceToggleContainer" class="flex items-center justify-between cursor-pointer py-2 select-none" onclick="toggleRecurringOptions()">
-                            <div class="flex items-center gap-2.5">
-                                <div class="w-8 h-8 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center text-sm border border-cyan-100 shrink-0">
-                                    <i class="fa-solid fa-arrows-rotate"></i>
-                                </div>
-                                <div>
-                                    <label class="text-xs font-bold text-slate-800 cursor-pointer block">Agenda Berulang</label>
-                                    <p class="text-[10px] text-slate-400 font-medium">Ulangi setiap hari, pekan, bulan, atau tahun</p>
-                                </div>
-                            </div>
-                            <label class="relative inline-flex items-center cursor-pointer" onclick="event.stopPropagation()">
-                                <input type="checkbox" name="is_recurring" id="sideFormIsRecurring" value="1" onchange="handleRecurringCheckboxChange()" class="sr-only peer">
-                                <div class="w-10 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-600"></div>
+                            <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 group-focus-within:text-cyan-600 transition-colors">
+                                Target Tampilan Agenda <span class="text-red-500">*</span>
                             </label>
-                        </div>
-
-                        <!-- Collapsible Recurrence Settings Container -->
-                        <div id="recurrenceSettingsContainer" class="hidden mt-3 space-y-4 pt-3 border-t border-slate-100 bg-slate-50/70 p-4 rounded-2xl border border-slate-100">
-                            <!-- Recurrence Frequency Selector -->
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Frekuensi Pengulangan</label>
-                                <div class="grid grid-cols-4 gap-1 p-1 bg-slate-200/70 rounded-xl text-center">
-                                    <button type="button" onclick="setRecurrenceFreq('daily')" id="btnFreqDaily" class="py-1.5 text-[11px] font-bold rounded-lg transition-all text-slate-600 hover:text-slate-900">Harian</button>
-                                    <button type="button" onclick="setRecurrenceFreq('weekly')" id="btnFreqWeekly" class="py-1.5 text-[11px] font-bold rounded-lg transition-all bg-white text-cyan-700 shadow-sm">Pekanan</button>
-                                    <button type="button" onclick="setRecurrenceFreq('monthly')" id="btnFreqMonthly" class="py-1.5 text-[11px] font-bold rounded-lg transition-all text-slate-600 hover:text-slate-900">Bulanan</button>
-                                    <button type="button" onclick="setRecurrenceFreq('yearly')" id="btnFreqYearly" class="py-1.5 text-[11px] font-bold rounded-lg transition-all text-slate-600 hover:text-slate-900">Tahunan</button>
-                                </div>
-                                <input type="hidden" name="recurrence_type" id="sideFormRecurrenceType" value="weekly">
-                            </div>
-
-                            <!-- SUB-OPTIONS FOR DAILY: Penjelasan -->
-                            <div id="subOptionDaily" class="hidden text-[11px] text-slate-500 font-medium bg-white p-2.5 rounded-xl border border-slate-100">
-                                <i class="fa-solid fa-circle-info text-cyan-600 mr-1"></i> Kegiatan akan berulang setiap hari sampai tanggal batas berakhir.
-                            </div>
-
-                            <!-- SUB-OPTIONS FOR WEEKLY: Pilih Hari Apa Saja -->
-                            <div id="subOptionWeekly" class="space-y-2">
-                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Ulangi Setiap Hari Apa:</label>
-                                <div class="grid grid-cols-7 gap-1">
-                                    <?php 
-                                    $dayList = [
-                                        1 => 'Sen',
-                                        2 => 'Sel',
-                                        3 => 'Rab',
-                                        4 => 'Kam',
-                                        5 => 'Jum',
-                                        6 => 'Sab',
-                                        7 => 'Ahd'
-                                    ];
-                                    foreach ($dayList as $dNum => $dShort): ?>
-                                        <label class="day-chip flex flex-col items-center justify-center py-2 rounded-xl border text-[11px] font-bold cursor-pointer transition-all border-slate-200 bg-white text-slate-600 hover:border-cyan-400 shadow-xs" id="chipDay<?php echo $dNum; ?>">
-                                            <input type="checkbox" name="recurrence_days[]" value="<?php echo $dNum; ?>" onchange="updateDayChipUI(<?php echo $dNum; ?>)" class="sr-only" id="inputDay<?php echo $dNum; ?>">
-                                            <span><?php echo $dShort; ?></span>
-                                        </label>
-                                    <?php endforeach; ?>
-                                </div>
-                            </div>
-
-                            <!-- SUB-OPTIONS FOR MONTHLY: Pilih Pekan ke atau Tanggal -->
-                            <div id="subOptionMonthly" class="hidden space-y-3">
-                                <div>
-                                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Pola Bulanan:</label>
-                                    <select name="monthly_mode" id="sideFormMonthlyMode" onchange="toggleMonthlyModeUI()" class="w-full rounded-xl border-slate-200 text-xs py-2 px-3 font-semibold text-slate-700 bg-white">
-                                        <option value="date">Berdasarkan Tanggal yang Sama Setiap Bulan</option>
-                                        <option value="nth_day">Berdasarkan Pekan ke- dan Hari Tertentu</option>
-                                    </select>
-                                </div>
-                                <div id="monthlyNthDayContainer" class="hidden grid grid-cols-2 gap-2">
-                                    <div>
-                                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Pekan ke-:</label>
-                                        <select name="recurrence_week_num" id="sideFormMonthlyWeekNum" class="w-full rounded-xl border-slate-200 text-xs py-2 px-3 font-semibold text-slate-700 bg-white">
-                                            <option value="1">Pekan ke-1 (Pertama)</option>
-                                            <option value="2">Pekan ke-2 (Kedua)</option>
-                                            <option value="3">Pekan ke-3 (Ketiga)</option>
-                                            <option value="4">Pekan ke-4 (Keempat)</option>
-                                            <option value="5">Pekan Terakhir</option>
-                                        </select>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                <label class="relative flex flex-col p-2.5 rounded-xl border-2 cursor-pointer transition-all border-cyan-500 bg-cyan-50/30 hover:border-cyan-500 shadow-2xs" id="labelVisPublic">
+                                    <input type="radio" name="visibility" value="public" id="visPublic" checked onchange="updateVisibilityUI()" class="sr-only">
+                                    <div class="flex items-center gap-2 mb-0.5">
+                                        <div class="w-6 h-6 rounded-lg bg-cyan-100 text-cyan-700 flex items-center justify-center shrink-0 text-xs">
+                                            <i class="fa-solid fa-globe text-[11px]"></i>
+                                        </div>
+                                        <span class="text-xs font-bold text-slate-800">Semua User</span>
+                                        <i class="fa-solid fa-circle-check text-cyan-600 ml-auto text-xs check-icon"></i>
                                     </div>
-                                    <div>
-                                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Hari apa:</label>
-                                        <select name="recurrence_day_of_week" id="sideFormMonthlyDayOfWeek" class="w-full rounded-xl border-slate-200 text-xs py-2 px-3 font-semibold text-slate-700 bg-white">
-                                            <option value="1">Senin</option>
-                                            <option value="2">Selasa</option>
-                                            <option value="3">Rabu</option>
-                                            <option value="4">Kamis</option>
-                                            <option value="5">Jumat</option>
-                                            <option value="6">Sabtu</option>
-                                            <option value="7">Ahad</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- SUB-OPTIONS FOR YEARLY: Pilih Bulan ke & Tanggal / Pekan ke -->
-                            <div id="subOptionYearly" class="hidden space-y-3">
-                                <div>
-                                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Bulan ke- / Nama Bulan:</label>
-                                    <select name="recurrence_month" id="sideFormYearlyMonth" class="w-full rounded-xl border-slate-200 text-xs py-2 px-3 font-semibold text-slate-700 bg-white">
-                                        <?php for ($bm = 1; $bm <= 12; $bm++): ?>
-                                            <option value="<?php echo $bm; ?>">Bulan ke-<?php echo $bm; ?> (<?php echo $indo_months[$bm]; ?>)</option>
-                                        <?php endfor; ?>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Pola Tahunan:</label>
-                                    <select name="yearly_mode" id="sideFormYearlyMode" onchange="toggleYearlyModeUI()" class="w-full rounded-xl border-slate-200 text-xs py-2 px-3 font-semibold text-slate-700 bg-white">
-                                        <option value="date">Berdasarkan Tanggal yang Sama</option>
-                                        <option value="nth_day">Berdasarkan Pekan ke- dan Hari Tertentu</option>
-                                    </select>
-                                </div>
-                                <div id="yearlyNthDayContainer" class="hidden grid grid-cols-2 gap-2">
-                                    <div>
-                                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Pekan ke-:</label>
-                                        <select name="yearly_week_num" id="sideFormYearlyWeekNum" class="w-full rounded-xl border-slate-200 text-xs py-2 px-3 font-semibold text-slate-700 bg-white">
-                                            <option value="1">Pekan ke-1</option>
-                                            <option value="2">Pekan ke-2</option>
-                                            <option value="3">Pekan ke-3</option>
-                                            <option value="4">Pekan ke-4</option>
-                                            <option value="5">Pekan Terakhir</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Hari apa:</label>
-                                        <select name="yearly_day_of_week" id="sideFormYearlyDayOfWeek" class="w-full rounded-xl border-slate-200 text-xs py-2 px-3 font-semibold text-slate-700 bg-white">
-                                            <option value="1">Senin</option>
-                                            <option value="2">Selasa</option>
-                                            <option value="3">Rabu</option>
-                                            <option value="4">Kamis</option>
-                                            <option value="5">Jumat</option>
-                                            <option value="6">Sabtu</option>
-                                            <option value="7">Ahad</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- REPEAT UNTIL (Batas Berakhir Pengulangan) -->
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
-                                    Ulangi Sampai Tanggal: <span class="text-red-500">*</span>
+                                    <p class="text-[9px] text-slate-500 font-medium leading-tight">Kalender & Agenda Publik</p>
                                 </label>
-                                <input type="date" name="repeat_until" id="sideFormRepeatUntil" onclick="try{this.showPicker()}catch(e){}" class="w-full rounded-xl border-slate-200 text-xs py-2 px-3 font-semibold text-slate-700 bg-white cursor-pointer">
-                                <p class="text-[10px] text-slate-400 mt-1">Kegiatan akan dibuat otomatis pada kalender sampai batas ini.</p>
+
+                                <label class="relative flex flex-col p-2.5 rounded-xl border-2 cursor-pointer transition-all border-slate-200 bg-slate-50/40 hover:border-slate-300" id="labelVisInternal">
+                                    <input type="radio" name="visibility" value="internal" id="visInternal" onchange="updateVisibilityUI()" class="sr-only">
+                                    <div class="flex items-center gap-2 mb-0.5">
+                                        <div class="w-6 h-6 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 text-xs">
+                                            <i class="fa-solid fa-lock text-[11px]"></i>
+                                        </div>
+                                        <span class="text-xs font-bold text-slate-800">Internal Saja</span>
+                                        <i class="fa-regular fa-circle text-slate-300 ml-auto text-xs check-icon"></i>
+                                    </div>
+                                    <p class="text-[9px] text-slate-500 font-medium leading-tight">Khusus link internal</p>
+                                </label>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Location Input -->
-                    <div class="group">
-                        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2 group-focus-within:text-cyan-600 transition-colors">Lokasi Kegiatan</label>
-                        <div class="relative transition-all">
-                            <div class="absolute inset-y-0 left-0 w-11 flex items-center justify-center pointer-events-none">
-                                <i class="fa-solid fa-location-dot text-sm text-slate-300 group-focus-within:text-cyan-400 transition-colors"></i>
+                        <!-- Sumber Agenda & Unit Select -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div class="group">
+                                <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 group-focus-within:text-cyan-600 transition-colors">Sumber Agenda</label>
+                                <div class="relative transition-all">
+                                    <div class="absolute inset-y-0 left-0 w-9 flex items-center justify-center pointer-events-none">
+                                        <i class="fa-solid fa-sitemap text-xs text-slate-300 group-focus-within:text-cyan-400 transition-colors"></i>
+                                    </div>
+                                    <select name="source_type" id="sideFormSourceType" onchange="toggleUnitSelect()"
+                                        class="w-full pl-8 pr-7 rounded-xl border-slate-200 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 bg-slate-50/30 text-xs py-2.5 font-bold text-slate-700 cursor-pointer transition-all appearance-none">
+                                        <option value="bidang_pendidikan">Bid. Pendidikan</option>
+                                        <option value="yayasan">Yayasan</option>
+                                        <option value="unit">Unit Pendidikan</option>
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 w-7 flex items-center justify-center pointer-events-none text-slate-400">
+                                        <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                                    </div>
+                                </div>
                             </div>
-                            <input type="text" name="location" id="sideFormLocation" placeholder="Contoh: Aula Assunnah / Zoom"
-                                class="w-full pl-11 rounded-2xl border-slate-200 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 bg-slate-50/30 text-xs py-3 font-semibold text-slate-700 placeholder:text-slate-300 transition-all">
-                        </div>
-                    </div>
 
-                    <!-- Description Input -->
-                    <div class="group">
-                        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2 group-focus-within:text-cyan-600 transition-colors">Deskripsi / Detail</label>
-                        <div class="relative transition-all">
-                            <textarea name="description" id="sideFormDescription" rows="2" placeholder="Catatan tambahan mengenai kegiatan..."
-                                class="w-full p-3.5 rounded-2xl border-slate-200 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 bg-slate-50/30 text-xs font-medium text-slate-700 placeholder:text-slate-300 transition-all"></textarea>
+                            <div class="group" id="unitSelectContainer">
+                                <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 group-focus-within:text-cyan-600 transition-colors">Pilihan Unit</label>
+                                <div class="relative transition-all">
+                                    <div class="absolute inset-y-0 left-0 w-9 flex items-center justify-center pointer-events-none">
+                                        <i class="fa-solid fa-school text-xs text-slate-300 group-focus-within:text-cyan-400 transition-colors"></i>
+                                    </div>
+                                    <select name="unit_id" id="sideFormUnitId"
+                                        class="w-full pl-8 pr-7 rounded-xl border-slate-200 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 bg-slate-50/30 text-xs py-2.5 font-bold text-slate-700 cursor-pointer transition-all appearance-none">
+                                        <option value="">-- Pilih Unit --</option>
+                                        <?php foreach ($units as $u): ?>
+                                            <option value="<?php echo $u['id']; ?>"><?php echo htmlspecialchars($u['name']); ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 w-7 flex items-center justify-center pointer-events-none text-slate-400">
+                                        <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- Recurring Series Edit Notice (Visible only when editing a recurring event) -->
-                    <div id="editRecurringSeriesContainer" class="hidden p-3.5 bg-amber-50 rounded-2xl border border-amber-200 text-xs text-amber-900 space-y-2">
-                        <div class="flex items-center gap-2 font-bold text-amber-800">
-                            <i class="fa-solid fa-arrows-rotate text-xs"></i>
-                            <span>Kegiatan Berulang</span>
+                        <!-- Kategori Select (Custom UI) -->
+                        <div class="group">
+                            <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 group-focus-within:text-cyan-600 transition-colors">Kategori Kegiatan</label>
+                            <div class="custom-select-container" id="categorySelectSidebar">
+                                <input type="hidden" name="category" id="categoryInputSidebar" value="Libur Nasional">
+                                <div class="custom-select-trigger transition-all !py-2.5 !pl-10 !rounded-xl text-xs">
+                                    <div class="absolute inset-y-0 left-0 w-10 flex items-center justify-center pointer-events-none">
+                                        <i class="fa-solid fa-grip text-xs text-slate-300 group-focus-within:text-cyan-400 transition-colors"></i>
+                                    </div>
+                                    <span class="selected-text flex items-center gap-2">
+                                        <span class="color-dot bg-red-500"></span>
+                                        Libur Nasional
+                                    </span>
+                                    <div class="absolute inset-y-0 right-0 w-8 flex items-center justify-center pointer-events-none">
+                                        <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 transition-transform"></i>
+                                    </div>
+                                </div>
+                                <div class="custom-select-options">
+                                    <div class="custom-select-option selected" data-value="Libur Nasional" data-label="Libur Nasional" data-color="bg-red-500">
+                                        <span class="color-dot bg-red-500"></span> Libur Nasional
+                                    </div>
+                                    <div class="custom-select-option" data-value="Libur Sekolah" data-label="Libur Sekolah" data-color="bg-green-500">
+                                        <span class="color-dot bg-green-500"></span> Libur Sekolah
+                                    </div>
+                                    <div class="custom-select-option" data-value="Cuti Bersama" data-label="Cuti Bersama" data-color="bg-yellow-500">
+                                        <span class="color-dot bg-yellow-500"></span> Cuti Bersama
+                                    </div>
+                                    <div class="custom-select-option" data-value="Akademik" data-label="Akademik" data-color="bg-blue-500">
+                                        <span class="color-dot bg-blue-500"></span> Akademik
+                                    </div>
+                                    <div class="custom-select-option" data-value="Rapat" data-label="Rapat" data-color="bg-indigo-500">
+                                        <span class="color-dot bg-indigo-500"></span> Rapat
+                                    </div>
+                                    <div class="custom-select-option" data-value="Kegiatan Yayasan" data-label="Kegiatan Yayasan" data-color="bg-teal-500">
+                                        <span class="color-dot bg-teal-500"></span> Kegiatan Yayasan
+                                    </div>
+                                    <div class="custom-select-option" data-value="Kegiatan" data-label="Kegiatan Sekolah / Unit" data-color="bg-purple-500">
+                                        <span class="color-dot bg-purple-500"></span> Kegiatan Sekolah / Unit
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <p class="text-[11px] text-amber-700 leading-snug">Kegiatan ini merupakan bagian dari rangkaian agenda berulang. Tentukan perubahan yang ingin diterapkan:</p>
-                        <div class="space-y-1.5 pt-1">
-                            <label class="flex items-center gap-2 font-semibold text-xs text-amber-900 cursor-pointer">
-                                <input type="radio" name="update_scope" value="single" checked class="text-amber-600 focus:ring-amber-500">
-                                <span>Hanya perbarui kegiatan tanggal ini</span>
-                            </label>
-                            <label class="flex items-center gap-2 font-semibold text-xs text-amber-900 cursor-pointer">
-                                <input type="radio" name="update_scope" value="series" class="text-amber-600 focus:ring-amber-500">
-                                <span>Perbarui seluruh rangkaian kegiatan ini</span>
-                            </label>
-                        </div>
-                    </div>
 
-                    <!-- Submit Button -->
-                    <div class="pt-2 flex flex-col gap-3">
-                        <button type="submit" class="group/btn relative w-full inline-flex items-center justify-center px-8 py-4 font-bold text-white transition-all duration-200 bg-cyan-600 rounded-2xl hover:bg-cyan-700 focus:outline-none focus:ring-4 focus:ring-cyan-500/20 active:scale-[0.97] overflow-hidden">
-                            <span class="absolute inset-0 w-full h-full bg-gradient-to-br from-white/10 to-transparent"></span>
-                            <span class="relative flex items-center gap-2">
-                                <i class="fa-solid fa-check text-sm group-hover/btn:translate-x-0.5 transition-transform"></i>
-                                <span id="sideBtnText">Simpan Kegiatan</span>
-                            </span>
-                        </button>
-                        
-                        <div class="flex gap-2">
-                             <button type="button" id="deleteBtn" onclick="deleteEventAjax()" class="hidden flex-1 py-3 text-sm font-bold text-red-500 hover:bg-red-50 rounded-xl transition-colors border border-red-100">
-                                Hapus
+                        <!-- Date Selection -->
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="group">
+                                <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 group-focus-within:text-cyan-600 transition-colors">Tanggal Mulai <span class="text-red-500">*</span></label>
+                                <div class="relative cursor-pointer" onclick="try { document.getElementById('sideFormStartDate').showPicker(); } catch(e) {}">
+                                    <input type="date" name="start_date" id="sideFormStartDate" required onchange="syncStartDayToWeekly()" onclick="try { this.showPicker(); } catch(e) {}"
+                                        class="w-full rounded-xl border-slate-200 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 bg-slate-50/30 text-xs py-2.5 px-2.5 font-semibold text-slate-700 cursor-pointer transition-all">
+                                </div>
+                            </div>
+                            <div class="group">
+                                <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 group-focus-within:text-cyan-600 transition-colors">Tanggal Selesai</label>
+                                <div class="relative cursor-pointer" onclick="try { document.getElementById('sideFormEndDate').showPicker(); } catch(e) {}">
+                                    <input type="date" name="end_date" id="sideFormEndDate" onclick="try { this.showPicker(); } catch(e) {}"
+                                        class="w-full rounded-xl border-slate-200 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 bg-slate-50/30 text-xs py-2.5 px-2.5 font-semibold text-slate-700 cursor-pointer transition-all">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Agenda Berulang Toggle & Settings -->
+                        <div id="recurrenceSection" class="pt-1 pb-1 border-y border-slate-100">
+                            <div id="recurrenceToggleContainer" class="flex items-center justify-between cursor-pointer py-1.5 select-none" onclick="toggleRecurringOptions()">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-7 h-7 rounded-lg bg-cyan-50 text-cyan-600 flex items-center justify-center text-xs border border-cyan-100 shrink-0">
+                                        <i class="fa-solid fa-arrows-rotate"></i>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-bold text-slate-800 cursor-pointer block leading-tight">Agenda Berulang</label>
+                                        <p class="text-[9px] text-slate-400 font-medium">Ulangi setiap hari, pekan, bulan, tahun</p>
+                                    </div>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer" onclick="event.stopPropagation()">
+                                    <input type="checkbox" name="is_recurring" id="sideFormIsRecurring" value="1" onchange="handleRecurringCheckboxChange()" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-600"></div>
+                                </label>
+                            </div>
+
+                            <!-- Collapsible Recurrence Settings Container -->
+                            <div id="recurrenceSettingsContainer" class="hidden mt-2 space-y-3 pt-2.5 border-t border-slate-100 bg-slate-50/80 p-3 rounded-xl border border-slate-100">
+                                <!-- Recurrence Frequency Selector -->
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Frekuensi Pengulangan</label>
+                                    <div class="grid grid-cols-4 gap-1 p-1 bg-slate-200/70 rounded-xl text-center">
+                                        <button type="button" onclick="setRecurrenceFreq('daily')" id="btnFreqDaily" class="py-1 text-[11px] font-bold rounded-lg transition-all bg-white text-cyan-700 shadow-2xs">Harian</button>
+                                        <button type="button" onclick="setRecurrenceFreq('weekly')" id="btnFreqWeekly" class="py-1 text-[11px] font-bold rounded-lg transition-all text-slate-600 hover:text-slate-900">Pekanan</button>
+                                        <button type="button" onclick="setRecurrenceFreq('monthly')" id="btnFreqMonthly" class="py-1 text-[11px] font-bold rounded-lg transition-all text-slate-600 hover:text-slate-900">Bulanan</button>
+                                        <button type="button" onclick="setRecurrenceFreq('yearly')" id="btnFreqYearly" class="py-1 text-[11px] font-bold rounded-lg transition-all text-slate-600 hover:text-slate-900">Tahunan</button>
+                                    </div>
+                                    <input type="hidden" name="recurrence_type" id="sideFormRecurrenceType" value="daily">
+                                </div>
+
+                                <!-- SUB-OPTIONS FOR DAILY -->
+                                <div id="subOptionDaily" class="text-[10px] text-slate-500 font-medium bg-white p-2 rounded-lg border border-slate-100">
+                                    <i class="fa-solid fa-circle-info text-cyan-600 mr-1"></i> Kegiatan akan berulang setiap hari sampai batas berakhir.
+                                </div>
+
+                                <!-- SUB-OPTIONS FOR WEEKLY: Hari & Pekan ke- -->
+                                <div id="subOptionWeekly" class="hidden space-y-2.5">
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Ulangi Setiap Hari Apa:</label>
+                                        <div class="grid grid-cols-7 gap-1">
+                                            <?php 
+                                            $dayList = [
+                                                1 => 'Sen',
+                                                2 => 'Sel',
+                                                3 => 'Rab',
+                                                4 => 'Kam',
+                                                5 => 'Jum',
+                                                6 => 'Sab',
+                                                7 => 'Ahd'
+                                            ];
+                                            foreach ($dayList as $dNum => $dShort): ?>
+                                                <label class="day-chip flex items-center justify-center py-1.5 rounded-lg border text-[11px] font-bold cursor-pointer transition-all border-slate-200 bg-white text-slate-600 hover:border-cyan-400 shadow-2xs select-none" id="chipDay<?php echo $dNum; ?>">
+                                                    <input type="checkbox" name="recurrence_days[]" value="<?php echo $dNum; ?>" onchange="updateDayChipUI(<?php echo $dNum; ?>)" class="sr-only" id="inputDay<?php echo $dNum; ?>">
+                                                    <span><?php echo $dShort; ?></span>
+                                                </label>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    </div>
+
+                                    <!-- Pilih Pekan ke- (1, 2, 3, 4, 5) -->
+                                    <div class="pt-2 border-t border-slate-200/60">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Ulangi Setiap Pekan ke:</label>
+                                            <button type="button" onclick="toggleAllWeekChips('weekly')" id="btnToggleAllWeeksWeekly" class="text-[10px] font-bold text-cyan-600 hover:text-cyan-700 hover:underline">
+                                                Pilih Semua
+                                            </button>
+                                        </div>
+                                        <div class="grid grid-cols-5 gap-1">
+                                            <?php 
+                                            $weekList = [
+                                                1 => 'Ke-1',
+                                                2 => 'Ke-2',
+                                                3 => 'Ke-3',
+                                                4 => 'Ke-4',
+                                                5 => 'Ke-5'
+                                            ];
+                                            foreach ($weekList as $wNum => $wLabel): ?>
+                                                <label class="week-chip flex items-center justify-center py-1.5 px-1 rounded-lg border text-[11px] font-bold cursor-pointer transition-all border-slate-200 bg-white text-slate-600 hover:border-cyan-400 shadow-2xs select-none" id="chipWeekWeekly<?php echo $wNum; ?>">
+                                                    <input type="checkbox" name="recurrence_weeks[]" value="<?php echo $wNum; ?>" onchange="updateWeekChipUI('weekly', <?php echo $wNum; ?>)" class="sr-only" id="inputWeekWeekly<?php echo $wNum; ?>">
+                                                    <span><?php echo $wLabel; ?></span>
+                                                </label>
+                                            <?php endforeach; ?>
+                                        </div>
+                                        <p class="text-[9px] text-slate-400 mt-1">Pilih pekan ke berapa agenda diulang setiap bulan.</p>
+                                    </div>
+                                </div>
+
+                                <!-- SUB-OPTIONS FOR MONTHLY -->
+                                <div id="subOptionMonthly" class="hidden space-y-2.5">
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Pola Bulanan:</label>
+                                        <select name="monthly_mode" id="sideFormMonthlyMode" onchange="toggleMonthlyModeUI()" class="w-full rounded-xl border-slate-200 text-xs py-2 px-3 font-semibold text-slate-700 bg-white">
+                                            <option value="date">Berdasarkan Tanggal yang Sama Setiap Bulan</option>
+                                            <option value="nth_day">Berdasarkan Pekan ke- dan Hari Tertentu</option>
+                                        </select>
+                                    </div>
+                                    <div id="monthlyNthDayContainer" class="hidden space-y-2.5">
+                                        <div>
+                                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Hari apa:</label>
+                                            <select name="recurrence_day_of_week" id="sideFormMonthlyDayOfWeek" class="w-full rounded-xl border-slate-200 text-xs py-2 px-3 font-semibold text-slate-700 bg-white">
+                                                <option value="1">Senin</option>
+                                                <option value="2">Selasa</option>
+                                                <option value="3">Rabu</option>
+                                                <option value="4">Kamis</option>
+                                                <option value="5">Jumat</option>
+                                                <option value="6">Sabtu</option>
+                                                <option value="7">Ahad</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <div class="flex items-center justify-between mb-1">
+                                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Ulangi Setiap Pekan ke:</label>
+                                                <button type="button" onclick="toggleAllWeekChips('monthly')" id="btnToggleAllWeeksMonthly" class="text-[10px] font-bold text-cyan-600 hover:text-cyan-700 hover:underline">
+                                                    Pilih Semua
+                                                </button>
+                                            </div>
+                                            <div class="grid grid-cols-5 gap-1">
+                                                <?php foreach ($weekList as $wNum => $wLabel): ?>
+                                                    <label class="week-chip flex items-center justify-center py-1.5 px-1 rounded-lg border text-[11px] font-bold cursor-pointer transition-all border-slate-200 bg-white text-slate-600 hover:border-cyan-400 shadow-2xs select-none" id="chipWeekMonthly<?php echo $wNum; ?>">
+                                                        <input type="checkbox" name="monthly_recurrence_weeks[]" value="<?php echo $wNum; ?>" onchange="updateWeekChipUI('monthly', <?php echo $wNum; ?>)" class="sr-only" id="inputWeekMonthly<?php echo $wNum; ?>">
+                                                        <span><?php echo $wLabel; ?></span>
+                                                    </label>
+                                                <?php endforeach; ?>
+                                            </div>
+                                            <p class="text-[9px] text-slate-400 mt-1">Pilih pekan ke berapa agenda diadakan setiap bulan.</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- SUB-OPTIONS FOR YEARLY -->
+                                <div id="subOptionYearly" class="hidden space-y-2.5">
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Bulan ke- / Nama Bulan:</label>
+                                        <select name="recurrence_month" id="sideFormYearlyMonth" class="w-full rounded-xl border-slate-200 text-xs py-2 px-3 font-semibold text-slate-700 bg-white">
+                                            <?php for ($bm = 1; $bm <= 12; $bm++): ?>
+                                                <option value="<?php echo $bm; ?>">Bulan ke-<?php echo $bm; ?> (<?php echo $indo_months[$bm]; ?>)</option>
+                                            <?php endfor; ?>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Pola Tahunan:</label>
+                                        <select name="yearly_mode" id="sideFormYearlyMode" onchange="toggleYearlyModeUI()" class="w-full rounded-xl border-slate-200 text-xs py-2 px-3 font-semibold text-slate-700 bg-white">
+                                            <option value="date">Berdasarkan Tanggal yang Sama</option>
+                                            <option value="nth_day">Berdasarkan Pekan ke- dan Hari Tertentu</option>
+                                        </select>
+                                    </div>
+                                    <div id="yearlyNthDayContainer" class="hidden grid grid-cols-2 gap-2">
+                                        <div>
+                                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Pekan ke-:</label>
+                                            <select name="yearly_week_num" id="sideFormYearlyWeekNum" class="w-full rounded-xl border-slate-200 text-xs py-2 px-3 font-semibold text-slate-700 bg-white">
+                                                <option value="1">Pekan ke-1</option>
+                                                <option value="2">Pekan ke-2</option>
+                                                <option value="3">Pekan ke-3</option>
+                                                <option value="4">Pekan ke-4</option>
+                                                <option value="5">Pekan ke-5</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Hari apa:</label>
+                                            <select name="yearly_day_of_week" id="sideFormYearlyDayOfWeek" class="w-full rounded-xl border-slate-200 text-xs py-2 px-3 font-semibold text-slate-700 bg-white">
+                                                <option value="1">Senin</option>
+                                                <option value="2">Selasa</option>
+                                                <option value="3">Rabu</option>
+                                                <option value="4">Kamis</option>
+                                                <option value="5">Jumat</option>
+                                                <option value="6">Sabtu</option>
+                                                <option value="7">Ahad</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- REPEAT UNTIL -->
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                                        Ulangi Sampai Tanggal: <span class="text-red-500">*</span>
+                                    </label>
+                                    <input type="date" name="repeat_until" id="sideFormRepeatUntil" onclick="try{this.showPicker()}catch(e){}" class="w-full rounded-xl border-slate-200 text-xs py-2 px-3 font-semibold text-slate-700 bg-white cursor-pointer">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Location Input -->
+                        <div class="group">
+                            <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 group-focus-within:text-cyan-600 transition-colors">Lokasi Kegiatan</label>
+                            <div class="relative transition-all">
+                                <div class="absolute inset-y-0 left-0 w-10 flex items-center justify-center pointer-events-none">
+                                    <i class="fa-solid fa-location-dot text-xs text-slate-300 group-focus-within:text-cyan-400 transition-colors"></i>
+                                </div>
+                                <input type="text" name="location" id="sideFormLocation" placeholder="Contoh: Aula Assunnah / Zoom"
+                                    class="w-full pl-10 pr-3 rounded-xl border-slate-200 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 bg-slate-50/30 text-xs py-2.5 font-semibold text-slate-700 placeholder:text-slate-300 transition-all">
+                            </div>
+                        </div>
+
+                        <!-- Description Input -->
+                        <div class="group">
+                            <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 group-focus-within:text-cyan-600 transition-colors">Deskripsi / Detail</label>
+                            <div class="relative transition-all">
+                                <textarea name="description" id="sideFormDescription" rows="2" placeholder="Catatan tambahan mengenai kegiatan..."
+                                    class="w-full p-2.5 rounded-xl border-slate-200 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 bg-slate-50/30 text-xs font-medium text-slate-700 placeholder:text-slate-300 transition-all"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Recurring Series Edit Notice -->
+                        <div id="editRecurringSeriesContainer" class="hidden p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-900 space-y-1.5">
+                            <div class="flex items-center gap-2 font-bold text-amber-800">
+                                <i class="fa-solid fa-arrows-rotate text-xs"></i>
+                                <span>Kegiatan Berulang</span>
+                            </div>
+                            <p class="text-[10px] text-amber-700 leading-snug">Rangkaian agenda berulang. Tentukan perubahan:</p>
+                            <div class="space-y-1 pt-0.5">
+                                <label class="flex items-center gap-2 font-semibold text-xs text-amber-900 cursor-pointer">
+                                    <input type="radio" name="update_scope" value="single" checked class="text-amber-600 focus:ring-amber-500">
+                                    <span>Hanya kegiatan tanggal ini</span>
+                                </label>
+                                <label class="flex items-center gap-2 font-semibold text-xs text-amber-900 cursor-pointer">
+                                    <input type="radio" name="update_scope" value="series" class="text-amber-600 focus:ring-amber-500">
+                                    <span>Seluruh rangkaian kegiatan</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Submit & Action Buttons -->
+                        <div class="pt-2 flex flex-col gap-2">
+                            <button type="submit" class="group/btn relative w-full inline-flex items-center justify-center px-6 py-3 font-bold text-white transition-all duration-200 bg-cyan-600 rounded-xl hover:bg-cyan-700 focus:outline-none focus:ring-4 focus:ring-cyan-500/20 active:scale-[0.97] overflow-hidden shadow-sm">
+                                <span class="absolute inset-0 w-full h-full bg-gradient-to-br from-white/10 to-transparent"></span>
+                                <span class="relative flex items-center gap-2 text-xs">
+                                    <i class="fa-solid fa-check text-xs group-hover/btn:translate-x-0.5 transition-transform"></i>
+                                    <span id="sideBtnText">Simpan Kegiatan</span>
+                                </span>
                             </button>
-                            <button type="button" id="cancelEditBtn" onclick="resetSideForm()" class="hidden flex-1 py-3 text-sm font-bold text-slate-400 hover:bg-slate-50 rounded-xl transition-colors border border-slate-100">
-                                Batal
-                            </button>
+                            
+                            <div class="flex gap-2">
+                                 <button type="button" id="deleteBtn" onclick="deleteEventAjax()" class="hidden flex-1 py-2 text-xs font-bold text-red-500 hover:bg-red-50 rounded-xl transition-colors border border-red-100">
+                                    Hapus
+                                </button>
+                                <button type="button" id="cancelEditBtn" onclick="resetSideForm()" class="hidden flex-1 py-2 text-xs font-bold text-slate-400 hover:bg-slate-50 rounded-xl transition-colors border border-slate-100">
+                                    Batal
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                </form>
-            </div>
+                    </form>
+                </div>
 
             <!-- Upcoming Holidays List -->
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
@@ -1311,6 +1368,50 @@ function updateDayChipUI(num) {
     }
 }
 
+function updateWeekChipUI(type, num) {
+    const chipId = (type === 'monthly') ? 'chipWeekMonthly' + num : 'chipWeekWeekly' + num;
+    const inputId = (type === 'monthly') ? 'inputWeekMonthly' + num : 'inputWeekWeekly' + num;
+    const chip = document.getElementById(chipId);
+    const input = document.getElementById(inputId);
+    if (!chip || !input) return;
+
+    if (input.checked) {
+        chip.classList.add('border-cyan-500', 'bg-cyan-600', 'text-white');
+        chip.classList.remove('border-slate-200', 'bg-white', 'text-slate-600');
+    } else {
+        chip.classList.remove('border-cyan-500', 'bg-cyan-600', 'text-white');
+        chip.classList.add('border-slate-200', 'bg-white', 'text-slate-600');
+    }
+
+    // Update toggle button text if all/none checked
+    const inputPrefix = (type === 'monthly') ? 'inputWeekMonthly' : 'inputWeekWeekly';
+    const btnId = (type === 'monthly') ? 'btnToggleAllWeeksMonthly' : 'btnToggleAllWeeksWeekly';
+    const inputs = [1, 2, 3, 4, 5].map(n => document.getElementById(inputPrefix + n)).filter(Boolean);
+    const allChecked = inputs.every(inp => inp.checked);
+    const btn = document.getElementById(btnId);
+    if (btn) {
+        btn.innerText = allChecked ? 'Batal Pilih' : 'Pilih Semua';
+    }
+}
+
+function toggleAllWeekChips(type) {
+    const inputPrefix = (type === 'monthly') ? 'inputWeekMonthly' : 'inputWeekWeekly';
+    const btnId = (type === 'monthly') ? 'btnToggleAllWeeksMonthly' : 'btnToggleAllWeeksWeekly';
+    const inputs = [1, 2, 3, 4, 5].map(n => document.getElementById(inputPrefix + n)).filter(Boolean);
+    const allChecked = inputs.every(inp => inp.checked);
+    const targetState = !allChecked;
+
+    inputs.forEach(inp => {
+        inp.checked = targetState;
+        updateWeekChipUI(type, inp.value);
+    });
+
+    const btn = document.getElementById(btnId);
+    if (btn) {
+        btn.innerText = targetState ? 'Batal Pilih' : 'Pilih Semua';
+    }
+}
+
 function toggleMonthlyModeUI() {
     const modeEl = document.getElementById('sideFormMonthlyMode');
     if (!modeEl) return;
@@ -1382,8 +1483,12 @@ function editEvent(event) {
     document.getElementById('sideBtnText').innerText = 'Update Kegiatan';
     document.getElementById('cancelEditBtn').classList.remove('hidden');
     document.getElementById('deleteBtn').classList.remove('hidden');
-    
-    document.getElementById('sideForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const formFields = document.querySelector('#sideForm .overflow-y-auto');
+    if (formFields) formFields.scrollTo({ top: 0, behavior: 'smooth' });
+    const mainScroll = document.getElementById('main-content-scroll');
+    if (mainScroll && mainScroll.scrollTop > 100) {
+        mainScroll.scrollTo({ top: 0, behavior: 'smooth' });
+    }
 }
 
 function resetSideForm() {
@@ -1402,12 +1507,27 @@ function resetSideForm() {
     // Reset recurring
     document.getElementById('sideFormIsRecurring').checked = false;
     handleRecurringCheckboxChange();
-    setRecurrenceFreq('weekly');
+    setRecurrenceFreq('daily');
     for (let i = 1; i <= 7; i++) {
         const inp = document.getElementById('inputDay' + i);
         if (inp) inp.checked = false;
         updateDayChipUI(i);
     }
+    // Reset recurrence week chips (default: not checked)
+    for (let i = 1; i <= 5; i++) {
+        const inpW = document.getElementById('inputWeekWeekly' + i);
+        if (inpW) inpW.checked = false;
+        updateWeekChipUI('weekly', i);
+
+        const inpM = document.getElementById('inputWeekMonthly' + i);
+        if (inpM) inpM.checked = false;
+        updateWeekChipUI('monthly', i);
+    }
+    const btnW = document.getElementById('btnToggleAllWeeksWeekly');
+    if (btnW) btnW.innerText = 'Pilih Semua';
+    const btnM = document.getElementById('btnToggleAllWeeksMonthly');
+    if (btnM) btnM.innerText = 'Pilih Semua';
+
     toggleMonthlyModeUI();
     toggleYearlyModeUI();
 
@@ -1432,6 +1552,16 @@ function saveEventSide(e) {
     // Explicitly grab multiple recurrence days
     data.recurrence_days = formData.getAll('recurrence_days[]').map(Number);
     data.is_recurring = document.getElementById('sideFormIsRecurring').checked ? 1 : 0;
+
+    // Grab recurrence weeks (1, 2, 3, 4, 5)
+    if (data.recurrence_type === 'monthly' && data.monthly_mode === 'nth_day') {
+        data.recurrence_weeks = formData.getAll('monthly_recurrence_weeks[]').map(Number);
+        if (data.recurrence_weeks.length > 0) {
+            data.recurrence_week_num = data.recurrence_weeks[0];
+        }
+    } else {
+        data.recurrence_weeks = formData.getAll('recurrence_weeks[]').map(Number);
+    }
     
     // Auto holiday flag based on category for convenience
     data.is_holiday = (data.category === 'Libur Nasional' || data.category === 'Libur Sekolah') ? 1 : 0;
@@ -1442,9 +1572,20 @@ function saveEventSide(e) {
             notifyToast('Silakan tentukan tanggal batas pengulangan.', 'error');
             return;
         }
-        if (data.recurrence_type === 'weekly' && data.recurrence_days.length === 0) {
-            notifyToast('Pilih minimal satu hari untuk pengulangan pekanan.', 'error');
-            return;
+        if (data.recurrence_type === 'weekly') {
+            if (data.recurrence_days.length === 0) {
+                notifyToast('Pilih minimal satu hari untuk pengulangan pekanan.', 'error');
+                return;
+            }
+            if (data.recurrence_weeks.length === 0) {
+                notifyToast('Pilih minimal satu pekan (1, 2, 3, 4, atau 5) untuk pengulangan pekanan.', 'error');
+                return;
+            }
+        } else if (data.recurrence_type === 'monthly' && data.monthly_mode === 'nth_day') {
+            if (data.recurrence_weeks.length === 0) {
+                notifyToast('Pilih minimal satu pekan (1, 2, 3, 4, atau 5) untuk pengulangan bulanan.', 'error');
+                return;
+            }
         }
     }
 

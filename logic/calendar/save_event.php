@@ -69,11 +69,40 @@ if ($is_recurring && $recurrence_type !== 'none') {
         }
         sort($days);
         $recurrence_rule_array['days'] = $days;
+
+        // Recurrence weeks (Pekan ke 1, 2, 3, 4, 5)
+        $weeks = [];
+        if (!empty($data['recurrence_weeks']) && is_array($data['recurrence_weeks'])) {
+            foreach ($data['recurrence_weeks'] as $w) {
+                $wn = (int)$w;
+                if ($wn >= 1 && $wn <= 5) $weeks[] = $wn;
+            }
+        }
+        if (empty($weeks)) {
+            $weeks = [1, 2, 3, 4, 5];
+        }
+        sort($weeks);
+        $recurrence_rule_array['weeks'] = $weeks;
     } elseif ($recurrence_type === 'monthly') {
         $monthly_mode = (!empty($data['monthly_mode']) && $data['monthly_mode'] === 'nth_day') ? 'nth_day' : 'date';
         $recurrence_rule_array['monthly_mode'] = $monthly_mode;
         if ($monthly_mode === 'nth_day') {
-            $recurrence_rule_array['week_num'] = !empty($data['recurrence_week_num']) ? (int)$data['recurrence_week_num'] : 1; // 1-4, 5=last
+            $weeks = [];
+            if (!empty($data['recurrence_weeks']) && is_array($data['recurrence_weeks'])) {
+                foreach ($data['recurrence_weeks'] as $w) {
+                    $wn = (int)$w;
+                    if ($wn >= 1 && $wn <= 5) $weeks[] = $wn;
+                }
+            }
+            if (empty($weeks) && !empty($data['recurrence_week_num'])) {
+                $weeks = [(int)$data['recurrence_week_num']];
+            }
+            if (empty($weeks)) {
+                $weeks = [1, 2, 3, 4, 5];
+            }
+            sort($weeks);
+            $recurrence_rule_array['weeks'] = $weeks;
+            $recurrence_rule_array['week_num'] = $weeks[0]; // backward compatibility
             $recurrence_rule_array['day_of_week'] = !empty($data['recurrence_day_of_week']) ? (int)$data['recurrence_day_of_week'] : (int)date('N', strtotime($start_date));
         } else {
             $recurrence_rule_array['day_of_month'] = (int)date('d', strtotime($start_date));
@@ -83,7 +112,22 @@ if ($is_recurring && $recurrence_type !== 'none') {
         $yearly_mode = (!empty($data['yearly_mode']) && $data['yearly_mode'] === 'nth_day') ? 'nth_day' : 'date';
         $recurrence_rule_array['yearly_mode'] = $yearly_mode;
         if ($yearly_mode === 'nth_day') {
-            $recurrence_rule_array['week_num'] = !empty($data['recurrence_week_num']) ? (int)$data['recurrence_week_num'] : 1;
+            $weeks = [];
+            if (!empty($data['recurrence_weeks']) && is_array($data['recurrence_weeks'])) {
+                foreach ($data['recurrence_weeks'] as $w) {
+                    $wn = (int)$w;
+                    if ($wn >= 1 && $wn <= 5) $weeks[] = $wn;
+                }
+            }
+            if (empty($weeks) && !empty($data['recurrence_week_num'])) {
+                $weeks = [(int)$data['recurrence_week_num']];
+            }
+            if (empty($weeks)) {
+                $weeks = [1];
+            }
+            sort($weeks);
+            $recurrence_rule_array['weeks'] = $weeks;
+            $recurrence_rule_array['week_num'] = $weeks[0];
             $recurrence_rule_array['day_of_week'] = !empty($data['recurrence_day_of_week']) ? (int)$data['recurrence_day_of_week'] : (int)date('N', strtotime($start_date));
         } else {
             $recurrence_rule_array['day_of_month'] = (int)date('d', strtotime($start_date));
@@ -101,19 +145,18 @@ function find_nth_weekday_of_month($year, $month, $week_num, $day_of_week) {
     // Days until first target weekday
     $offset = ($day_of_week - $first_day_weekday + 7) % 7;
     $first_target_day = 1 + $offset;
+    $days_in_month = (int)date('t', $first_day_ts);
     
-    if ($week_num <= 4) {
-        $target_day = $first_target_day + ($week_num - 1) * 7;
-        $days_in_month = (int)date('t', $first_day_ts);
+    if (is_numeric($week_num) && $week_num <= 5) {
+        $target_day = $first_target_day + ((int)$week_num - 1) * 7;
         if ($target_day <= $days_in_month) {
             return sprintf('%04d-%02d-%02d', $year, $month, $target_day);
         }
         return null;
     } else {
-        // Week num 5 means 'Terakhir' (last occurrence of that weekday in the month)
-        $days_in_month = (int)date('t', $first_day_ts);
+        // 'last': last occurrence of that weekday in the month
         for ($d = $days_in_month; $d >= 1; $d--) {
-            if ((int)date('N', strtotime(sprintf('%04d-%02d-%02d', $year, $month, $d))) === $day_of_week) {
+            if ((int)date('N', strtotime(sprintf('%04d-%02d-%02d', $year, $month, $d))) === (int)$day_of_week) {
                 return sprintf('%04d-%02d-%02d', $year, $month, $d);
             }
         }
@@ -133,10 +176,8 @@ function generate_recurrence_dates($start_date, $rule_array, $max_occurrences = 
         return [$start_date];
     }
     
-    // Always include the initial date
-    $dates[] = $start_date;
-    
     if ($type === 'daily') {
+        $dates[] = $start_date;
         $cur_ts = strtotime("+1 day", $cur_ts);
         while ($cur_ts <= $end_ts && count($dates) < $max_occurrences) {
             $dates[] = date('Y-m-d', $cur_ts);
@@ -144,13 +185,20 @@ function generate_recurrence_dates($start_date, $rule_array, $max_occurrences = 
         }
     } elseif ($type === 'weekly') {
         $target_days = $rule_array['days'] ?? [(int)date('N', $cur_ts)];
-        $cur_ts = strtotime("+1 day", $cur_ts);
-        while ($cur_ts <= $end_ts && count($dates) < $max_occurrences) {
-            $w = (int)date('N', $cur_ts);
-            if (in_array($w, $target_days)) {
-                $dates[] = date('Y-m-d', $cur_ts);
+        $target_weeks = !empty($rule_array['weeks']) ? $rule_array['weeks'] : [1, 2, 3, 4, 5];
+        
+        $loop_ts = $cur_ts;
+        while ($loop_ts <= $end_ts && count($dates) < $max_occurrences) {
+            $w = (int)date('N', $loop_ts);
+            $dom = (int)date('j', $loop_ts);
+            $wn = (int)ceil($dom / 7);
+            if (in_array($w, $target_days) && in_array($wn, $target_weeks)) {
+                $dates[] = date('Y-m-d', $loop_ts);
             }
-            $cur_ts = strtotime("+1 day", $cur_ts);
+            $loop_ts = strtotime("+1 day", $loop_ts);
+        }
+        if (empty($dates)) {
+            $dates[] = $start_date;
         }
     } elseif ($type === 'monthly') {
         $monthly_mode = $rule_array['monthly_mode'] ?? 'date';
@@ -162,28 +210,44 @@ function generate_recurrence_dates($start_date, $rule_array, $max_occurrences = 
         $y = $start_year;
         $m = $start_month;
         
-        while (($y < $end_year || ($y == $end_year && $m <= $end_month)) && count($dates) < $max_occurrences) {
-            // Next month
-            $m++;
-            if ($m > 12) {
-                $m = 1;
-                $y++;
-            }
-            if ($y > $end_year || ($y == $end_year && $m > $end_month)) break;
-            
-            if ($monthly_mode === 'date') {
+        if ($monthly_mode === 'date') {
+            $dates[] = $start_date;
+            while (($y < $end_year || ($y == $end_year && $m <= $end_month)) && count($dates) < $max_occurrences) {
+                $m++;
+                if ($m > 12) {
+                    $m = 1;
+                    $y++;
+                }
+                if ($y > $end_year || ($y == $end_year && $m > $end_month)) break;
+                
                 $day_of_month = $rule_array['day_of_month'] ?? (int)date('d', $cur_ts);
                 $days_in_month = (int)date('t', strtotime(sprintf('%04d-%02d-01', $y, $m)));
                 $actual_day = min($day_of_month, $days_in_month);
                 $target_date = sprintf('%04d-%02d-%02d', $y, $m, $actual_day);
-            } else {
-                $week_num = $rule_array['week_num'] ?? 1;
-                $day_of_week = $rule_array['day_of_week'] ?? 1;
-                $target_date = find_nth_weekday_of_month($y, $m, $week_num, $day_of_week);
+                
+                if ($target_date && $target_date > $start_date && $target_date <= $repeat_until) {
+                    $dates[] = $target_date;
+                }
             }
+        } else {
+            $target_weeks = !empty($rule_array['weeks']) ? $rule_array['weeks'] : (!empty($rule_array['week_num']) ? [$rule_array['week_num']] : [1]);
+            $day_of_week = $rule_array['day_of_week'] ?? (int)date('N', $cur_ts);
             
-            if ($target_date && $target_date > $start_date && $target_date <= $repeat_until) {
-                $dates[] = $target_date;
+            while (($y < $end_year || ($y == $end_year && $m <= $end_month)) && count($dates) < $max_occurrences) {
+                foreach ($target_weeks as $wn) {
+                    $target_date = find_nth_weekday_of_month($y, $m, $wn, $day_of_week);
+                    if ($target_date && $target_date >= $start_date && $target_date <= $repeat_until) {
+                        $dates[] = $target_date;
+                    }
+                }
+                $m++;
+                if ($m > 12) {
+                    $m = 1;
+                    $y++;
+                }
+            }
+            if (empty($dates)) {
+                $dates[] = $start_date;
             }
         }
     } elseif ($type === 'yearly') {
@@ -198,19 +262,28 @@ function generate_recurrence_dates($start_date, $rule_array, $max_occurrences = 
                 $days_in_month = (int)date('t', strtotime(sprintf('%04d-%02d-01', $y, $target_month)));
                 $actual_day = min($day_of_month, $days_in_month);
                 $target_date = sprintf('%04d-%02d-%02d', $y, $target_month, $actual_day);
+                if ($target_date && $target_date >= $start_date && $target_date <= $repeat_until) {
+                    $dates[] = $target_date;
+                }
             } else {
-                $week_num = $rule_array['week_num'] ?? 1;
-                $day_of_week = $rule_array['day_of_week'] ?? 1;
-                $target_date = find_nth_weekday_of_month($y, $target_month, $week_num, $day_of_week);
+                $target_weeks = !empty($rule_array['weeks']) ? $rule_array['weeks'] : (!empty($rule_array['week_num']) ? [$rule_array['week_num']] : [1]);
+                $day_of_week = $rule_array['day_of_week'] ?? (int)date('N', $cur_ts);
+                foreach ($target_weeks as $wn) {
+                    $target_date = find_nth_weekday_of_month($y, $target_month, $wn, $day_of_week);
+                    if ($target_date && $target_date >= $start_date && $target_date <= $repeat_until) {
+                        $dates[] = $target_date;
+                    }
+                }
             }
-            
-            if ($target_date && $target_date > $start_date && $target_date <= $repeat_until) {
-                $dates[] = $target_date;
-            }
+        }
+        if (empty($dates)) {
+            $dates[] = $start_date;
         }
     }
     
-    return array_unique($dates);
+    $dates = array_values(array_unique($dates));
+    sort($dates);
+    return $dates;
 }
 
 try {

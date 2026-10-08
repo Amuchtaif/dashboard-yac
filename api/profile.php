@@ -1,4 +1,5 @@
 <?php
+ob_start();
 header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST");
@@ -141,7 +142,7 @@ try {
                     'is_day_off' => (bool) $shift['is_day_off']
                 ];
             })($today_shift, $conn, $user) : null,
-            'is_koordinator' => (stripos($user['position_name'], 'Koordinator Tahfidz') !== false) ? 1 : 0,
+            'is_koordinator' => (!empty($user['position_name']) && stripos((string)$user['position_name'], 'Koordinator Tahfidz') !== false) ? 1 : 0,
 
             // Dynamic Access for Education Menu (Teacher Check)
             'can_access_education' => (function($userId, $conn) {
@@ -156,15 +157,18 @@ try {
             'can_access_kabid' => hasPermission($user['id'], 'can_access_kabid') ? 1 : 0
         ];
 
+        if (ob_get_length()) ob_clean();
         echo json_encode([
             "status" => "success",
             "data" => $responseUser
         ]);
     } else {
+        if (ob_get_length()) ob_clean();
         http_response_code(404);
         echo json_encode(["status" => "error", "message" => "User not found"]);
     }
 } catch (Exception $e) {
+    if (ob_get_length()) ob_clean();
     http_response_code(500);
     echo json_encode(["status" => "error", "message" => "System error: " . $e->getMessage()]);
 }

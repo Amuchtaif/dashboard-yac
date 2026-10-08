@@ -1,4 +1,5 @@
 <?php
+ob_start();
 // 1. Matikan error HTML agar JSON bersih
 error_reporting(0);
 ini_set('display_errors', 0);
@@ -75,7 +76,8 @@ try {
         
         // Determine coordinator status based on position name
         include_once '../config/permission.php';
-        $user['is_koordinator'] = (stripos($user['position_name'], 'Koordinator Tahfidz') !== false) ? 1 : 0;
+        $posName = (string)($user['position_name'] ?? '');
+        $user['is_koordinator'] = ($posName !== '' && stripos($posName, 'Koordinator Tahfidz') !== false) ? 1 : 0;
         
         // Dynamic Access for Education Menu (Teacher Check)
         $stmtTeacher = $conn->prepare("SELECT COUNT(*) FROM class_schedules WHERE employee_id = ? LIMIT 1");
@@ -86,12 +88,14 @@ try {
         $user['can_manage_news'] = hasPermission($user['id'], 'manage_news') ? 1 : 0;
         $user['can_access_kesantrian'] = hasPermission($user['id'], 'can_access_kesantrian') ? 1 : 0;
 
+        if (ob_get_length()) ob_clean();
         echo json_encode([
             "success" => true,
             "message" => "Login Berhasil",
             "data" => $user
         ]);
     } else {
+        if (ob_get_length()) ob_clean();
         echo json_encode([
             "success" => false,
             "message" => "Email atau Password salah"
@@ -99,6 +103,7 @@ try {
     }
 
 } catch (PDOException $e) {
+    if (ob_get_length()) ob_clean();
     echo json_encode(["success" => false, "message" => "Database Error: " . $e->getMessage()]);
 }
 ?>

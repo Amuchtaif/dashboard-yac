@@ -13,12 +13,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user_id = $_SESSION['user_id'];
     $att_data = $_POST['att'] ?? [];
 
-    // Verify Wali Kelas access
-    $stmt_check = $conn->prepare("SELECT id FROM grade_levels WHERE id = :gid AND teacher_id = :uid");
-    $stmt_check->execute([':gid' => $grade_id, ':uid' => $user_id]);
-    if (!$stmt_check->fetch()) {
-        header("Location: ../../views/homeroom/attendance.php?error=Akses+ditolak");
-        exit;
+    // Check if user is Administrator or has academic management permissions
+    if (!isset($_SESSION['position_name'])) {
+        $stmt_p = $conn->prepare("SELECT p.name FROM employees e LEFT JOIN positions p ON e.position_id = p.id WHERE e.id = ?");
+        $stmt_p->execute([$user_id]);
+        $p_name = $stmt_p->fetchColumn();
+        if ($p_name) {
+            $_SESSION['position_name'] = $p_name;
+        }
+    }
+    $is_admin = (isset($_SESSION['position_name']) && in_array(strtolower($_SESSION['position_name']), ['administrator', 'admin']))
+        || (function_exists('hasPermission') && hasPermission($user_id, 'manage_academic'));
+
+    // Verify access
+    if (!$is_admin) {
+        $stmt_check = $conn->prepare("SELECT id FROM grade_levels WHERE id = :gid AND teacher_id = :uid");
+        $stmt_check->execute([':gid' => $grade_id, ':uid' => $user_id]);
+        if (!$stmt_check->fetch()) {
+            header("Location: ../../views/homeroom/attendance.php?error=Akses+ditolak");
+            exit;
+        }
+    } else {
+        $stmt_check = $conn->prepare("SELECT id FROM grade_levels WHERE id = :gid");
+        $stmt_check->execute([':gid' => $grade_id]);
+        if (!$stmt_check->fetch()) {
+            header("Location: ../../views/homeroom/attendance.php?error=Kelas+tidak+ditemukan");
+            exit;
+        }
     }
 
     $conn->beginTransaction();

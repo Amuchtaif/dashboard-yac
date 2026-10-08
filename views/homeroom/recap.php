@@ -8,35 +8,67 @@ $db = new Database();
 $conn = $db->getConnection();
 $user_id = $_SESSION['user_id'];
 
-// Get the class where this user is Wali Kelas
-$stmt_class = $conn->prepare("
-    SELECT gl.id, gl.name, gl.education_unit_id, eu.name as unit_name
-    FROM grade_levels gl
-    JOIN education_units eu ON gl.education_unit_id = eu.id
-    WHERE gl.teacher_id = :uid
-");
-$stmt_class->execute([':uid' => $user_id]);
-$my_classes = $stmt_class->fetchAll(PDO::FETCH_ASSOC);
+// Check if user is Administrator or has academic management permissions
+if (!isset($_SESSION['position_name'])) {
+    $stmt_p = $conn->prepare("SELECT p.name FROM employees e LEFT JOIN positions p ON e.position_id = p.id WHERE e.id = ?");
+    $stmt_p->execute([$user_id]);
+    $p_name = $stmt_p->fetchColumn();
+    if ($p_name) {
+        $_SESSION['position_name'] = $p_name;
+    }
+}
+$is_admin = (isset($_SESSION['position_name']) && in_array(strtolower($_SESSION['position_name']), ['administrator', 'admin']))
+    || (function_exists('hasPermission') && hasPermission($user_id, 'manage_academic'));
+
+if ($is_admin) {
+    // Administrator can access all classes
+    $stmt_class = $conn->query("
+        SELECT gl.id, gl.name, gl.education_unit_id, eu.name as unit_name
+        FROM grade_levels gl
+        LEFT JOIN education_units eu ON gl.education_unit_id = eu.id
+        ORDER BY eu.id ASC, gl.name ASC
+    ");
+    $my_classes = $stmt_class->fetchAll(PDO::FETCH_ASSOC);
+} else {
+    // Get the class where this user is Wali Kelas
+    $stmt_class = $conn->prepare("
+        SELECT gl.id, gl.name, gl.education_unit_id, eu.name as unit_name
+        FROM grade_levels gl
+        JOIN education_units eu ON gl.education_unit_id = eu.id
+        WHERE gl.teacher_id = :uid
+        ORDER BY gl.name ASC
+    ");
+    $stmt_class->execute([':uid' => $user_id]);
+    $my_classes = $stmt_class->fetchAll(PDO::FETCH_ASSOC);
+}
 
 if (empty($my_classes)) {
     $page_title = "Akses Ditolak";
-    $error_message = "Anda bukan Wali Kelas";
+    $error_message = $is_admin ? "Belum ada data kelas yang terdaftar" : "Anda bukan Wali Kelas";
     include '../layouts/header.php';
     include '../layouts/no_access.php';
     include '../layouts/footer.php';
     exit;
 }
 
-$grade_id = isset($_GET['grade_id']) ? $_GET['grade_id'] : $my_classes[0]['id'];
+$grade_id = isset($_GET['grade_id']) ? $_GET['grade_id'] : ($my_classes[0]['id'] ?? 0);
 
 // Verify access
 $has_access = false;
+$current_class = null;
 foreach ($my_classes as $mc) {
     if ($mc['id'] == $grade_id) {
         $has_access = true;
         $current_class = $mc;
         break;
     }
+}
+
+// Fallback if grade_id is invalid for admin
+if (!$has_access && $is_admin && !empty($my_classes)) {
+    $current_class = $my_classes[0];
+    $grade_id = $current_class['id'];
+    $has_access = true;
 }
 
 if (!$has_access) {
@@ -97,15 +129,24 @@ include '../layouts/header.php';
 <div class="pb-10">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
         <div>
-            <h1 class="text-2xl font-bold text-slate-900">Rekap Absensi Satu Semester</h1>
-            <p class="text-sm text-slate-500 mt-1">Rekapitulasi kehadiran siswa kelas <?php echo htmlspecialchars($current_class['name']); ?> periode <?php echo htmlspecialchars($active_ay['name']); ?> (<?php echo htmlspecialchars($active_ay['semester']); ?>).</p>
+            <div class="flex items-center gap-3">
+                <h1 class="text-2xl font-bold text-slate-900">Rekap Absensi Satu Semester</h1>
+                <?php if ($is_admin): ?>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-700/10">
+                        Mode Admin
+                    </span>
+                <?php endif; ?>
+            </div>
+            <p class="text-sm text-slate-500 mt-1">Rekapitulasi kehadiran siswa kelas <span class="font-semibold text-slate-700"><?php echo htmlspecialchars($current_class['name']); ?></span><?php echo !empty($current_class['unit_name']) ? ' (' . htmlspecialchars($current_class['unit_name']) . ')' : ''; ?> periode <?php echo htmlspecialchars($active_ay['name'] ?? '-'); ?> (<?php echo htmlspecialchars($active_ay['semester'] ?? '-'); ?>).</p>
         </div>
     </div>
 
     <!-- Filter Card -->
     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mb-8">
         <form action="" method="GET" class="flex flex-col md:flex-row items-end gap-4">
-            <input type="hidden" name="grade_id" value="<?php echo $grade_id; ?>">
+            <?php if (count($my_classes) <= 1): ?>
+                <input type="hidden" name="grade_id" value="<?php echo $grade_id; ?>">
+            <?php endif; ?>
             <div class="flex-1">
                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Rentang Tanggal</label>
                 <div class="flex items-center gap-2">
@@ -117,14 +158,33 @@ include '../layouts/header.php';
                 </div>
             </div>
             <?php if (count($my_classes) > 1): ?>
-                <div class="w-full md:w-48">
+                <div class="w-full md:w-56">
                     <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Pilih Kelas</label>
                     <select name="grade_id" class="w-full rounded-xl border-slate-200 text-sm focus:border-cyan-500 focus:ring-cyan-500 bg-white border py-2 px-4 shadow-sm">
-                        <?php foreach ($my_classes as $mc): ?>
-                            <option value="<?php echo $mc['id']; ?>" <?php echo $mc['id'] == $grade_id ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars($mc['name']); ?>
-                            </option>
-                        <?php endforeach; ?>
+                        <?php if ($is_admin): ?>
+                            <?php
+                            $grouped_classes = [];
+                            foreach ($my_classes as $mc) {
+                                $unit = !empty($mc['unit_name']) ? $mc['unit_name'] : 'Lainnya';
+                                $grouped_classes[$unit][] = $mc;
+                            }
+                            ?>
+                            <?php foreach ($grouped_classes as $unit_label => $c_list): ?>
+                                <optgroup label="<?php echo htmlspecialchars($unit_label); ?>">
+                                    <?php foreach ($c_list as $mc): ?>
+                                        <option value="<?php echo $mc['id']; ?>" <?php echo $mc['id'] == $grade_id ? 'selected' : ''; ?>>
+                                            Kelas <?php echo htmlspecialchars($mc['name']); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </optgroup>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <?php foreach ($my_classes as $mc): ?>
+                                <option value="<?php echo $mc['id']; ?>" <?php echo $mc['id'] == $grade_id ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($mc['name']); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                     </select>
                 </div>
             <?php endif; ?>
