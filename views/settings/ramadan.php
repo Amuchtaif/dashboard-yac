@@ -253,7 +253,7 @@ include '../layouts/header.php';
     </form>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
     let groupCounter = <?php echo $group_idx; ?>;
 
     function addNewGroup() {

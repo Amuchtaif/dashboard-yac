@@ -215,7 +215,7 @@ include '../layouts/header.php';
         </div>
     </form>
 
-    <script>
+    <script nonce="<?php echo csp_nonce(); ?>">
         document.querySelectorAll('.custom-select').forEach(selectContainer => {
             const toggle = selectContainer.querySelector('.select-toggle');
             const optionsContainer = selectContainer.querySelector('.select-options');

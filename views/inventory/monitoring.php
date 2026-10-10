@@ -173,7 +173,7 @@ $totalItems = array_sum($itemCounts);
     </div>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
     function filterTable() {
         const searchInput = document.getElementById('locSearch').value.toLowerCase();
         const statusFilter = document.getElementById('statusFilter').value;

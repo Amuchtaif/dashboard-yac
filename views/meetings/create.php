@@ -183,7 +183,7 @@ include '../layouts/header.php';
     </div>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
     // Initialize Tom Select
     var tomSelectInstance = new TomSelect("#participant-select", {
         plugins: ['remove_button', 'clear_button'],

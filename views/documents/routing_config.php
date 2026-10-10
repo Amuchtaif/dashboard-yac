@@ -206,7 +206,7 @@ include '../layouts/header.php';
     </div>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
 const allUnits = <?php echo json_encode($units); ?>;
 
 let divTomSelect = null;

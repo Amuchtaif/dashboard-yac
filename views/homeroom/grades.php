@@ -147,7 +147,7 @@ include '../layouts/header.php';
     </div>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
 async function viewDetail(id) {
     const modal = document.getElementById('detailModal');
     const body = document.getElementById('modal-body');

@@ -217,7 +217,7 @@ include '../layouts/header.php';
     </div>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
     const slider = document.getElementById('geofence_radius');
     const display = document.getElementById('radius-display');
     const latInput = document.getElementById('office_lat');

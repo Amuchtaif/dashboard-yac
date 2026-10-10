@@ -481,7 +481,7 @@ include '../layouts/header.php';
         </div>
     </div>
 
-    <script>
+    <script nonce="<?php echo csp_nonce(); ?>">
     document.addEventListener('DOMContentLoaded', function() {
         const divisionSelect = document.getElementById('division_id');
         const unitSelect = document.getElementById('unit_id');

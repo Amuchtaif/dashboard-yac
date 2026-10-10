@@ -174,7 +174,7 @@ include '../layouts/header.php';
                                 </div>
                             </div>
 
-                            <script>
+                            <script nonce="<?php echo csp_nonce(); ?>">
                                 const dropdownBtn = document.getElementById('manager-dropdown-btn');
                                 const dropdownMenu = document.getElementById('manager-dropdown-menu');
                                 const searchInput = document.getElementById('manager-search-input');
@@ -262,7 +262,7 @@ include '../layouts/header.php';
                             </div>
                         </div>
 
-                        <script>
+                        <script nonce="<?php echo csp_nonce(); ?>">
                             let activeFormDropdownId = null;
 
                             function toggleFormDropdown(id) {

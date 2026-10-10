@@ -700,7 +700,7 @@ include '../layouts/header.php';
     </div>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
 const allUnits = <?php echo json_encode($units ?? []); ?>;
 const savedUnitId = <?php echo json_encode((isset($action) && $action === 'edit' && !empty($document['receiver_unit_id'])) ? $document['receiver_unit_id'] : null); ?>;
 

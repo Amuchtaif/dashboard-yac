@@ -154,7 +154,7 @@ include '../layouts/header.php';
     </div>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
 function toggleLocationField() {
     const type = document.getElementById('meeting_type').value;
     const label = document.getElementById('location_label');

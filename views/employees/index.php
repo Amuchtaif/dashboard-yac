@@ -744,7 +744,7 @@ include '../layouts/header.php';
     </div>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
     const STORAGE_KEY = 'selected_employee_ids';
     const selectAll = document.getElementById('select-all');
     const checkboxes = document.querySelectorAll('.employee-checkbox');

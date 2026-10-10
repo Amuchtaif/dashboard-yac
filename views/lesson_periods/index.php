@@ -112,7 +112,7 @@ include '../layouts/header.php';
         </form>
     </div>
 
-    <script>
+    <script nonce="<?php echo csp_nonce(); ?>">
     function toggleFormDropdown(id) {
         const menu = document.getElementById('menu-' + id);
         const arrow = document.getElementById('arrow-' + id);
@@ -253,7 +253,7 @@ include '../layouts/header.php';
 <form id="hiddenBulkDeleteForm" method="POST" action="../../logic/lesson_periods/bulk_delete.php?<?php echo http_build_query($_GET); ?>" class="hidden">
 </form>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
     function toggleAllCheckboxes(source) {
         const checkboxes = document.querySelectorAll('.row-checkbox');
         checkboxes.forEach(cb => cb.checked = source.checked);

@@ -1091,7 +1091,7 @@ include '../layouts/header.php';
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js" integrity="sha512-sZLif02pOYdWSGSO18HakvSGGR7qB+dwhVOElFJrXQK4BYUi31NcTyD6ah7iWUHzn8e5PRqLMjfFFrtt8QqGDw==" crossorigin="anonymous"></script>
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
 document.addEventListener('DOMContentLoaded', function() {
     // Doughnut Pie Chart (Modern Interactive Center Stats)
     const pieCanvas = document.getElementById('attendancePieChart');

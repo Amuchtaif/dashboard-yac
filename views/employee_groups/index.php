@@ -161,7 +161,7 @@ include '../layouts/header.php';
   </div>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
     // Configuration to pass to JS
     const APP_URL = "<?php echo BASE_URL; ?>";
 </script>

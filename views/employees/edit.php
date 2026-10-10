@@ -238,7 +238,7 @@ include '../layouts/header.php';
     </form>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
     const allUnits = <?php echo json_encode($units); ?>;
     const currentUnitId = "<?php echo $employee['unit_id']; ?>";
 

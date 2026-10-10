@@ -1095,7 +1095,7 @@ include '../layouts/header.php';
             </div>
 
         </div>
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
 function jumpToMonthYear() {
     const month = document.getElementById('select_month').value;
     const year = document.getElementById('select_year').value;

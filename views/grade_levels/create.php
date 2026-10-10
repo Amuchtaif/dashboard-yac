@@ -134,7 +134,7 @@ include '../layouts/header.php';
                 </div>
 
                 <!-- Simple JS for Searchable Select -->
-                <script>
+                <script nonce="<?php echo csp_nonce(); ?>">
                     const searchInput = document.getElementById('teacher_search');
                     const hiddenInput = document.getElementById('teacher_id_input');
                     const list = document.getElementById('teacher_list');

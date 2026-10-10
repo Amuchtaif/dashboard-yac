@@ -417,7 +417,7 @@ input[type="text"]:focus, input[type="date"]:focus, select:focus, textarea:focus
     </div>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
 const editModal = document.getElementById('editModal');
 const filesModal = document.getElementById('filesModal');
 

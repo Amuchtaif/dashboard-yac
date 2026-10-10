@@ -125,7 +125,7 @@ include '../layouts/header.php';
         <button type="submit" class="hidden">Filter</button>
     </form>
 
-    <script>
+    <script nonce="<?php echo csp_nonce(); ?>">
     function toggleFormDropdown(id) {
         const menu = document.getElementById('menu-' + id);
         const arrow = document.getElementById('arrow-' + id);

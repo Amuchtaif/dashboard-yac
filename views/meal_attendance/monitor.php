@@ -173,7 +173,7 @@ require_once __DIR__ . '/../layouts/header.php';
         </div>
     </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
     let currentPage = 1;
     let currentLimit = 25;
 

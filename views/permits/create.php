@@ -127,7 +127,7 @@ include '../layouts/header.php';
                     </div>
 
                     <!-- JS for Dropdowns -->
-                    <script>
+                    <script nonce="<?php echo csp_nonce(); ?>">
                         let activeFormDropdownId = null;
 
                         function toggleFormDropdown(id) {

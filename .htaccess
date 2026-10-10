@@ -1,17 +1,61 @@
 # Disable directory listing
 Options -Indexes
 
-# Security Headers (CSP, Frame Options, Mime Sniffing Protection)
+# ----------------------------------------------------------------------
+# Block Sensitive Files & Configuration (composer, .env, git, sql, log)
+# ----------------------------------------------------------------------
+<FilesMatch "^(composer\.(json|lock)|\.env.*|\.git.*|.*\.sql|.*\.log)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# ----------------------------------------------------------------------
+# Security Headers (CSP, HSTS, Frame Options, Mime Sniffing, Permissions)
+# ----------------------------------------------------------------------
 <IfModule mod_headers.c>
     Header set X-Content-Type-Options "nosniff"
     Header set X-Frame-Options "SAMEORIGIN"
     Header set Referrer-Policy "strict-origin-when-cross-origin"
-    Header set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data: blob: https:; connect-src 'self' https:; frame-src 'self' https:; object-src 'none'; base-uri 'self';"
+    Header set Permissions-Policy "camera=(), microphone=(), geolocation=(self)"
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains" "expr=%{HTTPS} == 'on'"
+    # Fallback CSP for static requests or non-PHP requests
+    Header setifempty Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data: blob: https:; connect-src 'self' https:; frame-src 'self' https:; object-src 'none'; base-uri 'self';"
+</IfModule>
+
+# ----------------------------------------------------------------------
+# Secure Session Cookie Flags (Apache mod_php fallback)
+# ----------------------------------------------------------------------
+<IfModule mod_php.c>
+    php_flag session.cookie_httponly on
+    php_value session.cookie_samesite "Lax"
+</IfModule>
+<IfModule mod_php7.c>
+    php_flag session.cookie_httponly on
+    php_value session.cookie_samesite "Lax"
+</IfModule>
+<IfModule mod_php8.c>
+    php_flag session.cookie_httponly on
+    php_value session.cookie_samesite "Lax"
 </IfModule>
 
 <IfModule mod_rewrite.c>
     # Aktifkan Rewrite Engine
     RewriteEngine On
+
+    # Block access to storage and composer files via rewrite (Return 403 Forbidden)
+    RewriteRule ^composer\.(json|lock)$ - [F,L,NC]
+    RewriteRule ^storage(/.*)?$ - [F,L,NC]
+
+    # Force HTTPS Redirect 301 (Exclude localhost / 127.0.0.1 for local development)
+    RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)(:[0-9]+)?$ [NC]
+    RewriteCond %{HTTPS} off
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https [NC]
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
     # Public Agenda Route (Dukungan dengan atau tanpa trailing slash)
     RewriteRule ^agenda-pendidikan/?$ views/agenda/public.php [QSA,NC,L]

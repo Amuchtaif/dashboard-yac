@@ -665,7 +665,7 @@ $return_filters_qs = http_build_query($return_filters);
 </form>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
     // --- Profile Photo Handling ---
     function previewImage(input) {
         const preview = document.getElementById('profile_preview');

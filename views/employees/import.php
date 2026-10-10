@@ -174,7 +174,7 @@ unset($_SESSION['import_errors']);
     </div>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
     // --- Drag & Drop Zone Interactions ---
     const dropzone = document.getElementById('dropzone');
     const dropzoneText = document.getElementById('dropzone-text');

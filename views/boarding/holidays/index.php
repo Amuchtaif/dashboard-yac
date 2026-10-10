@@ -110,7 +110,7 @@ include '../../layouts/header.php';
     </div>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
     function openModal(id) {
         const modal = document.getElementById(id);
         const backdrop = document.getElementById('modal-backdrop');

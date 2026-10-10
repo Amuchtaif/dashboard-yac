@@ -283,7 +283,7 @@ include '../layouts/header.php';
     </div>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
 function previewArchive(id, type, title, filePath) {
     document.getElementById('archive-modal-title').innerText = title;
     

@@ -16,7 +16,9 @@ require_once __DIR__ . '/../config/permission.php';
 // Authenticate via session or request parameter
 $user_id = isset($_GET['user_id']) ? (int)$_GET['user_id'] : (isset($_POST['user_id']) ? (int)$_POST['user_id'] : 0);
 if ($user_id <= 0) {
-    session_start();
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
     $user_id = $_SESSION['user_id'] ?? 0;
 }
 

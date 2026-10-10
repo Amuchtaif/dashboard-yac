@@ -304,7 +304,7 @@ include '../layouts/header.php';
     </div>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
 function updatePermission(id, permissionType, isChecked) {
     // Determine the correct status text selector based on permission type
     let statusTextSelector;

@@ -216,7 +216,7 @@ include '../layouts/header.php';
     </div>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
 function exportToCSV() {
     let csv = [];
     const rows = document.querySelectorAll("#report-table tr");

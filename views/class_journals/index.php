@@ -695,7 +695,7 @@ include '../layouts/header.php';
     </div>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
 function toggleFormDropdown(id) {
     const menu = document.getElementById('menu-' + id);
     const arrow = document.getElementById('arrow-' + id);
@@ -850,7 +850,7 @@ window.addEventListener('click', function (e) {
     </div>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
     function openViewModal(data) {
         document.getElementById('v-datetime').innerText = data.date + ' (' + data.time + ')';
         document.getElementById('v-class-subject').innerText = data.class + ' - ' + data.subject;

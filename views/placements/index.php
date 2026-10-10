@@ -308,14 +308,14 @@ include '../layouts/header.php';
 </div>
 
 <!-- Raw Data for JS -->
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
     const allStudents = <?php echo json_encode($allStudents); ?>;
     const targetClassId = "<?php echo $targetClassId; ?>";
     const targetCapacity = <?php echo $targetClass ? $targetClass['capacity'] : 0; ?>;
     const currentFill = <?php echo $targetClassStats['current']; ?>;
 </script>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
     // State
     let selectedIds = new Set();
     let searchTerm = '';

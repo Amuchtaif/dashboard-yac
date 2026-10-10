@@ -83,7 +83,7 @@ require_once '../../layouts/header.php';
     </div>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
     document.addEventListener('DOMContentLoaded', () => {
         loadOfficers();
         loadEmployees();

@@ -274,7 +274,7 @@ include '../layouts/header.php';
     </div>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
 function openResetModal(id, name) {
     document.getElementById('resetUserId').value = id;
     document.getElementById('resetUserName').textContent = name;

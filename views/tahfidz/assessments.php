@@ -365,7 +365,7 @@ include '../layouts/header.php';
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.8/dist/sweetalert2.all.min.js" integrity="sha512-ziDG00v9lDjgmzxhvyX5iztPHpSryN/Ct/TAMPmMmS2O3T1hFPRdrzVCSvwnbPbFNie7Yg5mF7NUSSp5smu7RA==" crossorigin="anonymous"></script>
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
 // Auto calculation
 document.querySelectorAll('.score-input').forEach(input => {
     input.addEventListener('input', calculateTotal);

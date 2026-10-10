@@ -435,7 +435,7 @@ include '../layouts/header.php';
     </div>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
     function showLogDetail(log) {
         // Parse dates and basic fields
         document.getElementById('log-time-title').innerText = log.created_at;

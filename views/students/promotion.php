@@ -496,7 +496,7 @@ include '../layouts/header.php';
     </div>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
 
     // --- Selections Management (sessionStorage) ---
     function getSelections() {

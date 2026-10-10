@@ -173,7 +173,7 @@ if (isset($_SESSION['user_id'])) {
 
     </div>
 
-    <script>
+    <script nonce="<?php echo csp_nonce(); ?>">
         function togglePassword() {
             const passwordInput = document.getElementById('password');
             const eyeIcon = document.getElementById('eye-icon');

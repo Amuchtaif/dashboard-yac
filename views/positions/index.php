@@ -264,7 +264,7 @@ include '../layouts/header.php';
     </div>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
     let currentEmployeesData = [];
     let currentPositionName = '';
 

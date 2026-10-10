@@ -337,7 +337,7 @@ input[type="text"]:focus, input[type="number"]:focus, select:focus, textarea:foc
     </div>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
 const modal = document.getElementById('formModal');
 
 function openFormModal(data = null) {

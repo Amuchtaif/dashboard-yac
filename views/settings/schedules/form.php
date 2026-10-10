@@ -232,7 +232,7 @@ include '../../layouts/header.php';
     </div>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
 function toggleDay(day) {
     const isOff = document.getElementById('off_' + day).checked;
     const startInput = document.getElementById('start_' + day);

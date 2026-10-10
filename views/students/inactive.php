@@ -586,7 +586,7 @@ include '../layouts/header.php';
         </div>
     </div>
 
-    <script>
+    <script nonce="<?php echo csp_nonce(); ?>">
         // --- Filter Option Selection ---
         function selectFilterOption(name, value, text) {
             document.getElementById('filter-' + name + '-input').value = value;

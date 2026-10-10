@@ -308,7 +308,7 @@ include '../layouts/header.php';
     </div>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
 function openSmartPaste() {
     const modal = document.getElementById('smartPasteModal');
     modal.classList.remove('invisible', 'pointer-events-none');

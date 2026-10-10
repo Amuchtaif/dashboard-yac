@@ -402,7 +402,7 @@ function renderToggle($empId, $permName, $effectiveValue, $source, $roleValue = 
 }
 ?>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
 function updateUserPermission(empId, permName, isChecked, checkboxEl) {
     const apiUrl = '../../logic/permissions/update_employee_permission';
     const sourceEl = document.getElementById(`src-${empId}-${permName}`);

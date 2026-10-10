@@ -234,7 +234,7 @@ include '../layouts/header.php';
     </div>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
 function openReviewModal(id, title) {
     document.getElementById('modal-doc-id').value = id;
     document.getElementById('modal-title-label').innerText = 'Tinjauan: ' + title;

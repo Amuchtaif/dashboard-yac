@@ -529,7 +529,7 @@ include '../layouts/header.php';
         </form>
     </div>
 
-    <script>
+    <script nonce="<?php echo csp_nonce(); ?>">
         let groupDropdownOpen = false;
         let ayDropdownOpen = false;
 
@@ -980,7 +980,7 @@ include '../layouts/header.php';
     </div>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
 function openTargetDetailModal(s) {
     const modal = document.getElementById('targetDetailModal');
     const overlay = document.getElementById('detailModalOverlay');

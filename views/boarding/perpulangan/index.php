@@ -274,7 +274,7 @@ include '../../layouts/header.php';
     </div>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
     function confirmReturn(id, name) {
         if(confirm(`Konfirmasi bahwa santri ${name} sudah kembali ke asrama?`)) {
             // Use existing logic if available or direct post

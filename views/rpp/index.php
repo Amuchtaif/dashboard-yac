@@ -256,7 +256,7 @@ include '../layouts/header.php';
     .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
 </style>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
 async function viewRPP(id) {
     const modal = document.getElementById('viewModal');
     const overlay = document.getElementById('viewModalOverlay');

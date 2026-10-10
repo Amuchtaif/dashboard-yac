@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer">
     <link rel="icon" type="image/png" href="<?php echo BASE_URL; ?>/assets/images/favicon.png">
-    <script>
+    <script nonce="<?php echo csp_nonce(); ?>">
         tailwind.config = {
             theme: {
                 extend: {
@@ -291,7 +291,7 @@
         <!-- Sidebar Backdrop (Mobile Only) -->
         <div id="sidebar-backdrop" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/60 z-40 hidden md:hidden transition-opacity duration-300 opacity-0 backdrop-blur-sm"></div>
 
-        <script>
+        <script nonce="<?php echo csp_nonce(); ?>">
             function toggleSidebar() {
                 const sidebar = document.getElementById('main-sidebar');
                 const backdrop = document.getElementById('sidebar-backdrop');
@@ -417,7 +417,7 @@
                     </div>
                 <?php endif; ?>
 
-                <script>
+                <script nonce="<?php echo csp_nonce(); ?>">
                     function closeAlert(id) {
                         const alertEl = document.getElementById(id);
                         if (alertEl) {

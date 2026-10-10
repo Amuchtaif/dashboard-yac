@@ -521,7 +521,7 @@ include '../layouts/header.php';
     <p id="globalNoteTooltipText" class="leading-relaxed text-slate-200 whitespace-pre-wrap"></p>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
 function showNoteTooltip(e, text) {
     const tooltip = document.getElementById('globalNoteTooltip');
     const tooltipText = document.getElementById('globalNoteTooltipText');

@@ -284,7 +284,7 @@ include '../layouts/header.php';
     </div>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
     function confirmDelete(id, title) {
         // Set the meeting info in the modal
         document.getElementById('meetingDeleteName').textContent = '"' + title + '"';

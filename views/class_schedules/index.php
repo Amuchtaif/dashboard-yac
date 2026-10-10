@@ -488,7 +488,7 @@ include '../layouts/header.php';
         <button type="submit" class="hidden">Filter</button>
     </form>
 
-    <script>
+    <script nonce="<?php echo csp_nonce(); ?>">
     function clearSingleFilter(key) {
         if (key === 'search') {
             const inputSearch = document.querySelector('input[name="search"]');
@@ -863,7 +863,7 @@ include '../layouts/header.php';
 <form id="hiddenBulkDeleteForm" method="POST" action="../../logic/class_schedules/bulk_delete.php?<?php echo http_build_query($_GET); ?>" class="hidden">
 </form>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
     function openBulkDeleteModal(count) {
         document.getElementById('bulkDeleteCount').textContent = count;
         const modal = document.getElementById('bulkDeleteModal');

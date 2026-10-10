@@ -570,7 +570,7 @@ include '../layouts/header.php';
     <?php endif; ?>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
 // Dynamic logo/banner preview state
 let liveLogoDataUrl = null;
 let liveBannerDataUrl = null;

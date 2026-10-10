@@ -381,7 +381,7 @@ include '../layouts/header.php';
 .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
 </style>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
 // Query String Helper
 function updateQueryStringParameter(uri, key, value) {
     var re = new RegExp("([?&])" + key + "=.*?(&|$)", "i");

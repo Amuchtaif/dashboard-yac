@@ -93,7 +93,7 @@ require_once __DIR__ . '/../layouts/header.php';
     </div>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
     // Fetch and render the tree
     let allLocationsData = [];
 
@@ -731,7 +731,7 @@ require_once __DIR__ . '/../layouts/header.php';
             printWindow.document.write('</div>');
         }
 
-        printWindow.document.write('<script>window.onload = function() { setTimeout(() => { window.print(); window.close(); }, 500); };<\/script>');
+        printWindow.document.write('<script nonce="<?php echo csp_nonce(); ?>">window.onload = function() { setTimeout(() => { window.print(); window.close(); }, 500); };<\/script>');
         printWindow.document.write('</body></html>');
         printWindow.document.close();
     }

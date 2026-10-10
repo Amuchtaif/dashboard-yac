@@ -297,7 +297,7 @@ include '../layouts/header.php';
         <button type="submit" class="hidden">Filter</button>
     </form>
 
-    <script>
+    <script nonce="<?php echo csp_nonce(); ?>">
         function selectFilterOption(type, value, text) {
             document.getElementById('filter-' + type + '-input').value = value;
             // If it's unit, we might want to reset grade, but usually we just submit and let PHP handle it

@@ -4,9 +4,9 @@
  * Provides CSRF token generation, input rendering, and request validation.
  */
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once __DIR__ . '/session.php';
+
+ensure_secure_session();
 
 /**
  * Generate or get existing CSRF token from session
@@ -15,9 +15,7 @@ if (session_status() === PHP_SESSION_NONE) {
  */
 function csrf_token()
 {
-    if (session_status() === PHP_SESSION_NONE) {
-        session_start();
-    }
+    ensure_secure_session();
 
     if (empty($_SESSION['csrf_token'])) {
         $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
@@ -44,9 +42,7 @@ function csrf_field()
  */
 function verify_csrf($token = null)
 {
-    if (session_status() === PHP_SESSION_NONE) {
-        session_start();
-    }
+    ensure_secure_session();
 
     $sessionToken = $_SESSION['csrf_token'] ?? '';
     if (empty($sessionToken)) {

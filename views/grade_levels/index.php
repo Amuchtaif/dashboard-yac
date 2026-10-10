@@ -422,7 +422,7 @@ include '../layouts/header.php';
 <form id="hiddenBulkDeleteForm" method="POST" action="<?php url('logic/grade_levels/bulk_delete.php?' . http_build_query($_GET)); ?>" class="hidden">
 </form>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
     // --- Filter Option Selection ---
     function selectFilterOption(name, value, text) {
         document.getElementById('filter-' + name + '-input').value = value;

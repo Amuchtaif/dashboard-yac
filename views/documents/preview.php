@@ -1,5 +1,6 @@
-<?php
 // views/documents/preview.php
+<?php
+require_once '../../config/app.php';
 require_once '../../config/database.php';
 
 // Auto-detect project configuration for BASE_URL
@@ -303,7 +304,7 @@ $verification_url = BASE_URL . "/views/documents/verify?token=" . urlencode($doc
     </div>
 
     <!-- Auto-trigger Print Dialog -->
-    <script>
+    <script nonce="<?php echo csp_nonce(); ?>">
         window.addEventListener('DOMContentLoaded', () => {
             // Auto open print dialog but don't close window immediately
             setTimeout(() => {

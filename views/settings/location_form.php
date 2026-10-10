@@ -205,7 +205,7 @@ include '../layouts/header.php';
 <!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
     const slider = document.getElementById('radius_meter');
     const display = document.getElementById('radius-display');
     const latInput = document.getElementById('latitude');

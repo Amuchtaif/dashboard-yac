@@ -554,7 +554,7 @@ $active_ay_id = !empty($active_ay) ? reset($active_ay)['id'] : (!empty($academic
     </div>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
     let currentMonth = <?php echo (int)date('m'); ?>;
     let currentYear = <?php echo (int)date('Y'); ?>;
     let agendaData = [];

@@ -167,7 +167,7 @@ if (!$rpp) {
                 <p class="font-bold underline">( ........................................ )</p>
             </div>
             <div>
-                <p>Singaraja, <?php echo date('d F Y'); ?></p>
+                <p>Cirebon, <?php echo date('d F Y'); ?></p>
                 <p>Guru Mata Pelajaran</p>
                 <div class="h-24"></div>
                 <p class="font-bold underline text-slate-900"><?php echo htmlspecialchars($rpp['teacher_name']); ?></p>
@@ -175,7 +175,7 @@ if (!$rpp) {
         </div>
     </div>
 
-    <script>
+    <script nonce="<?php echo csp_nonce(); ?>">
         // Auto print trigger if needed
         // window.print();
     </script>

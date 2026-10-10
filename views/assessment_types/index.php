@@ -249,7 +249,7 @@ include '../layouts/header.php';
     </div>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
     function handleDelete(btn) {
         const id = btn.getAttribute('data-id');
         

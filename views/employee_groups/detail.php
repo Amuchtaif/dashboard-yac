@@ -100,7 +100,7 @@ include '../layouts/header.php';
     </div>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
     const APP_URL = "<?php echo BASE_URL; ?>";
 </script>
 <script src="<?php echo url('assets/js/employee_groups.js') . '?v=' . time(); ?>"></script>

@@ -264,7 +264,7 @@ include '../layouts/header.php';
     </div>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
 function updateWebPermission(id, permissionType, isChecked) {
     const apiUrl = '../../logic/permissions/update_role_permission';
     const checkbox = event.target;

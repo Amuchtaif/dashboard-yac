@@ -408,7 +408,7 @@ include '../layouts/header.php';
     </div>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
     function showLogDetail(log) {
         document.getElementById('log-time-title').innerText = log.datetime || '-';
         document.getElementById('log-user').innerText = (log.user || '-') + ' (ID: ' + (log.user_id || '-') + ')';

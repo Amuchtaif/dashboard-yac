@@ -74,7 +74,7 @@
     </div>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
     function openDeleteModal(url) {
         const csrfToken = '<?php echo csrf_token(); ?>';
         if (url && !url.includes('csrf_token=')) {
@@ -441,7 +441,7 @@
     </div>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
     function openImageModal(url) {
         const modal = document.getElementById('imageModal');
         const backdrop = document.getElementById('imageModalBackdrop');

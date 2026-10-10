@@ -864,7 +864,7 @@ if ($is_admin) {
 </aside>
 
 <!-- Auto-scroll sidebar to active menu item -->
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
     document.addEventListener("DOMContentLoaded", function () {
         const activeSidebarItem = document.querySelector('aside nav a.bg-white');
         if (activeSidebarItem) {

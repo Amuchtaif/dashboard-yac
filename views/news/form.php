@@ -204,7 +204,7 @@ include '../layouts/header.php';
     </form>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
 function previewImage(input) {
     const container = document.getElementById('image-preview-container');
     if (input.files && input.files[0]) {

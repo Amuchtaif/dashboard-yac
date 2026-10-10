@@ -195,7 +195,7 @@ input[type="text"]:focus, input[type="date"]:focus, select:focus, textarea:focus
     </div>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
 // --- Monthly Trend Line Chart ---
 const trendLabels = <?php echo json_encode(array_column($monthly_trend, 'label')); ?>;
 const trendData = <?php echo json_encode(array_column($monthly_trend, 'count')); ?>;

@@ -235,7 +235,7 @@ include '../layouts/header.php';
 </div>
 
 <!-- Dependent Dropdown Logic (Original Logic Preserved) -->
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
     const allUnits = <?php echo json_encode($units); ?>;
 
     function filterUnits() {
