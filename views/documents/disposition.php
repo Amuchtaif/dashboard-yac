@@ -78,20 +78,20 @@ include '../layouts/header.php';
     </div>
 
     <!-- TABS -->
-    <div class="mt-8" x-data="{ activeTab: 'incoming' }">
+    <div class="mt-8">
         <div class="border-b border-slate-200">
             <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-                <button @click="activeTab = 'incoming'" :class="{ 'border-indigo-500 text-indigo-600': activeTab === 'incoming', 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300': activeTab !== 'incoming' }" class="whitespace-nowrap py-4 px-1 border-b-2 font-bold text-sm transition-colors duration-200">
+                <button type="button" id="tab-btn-incoming" class="whitespace-nowrap py-4 px-1 border-b-2 font-bold text-sm transition-colors duration-200 border-indigo-500 text-indigo-600">
                     Disposisi Masuk
                 </button>
-                <button @click="activeTab = 'outgoing'" :class="{ 'border-indigo-500 text-indigo-600': activeTab === 'outgoing', 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300': activeTab !== 'outgoing' }" class="whitespace-nowrap py-4 px-1 border-b-2 font-bold text-sm transition-colors duration-200">
+                <button type="button" id="tab-btn-outgoing" class="whitespace-nowrap py-4 px-1 border-b-2 font-bold text-sm transition-colors duration-200 border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300">
                     Riwayat Disposisi Keluar
                 </button>
             </nav>
         </div>
 
         <!-- TAB CONTENT: INCOMING -->
-        <div x-show="activeTab === 'incoming'" class="mt-6">
+        <div id="tab-content-incoming" class="mt-6">
             <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-xl border border-slate-200 bg-white">
                 <table class="min-w-full divide-y divide-slate-200">
                     <thead class="bg-slate-50">
@@ -176,7 +176,7 @@ include '../layouts/header.php';
         </div>
 
         <!-- TAB CONTENT: OUTGOING -->
-        <div x-show="activeTab === 'outgoing'" class="mt-6" style="display: none;">
+        <div id="tab-content-outgoing" class="mt-6 hidden">
             <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-xl border border-slate-200 bg-white">
                 <table class="min-w-full divide-y divide-slate-200">
                     <thead class="bg-slate-50">
@@ -237,7 +237,40 @@ include '../layouts/header.php';
     </div>
 </div>
 
-<!-- Alpine JS for tabs -->
-<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.8/dist/cdn.min.js" integrity="sha512-yOJKtRNy4uv7xXo39FPUqAgH3jf+C+48vbJiEhQFFQBfJoD0dPSfe8Ta5mmI4Jk+kRA5emkddlDZGdyEGmtQfg==" crossorigin="anonymous" defer></script>
+<!-- Vanilla JS for tabs (CSP compliant with nonce) -->
+<script nonce="<?php echo csp_nonce(); ?>">
+document.addEventListener('DOMContentLoaded', function () {
+    const btnIncoming = document.getElementById('tab-btn-incoming');
+    const btnOutgoing = document.getElementById('tab-btn-outgoing');
+    const tabIncoming = document.getElementById('tab-content-incoming');
+    const tabOutgoing = document.getElementById('tab-content-outgoing');
+
+    const activeClasses = ['border-indigo-500', 'text-indigo-600'];
+    const inactiveClasses = ['border-transparent', 'text-slate-500', 'hover:text-slate-700', 'hover:border-slate-300'];
+
+    function switchTab(target) {
+        if (target === 'incoming') {
+            activeClasses.forEach(cls => btnIncoming.classList.add(cls));
+            inactiveClasses.forEach(cls => btnIncoming.classList.remove(cls));
+            inactiveClasses.forEach(cls => btnOutgoing.classList.add(cls));
+            activeClasses.forEach(cls => btnOutgoing.classList.remove(cls));
+            tabIncoming.classList.remove('hidden');
+            tabOutgoing.classList.add('hidden');
+        } else {
+            activeClasses.forEach(cls => btnOutgoing.classList.add(cls));
+            inactiveClasses.forEach(cls => btnOutgoing.classList.remove(cls));
+            inactiveClasses.forEach(cls => btnIncoming.classList.add(cls));
+            activeClasses.forEach(cls => btnIncoming.classList.remove(cls));
+            tabOutgoing.classList.remove('hidden');
+            tabIncoming.classList.add('hidden');
+        }
+    }
+
+    if (btnIncoming && btnOutgoing) {
+        btnIncoming.addEventListener('click', function () { switchTab('incoming'); });
+        btnOutgoing.addEventListener('click', function () { switchTab('outgoing'); });
+    }
+});
+</script>
 
 <?php include '../layouts/footer.php'; ?>

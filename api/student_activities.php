@@ -12,12 +12,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 require_once __DIR__ . '/../app/Services/Activity/StudentActivityService.php';
 require_once __DIR__ . '/../config/permission.php';
+require_once __DIR__ . '/../config/session.php';
 
 $user_id = isset($_GET['user_id']) ? (int)$_GET['user_id'] : (isset($_POST['user_id']) ? (int)$_POST['user_id'] : 0);
 if ($user_id <= 0) {
-    if (session_status() === PHP_SESSION_NONE) {
-        session_start();
-    }
+    ensure_secure_session();
     $user_id = $_SESSION['user_id'] ?? 0;
 }
 

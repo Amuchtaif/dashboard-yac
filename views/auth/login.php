@@ -142,6 +142,7 @@ if (isset($_SESSION['user_id'])) {
                                placeholder="Kata Sandi"
                                class="w-full pl-11 pr-11 py-3 bg-white text-slate-800 text-[14px] rounded-full border border-slate-300 focus:outline-none focus:border-[#0575E6] focus:ring-2 focus:ring-[#0575E6]/20 transition-all placeholder:text-slate-400">
                         <button type="button" 
+                                id="toggle-password-btn"
                                 onclick="togglePassword()"
                                 class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none transition-colors"
                                 title="Tampilkan / sembunyikan kata sandi">
@@ -189,6 +190,8 @@ if (isset($_SESSION['user_id'])) {
                 eyeOffIcon.classList.add('hidden');
             }
         }
+
+        document.getElementById('toggle-password-btn')?.addEventListener('click', togglePassword);
 
         // Auto-close error alert smoothly
         const errorAlert = document.getElementById('error-alert');

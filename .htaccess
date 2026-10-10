@@ -24,7 +24,10 @@ Options -Indexes
     Header set Permissions-Policy "camera=(), microphone=(), geolocation=(self)"
     Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains" "expr=%{HTTPS} == 'on'"
     # Fallback CSP for static requests or non-PHP requests
-    Header setifempty Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data: blob: https:; connect-src 'self' https:; frame-src 'self' https:; object-src 'none'; base-uri 'self';"
+    Header setifempty Content-Security-Policy "default-src 'self'; script-src 'self' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data: blob: https:; connect-src 'self' https:; frame-src 'self' https:; object-src 'none'; base-uri 'self';"
+    # Enforce Secure and HttpOnly flags on Set-Cookie
+    Header always edit Set-Cookie "(?i)^((?:(?!;\s*Secure).)*)$" "$1; Secure"
+    Header always edit Set-Cookie "(?i)^((?:(?!;\s*HttpOnly).)*)$" "$1; HttpOnly"
 </IfModule>
 
 # ----------------------------------------------------------------------
@@ -32,14 +35,17 @@ Options -Indexes
 # ----------------------------------------------------------------------
 <IfModule mod_php.c>
     php_flag session.cookie_httponly on
+    php_flag session.cookie_secure on
     php_value session.cookie_samesite "Lax"
 </IfModule>
 <IfModule mod_php7.c>
     php_flag session.cookie_httponly on
+    php_flag session.cookie_secure on
     php_value session.cookie_samesite "Lax"
 </IfModule>
 <IfModule mod_php8.c>
     php_flag session.cookie_httponly on
+    php_flag session.cookie_secure on
     php_value session.cookie_samesite "Lax"
 </IfModule>
 
