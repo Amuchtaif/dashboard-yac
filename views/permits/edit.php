@@ -267,10 +267,12 @@ include '../layouts/header.php';
                         <?php if (!empty($permit['attachment'])): ?>
                                 <span class="text-xs text-slate-500">File saat ini:</span>
                                 <button type="button" 
-                                    onclick="openImageModal('<?php echo BASE_URL; ?>/uploads/permits/<?php echo $permit['attachment']; ?>')" 
+                                    data-preview-url="<?php echo BASE_URL; ?>/uploads/permits/<?php echo htmlspecialchars($permit['attachment']); ?>"
+                                    data-preview-title="Lampiran Bukti - <?php echo htmlspecialchars(addslashes($permit['attachment'])); ?>"
+                                    onclick="openImageModal(this.getAttribute('data-preview-url'), this.getAttribute('data-preview-title'))" 
                                     class="text-xs text-cyan-600 font-bold hover:text-cyan-700 hover:underline flex items-center gap-1 transition-all">
                                     <i class="fa-solid fa-paperclip h-3.5 w-3.5"></i>
-                                    <?php echo $permit['attachment']; ?>
+                                    <?php echo htmlspecialchars($permit['attachment']); ?>
                                 </button>
                             </div>
                         <?php endif; ?>

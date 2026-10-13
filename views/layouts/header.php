@@ -97,9 +97,37 @@
         }
 
         /* Searchable Select Styles */
+        /* Searchable Select Styles (Solid Colors, Clean & Professional) */
         .hybrid-select-container {
             position: relative;
             width: 100%;
+        }
+
+        .hybrid-select-container.is-open {
+            z-index: 50;
+        }
+
+        .hybrid-select-container .hybrid-search-input {
+            width: 100%;
+            border-radius: 0.5rem;
+            border: 1px solid #cbd5e1;
+            background-color: #ffffff;
+            padding: 0.5625rem 2.25rem 0.5625rem 0.875rem;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+            cursor: pointer;
+            font-weight: 500;
+            color: #0f172a;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            outline: none;
+        }
+
+        .hybrid-select-container .hybrid-search-input:focus,
+        .hybrid-select-container.is-open .hybrid-search-input {
+            border-color: #0891b2;
+            box-shadow: 0 0 0 1px #0891b2;
+            outline: none;
         }
 
         .hybrid-select-dropdown {
@@ -107,67 +135,68 @@
             top: 100%;
             left: 0;
             right: 0;
-            z-index: 50;
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 1.25rem;
-            margin-top: 0.5rem;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            max-height: 250px;
+            z-index: 70;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            margin-top: 0.25rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+            max-height: 260px;
             overflow-y: auto;
             display: none;
         }
 
+        /* Auto dropup when near bottom of viewport */
+        .hybrid-select-dropdown.dropup {
+            top: auto;
+            bottom: 100%;
+            margin-top: 0;
+            margin-bottom: 0.25rem;
+            box-shadow: 0 -10px 15px -3px rgba(0, 0, 0, 0.1), 0 -4px 6px -4px rgba(0, 0, 0, 0.1);
+        }
+
         .hybrid-select-dropdown.active {
             display: block;
-            animation: dropdownFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            animation: dropdownFadeIn 0.15s ease-out;
         }
 
         @keyframes dropdownFadeIn {
-            from { opacity: 0; transform: translateY(-8px); }
+            from { opacity: 0; transform: translateY(-4px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
         .hybrid-option {
-            padding: 0.875rem 1.25rem;
+            padding: 0.5625rem 0.875rem;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: background-color 0.1s;
             font-size: 0.875rem;
-            color: #475569;
+            color: #334155;
             font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
-        .hybrid-option:hover {
-            background-color: #ecfeff;
-            color: #0891b2;
-            padding-left: 1.5rem;
+        .hybrid-option:hover:not(.selected) {
+            background-color: #f1f5f9;
+            color: #0f172a;
         }
 
+        /* Solid Color for Selected Option */
         .hybrid-option.selected {
-            background-color: #cffafe;
-            color: #0891b2;
-            font-weight: 700;
-        }
-
-        .hybrid-search-input {
-            width: 100%;
-            border-radius: 1rem;
-            border: 1px solid #e2e8f0;
-            background-color: #fff;
-            padding: 0.875rem 1.25rem;
-            padding-right: 2.5rem;
-            font-size: 0.875rem;
-            transition: all 0.2s;
-            cursor: pointer;
+            background-color: #0891b2 !important;
+            color: #ffffff !important;
             font-weight: 600;
-            color: #1e293b;
         }
 
-        .hybrid-search-input:focus {
-            border-color: #06b6d4;
-            background-color: #fff;
-            box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.1);
-            outline: none;
+        .hybrid-option.selected span,
+        .hybrid-option.selected i {
+            color: #ffffff !important;
+        }
+
+        .hybrid-option.selected:hover {
+            background-color: #0e7490 !important;
+            color: #ffffff !important;
         }
 
         /* Modal Animations */

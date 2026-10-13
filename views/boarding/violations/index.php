@@ -283,7 +283,9 @@ require_once '../../layouts/header.php';
                     ${v.attachment ? `
                         <div class="flex justify-center">
                             <img src="${v.attachment_url}" 
-                                 onclick="openImageModal('${v.attachment_url}')"
+                                 data-preview-url="${v.attachment_url}"
+                                 data-preview-title="Foto Bukti Pelanggaran - ${v.santri_name || 'Santri'}"
+                                 onclick="openImageModal(this.getAttribute('data-preview-url'), this.getAttribute('data-preview-title'))"
                                  class="w-10 h-10 object-cover rounded-xl border border-slate-200 shadow-sm cursor-zoom-in hover:scale-105 transition-all animate-fade-in"
                                  title="Klik untuk memperbesar">
                         </div>

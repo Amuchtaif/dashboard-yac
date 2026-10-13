@@ -153,7 +153,7 @@ include '../layouts/header.php';
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <?php if ($report['evidence_photo']): ?>
-                                    <a href="<?php echo url('uploads/work_reports/' . $report['evidence_photo']); ?>" target="_blank" class="inline-flex items-center gap-1.5 text-cyan-600 hover:text-cyan-700 font-bold text-[11px] bg-cyan-50 px-2 py-1 rounded-lg transition-colors border border-cyan-100">
+                                    <a href="<?php echo url('uploads/work_reports/' . $report['evidence_photo']); ?>" data-preview-url="<?php echo url('uploads/work_reports/' . $report['evidence_photo']); ?>" data-preview-title="Bukti Pekerjaan - <?php echo htmlspecialchars(addslashes($report['employee_name'] ?? 'Laporan')); ?>" target="_blank" class="inline-flex items-center gap-1.5 text-cyan-600 hover:text-cyan-700 font-bold text-[11px] bg-cyan-50 px-2 py-1 rounded-lg transition-colors border border-cyan-100">
                                         <i class="fa-solid fa-image h-3.5 w-3.5"></i>
                                         Bukti Foto
                                     </a>

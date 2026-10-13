@@ -287,7 +287,9 @@
             
             // Close hybrid selects
             if (!e.target.closest('.hybrid-select-container')) {
-                document.querySelectorAll('.hybrid-select-dropdown').forEach(d => d.classList.remove('active'));
+                document.querySelectorAll('.hybrid-select-dropdown').forEach(d => d.classList.remove('active', 'dropup'));
+                document.querySelectorAll('.hybrid-select-container').forEach(c => c.classList.remove('is-open'));
+                document.querySelectorAll('.hybrid-select-container i.fa-chevron-down, .hybrid-select-container svg').forEach(s => s.classList.remove('rotate-180'));
             }
         });
 
@@ -303,19 +305,24 @@
             const container = document.createElement('div');
             container.className = 'hybrid-select-container';
             
-            const currentText = select.options[select.selectedIndex]?.text || 'Pilih...';
+            const currentOpt = select.options[select.selectedIndex];
+            const currentVal = (currentOpt && currentOpt.value !== '') ? currentOpt.text : '';
+            const currentPlaceholder = currentOpt ? currentOpt.text : 'Pilih...';
             
             container.innerHTML = `
                 <div class="relative">
-                    <input type="text" class="hybrid-search-input" placeholder="${currentText}" readonly>
+                    <input type="text" class="hybrid-search-input" value="${currentVal}" placeholder="${currentPlaceholder}" readonly>
                     <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                        <i class="fa-solid fa-chevron-down h-4 w-4 text-slate-400 transition-transform duration-200"></i>
+                        <i class="fa-solid fa-chevron-down text-xs text-slate-500 transition-transform duration-150"></i>
                     </div>
                 </div>
                 <div class="hybrid-select-dropdown">
                     ${isSearchable ? `
-                    <div class="sticky top-0 bg-white p-3 border-b border-slate-100">
-                        <input type="text" class="w-full px-4 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all" placeholder="Ketik untuk mencari...">
+                    <div class="sticky top-0 bg-white p-2 border-b border-slate-100">
+                        <div class="relative">
+                            <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-slate-400"></i>
+                            <input type="text" class="w-full pl-7 pr-3 py-1.5 text-xs border border-slate-200 rounded-md focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 bg-white placeholder:text-slate-400" placeholder="Ketik untuk mencari...">
+                        </div>
                     </div>` : ''}
                     <div class="options-list py-1"></div>
                 </div>
@@ -329,47 +336,74 @@
             const dropdown = container.querySelector('.hybrid-select-dropdown');
             const searchInput = dropdown.querySelector('input[type="text"]');
             const optionsList = dropdown.querySelector('.options-list');
-            const arrow = container.querySelector('svg');
+            const arrow = container.querySelector('i.fa-chevron-down, svg');
             
+            const syncPlaceholder = () => {
+                const selectedOpt = select.options[select.selectedIndex];
+                if (selectedOpt && selectedOpt.value !== '') {
+                    mainInput.value = selectedOpt.text;
+                    mainInput.placeholder = selectedOpt.text;
+                } else {
+                    mainInput.value = '';
+                    mainInput.placeholder = selectedOpt ? selectedOpt.text : 'Pilih...';
+                }
+            };
+
             const renderOptions = (filter = '') => {
                 optionsList.innerHTML = '';
+                const q = filter.toLowerCase().trim();
+                let hasMatch = false;
+
                 Array.from(select.options).forEach(opt => {
-                    const matches = opt.text.toLowerCase().includes(filter.toLowerCase());
+                    const matches = !q || opt.text.toLowerCase().includes(q);
                     if (matches) {
+                        hasMatch = true;
                         const div = document.createElement('div');
                         div.className = `hybrid-option ${opt.selected ? 'selected' : ''}`;
-                        div.textContent = opt.text;
+                        div.innerHTML = `<span>${opt.text}</span>${opt.selected ? '<i class="fa-solid fa-check text-xs text-white"></i>' : ''}`;
                         div.onclick = () => {
                             select.value = opt.value;
-                            select.dispatchEvent(new Event('change'));
-                            mainInput.placeholder = opt.text;
-                            mainInput.value = '';
-                            dropdown.classList.remove('active');
-                            arrow.classList.remove('rotate-180');
+                            select.dispatchEvent(new Event('change', { bubbles: true }));
+                            syncPlaceholder();
+                            dropdown.classList.remove('active', 'dropup');
+                            container.classList.remove('is-open');
+                            if (arrow) arrow.classList.remove('rotate-180');
                         };
                         optionsList.appendChild(div);
                     }
                 });
-                if (optionsList.innerHTML === '') {
-                    optionsList.innerHTML = '<div class="p-8 text-center text-xs text-slate-400 font-bold uppercase tracking-widest">Tidak ditemukan</div>';
+
+                if (!hasMatch) {
+                    optionsList.innerHTML = '<div class="py-3 px-4 text-center text-xs text-slate-400">Tidak ada opsi ditemukan</div>';
                 }
             };
             
             mainInput.onclick = (e) => {
                 e.stopPropagation();
-                
-                // Block if the underlying original select is disabled
                 if (select.disabled) return;
                 
                 const isActive = dropdown.classList.contains('active');
                 
                 // Close others
-                document.querySelectorAll('.hybrid-select-dropdown').forEach(d => d.classList.remove('active'));
-                document.querySelectorAll('.hybrid-select-container svg').forEach(s => s.classList.remove('rotate-180'));
+                document.querySelectorAll('.hybrid-select-dropdown').forEach(d => d.classList.remove('active', 'dropup'));
+                document.querySelectorAll('.hybrid-select-container').forEach(c => c.classList.remove('is-open'));
+                document.querySelectorAll('.hybrid-select-container i.fa-chevron-down, .hybrid-select-container svg').forEach(s => s.classList.remove('rotate-180'));
                 
                 if (!isActive) {
+                    // Check available vertical space to flip upwards (dropup) if near bottom
+                    const rect = container.getBoundingClientRect();
+                    const spaceBelow = window.innerHeight - rect.bottom;
+                    const spaceAbove = rect.top;
+                    
+                    if (spaceBelow < 250 && spaceAbove > spaceBelow) {
+                        dropdown.classList.add('dropup');
+                    } else {
+                        dropdown.classList.remove('dropup');
+                    }
+
                     dropdown.classList.add('active');
-                    arrow.classList.add('rotate-180');
+                    container.classList.add('is-open');
+                    if (arrow) arrow.classList.add('rotate-180');
                     if (isSearchable && searchInput) {
                         searchInput.value = '';
                         setTimeout(() => searchInput.focus(), 50);
@@ -378,26 +412,17 @@
                 }
             };
             
-            // Apply initial disabled state visually
-            if (select.disabled) {
-                mainInput.classList.add('bg-slate-100', 'cursor-not-allowed', 'opacity-70');
-            }
-            
-            // Watch for property changes using MutationObserver
-            const observer = new MutationObserver(function(mutations) {
-                mutations.forEach(function(mutation) {
-                    if (mutation.attributeName === "disabled") {
-                        if (select.disabled) {
-                            mainInput.classList.add('bg-slate-100', 'cursor-not-allowed', 'opacity-70');
-                            dropdown.classList.remove('active');
-                            arrow.classList.remove('rotate-180');
-                        } else {
-                            mainInput.classList.remove('bg-slate-100', 'cursor-not-allowed', 'opacity-70');
-                        }
-                    }
-                });
+            // Watch select for dynamic changes (e.g. options added/removed dynamically)
+            const observer = new MutationObserver(function() {
+                syncPlaceholder();
+                renderOptions();
             });
-            observer.observe(select, { attributes: true });
+            observer.observe(select, { childList: true, attributes: true, subtree: true });
+
+            select.addEventListener('change', () => {
+                syncPlaceholder();
+                renderOptions();
+            });
             
             if (searchInput) {
                 searchInput.oninput = (e) => renderOptions(e.target.value);
@@ -412,29 +437,69 @@
 <!-- Toast Container (Now acting as Alert Banner global dynamically triggered container) -->
 <div id="toast-container" class="fixed top-5 left-1/2 transform -translate-x-1/2 z-[100] flex flex-col gap-3 w-[95%] md:w-full max-w-2xl pointer-events-none *:pointer-events-auto"></div>
 
-<!-- Image Viewer Modal -->
-<div id="imageModal" class="fixed inset-0 z-[70] hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-    <div id="imageModalBackdrop" class="fixed inset-0 bg-slate-900/90 transition-opacity duration-300 opacity-0 backdrop-blur-md" onclick="closeImageModal()"></div>
-    <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-        <div id="imageModalPanel" class="relative transform overflow-hidden rounded-2xl bg-white shadow-2xl transition-all duration-300 opacity-0 scale-95 max-w-2xl w-full">
-            <div class="absolute top-4 right-4 z-10">
-                <button onclick="closeImageModal()" class="p-2 bg-white/80 hover:bg-white text-slate-800 rounded-full shadow-md backdrop-blur-md transition-all">
-                    <i class="fa-solid fa-xmark h-5 w-5"></i>
+<!-- Modal Bukti Lampiran with Smooth Animations & Zoom -->
+<div id="imageModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-5" role="dialog" aria-modal="true">
+    <!-- Animated Backdrop -->
+    <div id="imageModalBackdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm opacity-0 transition-opacity duration-200 ease-out" onclick="closeImageModal()"></div>
+    
+    <!-- Animated Modal Card -->
+    <div id="imageModalCard" class="relative bg-white rounded-xl shadow-2xl max-w-3xl w-full overflow-hidden flex flex-col max-h-[92vh] opacity-0 scale-95 translate-y-2 transition-all duration-200 ease-out z-10">
+        <!-- Header -->
+        <div class="flex items-center justify-between px-5 py-3 border-b border-slate-200 bg-slate-50 select-none">
+            <div class="flex items-center gap-2 min-w-0">
+                <i class="fa-solid fa-paperclip text-slate-400 text-sm"></i>
+                <h3 id="modalImageTitle" class="text-sm font-semibold text-slate-800 truncate">Bukti Lampiran</h3>
+            </div>
+            <button type="button" onclick="closeImageModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-200 transition-colors ml-2" title="Tutup (Esc)">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <!-- Body Container with Scroll Zoom -->
+        <div class="relative p-2 flex-1 overflow-hidden flex items-center justify-center bg-slate-100 min-h-[360px] max-h-[72vh] select-none" id="modalImageContainer">
+            <!-- Image wrapper for transform -->
+            <div id="modalImageWrapper" class="w-full h-full flex items-center justify-center overflow-hidden">
+                <img id="modalImage" src="" alt="Bukti Lampiran" class="max-h-[68vh] max-w-full object-contain rounded border border-slate-200 shadow-sm hidden bg-white pointer-events-auto transition-transform duration-75 origin-center">
+            </div>
+            
+            <!-- PDF Frame View -->
+            <iframe id="modalPdfFrame" src="" class="w-full h-[68vh] rounded border border-slate-200 hidden bg-white"></iframe>
+
+            <!-- Empty Notice -->
+            <div id="modalEmptyNotice" class="text-center py-10 text-slate-400 hidden">
+                <i class="fa-solid fa-file-circle-xmark text-4xl mb-2 text-slate-300"></i>
+                <p class="text-xs">Berkas lampiran tidak ditemukan atau tidak dapat dimuat.</p>
+            </div>
+
+            <!-- Floating Zoom Toolbar (Only visible for images) -->
+            <div id="modalZoomControls" class="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-full text-white text-xs shadow-lg hidden">
+                <button type="button" onclick="zoomStep(-0.2)" class="p-1 hover:text-cyan-400 transition-colors" title="Zoom Out (Scroll Down)">
+                    <i class="fa-solid fa-magnifying-glass-minus"></i>
+                </button>
+                <span id="modalZoomBadge" onclick="resetZoom()" class="font-mono text-[11px] px-1.5 cursor-pointer hover:text-cyan-400 transition-colors select-none" title="Klik untuk Reset Zoom (100%)">100%</span>
+                <button type="button" onclick="zoomStep(0.2)" class="p-1 hover:text-cyan-400 transition-colors" title="Zoom In (Scroll Up)">
+                    <i class="fa-solid fa-magnifying-glass-plus"></i>
+                </button>
+                <span class="w-px h-3 bg-slate-700 mx-0.5"></span>
+                <button type="button" onclick="resetZoom()" class="p-1 hover:text-cyan-400 transition-colors" title="Reset">
+                    <i class="fa-solid fa-rotate-left text-[10px]"></i>
                 </button>
             </div>
-            <div class="p-2">
-                <img id="modalImage" src="" alt="Lampiran" class="w-full h-[400px] md:h-[500px] object-contain bg-slate-950 rounded-xl shadow-inner">
-            </div>
-            <div class="bg-slate-50 px-6 py-4 flex justify-between items-center">
-                <div class="flex items-center gap-2">
-                    <div class="p-2 bg-cyan-100 rounded-lg">
-                        <i class="fa-solid fa-image h-4 w-4 text-cyan-600"></i>
-                    </div>
-                    <span class="text-sm font-bold text-slate-700 uppercase tracking-wider">Pratinjau Lampiran</span>
-                </div>
-                <a id="downloadImageBtn" href="#" download class="inline-flex items-center gap-2 px-5 py-2.5 bg-cyan-600 text-white rounded-xl text-sm font-bold hover:bg-cyan-700 transition-all shadow-lg shadow-cyan-600/20 active:scale-95">
-                    <i class="fa-solid fa-download h-4 w-4"></i>
-                    Unduh File
+        </div>
+
+        <!-- Footer -->
+        <div class="px-5 py-3 border-t border-slate-200 bg-white flex items-center justify-between gap-2">
+            <p class="text-[11px] text-slate-400 hidden sm:block">
+                <i class="fa-solid fa-mouse text-slate-400 mr-1"></i>
+                Scroll mouse untuk zoom in/out &bull; Geser foto saat diperbesar
+            </p>
+            <div class="flex items-center gap-2 ml-auto">
+                <button type="button" onclick="closeImageModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors">
+                    Tutup
+                </button>
+                <a id="downloadImageBtn" href="#" download target="_blank" class="px-4 py-2 text-xs font-semibold text-white bg-cyan-600 hover:bg-cyan-700 rounded-lg transition-colors inline-flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-download"></i>
+                    Unduh
                 </a>
             </div>
         </div>
@@ -442,34 +507,209 @@
 </div>
 
 <script nonce="<?php echo csp_nonce(); ?>">
-    function openImageModal(url) {
+    // Zoom & Pan Engine for Image Modal
+    let zoomScale = 1.0;
+    let isDragging = false;
+    let startX = 0, startY = 0;
+    let translateX = 0, translateY = 0;
+    let isModalClosing = false;
+
+    function applyTransform() {
+        const img = document.getElementById('modalImage');
+        const badge = document.getElementById('modalZoomBadge');
+        const container = document.getElementById('modalImageContainer');
+        if (!img) return;
+
+        img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${zoomScale})`;
+        if (badge) badge.textContent = Math.round(zoomScale * 100) + '%';
+        if (container) {
+            container.style.cursor = zoomScale > 1.05 ? (isDragging ? 'grabbing' : 'grab') : 'default';
+        }
+    }
+
+    function resetZoom() {
+        zoomScale = 1.0;
+        translateX = 0;
+        translateY = 0;
+        applyTransform();
+    }
+
+    function zoomStep(delta) {
+        const newScale = Math.min(Math.max(zoomScale + delta, 0.5), 4.0);
+        zoomScale = parseFloat(newScale.toFixed(2));
+        if (zoomScale <= 1.0) {
+            translateX = 0;
+            translateY = 0;
+        }
+        applyTransform();
+    }
+
+    // Initialize Wheel Zoom and Pan
+    document.addEventListener('DOMContentLoaded', () => {
+        const container = document.getElementById('modalImageContainer');
+        if (container) {
+            container.addEventListener('wheel', function(e) {
+                const img = document.getElementById('modalImage');
+                if (!img || img.classList.contains('hidden')) return;
+                e.preventDefault();
+                const delta = e.deltaY > 0 ? -0.15 : 0.15;
+                zoomStep(delta);
+            }, { passive: false });
+
+            container.addEventListener('mousedown', function(e) {
+                if (zoomScale <= 1.05) return;
+                if (e.target.closest('#modalZoomControls')) return;
+                isDragging = true;
+                startX = e.clientX - translateX;
+                startY = e.clientY - translateY;
+                applyTransform();
+            });
+
+            window.addEventListener('mousemove', function(e) {
+                if (!isDragging) return;
+                translateX = e.clientX - startX;
+                translateY = e.clientY - startY;
+                applyTransform();
+            });
+
+            window.addEventListener('mouseup', function() {
+                if (isDragging) {
+                    isDragging = false;
+                    applyTransform();
+                }
+            });
+
+            container.addEventListener('dblclick', function(e) {
+                if (e.target.closest('#modalZoomControls')) return;
+                const img = document.getElementById('modalImage');
+                if (!img || img.classList.contains('hidden')) return;
+                if (zoomScale > 1.05) {
+                    resetZoom();
+                } else {
+                    zoomScale = 2.0;
+                    translateX = 0;
+                    translateY = 0;
+                    applyTransform();
+                }
+            });
+        }
+    });
+
+    function openImageModal(url, title = 'Bukti Lampiran') {
         const modal = document.getElementById('imageModal');
         const backdrop = document.getElementById('imageModalBackdrop');
-        const panel = document.getElementById('imageModalPanel');
-        const img = document.getElementById('modalImage');
-        const downloadBtn = document.getElementById('downloadImageBtn');
+        const card = document.getElementById('imageModalCard');
+        if (!modal || !url) return;
 
-        img.src = url;
-        downloadBtn.href = url;
-        
+        const img = document.getElementById('modalImage');
+        const pdf = document.getElementById('modalPdfFrame');
+        const emptyNotice = document.getElementById('modalEmptyNotice');
+        const titleEl = document.getElementById('modalImageTitle');
+        const downloadBtn = document.getElementById('downloadImageBtn');
+        const zoomControls = document.getElementById('modalZoomControls');
+
+        if (titleEl) titleEl.textContent = title || 'Bukti Lampiran';
+        if (downloadBtn) {
+            downloadBtn.href = url;
+            const filename = url.split('/').pop().split('?')[0];
+            downloadBtn.setAttribute('download', filename);
+        }
+
+        resetZoom();
+
+        const isPdf = url.toLowerCase().split('?')[0].endsWith('.pdf');
+
+        if (img) img.classList.add('hidden');
+        if (pdf) pdf.classList.add('hidden');
+        if (emptyNotice) emptyNotice.classList.add('hidden');
+        if (zoomControls) zoomControls.classList.add('hidden');
+
+        if (isPdf) {
+            if (pdf) {
+                pdf.src = url;
+                pdf.classList.remove('hidden');
+            }
+        } else {
+            if (img) {
+                img.onload = function() {
+                    img.classList.remove('hidden');
+                    if (zoomControls) zoomControls.classList.remove('hidden');
+                };
+                img.onerror = function() {
+                    img.classList.add('hidden');
+                    if (emptyNotice) emptyNotice.classList.remove('hidden');
+                    if (zoomControls) zoomControls.classList.add('hidden');
+                };
+                img.src = url;
+            }
+        }
+
+        // Show modal with smooth enter animation
+        isModalClosing = false;
         modal.classList.remove('hidden');
-        setTimeout(() => {
-            backdrop.classList.remove('opacity-0');
-            panel.classList.remove('opacity-0', 'scale-95');
-        }, 10);
+        document.body.style.overflow = 'hidden';
+
+        requestAnimationFrame(() => {
+            if (backdrop) backdrop.classList.remove('opacity-0');
+            if (card) {
+                card.classList.remove('opacity-0', 'scale-95', 'translate-y-2');
+                card.classList.add('opacity-100', 'scale-100', 'translate-y-0');
+            }
+        });
     }
 
     function closeImageModal() {
         const modal = document.getElementById('imageModal');
         const backdrop = document.getElementById('imageModalBackdrop');
-        const panel = document.getElementById('imageModalPanel');
+        const card = document.getElementById('imageModalCard');
+        if (!modal || isModalClosing) return;
 
-        backdrop.classList.add('opacity-0');
-        panel.classList.add('opacity-0', 'scale-95');
+        isModalClosing = true;
+
+        // Smooth exit animation
+        if (backdrop) backdrop.classList.add('opacity-0');
+        if (card) {
+            card.classList.remove('opacity-100', 'scale-100', 'translate-y-0');
+            card.classList.add('opacity-0', 'scale-95', 'translate-y-2');
+        }
+
         setTimeout(() => {
             modal.classList.add('hidden');
-        }, 300);
+            document.body.style.overflow = '';
+            const img = document.getElementById('modalImage');
+            const pdf = document.getElementById('modalPdfFrame');
+            if (img) img.src = '';
+            if (pdf) pdf.src = '';
+            resetZoom();
+            isModalClosing = false;
+        }, 200);
     }
+
+    // Close on backdrop click
+    document.addEventListener('click', function(e) {
+        const modal = document.getElementById('imageModal');
+        if (modal && !modal.classList.contains('hidden') && e.target === modal) {
+            closeImageModal();
+        }
+    });
+
+    // Close on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeImageModal();
+        }
+    });
+
+    // Event delegation for preview triggers
+    document.addEventListener('click', function(e) {
+        const trigger = e.target.closest('[data-preview-url]');
+        if (trigger) {
+            e.preventDefault();
+            const url = trigger.getAttribute('data-preview-url');
+            const title = trigger.getAttribute('data-preview-title') || 'Bukti Lampiran';
+            openImageModal(url, title);
+        }
+    });
 
     // Global CSRF Protection: Auto-inject token into all POST forms and AJAX requests
     (function() {

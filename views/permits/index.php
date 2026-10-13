@@ -369,7 +369,9 @@ include '../layouts/header.php';
                             <td class="px-6 py-4 text-center">
                                 <?php if (!empty($permit['attachment'])): ?>
                                     <button type="button" 
-                                       onclick="openImageModal('<?php echo BASE_URL; ?>/uploads/permits/<?php echo $permit['attachment']; ?>')"
+                                       data-preview-url="<?php echo BASE_URL; ?>/uploads/permits/<?php echo htmlspecialchars($permit['attachment']); ?>"
+                                       data-preview-title="Bukti Lampiran - <?php echo htmlspecialchars(addslashes($permit['full_name'])); ?>"
+                                       onclick="openImageModal(this.getAttribute('data-preview-url'), this.getAttribute('data-preview-title'))"
                                        class="inline-flex items-center p-1.5 bg-cyan-50 text-cyan-600 rounded-lg hover:bg-cyan-100 transition-colors"
                                        title="Lihat Lampiran">
                                         <i class="fa-solid fa-paperclip h-4 w-4"></i>
