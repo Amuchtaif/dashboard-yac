@@ -2,6 +2,7 @@
 // views/documents/template_config.php
 require_once '../../config/app.php';
 require_once '../../config/database.php';
+require_once '../../logic/helpers/document_helper.php';
 
 check_login();
 check_permission('document.template.manage');
@@ -10,6 +11,9 @@ $page_title = "Pengaturan Template Surat";
 
 $db = new Database();
 $conn = $db->getConnection();
+
+$current_user_id = $_SESSION['user_id'] ?? 1;
+$detected_signers = getDocumentSignersForEmployee($conn, $current_user_id);
 
 $action = isset($_GET['action']) ? $_GET['action'] : 'list';
 $tpl_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
@@ -198,6 +202,7 @@ include '../layouts/header.php';
 <div style="clear: both;"></div>';
 
         $saved_content = $is_edit ? $template['content_template'] : $default_content;
+        $saved_signer_type = $is_edit && !empty($template['signer_type']) ? $template['signer_type'] : 'unit_head';
     ?>
         <form action="<?php url('logic/documents/manage_template.php'); ?>" method="POST" enctype="multipart/form-data" id="templateBuilderForm" class="mt-6">
             <input type="hidden" name="action" value="<?php echo $is_edit ? 'update' : 'create'; ?>">
@@ -358,9 +363,12 @@ include '../layouts/header.php';
                                 <button type="button" onclick="insertVariableTag('{{perihal}}')" class="tag-badge hover:bg-indigo-200 transition-colors cursor-pointer" title="Sisipkan Tag Perihal">+ {{perihal}}</button>
                                 <button type="button" onclick="insertVariableTag('{{tujuan}}')" class="tag-badge hover:bg-indigo-200 transition-colors cursor-pointer" title="Sisipkan Tag Tujuan">+ {{tujuan}}</button>
                                 <button type="button" onclick="insertVariableTag('{{tanggal_surat}}')" class="tag-badge hover:bg-indigo-200 transition-colors cursor-pointer" title="Sisipkan Tag Tanggal">+ {{tanggal_surat}}</button>
-                                <button type="button" onclick="insertVariableTag('{{nama_penandatangan}}')" class="tag-badge hover:bg-indigo-200 transition-colors cursor-pointer" title="Sisipkan Tag Nama Penandatangan">+ {{nama_penandatangan}}</button>
-                                <button type="button" onclick="insertVariableTag('{{jabatan_penandatangan}}')" class="tag-badge hover:bg-indigo-200 transition-colors cursor-pointer" title="Sisipkan Tag Jabatan Penandatangan">+ {{jabatan_penandatangan}}</button>
+                                <button type="button" onclick="insertVariableTag('{{nama_penandatangan}}')" class="tag-badge bg-indigo-100 text-indigo-800 border-indigo-200 hover:bg-indigo-200 transition-colors cursor-pointer" title="Sisipkan Nama Penandatangan Berdasarkan Hierarki Terpilih">+ {{nama_penandatangan}}</button>
+                                <button type="button" onclick="insertVariableTag('{{jabatan_penandatangan}}')" class="tag-badge bg-indigo-100 text-indigo-800 border-indigo-200 hover:bg-indigo-200 transition-colors cursor-pointer" title="Sisipkan Jabatan Penandatangan Berdasarkan Hierarki Terpilih">+ {{jabatan_penandatangan}}</button>
                                 <button type="button" onclick="insertVariableTag('{{ruang_tanda_tangan}}')" class="tag-badge hover:bg-indigo-200 transition-colors cursor-pointer" title="Sisipkan Tag Ruang Tanda Tangan">+ {{ruang_tanda_tangan}}</button>
+                                <button type="button" onclick="insertVariableTag('{{kepala_unit}}')" class="tag-badge bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200 transition-colors cursor-pointer" title="Sisipkan Nama Kepala Unit">+ {{kepala_unit}}</button>
+                                <button type="button" onclick="insertVariableTag('{{kepala_bidang}}')" class="tag-badge bg-violet-100 text-violet-800 border-violet-200 hover:bg-violet-200 transition-colors cursor-pointer" title="Sisipkan Nama Kepala Bidang">+ {{kepala_bidang}}</button>
+                                <button type="button" onclick="insertVariableTag('{{pemimpin}}')" class="tag-badge bg-purple-100 text-purple-800 border-purple-200 hover:bg-purple-200 transition-colors cursor-pointer" title="Sisipkan Nama Mudir / Pemimpin">+ {{pemimpin}}</button>
                                 <button type="button" onclick="insertVariableTag('{{nama}}')" class="tag-badge bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-200 transition-colors cursor-pointer">+ {{nama}}</button>
                                 <button type="button" onclick="insertVariableTag('{{jabatan}}')" class="tag-badge bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-200 transition-colors cursor-pointer">+ {{jabatan}}</button>
                                 <button type="button" onclick="insertVariableTag('{{tugas}}')" class="tag-badge bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-200 transition-colors cursor-pointer">+ {{tugas}}</button>
@@ -398,7 +406,149 @@ include '../layouts/header.php';
                                   class="hidden block w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 text-xs bg-slate-900 text-emerald-400 font-mono p-3"><?php echo htmlspecialchars($saved_content); ?></textarea>
                     </div>
 
-                    <!-- Section 4: Workflow Stages Configurator -->
+                    <!-- Section: Konfigurasi Penandatangan Dokumen (Hierarki Penandatangan) -->
+                    <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-5">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                            <div>
+                                <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                                    <i class="fa-solid fa-file-signature text-indigo-600"></i>
+                                    Penetapan Pejabat Penandatangan Surat
+                                </h3>
+                                <p class="text-[11px] text-slate-500 mt-0.5">Tentukan siapa yang menandatangani surat. Sistem otomatis mendeteksi pejabat berdasarkan Unit atau Bidang dari karyawan yang login saat membuat surat.</p>
+                            </div>
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">
+                                <i class="fa-solid fa-sitemap mr-1"></i> Hierarki Dinamis
+                            </span>
+                        </div>
+
+                        <!-- Pilihan Tingkat Penandatangan -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                            <!-- Opsi 1: Kepala Unit -->
+                            <label id="card_signer_unit_head" class="signer-option-card relative flex flex-col p-4 rounded-xl border-2 cursor-pointer transition-all hover:border-indigo-400 select-none <?php echo ($saved_signer_type === 'unit_head') ? 'border-indigo-600 bg-indigo-50/40' : 'border-slate-200 bg-slate-50/50'; ?>">
+                                <input type="radio" name="signer_type" value="unit_head" class="sr-only" <?php echo ($saved_signer_type === 'unit_head') ? 'checked' : ''; ?> onchange="handleSignerTypeChange(this.value)">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="p-2 rounded-lg bg-blue-100 text-blue-700 text-xs font-bold"><i class="fa-solid fa-school"></i></span>
+                                    <span class="signer-indicator w-4 h-4 rounded-full border-2 flex items-center justify-center <?php echo ($saved_signer_type === 'unit_head') ? 'border-indigo-600 bg-indigo-600' : 'border-slate-300 bg-white'; ?>">
+                                        <i class="fa-solid fa-check text-[8px] text-white <?php echo ($saved_signer_type === 'unit_head') ? '' : 'hidden'; ?>"></i>
+                                    </span>
+                                </div>
+                                <span class="text-xs font-bold text-slate-800">Kepala Unit</span>
+                                <span class="text-[11px] text-slate-500 mt-1 leading-snug">Ditandatangani oleh Kepala Unit/Sekolah tempat pembuat surat bertugas (TK/SD/MTs/MA/Mahad Aly).</span>
+                            </label>
+
+                            <!-- Opsi 2: Kepala Bidang -->
+                            <label id="card_signer_division_head" class="signer-option-card relative flex flex-col p-4 rounded-xl border-2 cursor-pointer transition-all hover:border-indigo-400 select-none <?php echo ($saved_signer_type === 'division_head') ? 'border-indigo-600 bg-indigo-50/40' : 'border-slate-200 bg-slate-50/50'; ?>">
+                                <input type="radio" name="signer_type" value="division_head" class="sr-only" <?php echo ($saved_signer_type === 'division_head') ? 'checked' : ''; ?> onchange="handleSignerTypeChange(this.value)">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="p-2 rounded-lg bg-indigo-100 text-indigo-700 text-xs font-bold"><i class="fa-solid fa-building"></i></span>
+                                    <span class="signer-indicator w-4 h-4 rounded-full border-2 flex items-center justify-center <?php echo ($saved_signer_type === 'division_head') ? 'border-indigo-600 bg-indigo-600' : 'border-slate-300 bg-white'; ?>">
+                                        <i class="fa-solid fa-check text-[8px] text-white <?php echo ($saved_signer_type === 'division_head') ? '' : 'hidden'; ?>"></i>
+                                    </span>
+                                </div>
+                                <span class="text-xs font-bold text-slate-800">Kepala Bidang</span>
+                                <span class="text-[11px] text-slate-500 mt-1 leading-snug">Ditandatangani oleh Kepala Bidang yang menaungi divisi pembuat surat (Pendidikan/Dakwah/dsb).</span>
+                            </label>
+
+                            <!-- Opsi 3: Pemimpin / Mudir -->
+                            <label id="card_signer_leader" class="signer-option-card relative flex flex-col p-4 rounded-xl border-2 cursor-pointer transition-all hover:border-indigo-400 select-none <?php echo ($saved_signer_type === 'leader') ? 'border-indigo-600 bg-indigo-50/40' : 'border-slate-200 bg-slate-50/50'; ?>">
+                                <input type="radio" name="signer_type" value="leader" class="sr-only" <?php echo ($saved_signer_type === 'leader') ? 'checked' : ''; ?> onchange="handleSignerTypeChange(this.value)">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="p-2 rounded-lg bg-purple-100 text-purple-700 text-xs font-bold"><i class="fa-solid fa-crown"></i></span>
+                                    <span class="signer-indicator w-4 h-4 rounded-full border-2 flex items-center justify-center <?php echo ($saved_signer_type === 'leader') ? 'border-indigo-600 bg-indigo-600' : 'border-slate-300 bg-white'; ?>">
+                                        <i class="fa-solid fa-check text-[8px] text-white <?php echo ($saved_signer_type === 'leader') ? '' : 'hidden'; ?>"></i>
+                                    </span>
+                                </div>
+                                <span class="text-xs font-bold text-slate-800">Pemimpin / Mudir</span>
+                                <span class="text-[11px] text-slate-500 mt-1 leading-snug">Ditandatangani oleh Mudir Yayasan Assunnah Cirebon (Surat Keputusan, Kebijakan Yayasan).</span>
+                            </label>
+
+                            <!-- Opsi 4: Alur Persetujuan (Workflow) -->
+                            <label id="card_signer_workflow" class="signer-option-card relative flex flex-col p-4 rounded-xl border-2 cursor-pointer transition-all hover:border-indigo-400 select-none <?php echo ($saved_signer_type === 'workflow') ? 'border-indigo-600 bg-indigo-50/40' : 'border-slate-200 bg-slate-50/50'; ?>">
+                                <input type="radio" name="signer_type" value="workflow" class="sr-only" <?php echo ($saved_signer_type === 'workflow') ? 'checked' : ''; ?> onchange="handleSignerTypeChange(this.value)">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="p-2 rounded-lg bg-amber-100 text-amber-700 text-xs font-bold"><i class="fa-solid fa-diagram-project"></i></span>
+                                    <span class="signer-indicator w-4 h-4 rounded-full border-2 flex items-center justify-center <?php echo ($saved_signer_type === 'workflow') ? 'border-indigo-600 bg-indigo-600' : 'border-slate-300 bg-white'; ?>">
+                                        <i class="fa-solid fa-check text-[8px] text-white <?php echo ($saved_signer_type === 'workflow') ? '' : 'hidden'; ?>"></i>
+                                    </span>
+                                </div>
+                                <span class="text-xs font-bold text-slate-800">Alur Workflow</span>
+                                <span class="text-[11px] text-slate-500 mt-1 leading-snug">Tanda tangan mengikuti tahapan verifikasi berjenjang yang diatur di bawah.</span>
+                            </label>
+                        </div>
+
+                        <!-- Live Detection Box for Logged In User -->
+                        <div class="rounded-xl bg-slate-50 border border-slate-200 p-4 space-y-3">
+                            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-2.5">
+                                <div class="flex items-center gap-2">
+                                    <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                    <span class="text-xs font-bold text-slate-700">Simulasi Penandatangan Berdasarkan Akun Anda Saat Ini:</span>
+                                </div>
+                                <div class="text-[11px] text-slate-500">
+                                    Akun: <b class="text-slate-800"><?php echo htmlspecialchars($detected_signers['employee']['full_name'] ?? '-'); ?></b> 
+                                    (Unit: <span class="text-indigo-600 font-bold"><?php echo htmlspecialchars($detected_signers['employee']['unit_name'] ?? 'Pusat'); ?></span>, 
+                                    Bidang: <span class="text-indigo-600 font-bold"><?php echo htmlspecialchars($detected_signers['employee']['division_name'] ?? 'Yayasan'); ?></span>)
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <!-- Card Kepala Unit -->
+                                <div id="sim_box_unit_head" class="rounded-xl p-3 border transition-all <?php echo ($saved_signer_type === 'unit_head') ? 'bg-blue-50 border-blue-300 shadow-sm' : 'bg-white border-slate-200 opacity-80'; ?>">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-[10px] font-bold uppercase tracking-wider text-blue-700">Kepala Unit Anda</span>
+                                        <?php if (!empty($detected_signers['unit_head'])): ?>
+                                            <span class="inline-flex items-center text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-semibold">Terdeteksi</span>
+                                        <?php else: ?>
+                                            <span class="inline-flex items-center text-[9px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-semibold">Fallback</span>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="mt-2">
+                                        <?php if (!empty($detected_signers['unit_head'])): ?>
+                                            <p class="text-xs font-bold text-slate-800"><?php echo htmlspecialchars($detected_signers['unit_head']['full_name']); ?></p>
+                                            <p class="text-[10px] text-slate-500"><?php echo htmlspecialchars($detected_signers['unit_head']['position_name'] ?? 'Kepala Unit'); ?> - <?php echo htmlspecialchars($detected_signers['unit_head']['unit_name'] ?? ''); ?></p>
+                                        <?php else: ?>
+                                            <p class="text-xs font-bold text-slate-600 italic">Tidak ada Kepala Unit spesifik</p>
+                                            <p class="text-[10px] text-slate-400">Otomatis dialihkan ke Kepala Bidang / Mudir</p>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+
+                                <!-- Card Kepala Bidang -->
+                                <div id="sim_box_division_head" class="rounded-xl p-3 border transition-all <?php echo ($saved_signer_type === 'division_head') ? 'bg-indigo-50 border-indigo-300 shadow-sm' : 'bg-white border-slate-200 opacity-80'; ?>">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-700">Kepala Bidang Anda</span>
+                                        <?php if (!empty($detected_signers['division_head'])): ?>
+                                            <span class="inline-flex items-center text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-semibold">Terdeteksi</span>
+                                        <?php else: ?>
+                                            <span class="inline-flex items-center text-[9px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-semibold">Fallback</span>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="mt-2">
+                                        <?php if (!empty($detected_signers['division_head'])): ?>
+                                            <p class="text-xs font-bold text-slate-800"><?php echo htmlspecialchars($detected_signers['division_head']['full_name']); ?></p>
+                                            <p class="text-[10px] text-slate-500"><?php echo htmlspecialchars($detected_signers['division_head']['position_name'] ?? 'Kepala Bidang'); ?> (<?php echo htmlspecialchars($detected_signers['division_head']['division_name'] ?? ''); ?>)</p>
+                                        <?php else: ?>
+                                            <p class="text-xs font-bold text-slate-600 italic">Tidak ada Kepala Bidang</p>
+                                            <p class="text-[10px] text-slate-400">Otomatis dialihkan ke Mudir Yayasan</p>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+
+                                <!-- Card Pemimpin / Mudir Yayasan -->
+                                <div id="sim_box_leader" class="rounded-xl p-3 border transition-all <?php echo ($saved_signer_type === 'leader') ? 'bg-purple-50 border-purple-300 shadow-sm' : 'bg-white border-slate-200 opacity-80'; ?>">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-[10px] font-bold uppercase tracking-wider text-purple-700">Pemimpin / Mudir</span>
+                                        <span class="inline-flex items-center text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-semibold">Tersedia</span>
+                                    </div>
+                                    <div class="mt-2">
+                                        <p class="text-xs font-bold text-slate-800"><?php echo htmlspecialchars($detected_signers['leader']['full_name'] ?? 'Muksin, Lc'); ?></p>
+                                        <p class="text-[10px] text-slate-500">Mudir Yayasan Assunnah Cirebon</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 5: Workflow Stages Configurator -->
                     <div class="bg-indigo-50/60 rounded-2xl border border-indigo-100/60 p-6 space-y-4">
                         <div class="flex items-center justify-between border-b border-indigo-100 pb-2">
                             <h3 class="text-xs font-bold text-indigo-900 uppercase tracking-wider flex items-center gap-2">
@@ -493,6 +643,7 @@ include '../layouts/header.php';
                         <th scope="col" class="px-3 py-3.5 text-left">Format Nomor</th>
                         <th scope="col" class="px-3 py-3.5 text-center">Reset Counter</th>
                         <th scope="col" class="px-3 py-3.5 text-center">Counter</th>
+                        <th scope="col" class="px-3 py-3.5 text-center">Penandatangan</th>
                         <th scope="col" class="px-3 py-3.5 text-center">Tahapan</th>
                         <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6 text-center">Aksi</th>
                     </tr>
@@ -522,6 +673,27 @@ include '../layouts/header.php';
                                 <td class="whitespace-nowrap px-3 py-4 text-xs text-center font-bold text-indigo-600">
                                     #<?php echo $tpl['counter']; ?>
                                 </td>
+                                <td class="whitespace-nowrap px-3 py-4 text-xs text-center">
+                                    <?php 
+                                    $stype = $tpl['signer_type'] ?? 'unit_head';
+                                    if ($stype === 'division_head'): ?>
+                                        <span class="inline-flex items-center rounded-md bg-indigo-50 px-2 py-0.5 text-[9px] font-bold text-indigo-700 border border-indigo-100" title="Ditandatangani Kepala Bidang">
+                                            <i class="fa-solid fa-building text-[8px] mr-1"></i> Kepala Bidang
+                                        </span>
+                                    <?php elseif ($stype === 'leader'): ?>
+                                        <span class="inline-flex items-center rounded-md bg-purple-50 px-2 py-0.5 text-[9px] font-bold text-purple-700 border border-purple-100" title="Ditandatangani Mudir Yayasan">
+                                            <i class="fa-solid fa-crown text-[8px] mr-1"></i> Mudir Yayasan
+                                        </span>
+                                    <?php elseif ($stype === 'workflow'): ?>
+                                        <span class="inline-flex items-center rounded-md bg-amber-50 px-2 py-0.5 text-[9px] font-bold text-amber-700 border border-amber-100" title="Sesuai Alur Workflow">
+                                            <i class="fa-solid fa-diagram-project text-[8px] mr-1"></i> Workflow
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="inline-flex items-center rounded-md bg-blue-50 px-2 py-0.5 text-[9px] font-bold text-blue-700 border border-blue-100" title="Ditandatangani Kepala Unit">
+                                            <i class="fa-solid fa-school text-[8px] mr-1"></i> Kepala Unit
+                                        </span>
+                                    <?php endif; ?>
+                                </td>
                                 <td class="px-3 py-4 text-xs text-center">
                                     <span class="inline-flex items-center rounded-md bg-indigo-50 px-2 py-0.5 text-[9px] font-bold text-indigo-700 border border-indigo-100" title="<?php echo implode(' -> ', $stages_names); ?>">
                                         <?php echo count($stages); ?> Tahap
@@ -537,6 +709,7 @@ include '../layouts/header.php';
                                             data-header-line-2="<?php echo htmlspecialchars($tpl['header_line_2'] ?? 'BIDANG PENDIDIKAN', ENT_QUOTES); ?>"
                                             data-header-address="<?php echo htmlspecialchars($tpl['header_address'] ?? 'Jl. Kalitanjung No.52B Kel. Karyamulya Kec. Kesambi Kota Cirebon 45135', ENT_QUOTES); ?>"
                                             data-header-image="<?php echo htmlspecialchars($tpl['header_image'] ?? '', ENT_QUOTES); ?>"
+                                            data-signer-type="<?php echo htmlspecialchars($tpl['signer_type'] ?? 'unit_head', ENT_QUOTES); ?>"
                                             onclick="previewTableTemplate(this)"
                                             class="inline-flex items-center rounded-lg bg-emerald-50 p-1.5 text-emerald-600 hover:bg-emerald-100 transition-colors" title="Pratinjau Template">
                                         <i class="fa-solid fa-eye text-xs"></i>
@@ -561,7 +734,7 @@ include '../layouts/header.php';
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="8" class="py-10 text-center text-sm text-slate-500 italic">Belum ada template terdaftar. Silakan buat baru.</td>
+                            <td colspan="9" class="py-10 text-center text-sm text-slate-500 italic">Belum ada template terdaftar. Silakan buat baru.</td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
@@ -571,6 +744,9 @@ include '../layouts/header.php';
 </div>
 
 <script nonce="<?php echo csp_nonce(); ?>">
+// Detected signers for current logged in employee
+window.detectedSigners = <?php echo json_encode($detected_signers); ?>;
+
 // Dynamic logo/banner preview state
 let liveLogoDataUrl = null;
 let liveBannerDataUrl = null;
@@ -631,14 +807,64 @@ function renderTemplateDocument(data) {
     const sampleNumber = data.code ? `01/II/${data.code}/2026` : '01/II/BIDIK/2026';
     const sampleDate = '<?php echo date("d F Y"); ?>';
 
+    // Dynamic Signer Resolution based on signer_type and logged in employee hierarchy
+    const st = data.signer_type || 'unit_head';
+    const detected = window.detectedSigners || {};
+    const unitHead = detected.unit_head || null;
+    const divHead = detected.division_head || null;
+    const leader = detected.leader || null;
+
+    let signerName = 'Pimpinan Yayasan';
+    let signerPos = 'Pimpinan Yayasan Assunnah Cirebon';
+
+    if (st === 'division_head') {
+        if (divHead) {
+            signerName = divHead.full_name;
+            signerPos = 'Kepala Bidang ' + (divHead.division_name || 'Yayasan');
+        } else if (leader) {
+            signerName = leader.full_name;
+            signerPos = 'Mudir Yayasan Assunnah Cirebon';
+        }
+    } else if (st === 'leader') {
+        if (leader) {
+            signerName = leader.full_name;
+            signerPos = 'Mudir Yayasan Assunnah Cirebon';
+        }
+    } else if (st === 'workflow') {
+        if (unitHead) {
+            signerName = unitHead.full_name;
+            signerPos = 'Kepala ' + (unitHead.unit_name || 'Unit');
+        } else if (leader) {
+            signerName = leader.full_name;
+            signerPos = 'Mudir Yayasan Assunnah Cirebon';
+        }
+    } else {
+        // default: unit_head
+        if (unitHead) {
+            signerName = unitHead.full_name;
+            signerPos = 'Kepala ' + (unitHead.unit_name || 'Unit');
+        } else if (divHead) {
+            signerName = divHead.full_name;
+            signerPos = 'Kepala Bidang ' + (divHead.division_name || 'Yayasan');
+        } else if (leader) {
+            signerName = leader.full_name;
+            signerPos = 'Mudir Yayasan Assunnah Cirebon';
+        }
+    }
+
     fullHtml = fullHtml.replace(/\{\{logo_url\}\}/g, logoUrl);
     fullHtml = fullHtml.replace(/\{\{nomor_surat\}\}/g, sampleNumber);
     fullHtml = fullHtml.replace(/\{\{perihal\}\}/g, 'Implementasi 6 Program Utama Bidang Pendidikan');
     fullHtml = fullHtml.replace(/\{\{tujuan\}\}/g, 'Kepala Unit TK, SD, MTs, MA, dan Ma\'had Aly');
     fullHtml = fullHtml.replace(/\{\{tanggal_surat\}\}/g, sampleDate);
-    fullHtml = fullHtml.replace(/\{\{nama_penandatangan\}\}/g, 'Muadin, Lc. M.Pd.I');
-    fullHtml = fullHtml.replace(/\{\{jabatan_penandatangan\}\}/g, 'Ketua Bidang Pendidikan Yayasan Assunnah Cirebon');
+    fullHtml = fullHtml.replace(/\{\{nama_penandatangan\}\}/g, signerName);
+    fullHtml = fullHtml.replace(/\{\{jabatan_penandatangan\}\}/g, signerPos);
     fullHtml = fullHtml.replace(/\{\{ruang_tanda_tangan\}\}/g, '<span style="color: #94a3b8; font-style: italic; font-size: 10pt;">[Ruang Stempel & Tanda Tangan / QR Code Validasi]</span>');
+
+    // Dynamic Hierarchy quick variables
+    fullHtml = fullHtml.replace(/\{\{kepala_unit\}\}/g, unitHead ? unitHead.full_name : 'Kepala Unit');
+    fullHtml = fullHtml.replace(/\{\{kepala_bidang\}\}/g, divHead ? divHead.full_name : 'Kepala Bidang');
+    fullHtml = fullHtml.replace(/\{\{pemimpin\}\}/g, leader ? leader.full_name : 'Mudir Yayasan Assunnah Cirebon');
 
     // Sample custom placeholders
     fullHtml = fullHtml.replace(/\{\{nama\}\}/g, 'Ahmad Fauzi, S.Pd.');
@@ -651,6 +877,47 @@ function renderTemplateDocument(data) {
     }
 
     return fullHtml;
+}
+
+/**
+ * Handle Signer Type Selection Change
+ */
+function handleSignerTypeChange(signerType) {
+    const types = ['unit_head', 'division_head', 'leader', 'workflow'];
+    types.forEach(t => {
+        const card = document.getElementById('card_signer_' + t);
+        const simBox = document.getElementById('sim_box_' + t);
+        const checkIcon = card ? card.querySelector('.signer-indicator i') : null;
+        const indicator = card ? card.querySelector('.signer-indicator') : null;
+
+        if (t === signerType) {
+            card?.classList.remove('border-slate-200', 'bg-slate-50/50');
+            card?.classList.add('border-indigo-600', 'bg-indigo-50/40');
+            indicator?.classList.remove('border-slate-300', 'bg-white');
+            indicator?.classList.add('border-indigo-600', 'bg-indigo-600');
+            checkIcon?.classList.remove('hidden');
+
+            if (simBox) {
+                simBox.classList.remove('bg-white', 'border-slate-200', 'opacity-80');
+                if (t === 'unit_head') simBox.classList.add('bg-blue-50', 'border-blue-300', 'shadow-sm');
+                else if (t === 'division_head') simBox.classList.add('bg-indigo-50', 'border-indigo-300', 'shadow-sm');
+                else if (t === 'leader') simBox.classList.add('bg-purple-50', 'border-purple-300', 'shadow-sm');
+            }
+        } else {
+            card?.classList.remove('border-indigo-600', 'bg-indigo-50/40');
+            card?.classList.add('border-slate-200', 'bg-slate-50/50');
+            indicator?.classList.remove('border-indigo-600', 'bg-indigo-600');
+            indicator?.classList.add('border-slate-300', 'bg-white');
+            checkIcon?.classList.add('hidden');
+
+            if (simBox) {
+                simBox.classList.remove('bg-blue-50', 'border-blue-300', 'bg-indigo-50', 'border-indigo-300', 'bg-purple-50', 'border-purple-300', 'shadow-sm');
+                simBox.classList.add('bg-white', 'border-slate-200', 'opacity-80');
+            }
+        }
+    });
+
+    updateLiveCanvasPreview();
 }
 
 /**
@@ -667,6 +934,7 @@ function updateLiveCanvasPreview() {
     const header_address = document.getElementById('builder_header_address')?.value || '';
     const header_type = document.getElementById('builder_header_type')?.value || 'standard';
     const highlight_tags = document.getElementById('highlight_tags_toggle')?.checked || false;
+    const signer_type = document.querySelector('input[name="signer_type"]:checked')?.value || 'unit_head';
     
     const visualEditor = document.getElementById('visual_editor');
     const textareaEditor = document.getElementById('builder_content_template');
@@ -682,6 +950,7 @@ function updateLiveCanvasPreview() {
         header_line_2: header_line_2,
         header_address: header_address,
         header_type: header_type,
+        signer_type: signer_type,
         logoUrl: liveLogoDataUrl || existingLogoThumb,
         bannerUrl: liveBannerDataUrl || existingBannerThumb,
         content: content,
@@ -896,6 +1165,7 @@ function previewTableTemplate(btn) {
     const headerLine2 = btn.getAttribute('data-header-line-2') || 'BIDANG PENDIDIKAN';
     const headerAddress = btn.getAttribute('data-header-address') || 'Jl. Kalitanjung No.52B Kel. Karyamulya Kec. Kesambi Kota Cirebon 45135';
     const headerImage = btn.getAttribute('data-header-image') || '';
+    const signerType = btn.getAttribute('data-signer-type') || 'unit_head';
 
     const htmlContent = renderTemplateDocument({
         name: name,
@@ -905,7 +1175,8 @@ function previewTableTemplate(btn) {
         header_line_2: headerLine2,
         header_address: headerAddress,
         header_image: headerImage,
-        header_type: headerImage ? 'banner' : 'standard'
+        header_type: headerImage ? 'banner' : 'standard',
+        signer_type: signerType
     });
 
     openPreviewModal(htmlContent, 'Pratinjau: ' + name);

@@ -2,6 +2,7 @@
 // logic/documents/create_document.php
 require_once '../../config/database.php';
 require_once '../../config/app.php';
+require_once '../../logic/helpers/document_helper.php';
 
 check_login();
 
@@ -28,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $placeholders_json = null;
         
         if ($template_id > 0) {
-            $stmtTpl = $conn->prepare("SELECT content_template FROM document_templates WHERE id = ?");
+            $stmtTpl = $conn->prepare("SELECT content_template, signer_type FROM document_templates WHERE id = ?");
             $stmtTpl->execute([$template_id]);
             $template = $stmtTpl->fetch(PDO::FETCH_ASSOC);
             
@@ -41,6 +42,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $content = $template['content_template'];
                 foreach ($fields as $key => $val) {
                     $content = str_replace('{{' . $key . '}}', htmlspecialchars($val), $content);
+                }
+
+                // Dynamic Signer Resolution based on creator employee and template's signer_type
+                $signerInfo = getResolvedSignerInfo($conn, $creator_id, $template['signer_type'] ?? 'unit_head');
+                $allSigners = getDocumentSignersForEmployee($conn, $creator_id);
+
+                $content = str_replace('{{nama_penandatangan}}', $signerInfo['name'], $content);
+                $content = str_replace('{{jabatan_penandatangan}}', $signerInfo['position'], $content);
+                if (!empty($allSigners['unit_head']['full_name'])) {
+                    $content = str_replace('{{kepala_unit}}', $allSigners['unit_head']['full_name'], $content);
+                }
+                if (!empty($allSigners['division_head']['full_name'])) {
+                    $content = str_replace('{{kepala_bidang}}', $allSigners['division_head']['full_name'], $content);
+                }
+                if (!empty($allSigners['leader']['full_name'])) {
+                    $content = str_replace('{{pemimpin}}', $allSigners['leader']['full_name'], $content);
                 }
             }
         } else {

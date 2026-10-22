@@ -11,6 +11,14 @@ $conn = $db->getConnection();
 
 $action = isset($_POST['action']) ? $_POST['action'] : '';
 
+// Ensure signer_type column exists
+try {
+    $colCheck = $conn->query("SHOW COLUMNS FROM document_templates LIKE 'signer_type'")->fetchAll();
+    if (empty($colCheck)) {
+        $conn->exec("ALTER TABLE document_templates ADD COLUMN signer_type VARCHAR(50) DEFAULT 'unit_head' AFTER reset_cycle");
+    }
+} catch (Exception $e) {}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'create' || $action === 'update') {
         $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
@@ -19,6 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $content_template = $_POST['content_template'];
         $number_format = trim($_POST['number_format']);
         $reset_cycle = $_POST['reset_cycle'];
+        $signer_type = isset($_POST['signer_type']) && in_array($_POST['signer_type'], ['unit_head', 'division_head', 'leader', 'workflow']) ? $_POST['signer_type'] : 'unit_head';
         
         // Build workflow stages JSON from post parameters
         // Example structure: [{"step": 1, "position_id": 3, "position_name": "Kepala Sekolah"}]
@@ -108,14 +117,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         try {
             if ($action === 'create') {
-                $stmt = $conn->prepare("INSERT INTO document_templates (name, code, content_template, number_format, reset_cycle, workflow_stages, header_logo, header_line_1, header_line_2, header_address, header_image) 
-                                        VALUES (:name, :code, :content_template, :number_format, :reset_cycle, :workflow_stages, :header_logo, :header_line_1, :header_line_2, :header_address, :header_image)");
+                $stmt = $conn->prepare("INSERT INTO document_templates (name, code, content_template, number_format, reset_cycle, signer_type, workflow_stages, header_logo, header_line_1, header_line_2, header_address, header_image) 
+                                        VALUES (:name, :code, :content_template, :number_format, :reset_cycle, :signer_type, :workflow_stages, :header_logo, :header_line_1, :header_line_2, :header_address, :header_image)");
                 $stmt->execute([
                     ':name' => $name,
                     ':code' => $code,
                     ':content_template' => $content_template,
                     ':number_format' => $number_format,
                     ':reset_cycle' => $reset_cycle,
+                    ':signer_type' => $signer_type,
                     ':workflow_stages' => $workflow_stages_json,
                     ':header_logo' => $header_logo,
                     ':header_line_1' => $header_line_1,
@@ -128,7 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 $stmt = $conn->prepare("UPDATE document_templates 
                                         SET name = :name, code = :code, content_template = :content_template, 
-                                            number_format = :number_format, reset_cycle = :reset_cycle, workflow_stages = :workflow_stages,
+                                            number_format = :number_format, reset_cycle = :reset_cycle, signer_type = :signer_type, workflow_stages = :workflow_stages,
                                             header_logo = :header_logo, header_line_1 = :header_line_1, header_line_2 = :header_line_2,
                                             header_address = :header_address, header_image = :header_image
                                         WHERE id = :id");
@@ -138,6 +148,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ':content_template' => $content_template,
                     ':number_format' => $number_format,
                     ':reset_cycle' => $reset_cycle,
+                    ':signer_type' => $signer_type,
                     ':workflow_stages' => $workflow_stages_json,
                     ':header_logo' => $header_logo,
                     ':header_line_1' => $header_line_1,

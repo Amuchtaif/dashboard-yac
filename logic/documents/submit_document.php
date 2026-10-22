@@ -2,6 +2,7 @@
 // logic/documents/submit_document.php
 require_once '../../config/database.php';
 require_once '../../config/app.php';
+require_once '../../logic/helpers/document_helper.php';
 
 check_login();
 check_permission('document.submit');
@@ -18,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     try {
         // Fetch document details
-        $stmtDoc = $conn->prepare("SELECT d.*, dt.workflow_stages FROM documents d 
+        $stmtDoc = $conn->prepare("SELECT d.*, dt.workflow_stages, dt.signer_type FROM documents d 
                                    LEFT JOIN document_templates dt ON d.template_id = dt.id 
                                    WHERE d.id = ?");
         $stmtDoc->execute([$id]);
@@ -77,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        // Fallback if no specific approver in routing rules: check template stages or supervisor
+        // Fallback if no specific approver in routing rules: check template stages, signer_type, or supervisor
         if (empty($approver_ids)) {
             if (!empty($stages)) {
                 $first_stage = $stages[0];
@@ -92,6 +93,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         if (strpos($clean_phone, '0') === 0) $clean_phone = '62' . substr($clean_phone, 1);
                         $first_wa_phone = $clean_phone;
                         $first_handler_name = $se['full_name'];
+                    }
+                }
+            } elseif (!empty($document['signer_type']) && $document['signer_type'] !== 'workflow') {
+                $resolvedSigner = getResolvedSignerInfo($conn, $document['creator_id'], $document['signer_type']);
+                if (!empty($resolvedSigner['id'])) {
+                    $approver_ids[] = intval($resolvedSigner['id']);
+                    if (empty($first_wa_phone) && !empty($resolvedSigner['phone'])) {
+                        $clean_phone = preg_replace('/[^0-9]/', '', $resolvedSigner['phone']);
+                        if (strpos($clean_phone, '0') === 0) $clean_phone = '62' . substr($clean_phone, 1);
+                        $first_wa_phone = $clean_phone;
+                        $first_handler_name = $resolvedSigner['name'];
                     }
                 }
             }

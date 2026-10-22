@@ -2,6 +2,7 @@
 <?php
 require_once '../../config/app.php';
 require_once '../../config/database.php';
+require_once '../../logic/helpers/document_helper.php';
 
 // Auto-detect project configuration for BASE_URL
 if (!defined('BASE_URL')) {
@@ -101,12 +102,26 @@ if (!empty($template) && stripos($doc_content, 'kop-surat-header') === false) {
     $doc_content = $kop_html . $doc_content;
 }
 
+$resolvedSigner = getResolvedSignerInfo($conn, $document['creator_id'], $template['signer_type'] ?? 'unit_head');
+$final_signer_name = $approver_name ?: $resolvedSigner['name'];
+$final_signer_pos = $approver_pos ?: $resolvedSigner['position'];
+$allSigners = getDocumentSignersForEmployee($conn, $document['creator_id']);
+
 $doc_content = str_replace('{{logo_url}}', $logo_url, $doc_content);
 $doc_content = str_replace('{{nomor_surat}}', htmlspecialchars($document['document_number']), $doc_content);
 $doc_content = str_replace('{{perihal}}', htmlspecialchars($document['title']), $doc_content);
 $doc_content = str_replace('{{tanggal_surat}}', date('d F Y', strtotime($document['created_at'])), $doc_content);
-$doc_content = str_replace('{{nama_penandatangan}}', htmlspecialchars($approver_name ?: $document['creator_name']), $doc_content);
-$doc_content = str_replace('{{jabatan_penandatangan}}', htmlspecialchars($approver_pos ?: 'Ketua Bidang Pendidikan Yayasan Assunnah Cirebon'), $doc_content);
+$doc_content = str_replace('{{nama_penandatangan}}', htmlspecialchars($final_signer_name), $doc_content);
+$doc_content = str_replace('{{jabatan_penandatangan}}', htmlspecialchars($final_signer_pos), $doc_content);
+if (!empty($allSigners['unit_head']['full_name'])) {
+    $doc_content = str_replace('{{kepala_unit}}', htmlspecialchars($allSigners['unit_head']['full_name']), $doc_content);
+}
+if (!empty($allSigners['division_head']['full_name'])) {
+    $doc_content = str_replace('{{kepala_bidang}}', htmlspecialchars($allSigners['division_head']['full_name']), $doc_content);
+}
+if (!empty($allSigners['leader']['full_name'])) {
+    $doc_content = str_replace('{{pemimpin}}', htmlspecialchars($allSigners['leader']['full_name']), $doc_content);
+}
 
 $verification_url = BASE_URL . "/views/documents/verify?token=" . urlencode($document['qr_token']);
 ?>
