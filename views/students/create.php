@@ -63,108 +63,145 @@ $active_year_id = $conn->query("SELECT id FROM academic_years WHERE is_active = 
 include '../layouts/header.php';
 ?>
 
-<div class="w-full pb-10">
-    <!-- Breadcrumb -->
-    <nav class="flex mb-4" aria-label="Breadcrumb">
-        <ol class="inline-flex items-center space-x-1 md:space-x-3 text-sm">
-            <li class="inline-flex items-center">
-                <a href="<?php url('views/dashboard/index.php'); ?>"
-                    class="inline-flex items-center text-slate-500 hover:text-slate-700">
-                    Beranda
-                </a>
-            </li>
-            <li>
-                <div class="flex items-center">
-                    <i class="fa-solid fa-chevron-right w-3 h-3 text-gray-400 mx-1"></i>
-                    <a href="<?php url('views/students/index.php'); ?>"
-                        class="ml-1 text-slate-500 hover:text-slate-700">Data Siswa</a>
-                </div>
-            </li>
-            <li aria-current="page">
-                <div class="flex items-center">
-                    <i class="fa-solid fa-chevron-right w-3 h-3 text-gray-400 mx-1"></i>
-                    <span class="ml-1 font-medium text-slate-800">Tambah Baru</span>
-                </div>
-            </li>
-        </ol>
-    </nav>
+<div class="w-full pb-12">
+    <!-- Header Block -->
+    <div class="mb-6">
+        <!-- Breadcrumb -->
+        <nav class="flex mb-3" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-2 text-xs text-slate-500">
+                <li>
+                    <a href="<?php url('views/dashboard/index.php'); ?>" class="hover:text-slate-800 transition-colors">Beranda</a>
+                </li>
+                <li>
+                    <i class="fa-solid fa-chevron-right text-[10px] text-slate-400 mx-1"></i>
+                    <a href="<?php url('views/students/index.php'); ?>" class="hover:text-slate-800 transition-colors">Siswa</a>
+                </li>
+                <li aria-current="page">
+                    <i class="fa-solid fa-chevron-right text-[10px] text-slate-400 mx-1"></i>
+                    <span class="text-slate-800 font-medium">Tambah Baru</span>
+                </li>
+            </ol>
+        </nav>
 
-    <div class="mb-8">
-        <h1 class="text-2xl font-bold text-slate-900">Tambah Siswa Baru</h1>
-        <p class="mt-2 text-sm text-slate-600">Daftarkan siswa baru ke dalam sistem.</p>
+        <!-- Judul & Deskripsi -->
+        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Tambah Siswa Baru</h1>
+        <p class="text-slate-500 text-sm mt-1">Lengkapi formulir di bawah ini untuk mendaftarkan siswa baru ke dalam sistem.</p>
     </div>
 
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        <div class="h-1 bg-cyan-500 w-full"></div>
+    <!-- Alert Notifikasi Error Server -->
+    <?php if (isset($_GET['error'])): ?>
+        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 text-sm flex items-center gap-2.5">
+            <i class="fa-solid fa-circle-exclamation text-red-500 flex-shrink-0"></i>
+            <span><?php echo htmlspecialchars($_GET['error']); ?></span>
+        </div>
+    <?php endif; ?>
 
-        <form action="<?php url('logic/students/store.php'); ?>" method="POST" enctype="multipart/form-data">
+    <form action="<?php url('logic/students/store.php'); ?>" method="POST" enctype="multipart/form-data" class="space-y-6">
 
-            <!-- Section 1: Identitas Siswa -->
-            <div class="p-8 border-b border-slate-100">
-                <div class="flex items-center gap-3 mb-6">
-                    <div class="p-2 bg-blue-50 rounded-lg text-blue-600">
-                        <i class="fa-solid fa-circle-user w-5 h-5"></i>
-                    </div>
-                    <h3 class="text-base font-bold text-slate-800 uppercase">Identitas Siswa</h3>
+        <!-- Master Card Container -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 divide-y divide-slate-200">
+
+            <!-- Section 1: Informasi Pribadi -->
+            <div class="p-6 sm:p-8">
+                <div class="mb-6">
+                    <h2 class="text-base font-semibold text-slate-900">Informasi Pribadi</h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Identitas dasar dan kontak siswa.</p>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label for="nama_siswa" class="block text-sm font-semibold text-slate-700 mb-1">Nama Lengkap
-                            Siswa</label>
-                        <input type="text" name="nama_siswa" id="nama_siswa" required
-                            class="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all placeholder:text-slate-400 capitalize"
-                            placeholder="Contoh: Andi Wijaya"
-                            oninput="this.value = this.value.replace(/\b\w/g, c => c.toUpperCase())">
+                <!-- Foto Profil Siswa -->
+                <div class="flex flex-col sm:flex-row sm:items-center gap-5 p-4 rounded-xl bg-slate-50 border border-slate-200/80 mb-6">
+                    <div class="relative w-20 h-20 rounded-full border border-slate-200 shadow-sm overflow-hidden bg-slate-100 flex-shrink-0 flex items-center justify-center">
+                        <img id="profile_preview" class="w-full h-full object-cover hidden" src="" alt="Foto Profil">
+                        <div id="photo_placeholder" class="flex items-center justify-center w-full h-full text-slate-400">
+                            <i class="fa-solid fa-user text-2xl"></i>
+                        </div>
                     </div>
+
+                    <div class="flex-1">
+                        <div class="text-sm font-semibold text-slate-800 mb-0.5">Foto Profil Siswa</div>
+                        <p class="text-xs text-slate-500 mb-3">Format JPG, JPEG, PNG, atau WebP. Maksimal 2MB.</p>
+                        <div class="flex items-center gap-2.5">
+                            <input type="file" name="foto" id="profile_photo_input" class="hidden"
+                                accept="image/*" onchange="previewImage(this)">
+                            <input type="hidden" name="remove_photo" id="remove_photo_input" value="0">
+
+                            <button type="button" onclick="document.getElementById('profile_photo_input').click()"
+                                class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-sm transition-colors cursor-pointer">
+                                <i class="fa-solid fa-arrow-up-from-bracket text-xs text-slate-500"></i>
+                                <span>Pilih Foto</span>
+                            </button>
+                            <button type="button" id="remove_photo_btn" onclick="removeImage()"
+                                class="hidden inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold transition-colors cursor-pointer">
+                                <i class="fa-solid fa-trash-can text-xs"></i>
+                                <span>Hapus</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Personal Fields Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
                     <div>
-                        <label for="nomor_induk" class="block text-sm font-semibold text-slate-700 mb-1">Nomor Induk
-                            (NISN)</label>
+                        <label for="nama_siswa" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Nama Lengkap Siswa <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" name="nama_siswa" id="nama_siswa" required
+                            class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-800 text-sm focus:border-cyan-600 focus:ring-1 focus:ring-cyan-600 focus:outline-none transition-colors shadow-sm placeholder:text-slate-400"
+                            placeholder="masukkan nama lengkap">
+                    </div>
+
+                    <div>
+                        <label for="nomor_induk" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Nomor Induk (NISN) <span class="text-red-500">*</span>
+                        </label>
                         <input type="text" name="nomor_induk" id="nomor_induk" required
-                            class="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all placeholder:text-slate-400"
+                            class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-800 text-sm focus:border-cyan-600 focus:ring-1 focus:ring-cyan-600 focus:outline-none transition-colors shadow-sm placeholder:text-slate-400"
                             placeholder="Masukkan 10 digit NISN">
                     </div>
 
                     <div>
-                        <label for="tempat_lahir" class="block text-sm font-semibold text-slate-700 mb-1">Tempat
-                            Lahir</label>
+                        <label for="tempat_lahir" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Tempat Lahir
+                        </label>
                         <input type="text" name="tempat_lahir" id="tempat_lahir"
-                            class="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all placeholder:text-slate-400"
+                            class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-800 text-sm focus:border-cyan-600 focus:ring-1 focus:ring-cyan-600 focus:outline-none transition-colors shadow-sm placeholder:text-slate-400"
                             placeholder="Kota Kelahiran">
                     </div>
+
                     <div>
-                        <label for="tanggal_lahir" class="block text-sm font-semibold text-slate-700 mb-1">Tanggal
-                            Lahir</label>
+                        <label for="tanggal_lahir" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Tanggal Lahir
+                        </label>
                         <input type="date" name="tanggal_lahir" id="tanggal_lahir"
-                            class="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all text-slate-600">
+                            class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-800 text-sm focus:border-cyan-600 focus:ring-1 focus:ring-cyan-600 focus:outline-none transition-colors shadow-sm text-slate-600">
                     </div>
 
                     <div class="md:col-span-2">
-                        <label for="alamat" class="block text-sm font-semibold text-slate-700 mb-1">Alamat
-                            Lengkap</label>
-                        <textarea name="alamat" id="alamat" rows="2"
-                            class="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all placeholder:text-slate-400"
-                            placeholder="Jl. Merdeka No. 123, Kel. Suka Maju, Kec. Jaya"></textarea>
+                        <label for="alamat" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Alamat Lengkap
+                        </label>
+                        <textarea name="alamat" id="alamat" rows="3"
+                            class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-800 text-sm focus:border-cyan-600 focus:ring-1 focus:ring-cyan-600 focus:outline-none transition-colors shadow-sm placeholder:text-slate-400"
+                            placeholder="Alamat lengkap tempat tinggal..."></textarea>
                     </div>
                 </div>
             </div>
 
             <!-- Section 2: Informasi Akademik -->
-            <div class="p-8 border-b border-slate-100">
-                <div class="flex items-center gap-3 mb-6">
-                    <div class="p-2 bg-cyan-50 rounded-lg text-cyan-600">
-                        <i class="fa-solid fa-graduation-cap w-5 h-5"></i>
-                    </div>
-                    <h3 class="text-base font-bold text-slate-800 uppercase">Informasi Akademik</h3>
+            <div class="p-6 sm:p-8">
+                <div class="mb-6">
+                    <h2 class="text-base font-semibold text-slate-900">Informasi Akademik</h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Penetapan tahun ajaran, unit pendidikan, kelas, dan status siswa.</p>
                 </div>
- 
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
                     <div>
-                        <label for="academic_year_id" class="block text-sm font-semibold text-slate-700 mb-1">Tahun
-                            Ajaran</label>
+                        <label for="academic_year_id" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Tahun Ajaran <span class="text-red-500">*</span>
+                        </label>
                         <select name="academic_year_id" id="academic_year_id" required
-                            class="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all bg-white text-slate-700">
-                            <option value="">Pilih Tahun</option>
+                            class="hybrid-select w-full px-3.5 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-800 text-sm focus:border-cyan-600 focus:ring-1 focus:ring-cyan-600 focus:outline-none transition-colors shadow-sm">
+                            <option value="">Pilih Tahun Ajaran</option>
                             <?php foreach ($academic_years as $year): ?>
                                 <option value="<?php echo $year['id']; ?>" <?php echo ($year['id'] == $active_year_id) ? 'selected' : ''; ?>>
                                     <?php echo htmlspecialchars($year['name']); ?>
@@ -172,11 +209,14 @@ include '../layouts/header.php';
                             <?php endforeach; ?>
                         </select>
                     </div>
+
                     <div>
-                        <label for="unit_id" class="block text-sm font-semibold text-slate-700 mb-1">Unit Pendidikan</label>
+                        <label for="unit_id" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Unit Pendidikan
+                        </label>
                         <select name="unit_id" id="unit_id"
-                            class="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all bg-white text-slate-700">
-                            <option value="">Semua Unit</option>
+                            class="hybrid-select w-full px-3.5 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-800 text-sm focus:border-cyan-600 focus:ring-1 focus:ring-cyan-600 focus:outline-none transition-colors shadow-sm">
+                            <option value="">Semua Unit Pendidikan</option>
                             <?php foreach ($education_units as $unit): ?>
                                 <option value="<?php echo $unit['id']; ?>">
                                     <?php echo htmlspecialchars($unit['name']); ?>
@@ -184,10 +224,13 @@ include '../layouts/header.php';
                             <?php endforeach; ?>
                         </select>
                     </div>
+
                     <div>
-                        <label for="class_id" class="block text-sm font-semibold text-slate-700 mb-1">Kelas</label>
+                        <label for="class_id" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Kelas <span class="text-red-500">*</span>
+                        </label>
                         <select name="class_id" id="class_id" required
-                            class="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all bg-white text-slate-700">
+                            class="hybrid-select w-full px-3.5 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-800 text-sm focus:border-cyan-600 focus:ring-1 focus:ring-cyan-600 focus:outline-none transition-colors shadow-sm">
                             <option value="">Pilih Kelas</option>
                             <?php foreach ($grade_levels as $grade): ?>
                                 <option value="<?php echo $grade['id']; ?>" data-unit-id="<?php echo $grade['education_unit_id']; ?>">
@@ -195,13 +238,16 @@ include '../layouts/header.php';
                                 </option>
                             <?php endforeach; ?>
                         </select>
-                        <p class="text-[10px] text-slate-500 mt-1">Siswa otomatis masuk ke history kelas ini.</p>
+                        <p class="text-[11px] text-slate-400 mt-1">Siswa otomatis dimasukkan ke riwayat kelas yang dipilih.</p>
                     </div>
+
                     <div>
-                        <label for="status" class="block text-sm font-semibold text-slate-700 mb-1">Status</label>
-                        <select name="status" id="status"
-                            class="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all bg-white text-slate-700">
-                            <option value="Aktif">Aktif</option>
+                        <label for="status" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Status Siswa <span class="text-red-500">*</span>
+                        </label>
+                        <select name="status" id="status" required data-searchable="false"
+                            class="hybrid-select w-full px-3.5 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-800 text-sm focus:border-cyan-600 focus:ring-1 focus:ring-cyan-600 focus:outline-none transition-colors shadow-sm">
+                            <option value="Aktif" selected>Aktif</option>
                             <option value="Non_aktif">Non-aktif</option>
                             <option value="Lulus">Lulus</option>
                             <option value="Pindah">Pindah</option>
@@ -211,83 +257,94 @@ include '../layouts/header.php';
                 </div>
             </div>
 
-            <!-- Section 3: Data Keuangan & Foto (Split) -->
-            <div class="p-8">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <!-- Left: Data Keuangan -->
+            <!-- Section 3: Data Keuangan -->
+            <div class="p-6 sm:p-8">
+                <div class="mb-6">
+                    <h2 class="text-base font-semibold text-slate-900">Data Keuangan</h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Informasi besaran SPP dan biaya administrasi daftar ulang.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
                     <div>
-                        <div class="flex items-center gap-3 mb-6">
-                            <div class="p-2 bg-blue-50 rounded-lg text-blue-600">
-                                <i class="fa-solid fa-credit-card w-5 h-5"></i>
-                            </div>
-                            <h3 class="text-base font-bold text-slate-800 uppercase">Data Keuangan</h3>
+                        <label for="spp" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Besar SPP Bulanan
+                        </label>
+                        <div class="flex">
+                            <span class="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-slate-300 bg-slate-50 text-slate-500 text-sm font-medium">Rp</span>
+                            <input type="number" name="spp" id="spp" min="0" step="1000"
+                                class="rounded-r-lg border border-slate-300 bg-white text-slate-800 focus:border-cyan-600 focus:ring-1 focus:ring-cyan-600 focus:outline-none block w-full min-w-0 flex-1 text-sm px-3.5 py-2.5 shadow-sm placeholder:text-slate-400"
+                                placeholder="0">
                         </div>
-                        <div class="space-y-4">
-                            <div>
-                                <label for="spp" class="block text-sm font-semibold text-slate-700 mb-1">Besar SPP
-                                    Bulanan</label>
-                                <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <span class="text-slate-500 text-sm">Rp</span>
-                                    </div>
-                                    <input type="number" name="spp" id="spp"
-                                        class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all placeholder:text-slate-400"
-                                        placeholder="0">
-                                </div>
-                            </div>
-                            <div>
-                                <label for="daftar_ulang" class="block text-sm font-semibold text-slate-700 mb-1">Biaya
-                                    Daftar Ulang</label>
-                                <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <span class="text-slate-500 text-sm">Rp</span>
-                                    </div>
-                                    <input type="number" name="daftar_ulang" id="daftar_ulang"
-                                        class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all placeholder:text-slate-400"
-                                        placeholder="0">
-                                </div>
-                            </div>
-                        </div>
+                        <p class="text-[11px] text-slate-400 mt-1">Nominal iuran SPP bulanan siswa.</p>
                     </div>
 
-                    <!-- Right: Unggah Foto -->
                     <div>
-                        <div class="flex items-center gap-3 mb-6">
-                            <div class="p-2 bg-cyan-50 rounded-lg text-cyan-600">
-                                <i class="fa-solid fa-user-gear w-5 h-5"></i>
-                            </div>
-                            <h3 class="text-base font-bold text-slate-800 uppercase">Unggah Foto</h3>
-                        </div>
-
-                        <label for="foto"
-                            class="block w-full h-[140px] border-2 border-dashed border-slate-300 rounded-lg bg-slate-50 hover:bg-slate-100 hover:border-cyan-500 transition-all cursor-pointer flex flex-col items-center justify-center text-center p-6 group">
-                            <div
-                                class="p-3 bg-white rounded-full shadow-sm mb-3 group-hover:scale-110 transition-transform">
-                                <i class="fa-solid fa-download w-6 h-6 text-cyan-600"></i>
-                            </div>
-                            <p class="text-sm font-medium text-slate-700">Klik untuk unggah foto siswa</p>
-                            <p class="text-xs text-slate-400 mt-1">Format: JPG, PNG (Max. 2MB)</p>
-                            <input type="file" name="foto" id="foto" class="hidden">
+                        <label for="daftar_ulang" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Biaya Daftar Ulang
                         </label>
+                        <div class="flex">
+                            <span class="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-slate-300 bg-slate-50 text-slate-500 text-sm font-medium">Rp</span>
+                            <input type="number" name="daftar_ulang" id="daftar_ulang" min="0" step="1000"
+                                class="rounded-r-lg border border-slate-300 bg-white text-slate-800 focus:border-cyan-600 focus:ring-1 focus:ring-cyan-600 focus:outline-none block w-full min-w-0 flex-1 text-sm px-3.5 py-2.5 shadow-sm placeholder:text-slate-400"
+                                placeholder="0">
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-1">Biaya daftar ulang / administrasi awal masuk.</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Action Buttons -->
-            <div class="flex items-center justify-end gap-x-6 border-t border-slate-100 px-8 py-6">
+            <!-- Card Footer / Actions -->
+            <div class="px-6 sm:px-8 py-4 bg-slate-50 flex items-center justify-end gap-3 rounded-b-xl">
                 <a href="<?php url('views/students/index.php'); ?>"
-                    class="text-sm font-semibold leading-6 text-gray-700 hover:text-gray-900">Batalkan</a>
+                    class="px-5 py-2.5 border border-slate-300 rounded-lg text-sm font-semibold text-slate-700 bg-white hover:bg-slate-50 transition-colors shadow-sm cursor-pointer">
+                    Batal
+                </a>
                 <button type="submit"
-                    class="rounded-lg bg-cyan-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-600 transition-colors">
-                    Simpan Data Siswa
+                    class="px-6 py-2.5 bg-cyan-600 hover:bg-cyan-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-600 cursor-pointer">
+                    Simpan Siswa
                 </button>
             </div>
-
-        </form>
-    </div>
+        </div>
+    </form>
 </div>
 
 <script nonce="<?php echo csp_nonce(); ?>">
+// --- Profile Photo Handling (Matching views/employees/form.php) ---
+function previewImage(input) {
+    const preview = document.getElementById('profile_preview');
+    const placeholder = document.getElementById('photo_placeholder');
+    const removeBtn = document.getElementById('remove_photo_btn');
+    const removeInput = document.getElementById('remove_photo_input');
+
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            preview.src = e.target.result;
+            preview.classList.remove('hidden');
+            placeholder.classList.add('hidden');
+            removeBtn.classList.remove('hidden');
+            removeInput.value = "0";
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function removeImage() {
+    const input = document.getElementById('profile_photo_input');
+    const preview = document.getElementById('profile_preview');
+    const placeholder = document.getElementById('photo_placeholder');
+    const removeBtn = document.getElementById('remove_photo_btn');
+    const removeInput = document.getElementById('remove_photo_input');
+
+    input.value = "";
+    preview.src = "";
+    preview.classList.add('hidden');
+    placeholder.classList.remove('hidden');
+    removeBtn.classList.add('hidden');
+    removeInput.value = "1";
+}
+
+// --- Unit & Grade Dropdown Dynamic Filter ---
 document.addEventListener('DOMContentLoaded', function() {
     const unitSelect = document.getElementById('unit_id');
     const classSelect = document.getElementById('class_id');
@@ -316,6 +373,9 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 classSelect.value = '';
             }
+
+            // Dispatch change event so MutationObserver in hybrid-select refreshes
+            classSelect.dispatchEvent(new Event('change', { bubbles: true }));
         });
     }
 });

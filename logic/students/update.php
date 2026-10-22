@@ -122,9 +122,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 if (move_uploaded_file($fileTmpPath, $destPath)) {
                     $fotoName = $newFileName;
                     $fotoSql = ", foto = :foto";
-                    
-                    // Optional: Delete old photo?
-                    // We can fetch old photo name and unlink it here if needed.
                 }
             }
         }
@@ -133,6 +130,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $old_stmt = $conn->prepare("SELECT * FROM students WHERE id = :id LIMIT 1");
         $old_stmt->execute([':id' => $id]);
         $old_student_data = $old_stmt->fetch(PDO::FETCH_ASSOC);
+
+        $remove_photo = isset($_POST['remove_photo']) && $_POST['remove_photo'] === '1';
+        if ($remove_photo && empty($fotoName)) {
+            $fotoSql = ", foto = NULL";
+            if (!empty($old_student_data['foto'])) {
+                $oldPath = '../../uploads/students/' . $old_student_data['foto'];
+                if (file_exists($oldPath)) {
+                    @unlink($oldPath);
+                }
+            }
+        }
 
         $queryStudent = "UPDATE students SET 
             nama_siswa = :nama, 

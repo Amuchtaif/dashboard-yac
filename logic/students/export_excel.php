@@ -57,6 +57,9 @@ $query = "
     SELECT 
         s.nama_siswa, 
         s.nomor_induk, 
+        s.tempat_lahir,
+        s.tanggal_lahir,
+        s.alamat,
         s.status, 
         s.tahun_ajaran,
         eu.name AS unit_name,
@@ -125,7 +128,7 @@ $dataStyle = [
 ];
 
 // Set columns headers
-$headers = ['No', 'Nama Siswa', 'NISN', 'Unit', 'Kelas', 'Tahun Ajaran', 'Status'];
+$headers = ['No', 'Nama Siswa', 'NISN', 'TTL', 'Alamat', 'Unit', 'Kelas', 'Tahun Ajaran', 'Status'];
 $col = 'A';
 foreach ($headers as $header) {
     $sheet->setCellValue($col . '1', $header);
@@ -139,14 +142,25 @@ $sheet->getRowDimension('1')->setRowHeight(28);
 $rowNumber = 2;
 $no = 1;
 foreach ($students as $row) {
+    // Format TTL
+    $ttl = '-';
+    $t_parts = [];
+    if (!empty($row['tempat_lahir'])) $t_parts[] = trim($row['tempat_lahir']);
+    if (!empty($row['tanggal_lahir']) && $row['tanggal_lahir'] !== '0000-00-00') {
+        $t_parts[] = date('d/m/Y', strtotime($row['tanggal_lahir']));
+    }
+    if (!empty($t_parts)) $ttl = implode(', ', $t_parts);
+
     $sheet->setCellValue('A' . $rowNumber, $no++);
     $sheet->setCellValue('B' . $rowNumber, ucwords(strtolower($row['nama_siswa'])));
     // Treat NISN explicitly as text to prevent format loss
     $sheet->setCellValueExplicit('C' . $rowNumber, $row['nomor_induk'], \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
-    $sheet->setCellValue('D' . $rowNumber, $row['unit_name'] ?? '-');
-    $sheet->setCellValue('E' . $rowNumber, $row['class_name'] ?? '-');
-    $sheet->setCellValue('F' . $rowNumber, $row['tahun_ajaran']);
-    $sheet->setCellValue('G' . $rowNumber, $row['status']);
+    $sheet->setCellValue('D' . $rowNumber, $ttl);
+    $sheet->setCellValue('E' . $rowNumber, $row['alamat'] ?? '-');
+    $sheet->setCellValue('F' . $rowNumber, $row['unit_name'] ?? '-');
+    $sheet->setCellValue('G' . $rowNumber, $row['class_name'] ?? '-');
+    $sheet->setCellValue('H' . $rowNumber, $row['tahun_ajaran']);
+    $sheet->setCellValue('I' . $rowNumber, $row['status']);
     
     $sheet->getRowDimension($rowNumber)->setRowHeight(20);
     $rowNumber++;
@@ -158,7 +172,7 @@ if ($highestRow > 1) {
     $sheet->getStyle('A2:' . $highestColumn . $highestRow)->applyFromArray($dataStyle);
     $sheet->getStyle('A2:A' . $highestRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
     $sheet->getStyle('C2:C' . $highestRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-    $sheet->getStyle('F2:G' . $highestRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+    $sheet->getStyle('H2:I' . $highestRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 }
 
 // Auto fit column width

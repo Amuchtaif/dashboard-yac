@@ -240,6 +240,37 @@ $active_ay_id = !empty($active_ay) ? reset($active_ay)['id'] : (!empty($academic
             transform: scale(1) translateY(0);
             opacity: 1;
         }
+
+        /* Subtle modern scrollbar for auto-scrolling lists */
+        #today_unit_agenda_list::-webkit-scrollbar,
+        #today_bidang_agenda_list::-webkit-scrollbar,
+        #bidang_agenda_list::-webkit-scrollbar,
+        #unit_agenda_list::-webkit-scrollbar,
+        #coming_soon_timeline::-webkit-scrollbar {
+            width: 4px;
+        }
+        #today_unit_agenda_list::-webkit-scrollbar-track,
+        #today_bidang_agenda_list::-webkit-scrollbar-track,
+        #bidang_agenda_list::-webkit-scrollbar-track,
+        #unit_agenda_list::-webkit-scrollbar-track,
+        #coming_soon_timeline::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        #today_unit_agenda_list::-webkit-scrollbar-thumb,
+        #today_bidang_agenda_list::-webkit-scrollbar-thumb,
+        #bidang_agenda_list::-webkit-scrollbar-thumb,
+        #unit_agenda_list::-webkit-scrollbar-thumb,
+        #coming_soon_timeline::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        #today_unit_agenda_list::-webkit-scrollbar-thumb:hover,
+        #today_bidang_agenda_list::-webkit-scrollbar-thumb:hover,
+        #bidang_agenda_list::-webkit-scrollbar-thumb:hover,
+        #unit_agenda_list::-webkit-scrollbar-thumb:hover,
+        #coming_soon_timeline::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+        }
     </style>
 </head>
 <body class="text-slate-800 antialiased min-h-screen flex flex-col justify-between">
@@ -303,10 +334,16 @@ $active_ay_id = !empty($active_ay) ? reset($active_ay)['id'] : (!empty($academic
 
                     <!-- Agenda Unit Pendidikan Hari Ini -->
                     <div class="space-y-2 pt-2 border-t border-slate-100">
-                        <h4 class="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                            <i class="fa-solid fa-school text-emerald-500 text-[10px]"></i>
-                            Unit Pendidikan
-                        </h4>
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                                <i class="fa-solid fa-school text-emerald-500 text-[10px]"></i>
+                                Unit Pendidikan
+                            </h4>
+                            <span id="today_unit_autoscroll_badge" class="hidden text-[9px] font-semibold text-emerald-600 bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded-full items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                Auto Scroll
+                            </span>
+                        </div>
                         <div id="today_unit_agenda_list" class="space-y-2 max-h-[160px] overflow-y-auto pr-1"></div>
                     </div>
                 </div>
@@ -695,16 +732,29 @@ $active_ay_id = !empty($active_ay) ? reset($active_ay)['id'] : (!empty($academic
                 if (res.success) {
                     const allMonthEvents = res.data || [];
                     const todayEvents = allMonthEvents.filter(e => todayStr >= e.start_date && todayStr <= (e.end_date || e.start_date));
-                    renderTodayAgendaSection(todayEvents);
+                    renderTodayAgendaSection(todayEvents, todayStr);
                 }
             });
     }
 
-    function renderTodayAgendaSection(events) {
+    let todayUnitScrollInterval = null;
+
+    function renderTodayAgendaSection(events, todayStr) {
         const bidangList = document.getElementById('today_bidang_agenda_list');
         const unitList = document.getElementById('today_unit_agenda_list');
         bidangList.innerHTML = '';
         unitList.innerHTML = '';
+
+        if (todayUnitScrollInterval) {
+            clearInterval(todayUnitScrollInterval);
+            todayUnitScrollInterval = null;
+        }
+
+        const badge = document.getElementById('today_unit_autoscroll_badge');
+        if (badge) {
+            badge.classList.remove('inline-flex');
+            badge.classList.add('hidden');
+        }
 
         const bidangToday = events.filter(e => !e.unit_id && (e.source_type === 'bidang_pendidikan' || e.source_type === 'yayasan'));
         const unitToday = events.filter(e => Boolean(e.unit_id) || e.source_type === 'unit');
@@ -714,7 +764,11 @@ $active_ay_id = !empty($active_ay) ? reset($active_ay)['id'] : (!empty($academic
         } else {
             bidangToday.forEach(e => {
                 const card = document.createElement('div');
-                card.className = 'p-2.5 rounded-xl border border-indigo-100 bg-indigo-50/40 space-y-0.5';
+                card.className = 'p-2.5 rounded-xl border border-indigo-100 bg-indigo-50/40 space-y-0.5 cursor-pointer hover:bg-indigo-100/50 transition-colors';
+                if (todayStr) {
+                    card.onclick = () => openDayDetail(todayStr);
+                    card.title = 'Klik untuk detail agenda hari ini';
+                }
                 card.innerHTML = `
                     <div class="flex items-center justify-between">
                         <span class="font-extrabold text-slate-800 text-xs truncate">${e.title}</span>
@@ -731,7 +785,11 @@ $active_ay_id = !empty($active_ay) ? reset($active_ay)['id'] : (!empty($academic
         } else {
             unitToday.forEach(e => {
                 const card = document.createElement('div');
-                card.className = 'p-2.5 rounded-xl border border-emerald-100 bg-emerald-50/40 space-y-0.5';
+                card.className = 'p-2.5 rounded-xl border border-emerald-100 bg-emerald-50/40 space-y-0.5 cursor-pointer hover:bg-emerald-100/50 transition-colors';
+                if (todayStr) {
+                    card.onclick = () => openDayDetail(todayStr);
+                    card.title = 'Klik untuk detail agenda hari ini';
+                }
                 card.innerHTML = `
                     <div class="flex items-center justify-between gap-1">
                         <span class="text-[9px] font-bold px-2 py-0.5 rounded-full border ${getUnitBadgeStyle(e.unit_name, e.unit_id)}">${e.unit_name || 'Unit'}</span>
@@ -742,7 +800,74 @@ $active_ay_id = !empty($active_ay) ? reset($active_ay)['id'] : (!empty($academic
                 `;
                 unitList.appendChild(card);
             });
+
+            setTimeout(() => {
+                startTodayUnitAutoScroll();
+            }, 150);
         }
+    }
+
+    function startTodayUnitAutoScroll() {
+        const container = document.getElementById('today_unit_agenda_list');
+        if (!container) return;
+
+        if (todayUnitScrollInterval) {
+            clearInterval(todayUnitScrollInterval);
+            todayUnitScrollInterval = null;
+        }
+
+        // Remove any previous clones
+        container.querySelectorAll('[data-clone]').forEach(el => el.remove());
+
+        const badge = document.getElementById('today_unit_autoscroll_badge');
+        if (badge) {
+            badge.classList.remove('inline-flex');
+            badge.classList.add('hidden');
+        }
+
+        if (container.scrollHeight <= container.clientHeight) return;
+
+        if (badge) {
+            badge.classList.remove('hidden');
+            badge.classList.add('inline-flex');
+        }
+
+        const originalCards = Array.from(container.children);
+        originalCards.forEach(card => {
+            const clone = card.cloneNode(true);
+            clone.setAttribute('data-clone', 'true');
+            if (card.onclick) {
+                clone.onclick = card.onclick;
+            }
+            container.appendChild(clone);
+        });
+
+        let isHovered = false;
+        container.onmouseenter = () => { isHovered = true; };
+        container.onmouseleave = () => {
+            scrollAcc = container.scrollTop;
+            isHovered = false;
+        };
+
+        container.addEventListener('wheel', () => {
+            scrollAcc = container.scrollTop;
+        }, { passive: true });
+        container.addEventListener('touchmove', () => {
+            scrollAcc = container.scrollTop;
+        }, { passive: true });
+
+        const halfHeight = container.scrollHeight / 2;
+        let scrollAcc = container.scrollTop || 0;
+
+        todayUnitScrollInterval = setInterval(() => {
+            if (isHovered) return;
+            scrollAcc += 0.5;
+            container.scrollTop = scrollAcc;
+            if (container.scrollTop >= halfHeight || scrollAcc >= halfHeight) {
+                scrollAcc = scrollAcc - halfHeight;
+                container.scrollTop = scrollAcc;
+            }
+        }, 30);
     }
 
     // Load Coming Soon Timeline for Next Month relative to current date
