@@ -432,6 +432,13 @@ if ($is_admin) {
                     Absensi Kelas
                 </a>
 
+                <!-- Rekap Presensi Guru -->
+                <a href="<?php url('views/teacher_attendance/index.php'); ?>"
+                    class="<?php echo isActive('teacher_attendance'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
+                    <?php renderIcon('fa-user-check', getIconClass('teacher_attendance')); ?>
+                    Rekap Presensi Guru
+                </a>
+
                 <!-- Student Attendance -->
                 <a href="<?php url('views/student_attendance/index.php'); ?>"
                     class="<?php echo isActive('views/student_attendance/index.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
