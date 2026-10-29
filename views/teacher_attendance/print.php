@@ -185,6 +185,18 @@ foreach ($raw_schedules as $s) {
     }
 }
 
+// Compute overall teacher metrics before tab filtering
+$total_teachers_all = count($teacher_summaries);
+$total_teachers_attended_all = 0;
+$total_teachers_zero_all = 0;
+foreach ($teacher_summaries as $t) {
+    if ($t['sessions_with_attendance'] > 0) {
+        $total_teachers_attended_all++;
+    } else {
+        $total_teachers_zero_all++;
+    }
+}
+
 // Tab filtering for Print
 $report_title = "LAPORAN REKAPITULASI PRESENSI MENGAJAR GURU";
 if ($tab === 'already_attended') {
@@ -275,22 +287,30 @@ $total_teachers = count($teacher_summaries);
         </div>
 
         <!-- Summary Statistics Cards -->
-        <div class="grid grid-cols-4 gap-3 mb-6 text-xs">
+        <div class="grid grid-cols-6 gap-3 mb-6 text-xs">
             <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-center">
                 <span class="text-slate-500 font-semibold block text-[10px] uppercase">Guru Terjadwal</span>
-                <span class="text-lg font-bold text-slate-900"><?php echo $total_teachers; ?> Guru</span>
-            </div>
-            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-center">
-                <span class="text-slate-500 font-semibold block text-[10px] uppercase">Total Sesi</span>
-                <span class="text-lg font-bold text-slate-900"><?php echo $total_sessions; ?> Sesi</span>
+                <span class="text-lg font-bold text-slate-900"><?php echo $total_teachers_all; ?> Guru</span>
             </div>
             <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-center">
-                <span class="text-emerald-700 font-semibold block text-[10px] uppercase">Sudah Lengkap</span>
-                <span class="text-lg font-bold text-emerald-800"><?php echo $total_complete; ?> Sesi</span>
+                <span class="text-emerald-700 font-semibold block text-[10px] uppercase">Guru Sudah Absen</span>
+                <span class="text-lg font-bold text-emerald-800"><?php echo $total_teachers_attended_all; ?> Guru</span>
             </div>
             <div class="p-3 bg-rose-50 rounded-xl border border-rose-200 text-center">
-                <span class="text-rose-700 font-semibold block text-[10px] uppercase">Belum Lengkap</span>
-                <span class="text-lg font-bold text-rose-800"><?php echo ($total_sessions - $total_complete); ?> Sesi</span>
+                <span class="text-rose-700 font-semibold block text-[10px] uppercase">Tidak Absen Sama Sekali</span>
+                <span class="text-lg font-bold text-rose-800"><?php echo $total_teachers_zero_all; ?> Guru</span>
+            </div>
+            <div class="p-3 bg-blue-50 rounded-xl border border-blue-200 text-center">
+                <span class="text-blue-700 font-semibold block text-[10px] uppercase">Total Sesi</span>
+                <span class="text-lg font-bold text-blue-900"><?php echo $total_sessions; ?> Sesi</span>
+            </div>
+            <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-center">
+                <span class="text-emerald-700 font-semibold block text-[10px] uppercase">Sesi Lengkap</span>
+                <span class="text-lg font-bold text-emerald-800"><?php echo $total_complete; ?> Sesi</span>
+            </div>
+            <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 text-center">
+                <span class="text-amber-700 font-semibold block text-[10px] uppercase">Sesi Belum Lengkap</span>
+                <span class="text-lg font-bold text-amber-800"><?php echo ($total_sessions - $total_complete); ?> Sesi</span>
             </div>
         </div>
 
