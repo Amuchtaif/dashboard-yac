@@ -1,0 +1,25 @@
+{
+  "name": "Portal Wali Murid - Yayasan Assunnah Cirebon",
+  "short_name": "Wali Santri",
+  "description": "Aplikasi portal resmi pemantauan akademik, tahfidz, dan asrama santri Yayasan Assunnah Cirebon",
+  "start_url": "./index.php",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f766e",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "../public/images/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "../public/images/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
+

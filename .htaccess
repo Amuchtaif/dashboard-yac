@@ -23,8 +23,8 @@ Options -Indexes
     Header set Referrer-Policy "strict-origin-when-cross-origin"
     Header set Permissions-Policy "camera=(), microphone=(), geolocation=(self)"
     Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains" "expr=%{HTTPS} == 'on'"
-    # Fallback CSP for static requests or non-PHP requests
-    Header setifempty Content-Security-Policy "default-src 'self'; script-src 'self' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data: blob: https:; connect-src 'self' https:; frame-src 'self' https:; object-src 'none'; base-uri 'self';"
+    # Fallback CSP for static requests or non-PHP requests (dengan tambahan 'unsafe-eval' untuk Flutter Web)
+    Header setifempty Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://unpkg.com https://www.gstatic.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data: blob: https:; connect-src 'self' https:; frame-src 'self' https:; object-src 'none'; base-uri 'self';"
     # Enforce Secure and HttpOnly flags on Set-Cookie
     Header always edit Set-Cookie "(?i)^((?:(?!;\s*Secure).)*)$" "$1; Secure"
     Header always edit Set-Cookie "(?i)^((?:(?!;\s*HttpOnly).)*)$" "$1; HttpOnly"
@@ -63,6 +63,12 @@ Options -Indexes
     RewriteCond %{HTTP:X-Forwarded-Proto} !https [NC]
     RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
+    # ======================================================================
+    # BYPASS UNTUK FOLDER FLUTTER WEB (web-app-dashboard)
+    # ----------------------------------------------------------------------
+    RewriteCond %{REQUEST_URI} ^/web-app-dashboard(/.*)?$ [NC]
+    RewriteRule ^ - [L]
+
     # Public Agenda Route (Dukungan dengan atau tanpa trailing slash)
     RewriteRule ^agenda-pendidikan/?$ views/agenda/public.php [QSA,NC,L]
     RewriteRule ^views/agenda/public/?$ views/agenda/public.php [QSA,NC,L]
@@ -100,9 +106,9 @@ Options -Indexes
     RewriteRule ^(.*)$ index.php [L]
 
     # 2. Hapus ekstensi .php dari URL (Redirect eksternal)
-    # Kecualikan folder 'logic', 'api', dan 'views/agenda' dari pengalihan ini agar route public & AJAX tidak error
+    # Kecualikan folder 'logic', 'api', 'views/agenda', dan 'portal_wali' dari pengalihan ini
     RewriteCond %{REQUEST_METHOD} !POST
-    RewriteCond %{REQUEST_URI} !/(api|logic|views/agenda)/ [NC]
+    RewriteCond %{REQUEST_URI} !/(api|logic|views/agenda|portal_wali)/ [NC]
     RewriteCond %{REQUEST_URI} !^/agenda-pendidikan [NC]
     RewriteCond %{THE_REQUEST} ^[A-Z]{3,}\s(.*?)\.php[\s?] [NC]
     RewriteRule ^ %1 [R=301,L,QSA]
@@ -112,3 +118,10 @@ Options -Indexes
     RewriteCond %{REQUEST_FILENAME}.php -f
     RewriteRule ^(.*)$ $1.php [NC,L]
 </IfModule>
+
+# php -- BEGIN cPanel-generated handler, do not edit
+# Set the “ea-php82” package as the default “PHP” programming language.
+<IfModule mime_module>
+  AddHandler application/x-httpd-ea-php82___lsphp .php .php8 .phtml
+</IfModule>
+# php -- END cPanel-generated handler, do not edit

@@ -390,6 +390,13 @@ if ($is_admin) {
                     Kenaikan Kelas
                 </a>
 
+                <!-- Guardians / Wali Murid -->
+                <a href="<?php url('views/guardians/index.php'); ?>"
+                    class="<?php echo isActive('guardians/index'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
+                    <?php renderIcon('fa-people-roof', getIconClass('guardians/index')); ?>
+                    Wali Murid
+                </a>
+
                 <!-- Education Units -->
                 <a href="<?php url('views/education_units/index.php'); ?>"
                     class="<?php echo isActive('education_units'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">

@@ -17,7 +17,6 @@ $divisions[] = ['id' => 'pengurus_inti', 'name' => 'Pengurus Inti'];
 // --- 2. Filter Logic ---
 $filter_division_id = isset($_GET['division_id']) && $_GET['division_id'] !== '' ? $_GET['division_id'] : null;
 
-// --- 3. Fetch All Employees with Position/Div/Unit Info ---
 // --- 3. Fetch Data from Multiple Sources ---
 // Primary Positions
 $primary_sql = "
@@ -162,10 +161,10 @@ foreach ($all_nodes as $node) {
 
     $nodeHtml = '
         <div class="org-node flex flex-col items-center p-2 min-w-[160px]">
-            <img src="' . $avatarUrl . '" class="w-12 h-12 rounded-full border-2 border-white shadow-sm mb-2">
-            <div class="text-sm font-bold text-slate-800 leading-tight">' . addslashes($node['full_name']) . '</div>
-            <div class="text-xs text-cyan-600 font-medium mt-1 flex items-center">' . $node['position_name'] . '</div>
-            <div class="text-[10px] text-slate-500 mt-0.5">' . ($node['unit_name'] ?: ($node['division_name'] ?: '-')) . '</div>
+            <img src="' . $avatarUrl . '" class="w-12 h-12 rounded-full border-2 border-white shadow-sm mb-2" alt="Avatar">
+            <div class="text-sm font-bold text-slate-800 leading-tight">' . htmlspecialchars($node['full_name'], ENT_QUOTES) . '</div>
+            <div class="text-xs text-cyan-600 font-medium mt-1 flex items-center">' . htmlspecialchars($node['position_name'], ENT_QUOTES) . '</div>
+            <div class="text-[10px] text-slate-500 mt-0.5">' . htmlspecialchars($node['unit_name'] ?: ($node['division_name'] ?: '-'), ENT_QUOTES) . '</div>
         </div>
     ';
 
@@ -224,12 +223,18 @@ include '../layouts/header.php';
                 </div>
             </div>
         <?php else: ?>
-            <div id="chart_div" class="w-full h-full overflow-auto"></div>
+            <div id="chart_loading" class="flex items-center justify-center h-full text-slate-400">
+                <div class="text-center py-12">
+                    <i class="fa-solid fa-circle-notch fa-spin text-cyan-600 text-3xl mb-3"></i>
+                    <p class="text-sm font-medium text-slate-600">Memuat Struktur Organisasi...</p>
+                </div>
+            </div>
+            <div id="chart_div" class="w-full h-full overflow-auto hidden"></div>
         <?php endif; ?>
     </div>
 </div>
 
-<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js" crossorigin="anonymous"></script>
+<script nonce="<?php echo csp_nonce(); ?>" type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 <script nonce="<?php echo csp_nonce(); ?>" type="text/javascript">
     google.charts.load('current', { packages: ["orgchart"] });
     google.charts.setOnLoadCallback(drawChart);
@@ -251,9 +256,29 @@ include '../layouts/header.php';
             selectedNodeClass: 'acc-node-selected'
         };
 
-        var chart = new google.visualization.OrgChart(document.getElementById('chart_div'));
+        var loadingEl = document.getElementById('chart_loading');
+        var chartEl = document.getElementById('chart_div');
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (chartEl) chartEl.classList.remove('hidden');
+
+        var chart = new google.visualization.OrgChart(chartEl);
         chart.draw(data, options);
     }
+
+    setTimeout(function() {
+        var loadingEl = document.getElementById('chart_loading');
+        var chartEl = document.getElementById('chart_div');
+        if (loadingEl && loadingEl.style.display !== 'none' && (!chartEl || chartEl.children.length === 0)) {
+            loadingEl.innerHTML = `
+                <div class="text-center py-12">
+                    <i class="fa-solid fa-triangle-exclamation text-amber-500 text-3xl mb-3"></i>
+                    <p class="text-sm font-medium text-slate-700">Gagal memuat visualisasi struktur</p>
+                    <p class="text-xs text-slate-400 mt-1">Pastikan koneksi internet aktif untuk memuat Google Charts.</p>
+                    <button onclick="location.reload()" class="mt-4 px-3 py-1.5 bg-cyan-600 text-white text-xs font-semibold rounded-lg hover:bg-cyan-700 transition">Coba Lagi</button>
+                </div>
+            `;
+        }
+    }, 7000);
 </script>
 
 <style>

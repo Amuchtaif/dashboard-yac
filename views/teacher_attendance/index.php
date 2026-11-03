@@ -1380,7 +1380,7 @@ include '../layouts/header.php';
 <div id="teacherDetailModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
     <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         <!-- Backdrop -->
-        <div class="fixed inset-0 bg-slate-900/50 transition-opacity" onclick="closeTeacherDetailModal()"></div>
+        <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-md transition-opacity" onclick="closeTeacherDetailModal()"></div>
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
         <!-- Modal Box -->
@@ -1435,7 +1435,7 @@ include '../layouts/header.php';
 <div id="scheduleDetailModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
     <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         <!-- Backdrop -->
-        <div class="fixed inset-0 bg-slate-900/50 transition-opacity" onclick="closeScheduleDetailModal()"></div>
+        <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-md transition-opacity" onclick="closeScheduleDetailModal()"></div>
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
         <!-- Modal Box -->

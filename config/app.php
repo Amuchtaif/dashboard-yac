@@ -42,7 +42,9 @@ if (!is_dir($sessionDir)) {
     @mkdir($sessionDir, 0777, true);
 }
 if (is_dir($sessionDir) && is_writable($sessionDir)) {
-    session_save_path($sessionDir);
+    if (session_status() === PHP_SESSION_NONE) {
+        @session_save_path($sessionDir);
+    }
 }
 
 // Inactivity / Idle Timeout Configuration: 1 Jam (3600 detik)
@@ -77,7 +79,7 @@ if (!headers_sent()) {
     if ($isHttps) {
         header("Strict-Transport-Security: max-age=31536000; includeSubDomains");
     }
-    header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'nonce-{$cspNonce}' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com https://www.gstatic.com; script-src-attr 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data: blob: https:; connect-src 'self' https:; frame-src 'self' https:; object-src 'none'; base-uri 'self';");
+    header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'nonce-{$cspNonce}' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com https://www.gstatic.com; script-src-attr 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://unpkg.com https://www.gstatic.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data: blob: https:; connect-src 'self' https:; frame-src 'self' https:; object-src 'none'; base-uri 'self';");
 }
 
 /**
