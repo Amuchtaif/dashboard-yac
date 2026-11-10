@@ -235,17 +235,19 @@ if ($active_child) {
         krsort($daily_map);
     }
 
-    // 5. Riwayat Izin Kepulangan Asrama
-    $stmt_permits = $conn->prepare("
-        SELECT bp.*, e.full_name as approved_by_name
-        FROM boarding_permits bp
-        LEFT JOIN employees e ON bp.approved_by = e.id
-        WHERE bp.student_id = :sid
-        ORDER BY bp.id DESC
-        LIMIT 20
-    ");
-    $stmt_permits->execute([':sid' => $sid]);
-    $permits = $stmt_permits->fetchAll(PDO::FETCH_ASSOC);
+    // 5. Riwayat Izin Kepulangan Asrama (hanya dimuat jika tab perizinan dibuka)
+    if ($tab === 'permits') {
+        $stmt_permits = $conn->prepare("
+            SELECT bp.*, e.full_name as approved_by_name
+            FROM boarding_permits bp
+            LEFT JOIN employees e ON bp.approved_by = e.id
+            WHERE bp.student_id = :sid
+            ORDER BY bp.id DESC
+            LIMIT 20
+        ");
+        $stmt_permits->execute([':sid' => $sid]);
+        $permits = $stmt_permits->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
 
 $page_title = "Kehadiran & Asrama";

@@ -302,6 +302,13 @@ if ($is_admin) {
                     Status Maintenance
                 </a>
 
+                <!-- Update Aplikasi Mobile -->
+                <a href="<?php url('views/settings/app_update.php'); ?>"
+                    class="<?php echo isActive('settings/app_update.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
+                    <?php renderIcon('fa-mobile-screen-button', getIconClass('settings/app_update.php')); ?>
+                    Update Aplikasi
+                </a>
+
                 <!-- News Management -->
                 <?php if ($can_manage_news): ?>
                     <a href="<?php url('views/news/index.php'); ?>"

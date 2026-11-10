@@ -65,7 +65,7 @@ require_once __DIR__ . '/layouts/header.php';
         <div class="space-y-2">
             <?php foreach ($children as $c): 
                 $isActive = ((int)$c['student_id'] === (int)($active_child['student_id'] ?? 0));
-                $avatarSrc = !empty($c['foto']) && file_exists(__DIR__ . '/../../uploads/students/' . $c['foto']) 
+                $avatarSrc = !empty($c['foto']) && file_exists(__DIR__ . '/../uploads/students/' . $c['foto']) 
                     ? '../uploads/students/' . $c['foto'] 
                     : null;
             ?>

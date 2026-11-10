@@ -192,7 +192,7 @@ require_once __DIR__ . '/layouts/header.php';
             </a>
         </div>
     <?php else: 
-        $avatarSrc = !empty($active_child['foto']) && file_exists(__DIR__ . '/../../uploads/students/' . $active_child['foto']) 
+        $avatarSrc = !empty($active_child['foto']) && file_exists(__DIR__ . '/../uploads/students/' . $active_child['foto']) 
             ? '../uploads/students/' . $active_child['foto'] 
             : null;
     ?>

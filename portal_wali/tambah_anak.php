@@ -8,39 +8,43 @@ $error = '';
 $success = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nisn = trim($_POST['nisn'] ?? '');
-    $tgl_lahir = trim($_POST['tgl_lahir'] ?? '');
-    $relationship = trim($_POST['relationship'] ?? $_SESSION['guardian_relationship'] ?? 'Ayah');
-
-    if (empty($nisn) || empty($tgl_lahir)) {
-        $error = 'NISN dan Tanggal Lahir santri wajib diisi.';
+    if (!verify_csrf()) {
+        $error = 'Sesi keamanan formulir telah kedaluwarsa. Silakan muat ulang halaman.';
     } else {
-        $db = new Database();
-        $conn = $db->getConnection();
+        $nisn = trim($_POST['nisn'] ?? '');
+        $tgl_lahir = trim($_POST['tgl_lahir'] ?? '');
+        $relationship = trim($_POST['relationship'] ?? $_SESSION['guardian_relationship'] ?? 'Ayah');
 
-        // Verifikasi santri (Hanya Santri Aktif)
-        $stmt = $conn->prepare("SELECT * FROM students WHERE nomor_induk = :nisn AND tanggal_lahir = :tgl_lahir AND status = 'Aktif' LIMIT 1");
-        $stmt->execute([':nisn' => $nisn, ':tgl_lahir' => $tgl_lahir]);
-        $student = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if (!$student) {
-            $error = 'Data santri aktif tidak ditemukan. Pastikan NISN dan tanggal lahir santri benar serta berstatus aktif.';
+        if (empty($nisn) || empty($tgl_lahir)) {
+            $error = 'NISN dan Tanggal Lahir santri wajib diisi.';
         } else {
-            // Hubungkan ke guardian_students
-            $stmt_link = $conn->prepare("
-                INSERT INTO guardian_students (guardian_id, student_id, relationship, is_primary, is_verified, created_at)
-                VALUES (:gid, :sid, :rel, 1, 1, NOW())
-                ON DUPLICATE KEY UPDATE is_verified = 1
-            ");
-            $stmt_link->execute([
-                ':gid' => $_SESSION['guardian_id'],
-                ':sid' => $student['id'],
-                ':rel' => in_array($relationship, ['Ayah', 'Ibu', 'Wali']) ? $relationship : 'Ayah'
-            ]);
+            $db = new Database();
+            $conn = $db->getConnection();
 
-            $_SESSION['active_student_id'] = (int)$student['id'];
-            header("Location: index.php?success=" . urlencode('Santri ' . $student['nama_siswa'] . ' berhasil ditambahkan ke akun Anda.'));
-            exit;
+            // Verifikasi santri (Hanya Santri Aktif)
+            $stmt = $conn->prepare("SELECT * FROM students WHERE nomor_induk = :nisn AND tanggal_lahir = :tgl_lahir AND status = 'Aktif' LIMIT 1");
+            $stmt->execute([':nisn' => $nisn, ':tgl_lahir' => $tgl_lahir]);
+            $student = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$student) {
+                $error = 'Data santri aktif tidak ditemukan. Pastikan NISN dan tanggal lahir santri benar serta berstatus aktif.';
+            } else {
+                // Hubungkan ke guardian_students
+                $stmt_link = $conn->prepare("
+                    INSERT INTO guardian_students (guardian_id, student_id, relationship, is_primary, is_verified, created_at)
+                    VALUES (:gid, :sid, :rel, 1, 1, NOW())
+                    ON DUPLICATE KEY UPDATE is_verified = 1
+                ");
+                $stmt_link->execute([
+                    ':gid' => $_SESSION['guardian_id'],
+                    ':sid' => $student['id'],
+                    ':rel' => in_array($relationship, ['Ayah', 'Ibu', 'Wali']) ? $relationship : 'Ayah'
+                ]);
+
+                $_SESSION['active_student_id'] = (int)$student['id'];
+                header("Location: index.php?success=" . urlencode('Santri ' . $student['nama_siswa'] . ' berhasil ditambahkan ke akun Anda.'));
+                exit;
+            }
         }
     }
 }
@@ -72,6 +76,7 @@ require_once __DIR__ . '/layouts/header.php';
     <?php endif; ?>
 
     <form method="POST" action="tambah_anak.php" class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
+        <?php echo csrf_field(); ?>
         <div>
             <label class="block text-xs font-semibold text-slate-700 mb-1">
                 NISN Santri <span class="text-rose-500">*</span>

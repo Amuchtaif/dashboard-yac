@@ -21,8 +21,8 @@ $all_children = !empty($_SESSION['guardian_id']) ? get_guardian_children($_SESSI
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Wali Santri">
-    <link rel="apple-touch-icon" href="../public/images/logo.png">
-    <link rel="icon" type="image/png" href="../public/images/logo.png">
+    <link rel="apple-touch-icon" href="assets/logo.png">
+    <link rel="icon" type="image/png" href="assets/logo.png">
 
     <!-- Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -81,7 +81,7 @@ $all_children = !empty($_SESSION['guardian_id']) ? get_guardian_children($_SESSI
                 <div class="flex items-center justify-between">
                     <!-- Brand & Active Child Badge -->
                     <div class="flex items-center gap-2.5">
-                        <img src="../public/images/logo.png" alt="Logo" class="w-8 h-8 object-contain">
+                        <img src="assets/logo.png" alt="Logo" class="w-8 h-8 object-contain">
                         <div>
                             <span class="text-[10px] font-bold text-teal-700 tracking-wider uppercase block leading-none">Yayasan Assunnah</span>
                             <span class="text-xs font-extrabold text-slate-800 leading-tight">Portal Wali Santri</span>

@@ -7,7 +7,7 @@ require_once __DIR__ . '/bottom_nav.php';
         <!-- PWA Install Prompt Banner (Floating at bottom right/center if installable) -->
         <div id="pwaInstallBanner" class="fixed bottom-20 left-1/2 -translate-x-1/2 w-[92%] max-w-sm bg-slate-900/95 backdrop-blur-md text-white p-3.5 rounded-2xl shadow-xl border border-slate-700/60 hidden z-30 flex items-center justify-between gap-3">
             <div class="flex items-center gap-2.5 min-w-0">
-                <img src="../public/images/logo.png" alt="Logo" class="w-8 h-8 object-contain shrink-0">
+                <img src="assets/logo.png" alt="Logo" class="w-8 h-8 object-contain shrink-0">
                 <div class="truncate">
                     <p class="text-xs font-bold text-white leading-tight">Pasang Aplikasi</p>
                     <p class="text-[10px] text-slate-300 truncate">Akses cepat dari layar utama HP Anda</p>

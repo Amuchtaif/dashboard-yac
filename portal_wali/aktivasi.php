@@ -7,7 +7,10 @@ $error = '';
 $success = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nisn = trim($_POST['nisn'] ?? '');
+    if (!verify_csrf()) {
+        $error = 'Sesi keamanan formulir telah kedaluwarsa. Silakan muat ulang halaman.';
+    } else {
+        $nisn = trim($_POST['nisn'] ?? '');
     $tgl_lahir = trim($_POST['tgl_lahir'] ?? '');
     $parent_name = trim($_POST['parent_name'] ?? '');
     $relationship = trim($_POST['relationship'] ?? 'Ayah');
@@ -47,19 +50,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'Data santri aktif tidak ditemukan! Pastikan NISN dan tanggal lahir santri sesuai serta berstatus aktif.';
         } else {
             // 2. Cek apakah akun wali dengan nomor WA ini sudah pernah dibuat sebelumnya
-            $stmt_guard = $conn->prepare("SELECT * FROM guardians WHERE phone_number = :phone LIMIT 1");
-            $stmt_guard->execute([':phone' => $clean_phone]);
+            $alt_phone = (strpos($clean_phone, '0') === 0) ? '62' . substr($clean_phone, 1) : '0' . substr($clean_phone, 2);
+            $stmt_guard = $conn->prepare("SELECT id FROM guardians WHERE (phone_number = :p1 OR phone_number = :p2) LIMIT 1");
+            $stmt_guard->execute([':p1' => $clean_phone, ':p2' => $alt_phone]);
             $guardian = $stmt_guard->fetch(PDO::FETCH_ASSOC);
 
             if ($guardian) {
-                $guardian_id = (int)$guardian['id'];
-                // Update password baru jika diperlukan
-                $upd_pwd = $conn->prepare("UPDATE guardians SET password_hash = :pwd, full_name = :fn WHERE id = :id");
-                $upd_pwd->execute([
-                    ':pwd' => password_hash($password, PASSWORD_BCRYPT),
-                    ':fn' => $parent_name,
-                    ':id' => $guardian_id
-                ]);
+                // Cegah penimpaan akun yang sudah ada (cegah account takeover)
+                $error = 'Nomor WhatsApp ini sudah terdaftar sebagai wali. Silakan masuk (login) terlebih dahulu, lalu hubungkan santri melalui menu Tambah Santri.';
             } else {
                 // Buat akun baru di tabel guardians
                 $stmt_new = $conn->prepare("
@@ -73,32 +71,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ':relationship' => in_array($relationship, ['Ayah', 'Ibu', 'Wali']) ? $relationship : 'Ayah'
                 ]);
                 $guardian_id = (int)$conn->lastInsertId();
+
+                // 3. Hubungkan akun wali dengan santri di tabel guardian_students
+                $stmt_link = $conn->prepare("
+                    INSERT INTO guardian_students (guardian_id, student_id, relationship, is_primary, is_verified, created_at)
+                    VALUES (:gid, :sid, :rel, 1, 1, NOW())
+                    ON DUPLICATE KEY UPDATE relationship = :rel_upd, is_verified = 1
+                ");
+                $stmt_link->execute([
+                    ':gid' => $guardian_id,
+                    ':sid' => $student['id'],
+                    ':rel' => $relationship,
+                    ':rel_upd' => $relationship
+                ]);
+
+                // 4. Regenerasi ID sesi untuk mencegah fixation & Auto Login
+                session_regenerate_id(true);
+                $_SESSION['guardian_id'] = $guardian_id;
+                $_SESSION['guardian_name'] = $parent_name;
+                $_SESSION['guardian_phone'] = $clean_phone;
+                $_SESSION['guardian_relationship'] = $relationship;
+                $_SESSION['active_student_id'] = (int)$student['id'];
+
+                header("Location: " . portal_url('index.php?first_login=1'));
+                exit;
             }
-
-            // 3. Hubungkan akun wali dengan santri di tabel guardian_students
-            $stmt_link = $conn->prepare("
-                INSERT INTO guardian_students (guardian_id, student_id, relationship, is_primary, is_verified, created_at)
-                VALUES (:gid, :sid, :rel, 1, 1, NOW())
-                ON DUPLICATE KEY UPDATE relationship = :rel_upd, is_verified = 1
-            ");
-            $stmt_link->execute([
-                ':gid' => $guardian_id,
-                ':sid' => $student['id'],
-                ':rel' => $relationship,
-                ':rel_upd' => $relationship
-            ]);
-
-            // 4. Auto Login & Redirect
-            $_SESSION['guardian_id'] = $guardian_id;
-            $_SESSION['guardian_name'] = $parent_name;
-            $_SESSION['guardian_phone'] = $clean_phone;
-            $_SESSION['guardian_relationship'] = $relationship;
-            $_SESSION['active_student_id'] = (int)$student['id'];
-
-            header("Location: " . portal_url('index.php?first_login=1'));
-            exit;
         }
     }
+}
 }
 
 $page_title = "Aktivasi Akun Wali";
@@ -140,6 +140,7 @@ require_once __DIR__ . '/layouts/header.php';
 
     <!-- Form Aktivasi -->
     <form method="POST" action="aktivasi.php" class="space-y-4">
+        <?php echo csrf_field(); ?>
         <!-- Section: Data Santri -->
         <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-3.5">
             <div class="flex items-center gap-2 pb-2 border-b border-slate-100">

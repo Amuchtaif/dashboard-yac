@@ -95,6 +95,20 @@ try {
         $user['can_manage_news'] = hasPermission($user['id'], 'manage_news') ? 1 : 0;
         $user['can_access_kesantrian'] = hasPermission($user['id'], 'can_access_kesantrian') ? 1 : 0;
 
+        // Catat versi aplikasi Flutter jika dikirim saat login
+        $appVer = trim((string)($data->app_version ?? ''));
+        $buildNum = (int)($data->build_number ?? 0);
+        if ($appVer !== '' || $buildNum > 0) {
+            try {
+                $stmtVer = $conn->prepare("UPDATE employees SET app_version = :ver, app_build_number = :build, last_mobile_activity = NOW() WHERE id = :id");
+                $stmtVer->execute([
+                    ':ver' => $appVer ?: null,
+                    ':build' => $buildNum > 0 ? $buildNum : null,
+                    ':id' => $user['id']
+                ]);
+            } catch (\Throwable $e) {}
+        }
+
         if (ob_get_length()) ob_clean();
         echo json_encode([
             "success" => true,

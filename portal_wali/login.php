@@ -12,7 +12,10 @@ $error = '';
 $success = $_GET['success'] ?? '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $phone = trim($_POST['phone'] ?? '');
+    if (!verify_csrf()) {
+        $error = 'Sesi keamanan formulir telah kedaluwarsa. Silakan muat ulang halaman.';
+    } else {
+        $phone = trim($_POST['phone'] ?? '');
     $password = trim($_POST['password'] ?? '');
 
     // Validasi hanya angka pada nomor WA
@@ -46,7 +49,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($guardian['status'] === 'inactive') {
                 $error = 'Akses akun Anda telah dinonaktifkan oleh administrator sekolah. Silakan hubungi bagian Tata Usaha Yayasan Assunnah.';
             } else {
-                // Login Berhasil
+                // Login Berhasil - Regenerasi ID sesi untuk mencegah fixation
+                session_regenerate_id(true);
                 $_SESSION['guardian_id'] = (int)$guardian['id'];
                 $_SESSION['guardian_name'] = $guardian['full_name'];
                 $_SESSION['guardian_phone'] = $guardian['phone_number'];
@@ -69,6 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'Nomor WhatsApp atau kata sandi tidak cocok.';
         }
     }
+    }
 }
 
 $page_title = "Masuk";
@@ -80,7 +85,7 @@ require_once __DIR__ . '/layouts/header.php';
         <!-- Hero Header -->
         <div class="text-center mb-8">
             <div class="w-20 h-20 bg-white rounded-3xl p-3 shadow-md mx-auto mb-4 border border-slate-100 flex items-center justify-center">
-                <img src="../public/images/logo.png" alt="Yayasan Assunnah Cirebon" class="w-full h-full object-contain">
+                <img src="assets/logo.png" alt="Yayasan Assunnah Cirebon" class="w-full h-full object-contain">
             </div>
             <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Portal Wali Santri</h1>
             <p class="text-xs text-slate-500 mt-1 max-w-xs mx-auto">
@@ -105,6 +110,7 @@ require_once __DIR__ . '/layouts/header.php';
 
         <!-- Form Login -->
         <form method="POST" action="login.php" class="space-y-4" onsubmit="return validateLoginForm()">
+            <?php echo csrf_field(); ?>
             <div>
                 <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                     Nomor WhatsApp

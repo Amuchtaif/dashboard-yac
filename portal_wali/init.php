@@ -30,6 +30,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 date_default_timezone_set('Asia/Jakarta');
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../config/csrf.php';
 
 // Base URL helper untuk portal wali
 if (!function_exists('portal_url')) {
@@ -84,7 +85,7 @@ if (!function_exists('get_guardian_children')) {
             LEFT JOIN grade_levels gl ON sch.class_id = gl.id
             LEFT JOIN education_units eu ON gl.education_unit_id = eu.id
             WHERE gs.guardian_id = :guardian_id AND gs.is_verified = 1
-            GROUP BY s.id
+            GROUP BY s.id, gs.relationship, gs.is_primary, gl.name, eu.name
             ORDER BY s.id ASC
         ";
         

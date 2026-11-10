@@ -400,3 +400,38 @@
 [2026-07-15 21:09:25] SUKSES: Token berhasil diupdate untuk User ID 199.
 [2026-07-15 22:36:49] Request Masuk! User ID: '25' | Token: cJ6z-CH6QLuLk3V...
 [2026-07-15 22:36:49] SUKSES: Token berhasil diupdate untuk User ID 25.
+[2026-11-09 12:04:14] Request Masuk! User ID: '40' | Token: cJ6z-CH6QLuLk3V...
+[2026-11-09 12:04:14] SUKSES: Token berhasil diupdate untuk User ID 40.
+[2026-11-09 12:18:36] Request Masuk! User ID: '9' | Token: cJ6z-CH6QLuLk3V...
+[2026-11-09 12:18:36] SUKSES: Token berhasil diupdate untuk User ID 9.
+[2026-11-09 13:53:49] FCM TOPIC ERROR (HTTP 400): {
+  "error": {
+    "code": 400,
+    "message": "Invalid value at 'message.data[2].value' (TYPE_STRING), 1",
+    "status": "INVALID_ARGUMENT",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.BadRequest",
+        "fieldViolations": [
+          {
+            "field": "message.data[2].value",
+            "description": "Invalid value at 'message.data[2].value' (TYPE_STRING), 1"
+          }
+        ]
+      }
+    ]
+  }
+}
+
+[2026-11-09 14:19:28] Request Masuk! User ID: '9' | Token: cJ6z-CH6QLuLk3V...
+[2026-11-09 14:19:28] SUKSES: Token berhasil diupdate untuk User ID 9.
+[2026-11-09 14:19:53] Request Masuk! User ID: '38' | Token: cJ6z-CH6QLuLk3V...
+[2026-11-09 14:19:53] SUKSES: Token berhasil diupdate untuk User ID 38.
+[2026-11-09 14:47:18] Request Masuk! User ID: '40' | Token: cJ6z-CH6QLuLk3V...
+[2026-11-09 14:47:18] SUKSES: Token berhasil diupdate untuk User ID 40.
+[2026-11-09 14:54:26] Request Masuk! User ID: '40' | Token: cJ6z-CH6QLuLk3V...
+[2026-11-09 14:54:26] SUKSES: Token berhasil diupdate untuk User ID 40.
+[2026-11-09 14:55:30] Request Masuk! User ID: '40' | Token: cJ6z-CH6QLuLk3V...
+[2026-11-09 14:55:30] SUKSES: Token berhasil diupdate untuk User ID 40.
+[2026-11-09 14:55:57] Request Masuk! User ID: '40' | Token: cJ6z-CH6QLuLk3V...
+[2026-11-09 14:55:57] SUKSES: Token berhasil diupdate untuk User ID 40.
