@@ -8,6 +8,7 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 
 check_login();
 check_permission('manage_academic');
@@ -245,21 +246,39 @@ $dataStyle = [
 function populateTeacherProgressSheet($sheet, $title, $mainHeading, $teachers, $headerStyle, $dataStyle, $formatted_date_indo, $ay_name) {
     $sheet->setTitle($title);
 
+    // Konfigurasi Halaman: Portrait, A4, Muat 1 Lembar Lebar (Semua Kolom Terlihat)
+    $sheet->getPageSetup()->setOrientation(PageSetup::ORIENTATION_PORTRAIT);
+    $sheet->getPageSetup()->setPaperSize(PageSetup::PAPERSIZE_A4);
+    $sheet->getPageSetup()->setFitToPage(true);
+    $sheet->getPageSetup()->setFitToWidth(1);
+    $sheet->getPageSetup()->setFitToHeight(0);
+
+    // Margin halaman (inci)
+    $sheet->getPageMargins()->setTop(0.5);
+    $sheet->getPageMargins()->setBottom(0.5);
+    $sheet->getPageMargins()->setLeft(0.5);
+    $sheet->getPageMargins()->setRight(0.5);
+
+    // Ulangi baris header (baris 4) pada setiap halaman cetak
+    $sheet->getPageSetup()->setRowsToRepeatAtTopByStartAndEnd(4, 4);
+
+    // Header & Footer Cetak
+    $sheet->getHeaderFooter()->setOddHeader('&C&B&10REKAP BIDANG PENDIDIKAN YAC');
+    $sheet->getHeaderFooter()->setOddFooter('&L&8' . $formatted_date_indo . '&R&8Halaman &P dari &N');
+
     // Title Block
     $sheet->setCellValue('A1', $mainHeading);
-    $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(13)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('0F172A'));
+    $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(12)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('0F172A'));
     $sheet->setCellValue('A2', 'Tanggal: ' . $formatted_date_indo . ' | Tahun Ajaran: ' . $ay_name);
-    $sheet->getStyle('A2')->getFont()->setSize(10)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('64748B'));
+    $sheet->getStyle('A2')->getFont()->setSize(9.5)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('64748B'));
 
-    // Headers
+    // Headers (Kolom diefisienkan: kolom rincian sesi dihapus agar rapi & proporsional)
     $headers = [
         'No',
         'Nama Guru',
         'Unit',
         'Status Presensi',
-        'Progress Absensi per Sesi',
-        'Sesi yang Sudah Diabsen',
-        'Sesi yang Belum Diabsen'
+        'Progres Absensi'
     ];
 
     $col = 'A';
@@ -267,7 +286,7 @@ function populateTeacherProgressSheet($sheet, $title, $mainHeading, $teachers, $
         $sheet->setCellValue($col . '4', $h);
         $col++;
     }
-    $sheet->getStyle('A4:G4')->applyFromArray($headerStyle);
+    $sheet->getStyle('A4:E4')->applyFromArray($headerStyle);
     $sheet->getRowDimension('4')->setRowHeight(26);
 
     $rowNum = 5;
@@ -275,8 +294,8 @@ function populateTeacherProgressSheet($sheet, $title, $mainHeading, $teachers, $
 
     if (empty($teachers)) {
         $sheet->setCellValue('A5', 'Tidak ada data guru untuk kriteria ini.');
-        $sheet->mergeCells('A5:G5');
-        $sheet->getStyle('A5:G5')->applyFromArray($dataStyle);
+        $sheet->mergeCells('A5:E5');
+        $sheet->getStyle('A5:E5')->applyFromArray($dataStyle);
         $sheet->getStyle('A5')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         $rowNum = 6;
     } else {
@@ -296,42 +315,18 @@ function populateTeacherProgressSheet($sheet, $title, $mainHeading, $teachers, $
             $pct = $t['total_sessions'] > 0 ? round(($t['sessions_with_attendance'] / $t['total_sessions']) * 100) : 0;
             $progressText = $t['sessions_with_attendance'] . ' / ' . $t['total_sessions'] . ' Sesi (' . $pct . '%)';
 
-            // Sesi yang sudah
-            if (!empty($t['sessions_attended'])) {
-                $linesSudah = [];
-                foreach ($t['sessions_attended'] as $idx => $s) {
-                    $linesSudah[] = ($idx + 1) . ". " . $s['class_name'] . " - " . $s['subject_name'] . " (" . $s['time_str'] . " / " . $s['period_label'] . ") [" . $s['student_stat'] . "]";
-                }
-                $sesiSudahStr = implode("\n", $linesSudah);
-            } else {
-                $sesiSudahStr = "Belum ada sesi yang diabsen";
-            }
-
-            // Sesi yang belum
-            if (!empty($t['sessions_pending'])) {
-                $linesBelum = [];
-                foreach ($t['sessions_pending'] as $idx => $s) {
-                    $linesBelum[] = ($idx + 1) . ". " . $s['class_name'] . " - " . $s['subject_name'] . " (" . $s['time_str'] . " / " . $s['period_label'] . ", " . $s['unit_name'] . ")";
-                }
-                $sesiBelumStr = implode("\n", $linesBelum);
-            } else {
-                $sesiBelumStr = "Semua sesi telah diabsen (Lengkap)";
-            }
-
             $sheet->setCellValue('A' . $rowNum, $no++);
             $sheet->setCellValue('B' . $rowNum, $t['teacher_name']);
             $sheet->setCellValue('C' . $rowNum, implode(', ', $t['units']));
             $sheet->setCellValue('D' . $rowNum, $statusText);
             $sheet->setCellValue('E' . $rowNum, $progressText);
-            $sheet->setCellValue('F' . $rowNum, $sesiSudahStr);
-            $sheet->setCellValue('G' . $rowNum, $sesiBelumStr);
 
-            $sheet->getStyle('A' . $rowNum . ':G' . $rowNum)->applyFromArray($dataStyle);
+            $sheet->getStyle('A' . $rowNum . ':E' . $rowNum)->applyFromArray($dataStyle);
             $sheet->getStyle('A' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle('D' . $rowNum . ':E' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle('F' . $rowNum . ':G' . $rowNum)->getAlignment()->setWrapText(true);
+            $sheet->getStyle('C' . $rowNum . ':E' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getRowDimension($rowNum)->setRowHeight(20);
 
-            // Subtle highlight on status
+            // Highlight warna status
             if ($isComplete) {
                 $sheet->getStyle('D' . $rowNum)->getFont()->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('047857')); // Emerald
             } elseif ($isNone) {
@@ -344,14 +339,12 @@ function populateTeacherProgressSheet($sheet, $title, $mainHeading, $teachers, $
         }
     }
 
-    // Set Column Dimensions
+    // Lebar Kolom Proporsional untuk A4 Portrait
     $sheet->getColumnDimension('A')->setWidth(6);
-    $sheet->getColumnDimension('B')->setWidth(30);
-    $sheet->getColumnDimension('C')->setWidth(18);
-    $sheet->getColumnDimension('D')->setWidth(26);
-    $sheet->getColumnDimension('E')->setWidth(26);
-    $sheet->getColumnDimension('F')->setWidth(56);
-    $sheet->getColumnDimension('G')->setWidth(52);
+    $sheet->getColumnDimension('B')->setWidth(34);
+    $sheet->getColumnDimension('C')->setWidth(20);
+    $sheet->getColumnDimension('D')->setWidth(24);
+    $sheet->getColumnDimension('E')->setWidth(22);
 }
 
 // -------------------------------------------------------------
@@ -361,7 +354,7 @@ $sheet1 = $spreadsheet->getActiveSheet();
 populateTeacherProgressSheet(
     $sheet1,
     'Semua Guru',
-    'REKAP PROGRES ABSENSI MENGAJAR GURU (SEMUA GURU TERJADWAL)',
+    'REKAP ABSENSI GURU MENGAJAR - BIDANG PENDIDIKAN YAC',
     $teacher_summaries,
     $headerStyle,
     $dataStyle,
@@ -383,7 +376,7 @@ $sheet2 = $spreadsheet->createSheet();
 populateTeacherProgressSheet(
     $sheet2,
     'Belum Lengkap',
-    'DAFTAR GURU YANG BELUM LENGKAP MENGISI ABSENSI KELAS',
+    'REKAP ABSENSI GURU MENGAJAR BIDANG PENDIDIKAN YAC - GURU BELUM LENGKAP ABSENSI',
     $teachers_pending,
     $headerStyleRose,
     $dataStyle,
@@ -405,7 +398,7 @@ $sheet3 = $spreadsheet->createSheet();
 populateTeacherProgressSheet(
     $sheet3,
     'Sudah Lengkap',
-    'DAFTAR GURU YANG SUDAH LENGKAP MENGISI ABSENSI KELAS',
+    'REKAP ABSENSI GURU MENGAJAR BIDANG PENDIDIKAN YAC - GURU SUDAH LENGKAP ABSENSI',
     $teachers_completed,
     $headerStyleEmerald,
     $dataStyle,

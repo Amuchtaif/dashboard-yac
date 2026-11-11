@@ -420,7 +420,7 @@ include '../layouts/header.php';
             <div class="min-w-0 flex-1">
                 <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Rekap Presensi Guru</h1>
                 <p class="text-slate-500 text-sm mt-1">
-                    Monitoring input absensi siswa dan jurnal kelas bagi guru yang terjadwal mengajar.
+                    Pantau absensi siswa dan jurnal kelas guru yang terjadwal hari ini.
                 </p>
             </div>
 
@@ -428,20 +428,21 @@ include '../layouts/header.php';
             <div class="mt-4 sm:mt-0 flex items-center gap-2.5 flex-wrap">
                 <a href="<?php echo htmlspecialchars($export_progress_url); ?>"
                    class="inline-flex items-center justify-center rounded-lg border border-emerald-600 bg-emerald-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700 transition-colors"
-                   title="Download Excel rekap daftar nama guru yang sudah & belum absen beserta rincian sesi">
+                   title="Unduh rekap progres guru Bidang Pendidikan YAC (Excel portrait)">
                     <i class="fa-solid fa-file-excel mr-2"></i>
                     Export Progres Guru
                 </a>
 
                 <a href="<?php echo htmlspecialchars($export_url); ?>"
                    class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition-colors"
-                   title="Export seluruh rincian sesi ke Excel">
+                   title="Unduh seluruh rincian sesi ke Excel">
                     <i class="fa-solid fa-file-excel mr-2 text-slate-500"></i>
                     Export Detail Sesi
                 </a>
 
                 <a href="<?php echo htmlspecialchars($print_url); ?>" target="_blank"
-                   class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition-colors">
+                   class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition-colors"
+                   title="Cetak rekap presensi">
                     <i class="fa-solid fa-print mr-2 text-slate-500"></i>
                     Cetak Rekap
                 </a>
@@ -453,37 +454,27 @@ include '../layouts/header.php';
     <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3.5 mb-6">
         <!-- 1. Guru Terjadwal -->
         <a href="?<?php echo http_build_query(array_merge($_GET, ['tab' => 'summary'])); ?>"
-           class="group relative overflow-hidden bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between hover:border-slate-300 hover:shadow-lg hover:shadow-slate-200/60 hover:-translate-y-1 transition-all duration-300 ease-out cursor-pointer">
-            <div class="absolute -right-3 -bottom-3 text-7xl text-slate-800/[0.05] group-hover:text-slate-800/[0.12] transform group-hover:scale-115 group-hover:-rotate-6 group-hover:-translate-x-1 group-hover:-translate-y-1 transition-all duration-300 ease-out pointer-events-none select-none">
+           class="group relative overflow-hidden bg-white p-4 rounded-xl border border-slate-200 shadow-2xs hover:border-slate-300 hover:bg-slate-50/50 transition-colors flex flex-col justify-between">
+            <div class="absolute -right-2 -bottom-2 text-6xl text-slate-800/[0.05] group-hover:text-slate-800/[0.09] transition-colors pointer-events-none select-none">
                 <i class="fa-solid fa-chalkboard-user"></i>
             </div>
-            <div class="relative z-10 flex items-center justify-between">
-                <span class="text-xs font-medium text-slate-500 group-hover:text-slate-800 transition-colors">Guru Terjadwal</span>
-                <span class="p-2 rounded-lg bg-slate-100 text-slate-600 text-xs transition-transform duration-300 group-hover:scale-110">
-                    <i class="fa-solid fa-chalkboard-user"></i>
-                </span>
-            </div>
-            <div class="relative z-10 mt-3">
-                <div class="text-2xl font-bold text-slate-900 group-hover:text-slate-950 transition-colors"><?php echo number_format($count_unique_teachers); ?></div>
-                <div class="text-[11px] text-slate-400 mt-0.5">Total guru hari ini</div>
+            <div class="relative z-10">
+                <span class="text-xs font-medium text-slate-500 block">Guru Terjadwal</span>
+                <div class="text-2xl font-bold text-slate-900 mt-2"><?php echo number_format($count_unique_teachers); ?></div>
+                <div class="text-xs text-slate-400 mt-0.5">Total guru hari ini</div>
             </div>
         </a>
 
         <!-- 2. Guru Sudah Absen -->
         <a href="?<?php echo http_build_query(array_merge($_GET, ['tab' => 'already_attended'])); ?>"
-           class="group relative overflow-hidden bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between hover:border-emerald-300 hover:shadow-lg hover:shadow-emerald-500/10 hover:-translate-y-1 transition-all duration-300 ease-out cursor-pointer">
-            <div class="absolute -right-3 -bottom-3 text-7xl text-emerald-600/[0.06] group-hover:text-emerald-600/[0.16] transform group-hover:scale-115 group-hover:-rotate-6 group-hover:-translate-x-1 group-hover:-translate-y-1 transition-all duration-300 ease-out pointer-events-none select-none">
+           class="group relative overflow-hidden bg-white p-4 rounded-xl border border-slate-200 shadow-2xs hover:border-emerald-200 hover:bg-slate-50/50 transition-colors flex flex-col justify-between">
+            <div class="absolute -right-2 -bottom-2 text-6xl text-emerald-600/[0.07] group-hover:text-emerald-600/[0.12] transition-colors pointer-events-none select-none">
                 <i class="fa-solid fa-user-check"></i>
             </div>
-            <div class="relative z-10 flex items-center justify-between">
-                <span class="text-xs font-medium text-slate-500 group-hover:text-emerald-700 transition-colors">Guru Sudah Absen</span>
-                <span class="p-2 rounded-lg bg-emerald-50 text-emerald-600 text-xs transition-transform duration-300 group-hover:scale-110">
-                    <i class="fa-solid fa-user-check"></i>
-                </span>
-            </div>
-            <div class="relative z-10 mt-3">
-                <div class="text-2xl font-bold text-emerald-600"><?php echo number_format($count_teachers_attended); ?></div>
-                <div class="text-[11px] text-slate-400 mt-0.5">
+            <div class="relative z-10">
+                <span class="text-xs font-medium text-slate-500 block">Sudah Absen</span>
+                <div class="text-2xl font-bold text-emerald-600 mt-2"><?php echo number_format($count_teachers_attended); ?></div>
+                <div class="text-xs text-slate-400 mt-0.5">
                     <?php echo $count_teachers_complete_att; ?> selesai, <?php echo $count_teachers_partial_att; ?> sebagian
                 </div>
             </div>
@@ -491,111 +482,79 @@ include '../layouts/header.php';
 
         <!-- 3. Tidak Sama Sekali Absen Kelas -->
         <a href="?<?php echo http_build_query(array_merge($_GET, ['tab' => 'not_attended', 'filter_att' => 'zero'])); ?>"
-           class="group relative overflow-hidden bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between hover:border-rose-300 hover:shadow-lg hover:shadow-rose-500/10 hover:-translate-y-1 transition-all duration-300 ease-out cursor-pointer">
-            <div class="absolute -right-3 -bottom-3 text-7xl text-rose-600/[0.06] group-hover:text-rose-600/[0.16] transform group-hover:scale-115 group-hover:-rotate-6 group-hover:-translate-x-1 group-hover:-translate-y-1 transition-all duration-300 ease-out pointer-events-none select-none">
+           class="group relative overflow-hidden bg-white p-4 rounded-xl border border-slate-200 shadow-2xs hover:border-rose-200 hover:bg-slate-50/50 transition-colors flex flex-col justify-between">
+            <div class="absolute -right-2 -bottom-2 text-6xl text-rose-600/[0.07] group-hover:text-rose-600/[0.12] transition-colors pointer-events-none select-none">
                 <i class="fa-solid fa-user-xmark"></i>
             </div>
-            <div class="relative z-10 flex items-center justify-between">
-                <span class="text-xs font-medium text-slate-500 group-hover:text-rose-700 transition-colors">Tidak Absen Sama Sekali</span>
-                <span class="p-2 rounded-lg bg-rose-50 text-rose-600 text-xs transition-transform duration-300 group-hover:scale-110">
-                    <i class="fa-solid fa-user-xmark"></i>
-                </span>
-            </div>
-            <div class="relative z-10 mt-3">
-                <div class="text-2xl font-bold text-rose-600"><?php echo number_format($count_teachers_zero_attended); ?></div>
-                <div class="text-[11px] text-slate-400 mt-0.5">0 sesi diabsen hari ini</div>
+            <div class="relative z-10">
+                <span class="text-xs font-medium text-slate-500 block">Belum Absen Sama Sekali</span>
+                <div class="text-2xl font-bold text-rose-600 mt-2"><?php echo number_format($count_teachers_zero_attended); ?></div>
+                <div class="text-xs text-slate-400 mt-0.5">0 sesi diabsen</div>
             </div>
         </a>
 
         <!-- 4. Tingkat Kepatuhan Sesi -->
         <a href="?<?php echo http_build_query(array_merge($_GET, ['tab' => 'schedules'])); ?>"
-           class="group relative overflow-hidden bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between hover:border-cyan-300 hover:shadow-lg hover:shadow-cyan-500/10 hover:-translate-y-1 transition-all duration-300 ease-out cursor-pointer">
-            <div class="absolute -right-3 -bottom-3 text-7xl text-cyan-600/[0.06] group-hover:text-cyan-600/[0.16] transform group-hover:scale-115 group-hover:-rotate-6 group-hover:-translate-x-1 group-hover:-translate-y-1 transition-all duration-300 ease-out pointer-events-none select-none">
+           class="group relative overflow-hidden bg-white p-4 rounded-xl border border-slate-200 shadow-2xs hover:border-cyan-200 hover:bg-slate-50/50 transition-colors flex flex-col justify-between">
+            <div class="absolute -right-2 -bottom-2 text-6xl text-cyan-600/[0.07] group-hover:text-cyan-600/[0.12] transition-colors pointer-events-none select-none">
                 <i class="fa-solid fa-chart-pie"></i>
             </div>
-            <div class="relative z-10 flex items-center justify-between">
-                <span class="text-xs font-medium text-slate-500 group-hover:text-cyan-700 transition-colors">Kepatuhan Sesi</span>
-                <span class="p-2 rounded-lg bg-cyan-50 text-cyan-600 text-xs transition-transform duration-300 group-hover:scale-110">
-                    <i class="fa-solid fa-chart-pie"></i>
-                </span>
-            </div>
-            <div class="relative z-10 mt-3">
-                <div class="text-2xl font-bold text-slate-900 group-hover:text-cyan-800 transition-colors"><?php echo $compliance_rate; ?>%</div>
-                <div class="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden">
-                    <div class="bg-cyan-600 h-full rounded-full transition-all duration-500 group-hover:bg-cyan-500" style="width: <?php echo $compliance_rate; ?>%;"></div>
-                </div>
+            <div class="relative z-10">
+                <span class="text-xs font-medium text-slate-500 block">Kepatuhan Sesi</span>
+                <div class="text-2xl font-bold text-cyan-700 mt-2"><?php echo $compliance_rate; ?>%</div>
+                <div class="text-xs text-slate-400 mt-0.5">Persentase sesi selesai</div>
             </div>
         </a>
 
         <!-- 5. Total Sesi / Jam -->
         <a href="?<?php echo http_build_query(array_merge($_GET, ['tab' => 'schedules'])); ?>"
-           class="group relative overflow-hidden bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between hover:border-blue-300 hover:shadow-lg hover:shadow-blue-500/10 hover:-translate-y-1 transition-all duration-300 ease-out cursor-pointer">
-            <div class="absolute -right-3 -bottom-3 text-7xl text-blue-600/[0.06] group-hover:text-blue-600/[0.16] transform group-hover:scale-115 group-hover:-rotate-6 group-hover:-translate-x-1 group-hover:-translate-y-1 transition-all duration-300 ease-out pointer-events-none select-none">
+           class="group relative overflow-hidden bg-white p-4 rounded-xl border border-slate-200 shadow-2xs hover:border-blue-200 hover:bg-slate-50/50 transition-colors flex flex-col justify-between">
+            <div class="absolute -right-2 -bottom-2 text-6xl text-blue-600/[0.07] group-hover:text-blue-600/[0.12] transition-colors pointer-events-none select-none">
                 <i class="fa-solid fa-clock"></i>
             </div>
-            <div class="relative z-10 flex items-center justify-between">
-                <span class="text-xs font-medium text-slate-500 group-hover:text-blue-700 transition-colors">Total Sesi</span>
-                <span class="p-2 rounded-lg bg-blue-50 text-blue-600 text-xs transition-transform duration-300 group-hover:scale-110">
-                    <i class="fa-solid fa-clock"></i>
-                </span>
-            </div>
-            <div class="relative z-10 mt-3">
-                <div class="text-2xl font-bold text-slate-900 group-hover:text-blue-900 transition-colors"><?php echo number_format($total_schedules_all); ?></div>
-                <div class="text-[11px] text-slate-400 mt-0.5">Slot pelajaran</div>
+            <div class="relative z-10">
+                <span class="text-xs font-medium text-slate-500 block">Total Sesi</span>
+                <div class="text-2xl font-bold text-slate-900 mt-2"><?php echo number_format($total_schedules_all); ?></div>
+                <div class="text-xs text-slate-400 mt-0.5">Slot pelajaran</div>
             </div>
         </a>
 
         <!-- 6. Sesi Lengkap -->
         <a href="?<?php echo http_build_query(array_merge($_GET, ['tab' => 'schedules', 'status' => 'complete'])); ?>"
-           class="group relative overflow-hidden bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between hover:border-emerald-300 hover:shadow-lg hover:shadow-emerald-500/10 hover:-translate-y-1 transition-all duration-300 ease-out cursor-pointer">
-            <div class="absolute -right-3 -bottom-3 text-7xl text-emerald-600/[0.06] group-hover:text-emerald-600/[0.16] transform group-hover:scale-115 group-hover:-rotate-6 group-hover:-translate-x-1 group-hover:-translate-y-1 transition-all duration-300 ease-out pointer-events-none select-none">
+           class="group relative overflow-hidden bg-white p-4 rounded-xl border border-slate-200 shadow-2xs hover:border-emerald-200 hover:bg-slate-50/50 transition-colors flex flex-col justify-between">
+            <div class="absolute -right-2 -bottom-2 text-6xl text-emerald-600/[0.07] group-hover:text-emerald-600/[0.12] transition-colors pointer-events-none select-none">
                 <i class="fa-solid fa-circle-check"></i>
             </div>
-            <div class="relative z-10 flex items-center justify-between">
-                <span class="text-xs font-medium text-slate-500 group-hover:text-emerald-700 transition-colors">Sesi Lengkap</span>
-                <span class="p-2 rounded-lg bg-emerald-50 text-emerald-600 text-xs transition-transform duration-300 group-hover:scale-110">
-                    <i class="fa-solid fa-circle-check"></i>
-                </span>
-            </div>
-            <div class="relative z-10 mt-3">
-                <div class="text-2xl font-bold text-emerald-600"><?php echo number_format($total_completed_all); ?></div>
-                <div class="text-[11px] text-slate-400 mt-0.5">Absen & Jurnal OK</div>
+            <div class="relative z-10">
+                <span class="text-xs font-medium text-slate-500 block">Sesi Lengkap</span>
+                <div class="text-2xl font-bold text-emerald-600 mt-2"><?php echo number_format($total_completed_all); ?></div>
+                <div class="text-xs text-slate-400 mt-0.5">Absen & jurnal terisi</div>
             </div>
         </a>
 
         <!-- 7. Sesi Belum Absen -->
         <a href="?<?php echo http_build_query(array_merge($_GET, ['tab' => 'schedules', 'status' => 'no_attendance'])); ?>"
-           class="group relative overflow-hidden bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between hover:border-amber-300 hover:shadow-lg hover:shadow-amber-500/10 hover:-translate-y-1 transition-all duration-300 ease-out cursor-pointer">
-            <div class="absolute -right-3 -bottom-3 text-7xl text-amber-600/[0.06] group-hover:text-amber-600/[0.16] transform group-hover:scale-115 group-hover:-rotate-6 group-hover:-translate-x-1 group-hover:-translate-y-1 transition-all duration-300 ease-out pointer-events-none select-none">
+           class="group relative overflow-hidden bg-white p-4 rounded-xl border border-slate-200 shadow-2xs hover:border-amber-200 hover:bg-slate-50/50 transition-colors flex flex-col justify-between">
+            <div class="absolute -right-2 -bottom-2 text-6xl text-amber-600/[0.07] group-hover:text-amber-600/[0.12] transition-colors pointer-events-none select-none">
                 <i class="fa-solid fa-clipboard-user"></i>
             </div>
-            <div class="relative z-10 flex items-center justify-between">
-                <span class="text-xs font-medium text-slate-500 group-hover:text-amber-700 transition-colors">Sesi Belum Absen</span>
-                <span class="p-2 rounded-lg bg-amber-50 text-amber-600 text-xs transition-transform duration-300 group-hover:scale-110">
-                    <i class="fa-solid fa-clipboard-user"></i>
-                </span>
-            </div>
-            <div class="relative z-10 mt-3">
-                <div class="text-2xl font-bold text-amber-600"><?php echo number_format($total_no_att_all); ?></div>
-                <div class="text-[11px] text-slate-400 mt-0.5">Siswa belum diabsen</div>
+            <div class="relative z-10">
+                <span class="text-xs font-medium text-slate-500 block">Sesi Belum Absen</span>
+                <div class="text-2xl font-bold text-amber-600 mt-2"><?php echo number_format($total_no_att_all); ?></div>
+                <div class="text-xs text-slate-400 mt-0.5">Belum absen siswa</div>
             </div>
         </a>
 
         <!-- 8. Sesi Belum Jurnal -->
         <a href="?<?php echo http_build_query(array_merge($_GET, ['tab' => 'schedules', 'status' => 'no_journal'])); ?>"
-           class="group relative overflow-hidden bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between hover:border-rose-300 hover:shadow-lg hover:shadow-rose-500/10 hover:-translate-y-1 transition-all duration-300 ease-out cursor-pointer">
-            <div class="absolute -right-3 -bottom-3 text-7xl text-rose-600/[0.06] group-hover:text-rose-600/[0.16] transform group-hover:scale-115 group-hover:-rotate-6 group-hover:-translate-x-1 group-hover:-translate-y-1 transition-all duration-300 ease-out pointer-events-none select-none">
+           class="group relative overflow-hidden bg-white p-4 rounded-xl border border-slate-200 shadow-2xs hover:border-rose-200 hover:bg-slate-50/50 transition-colors flex flex-col justify-between">
+            <div class="absolute -right-2 -bottom-2 text-6xl text-rose-600/[0.07] group-hover:text-rose-600/[0.12] transition-colors pointer-events-none select-none">
                 <i class="fa-solid fa-book"></i>
             </div>
-            <div class="relative z-10 flex items-center justify-between">
-                <span class="text-xs font-medium text-slate-500 group-hover:text-rose-700 transition-colors">Sesi Belum Jurnal</span>
-                <span class="p-2 rounded-lg bg-rose-50 text-rose-600 text-xs transition-transform duration-300 group-hover:scale-110">
-                    <i class="fa-solid fa-book"></i>
-                </span>
-            </div>
-            <div class="relative z-10 mt-3">
-                <div class="text-2xl font-bold text-rose-600"><?php echo number_format($total_no_journal_all); ?></div>
-                <div class="text-[11px] text-slate-400 mt-0.5">Materi belum diisi</div>
+            <div class="relative z-10">
+                <span class="text-xs font-medium text-slate-500 block">Sesi Belum Jurnal</span>
+                <div class="text-2xl font-bold text-rose-600 mt-2"><?php echo number_format($total_no_journal_all); ?></div>
+                <div class="text-xs text-slate-400 mt-0.5">Jurnal belum diisi</div>
             </div>
         </a>
     </div>
@@ -610,7 +569,7 @@ include '../layouts/header.php';
                 <div class="lg:col-span-2">
                     <div class="flex items-center justify-between mb-1">
                         <label for="dateInput" class="block text-xs font-semibold text-slate-600">
-                            Tanggal Pantau
+                            Tanggal
                         </label>
                         <div class="flex items-center gap-1">
                             <button type="button" onclick="setDateAndSubmit('<?php echo date('Y-m-d'); ?>')"
@@ -644,7 +603,7 @@ include '../layouts/header.php';
 
                 <!-- Education Unit Filter -->
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Unit Pendidikan</label>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Unit Sekolah</label>
                     <select name="unit_id" onchange="document.getElementById('filterForm').submit()"
                             class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-cyan-600 focus:border-cyan-600 shadow-sm h-9">
                         <option value="">Semua Unit</option>
@@ -658,7 +617,7 @@ include '../layouts/header.php';
 
                 <!-- Status Filter -->
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Status Input</label>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Status</label>
                     <select name="status" onchange="document.getElementById('filterForm').submit()"
                             class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-cyan-600 focus:border-cyan-600 shadow-sm h-9">
                         <option value="" <?php echo $status_filter === '' ? 'selected' : ''; ?>>Semua Status</option>
@@ -674,13 +633,13 @@ include '../layouts/header.php';
                 <div class="flex items-center gap-2">
                     <div class="relative flex-1">
                         <input type="text" name="search" value="<?php echo htmlspecialchars($search); ?>"
-                               placeholder="Cari guru / mapel..."
+                               placeholder="Cari guru atau mata pelajaran..."
                                class="block w-full rounded-lg border border-slate-300 bg-white pl-8 pr-3 py-2 text-xs text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-cyan-600 focus:border-cyan-600 shadow-sm h-9">
                         <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
                     </div>
 
                     <a href="index.php?date=<?php echo htmlspecialchars($date); ?>&tab=<?php echo htmlspecialchars($tab); ?>"
-                       title="Reset Filter"
+                       title="Reset filter"
                        class="inline-flex items-center justify-center h-9 w-9 rounded-lg border border-slate-300 bg-white text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-colors shadow-sm flex-shrink-0">
                         <i class="fa-solid fa-rotate-left text-xs"></i>
                     </a>
@@ -692,37 +651,37 @@ include '../layouts/header.php';
     <!-- Tabs Navigation -->
     <div class="border-b border-slate-200 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <nav class="flex space-x-6 -mb-px overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="Tabs">
-            <!-- 1. Rekap Per Guru -->
+            <!-- 1. Rekap Guru -->
             <a href="?<?php echo http_build_query(array_merge($_GET, ['tab' => 'summary'])); ?>"
                class="<?php echo $tab === 'summary' ? 'border-cyan-600 text-cyan-600 font-semibold' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 font-medium'; ?> whitespace-nowrap py-3 px-1 border-b-2 text-sm flex items-center gap-2">
-                <span>Rekap Per Guru</span>
+                <span>Rekap Guru</span>
                 <span class="<?php echo $tab === 'summary' ? 'bg-cyan-50 text-cyan-700 font-semibold' : 'bg-slate-100 text-slate-600'; ?> py-0.5 px-2 rounded-full text-xs">
                     <?php echo count($filtered_teacher_summaries); ?>
                 </span>
             </a>
 
-            <!-- 2. Rincian Sesi Mengajar -->
+            <!-- 2. Rincian Sesi -->
             <a href="?<?php echo http_build_query(array_merge($_GET, ['tab' => 'schedules'])); ?>"
                class="<?php echo $tab === 'schedules' ? 'border-cyan-600 text-cyan-600 font-semibold' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 font-medium'; ?> whitespace-nowrap py-3 px-1 border-b-2 text-sm flex items-center gap-2">
-                <span>Rincian Sesi Mengajar</span>
+                <span>Rincian Sesi</span>
                 <span class="<?php echo $tab === 'schedules' ? 'bg-cyan-50 text-cyan-700 font-semibold' : 'bg-slate-100 text-slate-600'; ?> py-0.5 px-2 rounded-full text-xs">
                     <?php echo count($processed_schedules); ?>
                 </span>
             </a>
 
-            <!-- 3. Guru Sudah Absensi Kelas -->
+            <!-- 3. Sudah Absen -->
             <a href="?<?php echo http_build_query(array_merge($_GET, ['tab' => 'already_attended'])); ?>"
                class="<?php echo $tab === 'already_attended' ? 'border-emerald-600 text-emerald-700 font-semibold' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 font-medium'; ?> whitespace-nowrap py-3 px-1 border-b-2 text-sm flex items-center gap-2">
-                <span>Sudah Absensi Kelas</span>
+                <span>Sudah Absen</span>
                 <span class="<?php echo $tab === 'already_attended' ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'bg-slate-100 text-slate-600'; ?> py-0.5 px-2 rounded-full text-xs">
                     <?php echo count($teachers_attended); ?>
                 </span>
             </a>
 
-            <!-- 4. Guru Belum Mengisi Absensi -->
+            <!-- 4. Belum Absen -->
             <a href="?<?php echo http_build_query(array_merge($_GET, ['tab' => 'not_attended'])); ?>"
                class="<?php echo $tab === 'not_attended' ? 'border-rose-600 text-rose-700 font-semibold' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 font-medium'; ?> whitespace-nowrap py-3 px-1 border-b-2 text-sm flex items-center gap-2">
-                <span>Belum Absensi Kelas</span>
+                <span>Belum Absen</span>
                 <span class="<?php echo $tab === 'not_attended' ? 'bg-rose-50 text-rose-700 font-semibold' : 'bg-slate-100 text-slate-600'; ?> py-0.5 px-2 rounded-full text-xs">
                     <?php echo count($teachers_not_attended); ?>
                 </span>
@@ -741,12 +700,12 @@ include '../layouts/header.php';
                 <table class="w-full text-left border-collapse">
                     <thead class="bg-slate-50/80 border-b border-slate-200">
                         <tr class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                            <th class="py-3.5 pl-6 pr-4">Guru Pengajar</th>
-                            <th class="py-3.5 px-4">Unit / Sekolah</th>
-                            <th class="py-3.5 px-4 text-center">Presensi Pegawai</th>
-                            <th class="py-3.5 px-4 text-center">Total Jadwal</th>
+                            <th class="py-3.5 pl-6 pr-4">Guru</th>
+                            <th class="py-3.5 px-4">Unit</th>
+                            <th class="py-3.5 px-4 text-center">Presensi Masuk</th>
+                            <th class="py-3.5 px-4 text-center">Total Sesi</th>
                             <th class="py-3.5 px-4 text-center">Absen Siswa</th>
-                            <th class="py-3.5 px-4 text-center">Jurnal Kelas</th>
+                            <th class="py-3.5 px-4 text-center">Jurnal</th>
                             <th class="py-3.5 px-4 text-center">Status</th>
                             <th class="py-3.5 pr-6 pl-4 text-right">Aksi</th>
                         </tr>
@@ -758,7 +717,7 @@ include '../layouts/header.php';
                                     <div class="max-w-xs mx-auto text-center space-y-1">
                                         <i class="fa-solid fa-inbox text-slate-300 text-2xl mb-1"></i>
                                         <p class="font-semibold text-slate-700">Tidak ada jadwal mengajar</p>
-                                        <p class="text-[11px] text-slate-400">Tidak ditemukan jadwal guru pada tanggal dan filter yang dipilih.</p>
+                                        <p class="text-[11px] text-slate-400">Tidak ada jadwal guru untuk tanggal atau filter ini.</p>
                                     </div>
                                 </td>
                             </tr>
@@ -886,12 +845,12 @@ include '../layouts/header.php';
                 <table class="w-full text-left border-collapse">
                     <thead class="bg-slate-50/80 border-b border-slate-200">
                         <tr class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                            <th class="py-3.5 pl-6 pr-3 min-w-[130px]">Waktu & Jam</th>
-                            <th class="py-3.5 px-3 min-w-[140px]">Unit & Kelas</th>
+                            <th class="py-3.5 pl-6 pr-3 min-w-[130px]">Jam & Sesi</th>
+                            <th class="py-3.5 px-3 min-w-[140px]">Kelas & Unit</th>
                             <th class="py-3.5 px-3 min-w-[180px]">Mata Pelajaran</th>
-                            <th class="py-3.5 px-3 min-w-[200px]">Guru Pengajar</th>
-                            <th class="py-3.5 px-3 text-center min-w-[150px]">Absensi Siswa</th>
-                            <th class="py-3.5 px-3 min-w-[200px]">Jurnal Kelas</th>
+                            <th class="py-3.5 px-3 min-w-[200px]">Guru</th>
+                            <th class="py-3.5 px-3 text-center min-w-[150px]">Absen Siswa</th>
+                            <th class="py-3.5 px-3 min-w-[200px]">Jurnal</th>
                             <th class="py-3.5 px-3 text-center min-w-[110px]">Status</th>
                             <th class="py-3.5 pr-6 pl-3 text-right min-w-[70px]">Aksi</th>
                         </tr>
@@ -902,8 +861,8 @@ include '../layouts/header.php';
                                 <td colspan="8" class="py-12 text-center">
                                     <div class="max-w-xs mx-auto text-center space-y-1">
                                         <i class="fa-solid fa-calendar-xmark text-slate-300 text-2xl mb-1"></i>
-                                        <p class="font-semibold text-slate-700">Tidak ada sesi pelajaran</p>
-                                        <p class="text-[11px] text-slate-400">Tidak ditemukan jadwal untuk hari dan kriteria filter ini.</p>
+                                        <p class="font-semibold text-slate-700">Tidak ada jadwal mengajar</p>
+                                        <p class="text-[11px] text-slate-400">Tidak ada jadwal mengajar untuk tanggal atau filter ini.</p>
                                     </div>
                                 </td>
                             </tr>
@@ -956,7 +915,7 @@ include '../layouts/header.php';
                                     <?php if ($s['has_attendance']): ?>
                                         <div>
                                             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                                Sudah Absen (<?php echo $s['total_students']; ?>)
+                                                Sudah Absen (<?php echo $s['total_students']; ?> siswa)
                                             </span>
                                             <div class="text-[10px] text-slate-500 mt-1">
                                                 H:<?php echo (int)$s['count_present']; ?> | S:<?php echo (int)$s['count_sick']; ?> | I:<?php echo (int)$s['count_permit']; ?> | A:<?php echo (int)$s['count_absent']; ?>
@@ -964,7 +923,7 @@ include '../layouts/header.php';
                                         </div>
                                     <?php else: ?>
                                         <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-rose-50 text-rose-700 border border-rose-200">
-                                            Belum Diabsen
+                                            Belum Absen
                                         </span>
                                     <?php endif; ?>
                                 </td>
@@ -974,7 +933,7 @@ include '../layouts/header.php';
                                     <?php if ($s['has_journal']): ?>
                                         <div class="space-y-0.5">
                                             <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                                Sudah Jurnal
+                                                Jurnal Terisi
                                             </span>
                                             <p class="text-xs text-slate-700 line-clamp-1" title="<?php echo htmlspecialchars($s['journal_topic']); ?>">
                                                 <?php echo htmlspecialchars($s['journal_topic'] ?: '-'); ?>
@@ -1013,7 +972,7 @@ include '../layouts/header.php';
                                     <button type="button"
                                             onclick='openScheduleDetailModal(<?php echo json_encode($s, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP); ?>)'
                                             class="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-slate-300 bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors shadow-sm"
-                                            title="Lihat Detail Sesi">
+                                            title="Lihat detail sesi">
                                         <i class="fa-solid fa-eye text-xs"></i>
                                     </button>
                                 </td>
@@ -1028,16 +987,16 @@ include '../layouts/header.php';
     <?php elseif ($tab === 'already_attended'): ?>
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             <div class="px-5 py-3 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-                <span class="text-slate-600">Daftar guru yang telah menginput absensi kelas pada jadwal hari ini.</span>
+                <span class="text-slate-600">Guru yang sudah mengisi absensi kelas hari ini.</span>
                 <div class="flex items-center gap-2">
                     <a href="<?php echo htmlspecialchars($export_progress_url); ?>" 
                        class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 font-medium text-xs shadow-sm"
-                       title="Download file Excel rekap progres guru">
+                       title="Unduh rekap progres guru (Excel)">
                         <i class="fa-solid fa-file-excel text-emerald-600"></i>
                         <span>Export Excel</span>
                     </a>
                     <span class="font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
-                        Total: <?php echo count($teachers_attended); ?> Guru (<?php echo $count_teachers_complete_att; ?> Selesai, <?php echo $count_teachers_partial_att; ?> Sebagian)
+                        Total: <?php echo count($teachers_attended); ?> Guru (<?php echo $count_teachers_complete_att; ?> selesai, <?php echo $count_teachers_partial_att; ?> sebagian)
                     </span>
                 </div>
             </div>
@@ -1046,9 +1005,9 @@ include '../layouts/header.php';
                 <table class="w-full text-left border-collapse">
                     <thead class="bg-slate-50/80 border-b border-slate-200">
                         <tr class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                            <th class="py-3.5 pl-6 pr-4 min-w-[200px]">Guru Pengajar</th>
+                            <th class="py-3.5 pl-6 pr-4 min-w-[200px]">Guru</th>
                             <th class="py-3.5 px-4 min-w-[120px]">Unit</th>
-                            <th class="py-3.5 px-4 text-center min-w-[120px]">Presensi Pegawai</th>
+                            <th class="py-3.5 px-4 text-center min-w-[120px]">Presensi Masuk</th>
                             <th class="py-3.5 px-4 text-center min-w-[130px]">Progres Absensi</th>
                             <th class="py-3.5 px-4 min-w-[300px]">Sesi yang Sudah Diabsen</th>
                             <th class="py-3.5 px-4 text-center min-w-[110px]">Status</th>
@@ -1062,7 +1021,7 @@ include '../layouts/header.php';
                                     <div class="max-w-xs mx-auto text-center space-y-1">
                                         <i class="fa-solid fa-user-slash text-slate-300 text-2xl mb-1"></i>
                                         <p class="font-semibold text-slate-700">Belum ada absensi kelas</p>
-                                        <p class="text-[11px] text-slate-400">Belum ada guru yang menginput absensi kelas untuk kriteria ini.</p>
+                                        <p class="text-[11px] text-slate-400">Belum ada guru yang mengisi absensi kelas untuk filter ini.</p>
                                     </div>
                                 </td>
                             </tr>
@@ -1193,24 +1152,24 @@ include '../layouts/header.php';
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             <div class="px-5 py-3 border-b border-slate-200 bg-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
                 <div class="flex items-center flex-wrap gap-2">
-                    <span class="text-slate-500 font-medium mr-1">Filter Kategori:</span>
+                    <span class="text-slate-500 font-medium mr-1">Kategori:</span>
                     <a href="?<?php echo http_build_query(array_merge($_GET, ['filter_att' => 'all'])); ?>"
                        class="px-2.5 py-1 rounded-lg text-xs font-medium transition-colors <?php echo $filter_att === 'all' ? 'bg-slate-800 text-white shadow-sm' : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-100'; ?>">
                         Semua Belum Lengkap (<?php echo count($teachers_not_attended); ?>)
                     </a>
                     <a href="?<?php echo http_build_query(array_merge($_GET, ['filter_att' => 'zero'])); ?>"
                        class="px-2.5 py-1 rounded-lg text-xs font-medium transition-colors <?php echo $filter_att === 'zero' ? 'bg-rose-600 text-white shadow-sm' : 'bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100'; ?>">
-                        Tidak Absen Sama Sekali (<?php echo $count_teachers_zero_attended; ?>)
+                        Belum Absen Sama Sekali (<?php echo $count_teachers_zero_attended; ?>)
                     </a>
                     <a href="?<?php echo http_build_query(array_merge($_GET, ['filter_att' => 'partial'])); ?>"
                        class="px-2.5 py-1 rounded-lg text-xs font-medium transition-colors <?php echo $filter_att === 'partial' ? 'bg-amber-600 text-white shadow-sm' : 'bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100'; ?>">
-                        Sebagian Diabsen (<?php echo max(0, count($teachers_not_attended) - $count_teachers_zero_attended); ?>)
+                        Absen Sebagian (<?php echo max(0, count($teachers_not_attended) - $count_teachers_zero_attended); ?>)
                     </a>
                 </div>
                 <div class="flex items-center gap-2">
                     <a href="<?php echo htmlspecialchars($export_progress_url); ?>" 
                        class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 font-medium text-xs shadow-sm"
-                       title="Download file Excel rekap progres guru">
+                       title="Unduh rekap progres guru (Excel)">
                         <i class="fa-solid fa-file-excel text-emerald-600"></i>
                         <span>Export Excel</span>
                     </a>
@@ -1221,12 +1180,12 @@ include '../layouts/header.php';
                 <table class="w-full text-left border-collapse">
                     <thead class="bg-slate-50/80 border-b border-slate-200">
                         <tr class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                            <th class="py-3.5 pl-6 pr-4 min-w-[200px]">Guru Pengajar</th>
+                            <th class="py-3.5 pl-6 pr-4 min-w-[200px]">Guru</th>
                             <th class="py-3.5 px-4 min-w-[120px]">Unit</th>
                             <th class="py-3.5 px-4 text-center min-w-[120px]">Presensi Masuk</th>
-                            <th class="py-3.5 px-4 text-center min-w-[120px]">Sesi Tertunda</th>
-                            <th class="py-3.5 px-4 min-w-[320px]">Kelas yang Belum Diabsen</th>
-                            <th class="py-3.5 pr-6 pl-4 text-right min-w-[140px]">Tindakan</th>
+                            <th class="py-3.5 px-4 text-center min-w-[120px]">Sisa Sesi</th>
+                            <th class="py-3.5 px-4 min-w-[320px]">Kelas Belum Diabsen</th>
+                            <th class="py-3.5 pr-6 pl-4 text-right min-w-[140px]">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 text-xs">
@@ -1237,20 +1196,20 @@ include '../layouts/header.php';
                                         <i class="fa-solid fa-circle-check text-emerald-500 text-2xl mb-1"></i>
                                         <p class="font-semibold text-slate-800">
                                             <?php if ($filter_att === 'zero'): ?>
-                                                Tidak Ada Guru Belum Absen Sama Sekali
+                                                Tidak ada guru yang belum absen sama sekali
                                             <?php elseif ($filter_att === 'partial'): ?>
-                                                Tidak Ada Guru dengan Status Absen Sebagian
+                                                Tidak ada guru dengan status absen sebagian
                                             <?php else: ?>
-                                                Semua Absensi Selesai
+                                                Semua absensi kelas selesai
                                             <?php endif; ?>
                                         </p>
                                         <p class="text-[11px] text-slate-500">
                                             <?php if ($filter_att === 'zero'): ?>
-                                                Seluruh guru yang terjadwal telah menginput setidaknya 1 sesi absensi kelas.
+                                                Semua guru yang mengajar sudah mulai mengisi absensi kelas.
                                             <?php elseif ($filter_att === 'partial'): ?>
-                                                Tidak ditemukan guru yang baru menginput sebagian sesi jadwal.
+                                                Semua guru yang sudah absen telah menyelesaikan seluruh jadwalnya.
                                             <?php else: ?>
-                                                Seluruh guru yang mengajar hari ini telah menginput absensi kelas.
+                                                Seluruh guru yang mengajar hari ini telah mengisi absensi kelas.
                                             <?php endif; ?>
                                         </p>
                                     </div>
@@ -1272,7 +1231,7 @@ include '../layouts/header.php';
                                 }
                             }
                             $wa_num = formatWaNumber($t['teacher_phone'] ?? '');
-                            $wa_msg = "Assalamu'alaikum Warahmatullahi Wabarakatuh, Ustadz/Ustadzah {$t['teacher_name']}.\n\nMengingatkan untuk pengisian absensi kelas pada SIM YAC hari ini ({$formatted_date_indo}) untuk mata pelajaran:\n• " . implode("\n• ", $pending_classes) . "\n\nMohon kesediaannya untuk segera menginput. Terima kasih. Jazakumullahu khairan.";
+                            $wa_msg = "Assalamu'alaikum Warahmatullahi Wabarakatuh, Ustadz/Ustadzah {$t['teacher_name']}.\n\nMohon bantuannya untuk mengisi absensi kelas SIM YAC hari ini ({$formatted_date_indo}) pada jadwal berikut:\n• " . implode("\n• ", $pending_classes) . "\n\nJazakumullahu khairan.";
                             $wa_url = !empty($wa_num) ? "https://wa.me/{$wa_num}?text=" . rawurlencode($wa_msg) : "";
                             ?>
                             <tr class="hover:bg-slate-50/60 transition-colors">
@@ -1312,14 +1271,14 @@ include '../layouts/header.php';
                                             <?php echo date('H:i', strtotime($t['teacher_time_in'])); ?>
                                         </span>
                                     <?php else: ?>
-                                        <span class="text-xs text-slate-400">Belum Hadir</span>
+                                        <span class="text-xs text-slate-400">Belum Presensi</span>
                                     <?php endif; ?>
                                 </td>
 
                                 <!-- Sesi Tertunda -->
                                 <td class="py-3.5 px-4 text-center whitespace-nowrap">
                                     <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium <?php echo $is_none ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-amber-50 text-amber-700 border border-amber-200'; ?>">
-                                        <?php echo $pending_count; ?> dari <?php echo $t['total_sessions']; ?> Sesi
+                                        <?php echo $pending_count; ?> dari <?php echo $t['total_sessions']; ?> sesi
                                     </span>
                                 </td>
 
@@ -1352,7 +1311,7 @@ include '../layouts/header.php';
                                         <?php if (!empty($wa_url)): ?>
                                             <a href="<?php echo htmlspecialchars($wa_url); ?>" target="_blank"
                                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 transition-colors shadow-sm"
-                                               title="Kirim pesan WhatsApp pengingat">
+                                               title="Kirim pengingat WhatsApp">
                                                 <i class="fa-brands fa-whatsapp text-sm"></i>
                                                 <span>Ingatkan</span>
                                             </a>
@@ -1361,7 +1320,7 @@ include '../layouts/header.php';
                                         <button type="button"
                                                 onclick='openTeacherDetailModal(<?php echo json_encode($t, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP); ?>)'
                                                 class="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-slate-300 bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors shadow-sm"
-                                                title="Lihat Detail Sesi">
+                                                title="Lihat detail sesi">
                                             <i class="fa-solid fa-eye text-xs"></i>
                                         </button>
                                     </div>
@@ -1404,11 +1363,11 @@ include '../layouts/header.php';
                 <!-- Check-in status card -->
                 <div class="flex items-center justify-between p-3.5 bg-slate-50 rounded-lg border border-slate-200 text-xs">
                     <div>
-                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Presensi Pegawai</span>
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Presensi Masuk</span>
                         <span class="font-medium text-slate-800" id="mTeacherPresensi">-</span>
                     </div>
                     <div class="text-right">
-                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Kepatuhan</span>
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Progres Sesi</span>
                         <span class="font-semibold text-cyan-700" id="mTeacherProgress">-</span>
                     </div>
                 </div>
@@ -1471,11 +1430,11 @@ include '../layouts/header.php';
                         <span id="mSchedJournalBadge" class="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-200 text-slate-700">-</span>
                     </div>
                     <div>
-                        <span class="text-[11px] text-slate-400 block">Topik / Materi:</span>
+                        <span class="text-[11px] text-slate-400 block">Materi:</span>
                         <p class="text-xs font-medium text-slate-900" id="mSchedTopic">-</p>
                     </div>
                     <div>
-                        <span class="text-[11px] text-slate-400 block">Catatan Tambahan:</span>
+                        <span class="text-[11px] text-slate-400 block">Catatan:</span>
                         <p class="text-xs text-slate-600" id="mSchedNotes">-</p>
                     </div>
                     <div class="text-[10px] text-slate-400 pt-1" id="mSchedTimestamp"></div>
@@ -1537,11 +1496,11 @@ function openTeacherDetailModal(teacher) {
 
     const presensiStr = teacher.teacher_time_in ? 
         'Hadir pukul ' + teacher.teacher_time_in.substring(0, 5) + (teacher.teacher_att_status ? ' (' + teacher.teacher_att_status + ')' : '') :
-        'Belum melakukan presensi hari ini';
+        'Belum presensi hari ini';
     document.getElementById('mTeacherPresensi').innerText = presensiStr;
 
     document.getElementById('mTeacherProgress').innerText = 
-        teacher.sessions_completed + ' dari ' + teacher.total_sessions + ' Sesi Lengkap';
+        teacher.sessions_completed + ' dari ' + teacher.total_sessions + ' sesi lengkap';
 
     const container = document.getElementById('mTeacherSessionsList');
     container.innerHTML = '';
@@ -1577,14 +1536,14 @@ function openTeacherDetailModal(teacher) {
 
             <div class="grid grid-cols-2 gap-2 text-[11px] pt-1">
                 <div class="p-2 rounded bg-slate-50 border border-slate-200">
-                    <span class="text-slate-400 block text-[10px]">Absensi Siswa:</span>
+                    <span class="text-slate-400 block text-[10px]">Absen Siswa:</span>
                     ${hasAtt ? 
                         `<span class="font-medium text-emerald-700">Sudah (H:${s.count_present || 0}, S:${s.count_sick || 0}, I:${s.count_permit || 0}, A:${s.count_absent || 0})</span>` :
-                        `<span class="text-rose-600 font-medium">Belum Diabsen</span>`
+                        `<span class="text-rose-600 font-medium">Belum Absen</span>`
                     }
                 </div>
                 <div class="p-2 rounded bg-slate-50 border border-slate-200">
-                    <span class="text-slate-400 block text-[10px]">Jurnal Materi:</span>
+                    <span class="text-slate-400 block text-[10px]">Jurnal:</span>
                     ${hasJournal ?
                         `<span class="font-medium text-emerald-700 line-clamp-1" title="${s.journal_topic || ''}">${s.journal_topic || 'Sudah diisi'}</span>` :
                         `<span class="text-rose-600 font-medium">Belum Diisi</span>`
@@ -1610,15 +1569,15 @@ function openScheduleDetailModal(s) {
 
     document.getElementById('mSchedTeacherName').innerText = s.teacher_name;
     document.getElementById('mSchedUnit').innerText = 
-        'Presensi: ' + (s.teacher_time_in ? 'Masuk ' + s.teacher_time_in.substring(0, 5) : 'Belum Presensi');
+        'Presensi: ' + (s.teacher_time_in ? 'Masuk ' + s.teacher_time_in.substring(0, 5) : 'Belum presensi');
 
     // Jurnal
     if (s.has_journal) {
         document.getElementById('mSchedJournalBadge').className = "px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200";
         document.getElementById('mSchedJournalBadge').innerText = "Sudah Diisi";
         document.getElementById('mSchedTopic').innerText = s.journal_topic || '-';
-        document.getElementById('mSchedNotes').innerText = s.journal_notes || '(Tidak ada catatan tambahan)';
-        document.getElementById('mSchedTimestamp').innerText = s.journal_created_at ? 'Diisi pada: ' + s.journal_created_at : '';
+        document.getElementById('mSchedNotes').innerText = s.journal_notes || '(Tidak ada catatan)';
+        document.getElementById('mSchedTimestamp').innerText = s.journal_created_at ? 'Diisi: ' + s.journal_created_at : '';
     } else {
         document.getElementById('mSchedJournalBadge').className = "px-2 py-0.5 rounded text-[10px] font-medium bg-rose-50 text-rose-700 border border-rose-200";
         document.getElementById('mSchedJournalBadge').innerText = "Belum Diisi";
@@ -1639,7 +1598,7 @@ function openScheduleDetailModal(s) {
         document.getElementById('mSchedAttGrid').style.opacity = '1';
     } else {
         document.getElementById('mSchedAttBadge').className = "px-2 py-0.5 rounded text-[10px] font-medium bg-rose-50 text-rose-700 border border-rose-200";
-        document.getElementById('mSchedAttBadge').innerText = "Belum Diabsen";
+        document.getElementById('mSchedAttBadge').innerText = "Belum Absen";
         document.getElementById('mCountHadir').innerText = '0';
         document.getElementById('mCountSakit').innerText = '0';
         document.getElementById('mCountIzin').innerText = '0';
