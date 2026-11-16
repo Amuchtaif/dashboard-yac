@@ -239,6 +239,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 }
 
+// 2b. Handle POST Request (Delete Broadcast Log)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete_log') {
+    if (!verify_csrf()) {
+        $_SESSION['error'] = "Sesi keamanan telah berakhir. Silakan muat ulang halaman.";
+        header("Location: " . $_SERVER['PHP_SELF'] . "#riwayat-broadcast");
+        exit;
+    }
+
+    $log_id = (int)($_POST['log_id'] ?? 0);
+    if ($log_id > 0) {
+        try {
+            $stmtDel = $conn->prepare("DELETE FROM fcm_broadcast_logs WHERE id = :id");
+            $stmtDel->execute([':id' => $log_id]);
+            $_SESSION['success'] = "Riwayat broadcast berhasil dihapus.";
+        } catch (\Throwable $e) {
+            $_SESSION['error'] = "Gagal menghapus riwayat broadcast: " . $e->getMessage();
+        }
+    }
+    header("Location: " . $_SERVER['PHP_SELF'] . "#riwayat-broadcast");
+    exit;
+}
+
 // 3. Fetch Data for Form & Stats
 $stats = [
     'active_fcm_users' => 0,
@@ -333,6 +355,26 @@ try {
 include '../layouts/header.php';
 ?>
 
+<style nonce="<?php echo csp_nonce(); ?>">
+#customScreenSelectMenu::-webkit-scrollbar,
+#modalEmployeeListContainer::-webkit-scrollbar {
+    width: 6px;
+}
+#customScreenSelectMenu::-webkit-scrollbar-track,
+#modalEmployeeListContainer::-webkit-scrollbar-track {
+    background: transparent;
+}
+#customScreenSelectMenu::-webkit-scrollbar-thumb,
+#modalEmployeeListContainer::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 9999px;
+}
+#customScreenSelectMenu::-webkit-scrollbar-thumb:hover,
+#modalEmployeeListContainer::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+</style>
+
 <div class="w-full pb-12">
 
     <!-- Header Block -->
@@ -379,52 +421,52 @@ include '../layouts/header.php';
     </div>
 
     <!-- Stats Cards Grid -->
-    <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3.5 mb-6">
+    <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <!-- 1. Perangkat Aktif -->
-        <div class="group relative overflow-hidden bg-white p-4 rounded-xl border border-slate-200 shadow-2xs transition-colors flex flex-col justify-between">
-            <div class="absolute -right-2 -bottom-2 text-6xl text-slate-800/[0.05] pointer-events-none select-none">
+        <div class="group relative overflow-hidden bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-sm transition-all duration-200 flex flex-col justify-between">
+            <div class="absolute -right-2 -bottom-2 text-6xl text-slate-800/[0.05] group-hover:text-teal-600/[0.08] transition-colors pointer-events-none select-none">
                 <i class="fa-solid fa-mobile-screen"></i>
             </div>
             <div class="relative z-10">
-                <span class="text-xs font-medium text-slate-500 block">Perangkat Aktif</span>
-                <div class="text-2xl font-bold text-slate-900 mt-2"><?php echo number_format($stats['active_fcm_users']); ?></div>
-                <div class="text-xs text-slate-400 mt-0.5">Token FCM terhubung</div>
+                <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Perangkat Aktif</span>
+                <div class="text-2xl sm:text-3xl font-black text-slate-900 mt-2"><?php echo number_format($stats['active_fcm_users']); ?></div>
+                <div class="text-xs text-teal-700 font-medium mt-1">Token FCM terhubung</div>
             </div>
         </div>
 
         <!-- 2. Total Broadcast -->
-        <div class="group relative overflow-hidden bg-white p-4 rounded-xl border border-slate-200 shadow-2xs transition-colors flex flex-col justify-between">
-            <div class="absolute -right-2 -bottom-2 text-6xl text-slate-800/[0.05] pointer-events-none select-none">
+        <div class="group relative overflow-hidden bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-sm transition-all duration-200 flex flex-col justify-between">
+            <div class="absolute -right-2 -bottom-2 text-6xl text-slate-800/[0.05] group-hover:text-indigo-600/[0.08] transition-colors pointer-events-none select-none">
                 <i class="fa-solid fa-paper-plane"></i>
             </div>
             <div class="relative z-10">
-                <span class="text-xs font-medium text-slate-500 block">Total Broadcast</span>
-                <div class="text-2xl font-bold text-slate-900 mt-2"><?php echo number_format($stats['total_broadcasts']); ?></div>
-                <div class="text-xs text-slate-400 mt-0.5">Riwayat pengiriman</div>
+                <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Total Broadcast</span>
+                <div class="text-2xl sm:text-3xl font-black text-slate-900 mt-2"><?php echo number_format($stats['total_broadcasts']); ?></div>
+                <div class="text-xs text-slate-500 font-medium mt-1">Riwayat pengiriman</div>
             </div>
         </div>
 
         <!-- 3. Hari Ini -->
-        <div class="group relative overflow-hidden bg-white p-4 rounded-xl border border-slate-200 shadow-2xs transition-colors flex flex-col justify-between">
-            <div class="absolute -right-2 -bottom-2 text-6xl text-slate-800/[0.05] pointer-events-none select-none">
+        <div class="group relative overflow-hidden bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-sm transition-all duration-200 flex flex-col justify-between">
+            <div class="absolute -right-2 -bottom-2 text-6xl text-slate-800/[0.05] group-hover:text-amber-600/[0.08] transition-colors pointer-events-none select-none">
                 <i class="fa-solid fa-calendar-day"></i>
             </div>
             <div class="relative z-10">
-                <span class="text-xs font-medium text-slate-500 block">Hari Ini</span>
-                <div class="text-2xl font-bold text-slate-900 mt-2"><?php echo number_format($stats['today_broadcasts']); ?></div>
-                <div class="text-xs text-slate-400 mt-0.5">Broadcast terkirim</div>
+                <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Hari Ini</span>
+                <div class="text-2xl sm:text-3xl font-black text-slate-900 mt-2"><?php echo number_format($stats['today_broadcasts']); ?></div>
+                <div class="text-xs text-amber-700 font-medium mt-1">Broadcast terkirim</div>
             </div>
         </div>
 
         <!-- 4. Total Pesan Diterima -->
-        <div class="group relative overflow-hidden bg-white p-4 rounded-xl border border-slate-200 shadow-2xs transition-colors flex flex-col justify-between">
-            <div class="absolute -right-2 -bottom-2 text-6xl text-slate-800/[0.05] pointer-events-none select-none">
+        <div class="group relative overflow-hidden bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-sm transition-all duration-200 flex flex-col justify-between">
+            <div class="absolute -right-2 -bottom-2 text-6xl text-slate-800/[0.05] group-hover:text-emerald-600/[0.08] transition-colors pointer-events-none select-none">
                 <i class="fa-solid fa-circle-check"></i>
             </div>
             <div class="relative z-10">
-                <span class="text-xs font-medium text-slate-500 block">Pesan Diterima</span>
-                <div class="text-2xl font-bold text-slate-900 mt-2"><?php echo number_format($stats['total_delivered']); ?></div>
-                <div class="text-xs text-slate-400 mt-0.5">Total terkirim sukses</div>
+                <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Pesan Diterima</span>
+                <div class="text-2xl sm:text-3xl font-black text-emerald-600 mt-2"><?php echo number_format($stats['total_delivered']); ?></div>
+                <div class="text-xs text-emerald-700 font-medium mt-1">Total terkirim sukses</div>
             </div>
         </div>
     </div>
@@ -434,53 +476,76 @@ include '../layouts/header.php';
         
         <!-- LEFT: Form Pengiriman Broadcast -->
         <div class="lg:col-span-8">
-            <form id="fcmBroadcastForm" method="POST" action="" class="bg-white rounded-xl border border-slate-200 shadow-2xs p-5 md:p-6 space-y-6">
+            <form id="fcmBroadcastForm" method="POST" action="" class="bg-white rounded-2xl border border-slate-200/80 shadow-xs">
                 <?php echo csrf_field(); ?>
                 <input type="hidden" name="action" value="send_broadcast">
 
+                <!-- Form Header -->
+                <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-white rounded-t-2xl">
+                    <div>
+                        <h2 class="text-sm font-bold text-slate-900">Buat Notifikasi Broadcast</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Tentukan sasaran penerima dan formulasi pesan push notification.</p>
+                    </div>
+                    <button type="button" onclick="resetBroadcastForm()" class="text-xs text-slate-400 hover:text-slate-600 inline-flex items-center gap-1 font-medium transition-colors cursor-pointer" title="Kosongkan formulir">
+                        <i class="fa-solid fa-arrow-rotate-left text-[11px]"></i>
+                        <span>Reset</span>
+                    </button>
+                </div>
+
+                <div class="p-5 md:p-6 space-y-6">
                 <!-- 1. TARGET PENERIMA -->
                 <div class="space-y-3">
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                        Target Penerima
-                    </label>
+                    <div class="flex items-center justify-between">
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                            Target Penerima
+                        </label>
+                        <span id="recipientEstimateBadge" class="text-xs font-semibold text-teal-800 bg-teal-50 border border-teal-200/80 px-2.5 py-0.5 rounded-full transition-all">
+                            <?php echo $stats['active_fcm_users']; ?> Perangkat Aktif
+                        </span>
+                    </div>
 
-                    <!-- Segmented Radio Pills -->
-                    <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
-                        <label class="relative flex items-center justify-center p-2.5 text-center rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors text-xs font-semibold select-none group has-[:checked]:border-teal-600 has-[:checked]:bg-teal-50/60 has-[:checked]:text-teal-800">
+                    <!-- Segmented Switch Tab -->
+                    <div class="p-1 bg-slate-100 rounded-xl grid grid-cols-2 sm:grid-cols-5 gap-1 text-xs">
+                        <label class="flex items-center justify-center py-2 px-2 rounded-lg cursor-pointer transition text-center select-none text-slate-600 hover:text-slate-900 font-medium has-[:checked]:bg-white has-[:checked]:text-teal-900 has-[:checked]:font-semibold has-[:checked]:shadow-2xs">
                             <input type="radio" name="target_type" value="all" checked class="sr-only target-radio" onchange="toggleTargetPanel('all')">
                             <span>Semua Pegawai</span>
                         </label>
 
-                        <label class="relative flex items-center justify-center p-2.5 text-center rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors text-xs font-semibold select-none group has-[:checked]:border-teal-600 has-[:checked]:bg-teal-50/60 has-[:checked]:text-teal-800">
+                        <label class="flex items-center justify-center py-2 px-2 rounded-lg cursor-pointer transition text-center select-none text-slate-600 hover:text-slate-900 font-medium has-[:checked]:bg-white has-[:checked]:text-teal-900 has-[:checked]:font-semibold has-[:checked]:shadow-2xs">
                             <input type="radio" name="target_type" value="unit" class="sr-only target-radio" onchange="toggleTargetPanel('unit')">
                             <span>Per Unit</span>
                         </label>
 
-                        <label class="relative flex items-center justify-center p-2.5 text-center rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors text-xs font-semibold select-none group has-[:checked]:border-teal-600 has-[:checked]:bg-teal-50/60 has-[:checked]:text-teal-800">
+                        <label class="flex items-center justify-center py-2 px-2 rounded-lg cursor-pointer transition text-center select-none text-slate-600 hover:text-slate-900 font-medium has-[:checked]:bg-white has-[:checked]:text-teal-900 has-[:checked]:font-semibold has-[:checked]:shadow-2xs">
                             <input type="radio" name="target_type" value="position" class="sr-only target-radio" onchange="toggleTargetPanel('position')">
                             <span>Per Jabatan</span>
                         </label>
 
-                        <label class="relative flex items-center justify-center p-2.5 text-center rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors text-xs font-semibold select-none group has-[:checked]:border-teal-600 has-[:checked]:bg-teal-50/60 has-[:checked]:text-teal-800">
+                        <label class="flex items-center justify-center py-2 px-2 rounded-lg cursor-pointer transition text-center select-none text-slate-600 hover:text-slate-900 font-medium has-[:checked]:bg-white has-[:checked]:text-teal-900 has-[:checked]:font-semibold has-[:checked]:shadow-2xs">
                             <input type="radio" name="target_type" value="specific" class="sr-only target-radio" onchange="toggleTargetPanel('specific')">
                             <span>Pilih Karyawan</span>
                         </label>
 
-                        <label class="relative flex items-center justify-center p-2.5 text-center rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors text-xs font-semibold select-none group has-[:checked]:border-teal-600 has-[:checked]:bg-teal-50/60 has-[:checked]:text-teal-800 col-span-2 sm:col-span-1">
+                        <label class="flex items-center justify-center py-2 px-2 rounded-lg cursor-pointer transition text-center select-none text-slate-600 hover:text-slate-900 font-medium has-[:checked]:bg-white has-[:checked]:text-teal-900 has-[:checked]:font-semibold has-[:checked]:shadow-2xs col-span-2 sm:col-span-1">
                             <input type="radio" name="target_type" value="topic" class="sr-only target-radio" onchange="toggleTargetPanel('topic')">
-                            <span>Topik FCM</span>
+                            <span>Topik Global</span>
                         </label>
                     </div>
 
                     <!-- SUB-PANEL: SEMUA PEGAWAI -->
-                    <div id="panel-all" class="target-subpanel p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-600">
-                        Pesan akan dikirim ke seluruh <strong><?php echo $stats['active_fcm_users']; ?> pegawai aktif</strong> yang terdaftar di aplikasi mobile.
+                    <div id="panel-all" class="target-subpanel p-3.5 bg-slate-50 border border-slate-200/80 rounded-lg text-xs text-slate-600 flex items-center gap-2.5">
+                        <div class="w-7 h-7 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center shrink-0 border border-teal-200/60">
+                            <i class="fa-solid fa-users text-xs"></i>
+                        </div>
+                        <div>
+                            Notifikasi akan dikirim ke seluruh <strong><?php echo $stats['active_fcm_users']; ?> pegawai aktif</strong> yang terdaftar di Aplikasi YAC.
+                        </div>
                     </div>
 
                     <!-- SUB-PANEL: PER UNIT -->
-                    <div id="panel-unit" class="target-subpanel hidden space-y-2 p-3 bg-slate-50 border border-slate-200 rounded-lg">
-                        <div class="flex items-center justify-between pb-1.5 border-b border-slate-200">
-                            <span class="text-xs font-semibold text-slate-700">Pilih Unit:</span>
+                    <div id="panel-unit" class="target-subpanel hidden space-y-2 p-3.5 bg-slate-50 border border-slate-200/80 rounded-lg">
+                        <div class="flex items-center justify-between pb-2 border-b border-slate-200">
+                            <span class="text-xs font-semibold text-slate-700">Pilih Unit Lembaga:</span>
                             <div class="flex gap-2">
                                 <button type="button" onclick="checkAllInGroup('unit_ids[]', true)" class="text-xs text-teal-700 hover:underline font-medium">Pilih Semua</button>
                                 <span class="text-slate-300">|</span>
@@ -501,8 +566,8 @@ include '../layouts/header.php';
                     </div>
 
                     <!-- SUB-PANEL: PER JABATAN -->
-                    <div id="panel-position" class="target-subpanel hidden space-y-2 p-3 bg-slate-50 border border-slate-200 rounded-lg">
-                        <div class="flex items-center justify-between pb-1.5 border-b border-slate-200">
+                    <div id="panel-position" class="target-subpanel hidden space-y-2 p-3.5 bg-slate-50 border border-slate-200/80 rounded-lg">
+                        <div class="flex items-center justify-between pb-2 border-b border-slate-200">
                             <span class="text-xs font-semibold text-slate-700">Pilih Jabatan:</span>
                             <div class="flex gap-2">
                                 <button type="button" onclick="checkAllInGroup('position_ids[]', true)" class="text-xs text-teal-700 hover:underline font-medium">Pilih Semua</button>
@@ -524,22 +589,24 @@ include '../layouts/header.php';
                     </div>
 
                     <!-- SUB-PANEL: PILIH KARYAWAN (TRIGGER MODAL) -->
-                    <div id="panel-specific" class="target-subpanel hidden p-3.5 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
+                    <div id="panel-specific" class="target-subpanel hidden p-3.5 bg-slate-50 border border-slate-200/80 rounded-lg space-y-2">
                         <div class="flex items-center justify-between">
-                            <span class="text-xs font-semibold text-slate-700">Pemilihan Karyawan Tertentu:</span>
-                            <button type="button" onclick="openEmployeeModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-teal-600 bg-teal-50 hover:bg-teal-100 text-teal-800 text-xs font-semibold transition-colors">
-                                <i class="fa-solid fa-users text-teal-700"></i>
-                                <span>Buka Pilihan Karyawan</span>
+                            <div>
+                                <span class="text-xs font-semibold text-slate-800 block">Karyawan Spesifik</span>
+                                <p id="employeeSelectedSummary" class="text-xs text-slate-500 mt-0.5">
+                                    Belum ada karyawan dipilih. Klik tombol di samping untuk memilih.
+                                </p>
+                            </div>
+                            <button type="button" onclick="openEmployeeModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-teal-600 bg-white hover:bg-teal-50 text-teal-800 text-xs font-semibold transition-colors shadow-2xs cursor-pointer">
+                                <i class="fa-solid fa-users text-teal-600"></i>
+                                <span>Pilih Karyawan</span>
                             </button>
                         </div>
-                        <p id="employeeSelectedSummary" class="text-xs text-slate-600">
-                            Belum ada karyawan yang dipilih. Klik tombol di atas untuk memilih karyawan dalam modal.
-                        </p>
                     </div>
 
                     <!-- SUB-PANEL: TOPIK FCM -->
-                    <div id="panel-topic" class="target-subpanel hidden space-y-2 p-3 bg-slate-50 border border-slate-200 rounded-lg">
-                        <span class="text-xs font-semibold text-slate-700 block">Pilih Topik Broadcast:</span>
+                    <div id="panel-topic" class="target-subpanel hidden space-y-2 p-3.5 bg-slate-50 border border-slate-200/80 rounded-lg">
+                        <span class="text-xs font-semibold text-slate-700 block">Pilih Topik FCM:</span>
                         <div class="space-y-1.5">
                             <label class="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer">
                                 <input type="radio" name="topic_name" value="all_users" checked onchange="calculateRecipientEstimate()" class="text-teal-600 focus:ring-teal-500">
@@ -555,169 +622,284 @@ include '../layouts/header.php';
                             </label>
                         </div>
                     </div>
-
-                    <!-- Target Estimate Counter Banner -->
-                    <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-between text-xs">
-                        <span class="text-slate-600 font-medium">Estimasi Penerima:</span>
-                        <span id="recipientEstimateBadge" class="font-bold text-teal-800 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded">
-                            <?php echo $stats['active_fcm_users']; ?> Perangkat Aktif
-                        </span>
-                    </div>
                 </div>
 
-                <!-- 2. KONTEN NOTIFIKASI -->
-                <div class="space-y-4 pt-3 border-t border-slate-200">
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                        Isi Pesan
-                    </label>
+                    <!-- 2. KONTEN NOTIFIKASI -->
+                    <div class="space-y-4 pt-4 border-t border-slate-100">
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                            Isi Pesan Notifikasi
+                        </label>
 
-                    <!-- Judul Notifikasi -->
-                    <div>
-                        <div class="flex justify-between items-center mb-1">
-                            <label for="notifTitle" class="text-xs font-semibold text-slate-700">
-                                Judul Notifikasi <span class="text-rose-500">*</span>
-                            </label>
-                            <span id="titleCounter" class="text-[11px] text-slate-400">0/100</span>
-                        </div>
-                        <input type="text" id="notifTitle" name="title" maxlength="100" required placeholder="Contoh: Undangan Rapat Evaluasi Bulanan" oninput="updateLivePreview()" class="w-full px-3.5 py-2 text-sm rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500 text-slate-800 placeholder-slate-400 bg-white">
-                    </div>
-
-                    <!-- Isi Pesan -->
-                    <div>
-                        <div class="flex justify-between items-center mb-1">
-                            <label for="notifBody" class="text-xs font-semibold text-slate-700">
-                                Pesan Notifikasi <span class="text-rose-500">*</span>
-                            </label>
-                            <span id="bodyCounter" class="text-[11px] text-slate-400">0/500</span>
-                        </div>
-                        <textarea id="notifBody" name="body" rows="4" maxlength="500" required placeholder="Tuliskan isi pesan notifikasi..." oninput="updateLivePreview()" class="w-full px-3.5 py-2 text-sm rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500 text-slate-800 placeholder-slate-400 bg-white leading-relaxed"></textarea>
-                    </div>
-
-                    <!-- Navigasi Layar & Checkbox Inbox -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                        <!-- Judul Notifikasi -->
                         <div>
-                            <label for="notifScreen" class="block text-xs font-semibold text-slate-700 mb-1">
-                                Layar Tujuan Saat Ditap
-                            </label>
-                            <select id="notifScreen" name="screen" onchange="updateLivePreview()" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white text-slate-700 font-medium">
-                                <option value="general" selected>Beranda (Umum)</option>
-                                <option value="announcement">Tab Pengumuman</option>
-                                <option value="attendance">Layar Presensi</option>
-                                <option value="news">Tab Berita</option>
-                                <option value="teaching_schedule">Jadwal Mengajar</option>
-                            </select>
+                            <div class="flex justify-between items-center mb-1">
+                                <label for="notifTitle" class="text-xs font-semibold text-slate-700">
+                                    Judul Notifikasi <span class="text-rose-500">*</span>
+                                </label>
+                                <span id="titleCounter" class="text-[11px] text-slate-400">0/100</span>
+                            </div>
+                            <input type="text" id="notifTitle" name="title" maxlength="100" required placeholder="Contoh: Pengumuman Kegiatan Yayasan" oninput="updateLivePreview()" class="w-full px-3.5 py-2 text-sm rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500 text-slate-800 placeholder-slate-400 bg-white">
                         </div>
 
-                        <div class="flex items-center pt-2 sm:pt-5">
-                            <label class="flex items-start gap-2 cursor-pointer select-none">
-                                <input type="checkbox" name="save_to_inbox" value="1" checked class="mt-0.5 rounded text-teal-600 focus:ring-teal-500 h-4 w-4">
-                                <span class="text-xs text-slate-700">
-                                    <strong class="font-semibold block text-slate-800">Simpan ke Tab Notifikasi Mobile</strong>
-                                    Pesan tersimpan di riwayat aplikasi mobile pegawai.
-                                </span>
-                            </label>
+                        <!-- Isi Pesan -->
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label for="notifBody" class="text-xs font-semibold text-slate-700">
+                                    Pesan Notifikasi <span class="text-rose-500">*</span>
+                                </label>
+                                <span id="bodyCounter" class="text-[11px] text-slate-400">0/500</span>
+                            </div>
+                            <textarea id="notifBody" name="body" rows="4" maxlength="500" required placeholder="Tuliskan isi pesan notifikasi..." oninput="updateLivePreview()" class="w-full px-3.5 py-2 text-sm rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500 text-slate-800 placeholder-slate-400 bg-white leading-relaxed"></textarea>
+                        </div>
+
+                        <!-- Navigasi Layar & Checkbox Inbox -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                            <!-- Premium Custom Select: Layar Tujuan -->
+                            <div class="relative z-30">
+                                <label class="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center justify-between">
+                                    <span>Layar Tujuan Saat Ditap</span>
+                                    <span class="text-[10px] text-teal-700 font-medium bg-teal-50 px-2 py-0.5 rounded-full border border-teal-100">Deep-link</span>
+                                </label>
+
+                                <!-- Hidden native select for form serialization & fallback -->
+                                <select id="notifScreen" name="screen" onchange="updateLivePreview()" class="sr-only">
+                                    <option value="general" selected>Beranda (Umum)</option>
+                                    <option value="attendance">Layar Presensi Pegawai</option>
+                                    <option value="tahfidz">Presensi &amp; Setoran Tahfidz</option>
+                                    <option value="teaching_schedule">Jadwal Mengajar &amp; Jurnal</option>
+                                    <option value="announcement">Tab Pengumuman</option>
+                                    <option value="news">Tab Berita</option>
+                                </select>
+
+                                <!-- Premium Trigger Button -->
+                                <button type="button" 
+                                        id="customScreenSelectTrigger" 
+                                        onclick="toggleCustomScreenSelect()" 
+                                        class="w-full text-left p-2.5 bg-white rounded-xl border border-slate-200/90 hover:border-teal-400 focus:outline-none focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 shadow-2xs transition-all flex items-center justify-between cursor-pointer group">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <div id="triggerScreenIconBox" class="w-7 h-7 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center text-xs shrink-0 border border-teal-100 group-hover:bg-teal-600 group-hover:text-white transition-colors">
+                                            <i id="triggerScreenIcon" class="fa-solid fa-house"></i>
+                                        </div>
+                                        <div class="truncate">
+                                            <span id="triggerScreenTitle" class="text-xs font-semibold text-slate-800 block truncate group-hover:text-teal-900 transition-colors">Beranda (Umum)</span>
+                                            <span id="triggerScreenSubtitle" class="text-[10px] text-slate-400 block truncate">Layar utama aplikasi mobile</span>
+                                        </div>
+                                    </div>
+                                    <i id="triggerScreenChevron" class="fa-solid fa-chevron-down text-slate-400 text-[11px] ml-2 shrink-0 transition-transform duration-200 group-hover:text-slate-600"></i>
+                                </button>
+
+                                <!-- Premium Dropdown Options Menu Overlay -->
+                                <div id="customScreenSelectMenu" 
+                                     class="hidden absolute left-0 right-0 top-full mt-1.5 bg-white rounded-2xl border border-slate-200 shadow-2xl z-50 p-1.5 space-y-1 overflow-y-auto transition-all"
+                                     style="max-height: 280px; overflow-y: auto; -webkit-overflow-scrolling: touch;">
+                                    
+                                    <!-- Option: general -->
+                                    <div onclick="selectScreenOption('general')" data-screen="general" class="screen-option-item flex items-center justify-between p-2 rounded-xl cursor-pointer select-none group/item bg-teal-50/60 border border-teal-200/60 transition-colors">
+                                        <div class="flex items-center gap-2.5 min-w-0">
+                                            <div class="w-7 h-7 rounded-lg bg-slate-100 text-slate-600 group-hover/item:bg-teal-100 group-hover/item:text-teal-800 flex items-center justify-center text-xs shrink-0 transition-colors">
+                                                <i class="fa-solid fa-house"></i>
+                                            </div>
+                                            <div class="truncate">
+                                                <span class="text-xs font-semibold text-slate-800 block truncate">Beranda (Umum)</span>
+                                                <span class="text-[10px] text-slate-400 block truncate">Halaman beranda aplikasi mobile pegawai</span>
+                                            </div>
+                                        </div>
+                                        <i class="option-check fa-solid fa-check text-teal-600 text-xs shrink-0 ml-2"></i>
+                                    </div>
+
+                                    <!-- Option: attendance -->
+                                    <div onclick="selectScreenOption('attendance')" data-screen="attendance" class="screen-option-item flex items-center justify-between p-2 rounded-xl cursor-pointer hover:bg-slate-50 border border-transparent transition-colors select-none group/item">
+                                        <div class="flex items-center gap-2.5 min-w-0">
+                                            <div class="w-7 h-7 rounded-lg bg-slate-100 text-slate-600 group-hover/item:bg-teal-100 group-hover/item:text-teal-800 flex items-center justify-center text-xs shrink-0 transition-colors">
+                                                <i class="fa-solid fa-clipboard-user"></i>
+                                            </div>
+                                            <div class="truncate">
+                                                <span class="text-xs font-semibold text-slate-800 block truncate">Layar Presensi Pegawai</span>
+                                                <span class="text-[10px] text-slate-400 block truncate">Absensi harian datang &amp; pulang</span>
+                                            </div>
+                                        </div>
+                                        <i class="option-check fa-solid fa-check text-teal-600 text-xs shrink-0 ml-2 hidden"></i>
+                                    </div>
+
+                                    <!-- Option: tahfidz -->
+                                    <div onclick="selectScreenOption('tahfidz')" data-screen="tahfidz" class="screen-option-item flex items-center justify-between p-2 rounded-xl cursor-pointer hover:bg-slate-50 border border-transparent transition-colors select-none group/item">
+                                        <div class="flex items-center gap-2.5 min-w-0">
+                                            <div class="w-7 h-7 rounded-lg bg-slate-100 text-slate-600 group-hover/item:bg-teal-100 group-hover/item:text-teal-800 flex items-center justify-center text-xs shrink-0 transition-colors">
+                                                <i class="fa-solid fa-book-quran"></i>
+                                            </div>
+                                            <div class="truncate">
+                                                <span class="text-xs font-semibold text-slate-800 block truncate">Presensi &amp; Setoran Tahfidz</span>
+                                                <span class="text-[10px] text-slate-400 block truncate">Halaqah &amp; mutaba'ah hafalan santri</span>
+                                            </div>
+                                        </div>
+                                        <i class="option-check fa-solid fa-check text-teal-600 text-xs shrink-0 ml-2 hidden"></i>
+                                    </div>
+
+                                    <!-- Option: teaching_schedule -->
+                                    <div onclick="selectScreenOption('teaching_schedule')" data-screen="teaching_schedule" class="screen-option-item flex items-center justify-between p-2 rounded-xl cursor-pointer hover:bg-slate-50 border border-transparent transition-colors select-none group/item">
+                                        <div class="flex items-center gap-2.5 min-w-0">
+                                            <div class="w-7 h-7 rounded-lg bg-slate-100 text-slate-600 group-hover/item:bg-teal-100 group-hover/item:text-teal-800 flex items-center justify-center text-xs shrink-0 transition-colors">
+                                                <i class="fa-solid fa-chalkboard-user"></i>
+                                            </div>
+                                            <div class="truncate">
+                                                <span class="text-xs font-semibold text-slate-800 block truncate">Jadwal Mengajar &amp; Jurnal</span>
+                                                <span class="text-[10px] text-slate-400 block truncate">Absensi kehadiran siswa di kelas &amp; jurnal KBM</span>
+                                            </div>
+                                        </div>
+                                        <i class="option-check fa-solid fa-check text-teal-600 text-xs shrink-0 ml-2 hidden"></i>
+                                    </div>
+
+                                    <!-- Option: announcement -->
+                                    <div onclick="selectScreenOption('announcement')" data-screen="announcement" class="screen-option-item flex items-center justify-between p-2 rounded-xl cursor-pointer hover:bg-slate-50 border border-transparent transition-colors select-none group/item">
+                                        <div class="flex items-center gap-2.5 min-w-0">
+                                            <div class="w-7 h-7 rounded-lg bg-slate-100 text-slate-600 group-hover/item:bg-teal-100 group-hover/item:text-teal-800 flex items-center justify-center text-xs shrink-0 transition-colors">
+                                                <i class="fa-solid fa-bullhorn"></i>
+                                            </div>
+                                            <div class="truncate">
+                                                <span class="text-xs font-semibold text-slate-800 block truncate">Tab Pengumuman</span>
+                                                <span class="text-[10px] text-slate-400 block truncate">Pemberitahuan resmi Yayasan Assunnah</span>
+                                            </div>
+                                        </div>
+                                        <i class="option-check fa-solid fa-check text-teal-600 text-xs shrink-0 ml-2 hidden"></i>
+                                    </div>
+
+                                    <!-- Option: news -->
+                                    <div onclick="selectScreenOption('news')" data-screen="news" class="screen-option-item flex items-center justify-between p-2 rounded-xl cursor-pointer hover:bg-slate-50 border border-transparent transition-colors select-none group/item">
+                                        <div class="flex items-center gap-2.5 min-w-0">
+                                            <div class="w-7 h-7 rounded-lg bg-slate-100 text-slate-600 group-hover/item:bg-teal-100 group-hover/item:text-teal-800 flex items-center justify-center text-xs shrink-0 transition-colors">
+                                                <i class="fa-solid fa-newspaper"></i>
+                                            </div>
+                                            <div class="truncate">
+                                                <span class="text-xs font-semibold text-slate-800 block truncate">Tab Berita</span>
+                                                <span class="text-[10px] text-slate-400 block truncate">Informasi artikel &amp; liputan kegiatan</span>
+                                            </div>
+                                        </div>
+                                        <i class="option-check fa-solid fa-check text-teal-600 text-xs shrink-0 ml-2 hidden"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center justify-between">
+                                    <span>Penyimpanan Pesan</span>
+                                    <span class="text-[10px] text-slate-400 font-medium">Inbox Riwayat</span>
+                                </label>
+                                <label class="flex items-start gap-2.5 p-2.5 rounded-xl border border-slate-200/90 bg-slate-50/70 hover:bg-slate-100/70 hover:border-slate-300 cursor-pointer select-none transition-all shadow-2xs">
+                                    <input type="checkbox" name="save_to_inbox" value="1" checked class="mt-0.5 rounded text-teal-600 focus:ring-teal-500 h-4 w-4">
+                                    <span class="text-xs text-slate-700">
+                                        <strong class="font-semibold block text-slate-800">Simpan ke Tab Notifikasi</strong>
+                                        <span class="text-[10px] text-slate-500 leading-tight block mt-0.5">Tersimpan di riwayat aplikasi mobile pegawai.</span>
+                                    </span>
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Submit Button -->
-                <div class="pt-4 border-t border-slate-200 flex items-center justify-end gap-3">
-                    <button type="button" onclick="resetBroadcastForm()" class="px-3.5 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors">
+                <!-- Form Footer & Action Buttons -->
+                <div class="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between rounded-b-2xl">
+                    <button type="button" onclick="resetBroadcastForm()" class="px-3.5 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-200/60 rounded-lg transition-colors cursor-pointer">
                         Reset Form
                     </button>
-                    <button type="button" onclick="openBroadcastModal()" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold shadow-sm transition-colors">
+                    <button type="button" onclick="openBroadcastModal()" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer">
                         <i class="fa-solid fa-paper-plane text-xs"></i>
                         <span>Kirim Notifikasi</span>
                     </button>
                 </div>
 
                 <!-- MODAL PILIH KARYAWAN (Didalam Form agar input employee_ids[] terkirim otomatis) -->
-                <div id="employeeModal" class="fixed inset-0 z-[70] hidden bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5" onclick="if(event.target === this) closeEmployeeModal()">
-                    <div class="bg-white rounded-xl max-w-2xl w-full shadow-2xl border border-slate-200 flex flex-col max-h-[90vh] overflow-hidden transform transition-all">
+                <div id="employeeModal" class="fixed inset-0 z-[90] hidden bg-slate-900/40 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 transition-all duration-200" style="backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);" onclick="if(event.target === this) closeEmployeeModal()">
+                    <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-slate-100 flex flex-col max-h-[90vh] overflow-hidden transform transition-all">
                         <!-- Header Modal -->
-                        <div class="p-4 border-b border-slate-200 flex items-center justify-between">
-                            <div>
-                                <h3 class="text-sm font-bold text-slate-900">Pilih Karyawan Penerima Notifikasi</h3>
-                                <p class="text-xs text-slate-500 mt-0.5">Centang karyawan yang akan menerima pesan.</p>
+                        <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-white">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-8 h-8 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center text-sm border border-teal-100">
+                                    <i class="fa-solid fa-users"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-sm font-bold text-slate-900">Pilih Karyawan Penerima Notifikasi</h3>
+                                    <p class="text-xs text-slate-500">Centang karyawan target penerima push notification.</p>
+                                </div>
                             </div>
-                            <button type="button" onclick="closeEmployeeModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100">
+                            <button type="button" onclick="closeEmployeeModal()" class="text-slate-400 hover:text-slate-600 p-2 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer">
                                 <i class="fa-solid fa-xmark text-sm"></i>
                             </button>
                         </div>
 
                         <!-- Search & Quick Selection Toolbar -->
-                        <div class="p-3 border-b border-slate-200 bg-slate-50 space-y-2.5">
+                        <div class="p-3.5 border-b border-slate-100 bg-slate-50/70 space-y-2.5">
                             <div class="relative">
-                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
-                                <input type="text" id="modalEmployeeSearch" placeholder="Cari nama, NIK, unit, atau jabatan..." onkeyup="filterEmployeeModalList()" class="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-xs"></i>
+                                <input type="text" id="modalEmployeeSearch" placeholder="Cari nama, NIK, unit, atau jabatan..." onkeyup="filterEmployeeModalList()" class="w-full pl-9 pr-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 bg-white placeholder-slate-400">
                             </div>
 
                             <div class="flex items-center justify-between text-xs flex-wrap gap-2">
-                                <div class="flex items-center gap-2">
-                                    <button type="button" onclick="toggleAllEmployeesInModal(true, false)" class="text-xs text-teal-700 hover:underline font-medium">
-                                        Pilih Semua (FCM Aktif)
+                                <div class="flex items-center gap-1.5">
+                                    <button type="button" onclick="toggleAllEmployeesInModal(true, false)" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 transition-colors cursor-pointer">
+                                        <i class="fa-solid fa-check-double text-[10px] mr-1"></i>Pilih Semua (FCM Aktif)
                                     </button>
-                                    <span class="text-slate-300">|</span>
-                                    <button type="button" onclick="toggleAllEmployeesInModal(true, true)" class="text-xs text-slate-600 hover:underline">
-                                        Pilih Semua Karyawan
+                                    <button type="button" onclick="toggleAllEmployeesInModal(true, true)" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer">
+                                        Semua Karyawan
                                     </button>
-                                    <span class="text-slate-300">|</span>
-                                    <button type="button" onclick="toggleAllEmployeesInModal(false)" class="text-xs text-slate-500 hover:underline">
-                                        Kosongkan
+                                    <button type="button" onclick="toggleAllEmployeesInModal(false)" class="px-2 py-1 text-xs font-medium text-slate-500 hover:text-slate-700 transition-colors cursor-pointer">
+                                        Reset
                                     </button>
                                 </div>
-                                <span id="modalSelectedCounter" class="font-bold text-teal-800 bg-teal-100/70 px-2 py-0.5 rounded text-[11px]">
+                                <span id="modalSelectedCounter" class="font-bold text-teal-800 bg-teal-100/70 px-2.5 py-1 rounded-full text-[11px]">
                                     0 dipilih
                                 </span>
                             </div>
                         </div>
 
                         <!-- Employee List (Scrollable) -->
-                        <div id="modalEmployeeListContainer" class="p-3 overflow-y-auto space-y-1.5 max-h-[55vh]">
+                        <div id="modalEmployeeListContainer" class="p-3 sm:p-4 overflow-y-auto space-y-2 max-h-[55vh] flex-1 min-h-0" style="-webkit-overflow-scrolling: touch;">
                             <?php if (empty($employees)): ?>
                                 <div class="py-8 text-center text-xs text-slate-400">
                                     Tidak ada data karyawan aktif ditemukan.
                                 </div>
                             <?php else: ?>
                                 <?php foreach ($employees as $emp): ?>
-                                    <label class="emp-row flex items-center justify-between p-2.5 rounded-lg border border-slate-200 hover:border-teal-400 hover:bg-slate-50/70 cursor-pointer text-xs transition-colors select-none"
+                                    <label class="emp-row flex items-center justify-between p-2.5 sm:p-3 rounded-xl border border-slate-200/80 hover:border-teal-400 hover:bg-teal-50/20 cursor-pointer text-xs transition-all select-none"
                                            data-search="<?php echo strtolower(htmlspecialchars(($emp['full_name'] ?? '') . ' ' . ($emp['nik'] ?? '') . ' ' . ($emp['unit_name'] ?? '') . ' ' . ($emp['position_name'] ?? ''))); ?>"
                                            data-has-fcm="<?php echo $emp['has_fcm'] ? '1' : '0'; ?>">
-                                    <div class="flex items-center gap-2.5 min-w-0">
-                                        <input type="checkbox" name="employee_ids[]" value="<?php echo $emp['id']; ?>"
-                                               data-has-fcm="<?php echo $emp['has_fcm'] ? '1' : '0'; ?>"
-                                               data-name="<?php echo htmlspecialchars($emp['full_name']); ?>"
-                                               onchange="updateModalSelectedCounter()"
-                                               class="emp-checkbox rounded text-teal-600 focus:ring-teal-500 h-4 w-4">
-                                        <div class="truncate">
-                                            <span class="font-semibold text-slate-800 block truncate"><?php echo htmlspecialchars($emp['full_name']); ?></span>
-                                            <span class="text-[11px] text-slate-400 block truncate">
-                                                <?php echo htmlspecialchars($emp['unit_name'] ?? '-'); ?> &bull; <?php echo htmlspecialchars($emp['position_name'] ?? '-'); ?>
-                                            </span>
+                                        <div class="flex items-center gap-3 min-w-0">
+                                            <input type="checkbox" name="employee_ids[]" value="<?php echo $emp['id']; ?>"
+                                                   data-has-fcm="<?php echo $emp['has_fcm'] ? '1' : '0'; ?>"
+                                                   data-name="<?php echo htmlspecialchars($emp['full_name']); ?>"
+                                                   onchange="updateModalSelectedCounter()"
+                                                   class="emp-checkbox rounded-md text-teal-600 focus:ring-teal-500 h-4 w-4">
+                                            <div class="truncate">
+                                                <span class="font-semibold text-slate-800 block truncate"><?php echo htmlspecialchars($emp['full_name']); ?></span>
+                                                <span class="text-[11px] text-slate-400 block truncate mt-0.5">
+                                                    <?php if (!empty($emp['nik'])): ?>
+                                                        <span class="font-mono text-slate-500"><?php echo htmlspecialchars($emp['nik']); ?></span> &bull; 
+                                                    <?php endif; ?>
+                                                    <?php echo htmlspecialchars($emp['unit_name'] ?? '-'); ?> &bull; <?php echo htmlspecialchars($emp['position_name'] ?? '-'); ?>
+                                                </span>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="shrink-0 ml-2">
-                                        <?php if ($emp['has_fcm']): ?>
-                                            <span class="inline-flex items-center text-[10px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                                                FCM Aktif
-                                            </span>
-                                        <?php else: ?>
-                                            <span class="inline-flex items-center text-[10px] text-slate-400 bg-slate-100 px-2 py-0.5 rounded">
-                                                Belum Login
-                                            </span>
-                                        <?php endif; ?>
-                                    </div>
-                                </label>
-                            <?php endforeach; ?>
+                                        <div class="shrink-0 ml-2">
+                                            <?php if ($emp['has_fcm']): ?>
+                                                <span class="inline-flex items-center text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200/60">
+                                                    FCM Aktif
+                                                </span>
+                                            <?php else: ?>
+                                                <span class="inline-flex items-center text-[10px] text-slate-400 bg-slate-100 px-2.5 py-0.5 rounded-full">
+                                                    Belum Login
+                                                </span>
+                                            <?php endif; ?>
+                                        </div>
+                                    </label>
+                                <?php endforeach; ?>
                             <?php endif; ?>
                         </div>
 
                         <!-- Footer Modal -->
-                        <div class="p-3 border-t border-slate-200 bg-slate-50 flex items-center justify-end gap-2">
-                            <button type="button" onclick="closeEmployeeModal()" class="px-3.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-200 rounded-lg transition-colors">
+                        <div class="p-3.5 border-t border-slate-100 bg-slate-50/80 flex items-center justify-end gap-2">
+                            <button type="button" onclick="closeEmployeeModal()" class="px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-200/60 rounded-xl transition-colors cursor-pointer">
                                 Tutup
                             </button>
-                            <button type="button" onclick="applyEmployeeSelection()" class="px-4 py-1.5 text-xs font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-lg shadow-sm transition-colors">
+                            <button type="button" onclick="applyEmployeeSelection()" class="px-4 py-2 text-xs font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-xl shadow-xs transition-colors cursor-pointer">
                                 Terapkan Pilihan
                             </button>
                         </div>
@@ -726,25 +908,27 @@ include '../layouts/header.php';
             </form>
         </div>
 
-        <!-- RIGHT: Pratinjau & Template Cepat -->
-        <div class="lg:col-span-4 space-y-4">
+        <!-- RIGHT: Pratinjau & Template Cepat (Sticky Sidebar) -->
+        <div class="lg:col-span-4 space-y-4 lg:sticky lg:top-4">
             
             <!-- Notification Preview Card -->
-            <div class="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-3">
-                <div class="flex items-center justify-between pb-2 border-b border-slate-200 text-xs">
-                    <span class="font-semibold text-slate-700">Pratinjau Notifikasi</span>
-                    <span class="text-[11px] text-slate-400">Push Banner</span>
+            <div class="bg-white rounded-xl border border-slate-200 shadow-2xs p-4">
+                <div class="flex items-center justify-between pb-2.5 mb-3 border-b border-slate-100 text-xs">
+                    <span class="font-bold text-slate-800 flex items-center gap-1.5">
+                        <i class="fa-solid fa-mobile-screen text-teal-600"></i> Pratinjau Push Notif
+                    </span>
+                    <span class="text-[10px] uppercase font-semibold text-slate-400">Lockscreen</span>
                 </div>
 
                 <!-- Push Notification Item -->
-                <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-2">
+                <div class="p-3 bg-slate-50/80 rounded-xl border border-slate-200 space-y-2">
                     <div class="flex items-center justify-between text-xs">
                         <div class="flex items-center gap-1.5">
-                            <div class="w-4 h-4 rounded bg-teal-600 text-white flex items-center justify-center text-[9px]">
+                            <div class="w-4 h-4 rounded bg-teal-600 text-white flex items-center justify-center text-[9px] shadow-2xs">
                                 <i class="fa-solid fa-bell"></i>
                             </div>
-                            <span class="font-bold text-[11px] text-slate-800">SIMPEG YAC</span>
-                            <span class="text-slate-400 text-[10px]">&bull;</span>
+                            <span class="font-bold text-[11px] text-slate-800">Aplikasi YAC</span>
+                            <span class="text-slate-300 text-[10px]">&bull;</span>
                             <span class="text-slate-400 text-[10px]">Baru saja</span>
                         </div>
                         <span id="previewScreenTag" class="text-[9px] font-semibold uppercase px-1.5 py-0.5 rounded bg-slate-200 text-slate-700">
@@ -753,39 +937,72 @@ include '../layouts/header.php';
                     </div>
 
                     <div>
-                        <h4 id="previewTitle" class="font-semibold text-xs text-slate-900 leading-snug break-words">
+                        <h4 id="previewTitle" class="font-bold text-xs text-slate-900 leading-snug break-words">
                             Judul Notifikasi
                         </h4>
-                        <p id="previewBody" class="text-xs text-slate-600 mt-1 leading-relaxed break-words">
+                        <p id="previewBody" class="text-xs text-slate-600 mt-1 leading-relaxed break-words line-clamp-3">
                             Isi pesan notifikasi akan tampil di sini saat diketik...
                         </p>
                     </div>
                 </div>
+                <p class="text-[11px] text-slate-400 mt-2.5 text-center">
+                    Simulasi tampilan banner notifikasi di HP pegawai.
+                </p>
             </div>
 
             <!-- Quick Templates Card -->
-            <div class="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-2.5">
-                <div class="flex items-center justify-between pb-2 border-b border-slate-200 text-xs">
-                    <span class="font-semibold text-slate-700">Template Cepat</span>
-                    <span class="text-[11px] text-slate-400">Klik untuk isi form</span>
+            <div class="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 space-y-3">
+                <div class="flex items-center justify-between pb-2 border-b border-slate-100 text-xs">
+                    <span class="font-bold text-slate-800 flex items-center gap-1.5">
+                        <i class="fa-solid fa-bolt text-amber-500"></i> Template Cepat
+                    </span>
+                    <span class="text-[11px] text-slate-400">1-Klik Isi Form</span>
                 </div>
 
                 <div class="space-y-1.5">
-                    <button type="button" data-template="rapat" onclick="applyTemplate('rapat')" class="template-btn w-full text-left p-2.5 rounded-lg border border-slate-200 hover:border-teal-400 hover:bg-slate-50 transition-colors block text-xs cursor-pointer">
-                        <span class="font-semibold text-slate-800 block">Undangan Rapat</span>
-                        <span class="text-[11px] text-slate-500 line-clamp-1">Diberitahukan kepada seluruh asatidzah &amp; staf...</span>
+                    <!-- Guru Tahfidz -->
+                    <button type="button" data-template="tahfidz" onclick="applyTemplate('tahfidz')" class="template-btn group w-full text-left p-2.5 rounded-lg border border-slate-200 hover:border-teal-400 hover:bg-teal-50/20 transition-all block text-xs cursor-pointer">
+                        <div class="flex items-center justify-between">
+                            <span class="font-semibold text-slate-800 group-hover:text-teal-900">Presensi &amp; Setoran Tahfidz</span>
+                            <span class="text-[10px] font-medium text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">Tahfidz</span>
+                        </div>
+                        <span class="text-[11px] text-slate-500 line-clamp-1 mt-0.5">Presensi halaqah dan input mutaba'ah setoran santri...</span>
                     </button>
-                    <button type="button" data-template="presensi" onclick="applyTemplate('presensi')" class="template-btn w-full text-left p-2.5 rounded-lg border border-slate-200 hover:border-teal-400 hover:bg-slate-50 transition-colors block text-xs cursor-pointer">
-                        <span class="font-semibold text-slate-800 block">Pengingat Presensi</span>
-                        <span class="text-[11px] text-slate-500 line-clamp-1">Jangan lupa melakukan presensi kehadiran hari ini...</span>
+
+                    <!-- Guru Kelas & Jurnal -->
+                    <button type="button" data-template="jurnal_guru" onclick="applyTemplate('jurnal_guru')" class="template-btn group w-full text-left p-2.5 rounded-lg border border-slate-200 hover:border-teal-400 hover:bg-teal-50/20 transition-all block text-xs cursor-pointer">
+                        <div class="flex items-center justify-between">
+                            <span class="font-semibold text-slate-800 group-hover:text-teal-900">Absensi Kelas &amp; Jurnal Guru</span>
+                            <span class="text-[10px] font-medium text-sky-700 bg-sky-50 px-1.5 py-0.5 rounded border border-sky-200">KBM</span>
+                        </div>
+                        <span class="text-[11px] text-slate-500 line-clamp-1 mt-0.5">Absensi kehadiran siswa di kelas dan input jurnal KBM...</span>
                     </button>
-                    <button type="button" data-template="pengumuman" onclick="applyTemplate('pengumuman')" class="template-btn w-full text-left p-2.5 rounded-lg border border-slate-200 hover:border-teal-400 hover:bg-slate-50 transition-colors block text-xs cursor-pointer">
-                        <span class="font-semibold text-slate-800 block">Pengumuman Yayasan</span>
-                        <span class="text-[11px] text-slate-500 line-clamp-1">Terdapat informasi penting terbaru dari pimpinan...</span>
+
+                    <!-- Presensi Pegawai Umum -->
+                    <button type="button" data-template="presensi" onclick="applyTemplate('presensi')" class="template-btn group w-full text-left p-2.5 rounded-lg border border-slate-200 hover:border-teal-400 hover:bg-teal-50/20 transition-all block text-xs cursor-pointer">
+                        <div class="flex items-center justify-between">
+                            <span class="font-semibold text-slate-800 group-hover:text-teal-900">Pengingat Presensi Pegawai</span>
+                            <span class="text-[10px] font-medium text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded border border-teal-200">Presensi</span>
+                        </div>
+                        <span class="text-[11px] text-slate-500 line-clamp-1 mt-0.5">Jangan lupa melakukan presensi kehadiran hari ini...</span>
                     </button>
-                    <button type="button" data-template="update" onclick="applyTemplate('update')" class="template-btn w-full text-left p-2.5 rounded-lg border border-slate-200 hover:border-teal-400 hover:bg-slate-50 transition-colors block text-xs cursor-pointer">
-                        <span class="font-semibold text-slate-800 block">Pembaruan Aplikasi</span>
-                        <span class="text-[11px] text-slate-500 line-clamp-1">Tersedia pembaruan versi terbaru SIMPEG Assunnah...</span>
+
+                    <!-- Pengumuman Yayasan -->
+                    <button type="button" data-template="pengumuman" onclick="applyTemplate('pengumuman')" class="template-btn group w-full text-left p-2.5 rounded-lg border border-slate-200 hover:border-teal-400 hover:bg-teal-50/20 transition-all block text-xs cursor-pointer">
+                        <div class="flex items-center justify-between">
+                            <span class="font-semibold text-slate-800 group-hover:text-teal-900">Pengumuman Yayasan</span>
+                            <span class="text-[10px] font-medium text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-200">Info</span>
+                        </div>
+                        <span class="text-[11px] text-slate-500 line-clamp-1 mt-0.5">Terdapat informasi penting terbaru dari pimpinan...</span>
+                    </button>
+
+                    <!-- Pembaruan Aplikasi -->
+                    <button type="button" data-template="update" onclick="applyTemplate('update')" class="template-btn group w-full text-left p-2.5 rounded-lg border border-slate-200 hover:border-teal-400 hover:bg-teal-50/20 transition-all block text-xs cursor-pointer">
+                        <div class="flex items-center justify-between">
+                            <span class="font-semibold text-slate-800 group-hover:text-teal-900">Pembaruan Aplikasi</span>
+                            <span class="text-[10px] font-medium text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">Update</span>
+                        </div>
+                        <span class="text-[11px] text-slate-500 line-clamp-1 mt-0.5">Tersedia pembaruan versi terbaru Aplikasi YAC...</span>
                     </button>
                 </div>
             </div>
@@ -793,8 +1010,8 @@ include '../layouts/header.php';
     </div>
 
     <!-- Riwayat Pengiriman Notifikasi (Broadcast Logs) -->
-    <div id="riwayat-broadcast" class="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-        <div class="p-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+    <div id="riwayat-broadcast" class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+        <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 bg-white">
             <div>
                 <h3 class="text-sm font-bold text-slate-900">
                     Riwayat Pengiriman Notifikasi
@@ -803,14 +1020,14 @@ include '../layouts/header.php';
                     Daftar broadcast notifikasi yang telah dikirim oleh administrator.
                 </p>
             </div>
-            <span class="text-xs text-slate-400">
+            <span class="text-xs font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full w-fit">
                 <?php echo count($recentLogs); ?> pengiriman terakhir
             </span>
         </div>
 
         <div class="overflow-x-auto">
             <table class="w-full text-left text-xs text-slate-600">
-                <thead class="bg-slate-50 text-[11px] font-semibold text-slate-600 uppercase tracking-wider border-b border-slate-200">
+                <thead class="bg-slate-50/80 text-[11px] font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-100">
                     <tr>
                         <th class="px-4 py-3">Waktu Kirim</th>
                         <th class="px-4 py-3">Pengirim</th>
@@ -861,32 +1078,42 @@ include '../layouts/header.php';
                                     </p>
                                 </td>
                                 <td class="px-4 py-3 whitespace-nowrap">
-                                    <span class="px-2 py-0.5 rounded text-[11px] font-mono bg-slate-100 text-slate-700">
+                                    <span class="px-2 py-0.5 rounded-md text-[11px] font-mono bg-slate-100 text-slate-700">
                                         <?php echo htmlspecialchars($log['screen'] ?? 'general'); ?>
                                     </span>
                                 </td>
                                 <td class="px-4 py-3 whitespace-nowrap text-center">
                                     <?php if ($log['failure_count'] == 0 && $log['success_count'] > 0): ?>
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                            <?php echo $log['success_count']; ?> Terkirim
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                            <i class="fa-solid fa-circle-check text-[10px]"></i> <?php echo $log['success_count']; ?> Terkirim
                                         </span>
                                     <?php elseif ($log['success_count'] > 0 && $log['failure_count'] > 0): ?>
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-amber-50 text-amber-700 border border-amber-200">
                                             <?php echo $log['success_count']; ?> / <?php echo $log['total_recipients']; ?> Sukses
                                         </span>
                                     <?php else: ?>
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-rose-50 text-rose-700 border border-rose-200">
-                                            Gagal
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-rose-50 text-rose-700 border border-rose-200">
+                                            <i class="fa-solid fa-circle-xmark text-[10px]"></i> Gagal
                                         </span>
                                     <?php endif; ?>
                                 </td>
                                 <td class="px-4 py-3 whitespace-nowrap text-right">
-                                    <button type="button" 
-                                            onclick="reuseTemplate(<?php echo htmlspecialchars(json_encode($log['title'])); ?>, <?php echo htmlspecialchars(json_encode($log['body'])); ?>, '<?php echo htmlspecialchars($log['screen'] ?? 'general'); ?>')"
-                                            class="inline-flex items-center gap-1 text-xs font-medium text-teal-700 hover:text-teal-900 bg-teal-50 hover:bg-teal-100 px-2.5 py-1 rounded transition-colors">
-                                        <i class="fa-solid fa-copy text-[10px]"></i>
-                                        <span>Gunakan Ulang</span>
-                                    </button>
+                                    <div class="inline-flex items-center gap-1.5 justify-end">
+                                        <button type="button" 
+                                                onclick="reuseTemplate(<?php echo htmlspecialchars(json_encode($log['title'])); ?>, <?php echo htmlspecialchars(json_encode($log['body'])); ?>, '<?php echo htmlspecialchars($log['screen'] ?? 'general'); ?>')"
+                                                class="inline-flex items-center gap-1 text-xs font-semibold text-teal-700 hover:text-teal-900 bg-teal-50 hover:bg-teal-100/80 px-2.5 py-1.5 rounded-lg border border-teal-200/60 transition-colors cursor-pointer"
+                                                title="Gunakan ulang template ini">
+                                            <i class="fa-solid fa-copy text-[11px]"></i>
+                                            <span class="hidden sm:inline">Pakai</span>
+                                        </button>
+                                        <button type="button" 
+                                                onclick="openDeleteLogModal(<?php echo $log['id']; ?>, <?php echo htmlspecialchars(json_encode($log['title'])); ?>)"
+                                                class="inline-flex items-center gap-1 text-xs font-semibold text-rose-600 hover:text-rose-800 bg-rose-50 hover:bg-rose-100/80 px-2.5 py-1.5 rounded-lg border border-rose-200/60 transition-colors cursor-pointer"
+                                                title="Hapus riwayat broadcast ini">
+                                            <i class="fa-solid fa-trash-can text-[11px]"></i>
+                                            <span class="hidden sm:inline">Hapus</span>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -898,8 +1125,8 @@ include '../layouts/header.php';
 </div>
 
 <!-- Modal Konfirmasi Kirim Notifikasi (Unik, tidak tabrakan dengan modal global footer) -->
-<div id="broadcastConfirmModal" class="fixed inset-0 z-50 hidden bg-slate-900/50 flex items-center justify-center p-4" onclick="if(event.target === this) closeBroadcastModal()">
-    <div class="bg-white rounded-xl max-w-md w-full shadow-lg border border-slate-200 p-5 space-y-4">
+<div id="broadcastConfirmModal" class="fixed inset-0 z-[90] hidden bg-slate-900/40 backdrop-blur-md flex items-center justify-center p-4 transition-all duration-200" style="backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);" onclick="if(event.target === this) closeBroadcastModal()">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-100 p-5 space-y-4">
         <div>
             <h3 class="text-base font-bold text-slate-900">Konfirmasi Kirim Notifikasi</h3>
             <p class="text-xs text-slate-500 mt-0.5">
@@ -907,34 +1134,60 @@ include '../layouts/header.php';
             </p>
         </div>
 
-        <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs space-y-1.5">
-            <div class="flex justify-between">
+        <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80 text-xs space-y-2">
+            <div class="flex justify-between items-center">
                 <span class="text-slate-500">Target Penerima:</span>
                 <span id="modalTargetSummary" class="font-semibold text-slate-800">Semua Pegawai</span>
             </div>
-            <div class="flex justify-between">
+            <div class="flex justify-between items-center">
                 <span class="text-slate-500">Estimasi Perangkat:</span>
                 <span id="modalRecipientCount" class="font-bold text-teal-800">268 Perangkat</span>
             </div>
-            <div class="flex justify-between">
+            <div class="flex justify-between items-center">
                 <span class="text-slate-500">Layar Tujuan:</span>
                 <span id="modalScreenSummary" class="font-medium text-slate-800">Beranda</span>
             </div>
-            <div class="pt-1.5 border-t border-slate-200">
-                <span class="text-slate-500 block mb-0.5">Judul:</span>
+            <div class="pt-2 border-t border-slate-200/80">
+                <span class="text-slate-500 block mb-0.5">Judul Pesan:</span>
                 <p id="modalTitleSummary" class="font-semibold text-slate-900 break-words">-</p>
             </div>
         </div>
 
         <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-            <button type="button" onclick="closeBroadcastModal()" class="px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-lg transition-colors">
+            <button type="button" onclick="closeBroadcastModal()" class="px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer">
                 Batal
             </button>
-            <button type="button" id="confirmSubmitBtn" onclick="submitBroadcastForm()" class="px-4 py-2 text-xs font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-lg shadow-sm transition-colors flex items-center gap-1.5">
+            <button type="button" id="confirmSubmitBtn" onclick="submitBroadcastForm()" class="px-4 py-2 text-xs font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer">
                 <i class="fa-solid fa-paper-plane text-xs"></i>
                 <span>Kirim Sekarang</span>
             </button>
         </div>
+    </div>
+</div>
+
+<!-- Modal Konfirmasi Hapus Riwayat Broadcast -->
+<div id="deleteLogModal" class="fixed inset-0 z-[90] hidden bg-slate-900/40 backdrop-blur-md flex items-center justify-center p-4 transition-all duration-200" style="backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);" onclick="if(event.target === this) closeDeleteLogModal()">
+    <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl border border-slate-100 p-5 space-y-4">
+        <div class="w-11 h-11 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center text-lg mx-auto border border-rose-100">
+            <i class="fa-solid fa-trash-can"></i>
+        </div>
+        <div class="text-center">
+            <h3 class="text-sm font-bold text-slate-900">Hapus Riwayat Broadcast?</h3>
+            <p id="deleteLogTitleText" class="text-xs text-slate-500 mt-1 line-clamp-2">Data riwayat pengiriman notifikasi ini akan dihapus permanen.</p>
+        </div>
+        <form method="POST" action="">
+            <?php echo csrf_field(); ?>
+            <input type="hidden" name="action" value="delete_log">
+            <input type="hidden" id="deleteLogIdInput" name="log_id" value="">
+            <div class="grid grid-cols-2 gap-2 pt-2">
+                <button type="button" onclick="closeDeleteLogModal()" class="w-full py-2 px-3 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer">
+                    Batal
+                </button>
+                <button type="submit" class="w-full py-2 px-3 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-xs transition-colors cursor-pointer">
+                    Ya, Hapus
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -1101,10 +1354,11 @@ function updateLivePreview() {
 
     const screenLabels = {
         'general': 'Beranda',
-        'announcement': 'Pengumuman',
         'attendance': 'Presensi',
-        'news': 'Berita',
-        'teaching_schedule': 'Jadwal'
+        'tahfidz': 'Tahfidz',
+        'teaching_schedule': 'Jadwal & Jurnal',
+        'announcement': 'Pengumuman',
+        'news': 'Berita'
     };
     if (pTag) pTag.textContent = screenLabels[screenVal] || 'Umum';
 
@@ -1114,16 +1368,114 @@ function updateLivePreview() {
     if (bCounter && bodyInput) bCounter.textContent = `${bodyInput.value.length}/500`;
 }
 
+// Screen Metadata for Premium Select
+const screenData = {
+    'general': {
+        title: 'Beranda (Umum)',
+        subtitle: 'Halaman beranda aplikasi mobile pegawai',
+        icon: 'fa-solid fa-house'
+    },
+    'attendance': {
+        title: 'Layar Presensi Pegawai',
+        subtitle: 'Absensi harian datang & pulang',
+        icon: 'fa-solid fa-clipboard-user'
+    },
+    'tahfidz': {
+        title: 'Presensi & Setoran Tahfidz',
+        subtitle: 'Halaqah & mutaba\'ah hafalan santri',
+        icon: 'fa-solid fa-book-quran'
+    },
+    'teaching_schedule': {
+        title: 'Jadwal Mengajar & Jurnal',
+        subtitle: 'Absensi kehadiran siswa di kelas & jurnal KBM',
+        icon: 'fa-solid fa-chalkboard-user'
+    },
+    'announcement': {
+        title: 'Tab Pengumuman',
+        subtitle: 'Pemberitahuan resmi Yayasan Assunnah',
+        icon: 'fa-solid fa-bullhorn'
+    },
+    'news': {
+        title: 'Tab Berita',
+        subtitle: 'Informasi artikel & liputan kegiatan',
+        icon: 'fa-solid fa-newspaper'
+    }
+};
+
+function toggleCustomScreenSelect(forceState) {
+    const menu = document.getElementById('customScreenSelectMenu');
+    const chevron = document.getElementById('triggerScreenChevron');
+    const trigger = document.getElementById('customScreenSelectTrigger');
+    if (!menu) return;
+
+    const isHidden = menu.classList.contains('hidden');
+    const shouldOpen = (forceState !== undefined) ? forceState : isHidden;
+
+    if (shouldOpen) {
+        menu.classList.remove('hidden');
+        if (chevron) chevron.style.transform = 'rotate(180deg)';
+        if (trigger) {
+            trigger.classList.add('border-teal-500', 'ring-2', 'ring-teal-500/20');
+        }
+    } else {
+        menu.classList.add('hidden');
+        if (chevron) chevron.style.transform = 'rotate(0deg)';
+        if (trigger) {
+            trigger.classList.remove('border-teal-500', 'ring-2', 'ring-teal-500/20');
+        }
+    }
+}
+
+function selectScreenOption(val) {
+    const screenInput = document.getElementById('notifScreen');
+    if (screenInput) {
+        screenInput.value = val;
+    }
+    updatePremiumSelectUI(val);
+    updateLivePreview();
+    toggleCustomScreenSelect(false);
+}
+
+function updatePremiumSelectUI(val) {
+    const d = screenData[val] || screenData['general'];
+    const titleEl = document.getElementById('triggerScreenTitle');
+    const subEl = document.getElementById('triggerScreenSubtitle');
+    const iconEl = document.getElementById('triggerScreenIcon');
+
+    if (titleEl) titleEl.textContent = d.title;
+    if (subEl) subEl.textContent = d.subtitle;
+    if (iconEl) iconEl.className = d.icon;
+
+    document.querySelectorAll('.screen-option-item').forEach(item => {
+        const itemVal = item.getAttribute('data-screen');
+        const check = item.querySelector('.option-check');
+        if (itemVal === val) {
+            item.classList.add('bg-teal-50/60', 'border-teal-200/60');
+            item.classList.remove('hover:bg-slate-50', 'border-transparent');
+            if (check) check.classList.remove('hidden');
+        } else {
+            item.classList.remove('bg-teal-50/60', 'border-teal-200/60');
+            item.classList.add('hover:bg-slate-50', 'border-transparent');
+            if (check) check.classList.add('hidden');
+        }
+    });
+}
+
 // Template Cepat
 const broadcastTemplates = {
-    'rapat': {
-        title: 'Undangan Rapat Evaluasi Pegawai',
-        body: 'Diberitahukan kepada seluruh asatidzah & staf agar dapat menghadiri rapat evaluasi berkala yang diselenggarakan di ruang pertemuan utama.',
-        screen: 'general'
+    'tahfidz': {
+        title: 'Pengingat Presensi & Setoran Tahfidz',
+        body: 'Diberitahukan kepada Asatidzah pengampu tahfidz agar melakukan presensi halaqah dan menginput mutaba\'ah setoran hafalan santri/siswa hari ini.',
+        screen: 'tahfidz'
+    },
+    'jurnal_guru': {
+        title: 'Pengingat Absensi Kelas & Jurnal Mengajar',
+        body: 'Diberitahukan kepada Bapak/Ibu Guru agar melakukan absensi kehadiran siswa di kelas dan mengisi jurnal kegiatan pembelajaran (KBM) hari ini.',
+        screen: 'teaching_schedule'
     },
     'presensi': {
         title: 'Pengingat Presensi Pegawai',
-        body: 'Jangan lupa untuk melakukan presensi kehadiran hari ini melalui aplikasi mobile SIMPEG Assunnah.',
+        body: 'Jangan lupa untuk melakukan presensi kehadiran hari ini melalui Aplikasi YAC.',
         screen: 'attendance'
     },
     'pengumuman': {
@@ -1133,7 +1485,7 @@ const broadcastTemplates = {
     },
     'update': {
         title: 'Pembaruan Aplikasi Tersedia',
-        body: 'Tersedia pembaruan versi terbaru SIMPEG Assunnah. Silakan perbarui aplikasi Anda untuk mendapatkan performa dan fitur terbaru.',
+        body: 'Tersedia pembaruan versi terbaru Aplikasi YAC. Silakan perbarui aplikasi Anda untuk mendapatkan performa dan fitur terbaru.',
         screen: 'general'
     }
 };
@@ -1148,7 +1500,10 @@ function applyTemplate(type) {
 
     if (titleInput) titleInput.value = t.title;
     if (bodyInput) bodyInput.value = t.body;
-    if (screenInput) screenInput.value = t.screen;
+    if (screenInput) {
+        screenInput.value = t.screen;
+        updatePremiumSelectUI(t.screen);
+    }
 
     updateLivePreview();
 }
@@ -1158,9 +1513,13 @@ function reuseTemplate(title, body, screen) {
     const bodyInput = document.getElementById('notifBody');
     const screenInput = document.getElementById('notifScreen');
 
+    const sVal = screen || 'general';
     if (titleInput) titleInput.value = title || '';
     if (bodyInput) bodyInput.value = body || '';
-    if (screenInput) screenInput.value = screen || 'general';
+    if (screenInput) {
+        screenInput.value = sVal;
+        updatePremiumSelectUI(sVal);
+    }
 
     updateLivePreview();
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1171,6 +1530,7 @@ function resetBroadcastForm() {
     if (form) form.reset();
     toggleTargetPanel('all');
     calculateRecipientEstimate();
+    updatePremiumSelectUI('general');
     updateLivePreview();
 }
 
@@ -1230,6 +1590,20 @@ function closeBroadcastModal() {
     if (modal) modal.classList.add('hidden');
 }
 
+function openDeleteLogModal(id, title) {
+    const input = document.getElementById('deleteLogIdInput');
+    const titleEl = document.getElementById('deleteLogTitleText');
+    if (input) input.value = id;
+    if (titleEl) titleEl.textContent = 'Menghapus riwayat: "' + (title || 'Broadcast') + '"';
+    const modal = document.getElementById('deleteLogModal');
+    if (modal) modal.classList.remove('hidden');
+}
+
+function closeDeleteLogModal() {
+    const modal = document.getElementById('deleteLogModal');
+    if (modal) modal.classList.add('hidden');
+}
+
 function submitBroadcastForm() {
     const btn = document.getElementById('confirmSubmitBtn');
     if (btn) {
@@ -1250,15 +1624,28 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // Close custom select dropdown on click outside
+    document.addEventListener('click', function(e) {
+        const trigger = document.getElementById('customScreenSelectTrigger');
+        const menu = document.getElementById('customScreenSelectMenu');
+        if (menu && trigger && !trigger.contains(e.target) && !menu.contains(e.target)) {
+            toggleCustomScreenSelect(false);
+        }
+    });
+
     // Close modal on Escape
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             closeEmployeeModal();
             closeBroadcastModal();
+            closeDeleteLogModal();
+            toggleCustomScreenSelect(false);
         }
     });
 
     // Initial setup
+    const curScreen = document.getElementById('notifScreen') ? document.getElementById('notifScreen').value : 'general';
+    updatePremiumSelectUI(curScreen);
     updateLivePreview();
     calculateRecipientEstimate();
     updateModalSelectedCounter();
@@ -1275,11 +1662,16 @@ window.toggleAllEmployeesInModal = toggleAllEmployeesInModal;
 window.updateModalSelectedCounter = updateModalSelectedCounter;
 window.applyEmployeeSelection = applyEmployeeSelection;
 window.updateLivePreview = updateLivePreview;
+window.toggleCustomScreenSelect = toggleCustomScreenSelect;
+window.selectScreenOption = selectScreenOption;
+window.updatePremiumSelectUI = updatePremiumSelectUI;
 window.applyTemplate = applyTemplate;
 window.reuseTemplate = reuseTemplate;
 window.resetBroadcastForm = resetBroadcastForm;
 window.openBroadcastModal = openBroadcastModal;
 window.closeBroadcastModal = closeBroadcastModal;
+window.openDeleteLogModal = openDeleteLogModal;
+window.closeDeleteLogModal = closeDeleteLogModal;
 window.submitBroadcastForm = submitBroadcastForm;
 </script>
 
