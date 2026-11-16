@@ -100,32 +100,45 @@ function redirect($path)
  */
 function check_login()
 {
-    if (!isset($_SESSION['user_id'])) {
-        redirect('views/auth/login.php');
-    }
-
-    // Cek Idle / Inactivity Timeout (1 Jam = 3600 detik)
     $timeout_duration = defined('SESSION_TIMEOUT_DURATION') ? SESSION_TIMEOUT_DURATION : 3600;
+    $is_expired = false;
 
-    if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) > $timeout_duration) {
+    if (!isset($_SESSION['user_id'])) {
+        $is_expired = true;
+    } elseif (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) > $timeout_duration) {
         $user_id = $_SESSION['user_id'] ?? null;
         if ($user_id && class_exists('Logger')) {
             Logger::auth('SESSION_TIMEOUT', "Session timed out after 1 hour of inactivity for user ID: {$user_id}");
         }
+        $is_expired = true;
+    }
 
-        // Hapus data sesi
-        $_SESSION = [];
-        if (ini_get("session.use_cookies")) {
-            $params = session_get_cookie_params();
-            setcookie(session_name(), '', time() - 42000,
-                $params["path"], $params["domain"],
-                $params["secure"], $params["httponly"]
-            );
+    if ($is_expired) {
+        // Ingat halaman saat ini sebelum sesi habis (hanya request GET non-auth/non-api)
+        if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'GET') {
+            $uri = $_SERVER['REQUEST_URI'] ?? '';
+            if ($uri && strpos($uri, 'login') === false && strpos($uri, 'logout') === false && strpos($uri, 'api/') === false) {
+                setcookie('redirect_after_login', $uri, time() + 3600, '/', '', false, true);
+            }
         }
-        session_destroy();
 
-        $error_msg = urlencode("Sesi Anda telah berakhir karena tidak ada aktivitas selama 1 jam. Silakan masuk kembali.");
-        redirect("views/auth/login.php?error={$error_msg}");
+        // Hapus data sesi jika timeout
+        if (isset($_SESSION['last_activity'])) {
+            $_SESSION = [];
+            if (ini_get("session.use_cookies")) {
+                $params = session_get_cookie_params();
+                setcookie(session_name(), '', time() - 42000,
+                    $params["path"], $params["domain"],
+                    $params["secure"], $params["httponly"]
+                );
+            }
+            session_destroy();
+
+            $error_msg = urlencode("Sesi Anda telah berakhir karena tidak ada aktivitas selama 1 jam. Silakan masuk kembali.");
+            redirect("views/auth/login.php?error={$error_msg}");
+        }
+
+        redirect('views/auth/login.php');
     }
 
     // Perbarui waktu aktivitas terakhir

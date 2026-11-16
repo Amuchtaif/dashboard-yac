@@ -1333,6 +1333,7 @@ function updateModalSelectedCounter() {
 function applyEmployeeSelection() {
     closeEmployeeModal();
     calculateRecipientEstimate();
+    if (typeof queueSaveDraft === 'function') queueSaveDraft();
 }
 
 // Live Preview Updates
@@ -1366,6 +1367,7 @@ function updateLivePreview() {
     const bCounter = document.getElementById('bodyCounter');
     if (tCounter && titleInput) tCounter.textContent = `${titleInput.value.length}/100`;
     if (bCounter && bodyInput) bCounter.textContent = `${bodyInput.value.length}/500`;
+    if (typeof queueSaveDraft === 'function') queueSaveDraft();
 }
 
 // Screen Metadata for Premium Select
@@ -1526,6 +1528,7 @@ function reuseTemplate(title, body, screen) {
 }
 
 function resetBroadcastForm() {
+    clearFormDraft();
     const form = document.getElementById('fcmBroadcastForm');
     if (form) form.reset();
     toggleTargetPanel('all');
@@ -1605,12 +1608,125 @@ function closeDeleteLogModal() {
 }
 
 function submitBroadcastForm() {
+    clearFormDraft();
     const btn = document.getElementById('confirmSubmitBtn');
     if (btn) {
         btn.disabled = true;
         btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin text-xs"></i> <span>Mengirim...</span>`;
     }
     document.getElementById('fcmBroadcastForm').submit();
+}
+
+// Client-Side Auto-Save Draft (Mencegah kehilangan isian saat sesi habis/terputus)
+const DRAFT_KEY = 'fcm_broadcast_draft';
+let draftSaveTimer = null;
+
+function queueSaveDraft() {
+    clearTimeout(draftSaveTimer);
+    draftSaveTimer = setTimeout(saveFormDraft, 250);
+}
+
+function saveFormDraft() {
+    try {
+        const targetTypeRadio = document.querySelector('input[name="target_type"]:checked');
+        const targetType = targetTypeRadio ? targetTypeRadio.value : 'all';
+        const topicRadio = document.querySelector('input[name="topic_name"]:checked');
+
+        const unitIds = Array.from(document.querySelectorAll('input[name="unit_ids[]"]:checked')).map(cb => cb.value);
+        const positionIds = Array.from(document.querySelectorAll('input[name="position_ids[]"]:checked')).map(cb => cb.value);
+        const employeeIds = Array.from(document.querySelectorAll('input[name="employee_ids[]"]:checked')).map(cb => cb.value);
+
+        const title = document.getElementById('notifTitle')?.value || '';
+        const body = document.getElementById('notifBody')?.value || '';
+        const screen = document.getElementById('notifScreen')?.value || 'general';
+        const saveInbox = document.querySelector('input[name="save_to_inbox"]')?.checked ?? true;
+
+        // Jangan simpan jika form masih kosong
+        if (!title && !body && unitIds.length === 0 && positionIds.length === 0 && employeeIds.length === 0 && targetType === 'all') {
+            localStorage.removeItem(DRAFT_KEY);
+            return;
+        }
+
+        const draft = {
+            targetType,
+            topic: topicRadio ? topicRadio.value : 'all_users',
+            unitIds,
+            positionIds,
+            employeeIds,
+            title,
+            body,
+            screen,
+            saveInbox,
+            savedAt: Date.now()
+        };
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    } catch (e) {}
+}
+
+function restoreFormDraft() {
+    try {
+        const raw = localStorage.getItem(DRAFT_KEY);
+        if (!raw) return;
+        const d = JSON.parse(raw);
+        if (!d) return;
+
+        // Pulihkan target penerima
+        if (d.targetType) {
+            const radio = document.querySelector(`input[name="target_type"][value="${d.targetType}"]`);
+            if (radio) {
+                radio.checked = true;
+                toggleTargetPanel(d.targetType);
+            }
+        }
+
+        // Pulihkan topik jika dipilih
+        if (d.topic) {
+            const tRadio = document.querySelector(`input[name="topic_name"][value="${d.topic}"]`);
+            if (tRadio) tRadio.checked = true;
+        }
+
+        // Pulihkan centang unit
+        if (Array.isArray(d.unitIds)) {
+            document.querySelectorAll('input[name="unit_ids[]"]').forEach(cb => {
+                cb.checked = d.unitIds.includes(cb.value);
+            });
+        }
+
+        // Pulihkan centang jabatan
+        if (Array.isArray(d.positionIds)) {
+            document.querySelectorAll('input[name="position_ids[]"]').forEach(cb => {
+                cb.checked = d.positionIds.includes(cb.value);
+            });
+        }
+
+        // Pulihkan centang karyawan terpilih
+        if (Array.isArray(d.employeeIds) && d.employeeIds.length > 0) {
+            document.querySelectorAll('input[name="employee_ids[]"]').forEach(cb => {
+                cb.checked = d.employeeIds.includes(cb.value);
+            });
+            updateModalSelectedCounter();
+        }
+
+        // Pulihkan konten pesan
+        const titleInput = document.getElementById('notifTitle');
+        const bodyInput = document.getElementById('notifBody');
+        const screenInput = document.getElementById('notifScreen');
+        const inboxCheck = document.querySelector('input[name="save_to_inbox"]');
+
+        if (titleInput && d.title !== undefined) titleInput.value = d.title;
+        if (bodyInput && d.body !== undefined) bodyInput.value = d.body;
+        if (inboxCheck && d.saveInbox !== undefined) inboxCheck.checked = d.saveInbox;
+        if (screenInput && d.screen) {
+            screenInput.value = d.screen;
+            updatePremiumSelectUI(d.screen);
+        }
+    } catch (e) {}
+}
+
+function clearFormDraft() {
+    try {
+        localStorage.removeItem(DRAFT_KEY);
+    } catch (e) {}
 }
 
 // Event Listeners for Reliable Template Binding & Initial State
@@ -1621,8 +1737,15 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             const tmpl = this.getAttribute('data-template');
             applyTemplate(tmpl);
+            queueSaveDraft();
         });
     });
+
+    // Auto-save draf saat elemen form mengalami perubahan
+    const broadcastForm = document.getElementById('fcmBroadcastForm');
+    if (broadcastForm) {
+        broadcastForm.addEventListener('change', queueSaveDraft);
+    }
 
     // Close custom select dropdown on click outside
     document.addEventListener('click', function(e) {
@@ -1643,9 +1766,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Initial setup
+    // Initial setup & Restore draf jika ada
     const curScreen = document.getElementById('notifScreen') ? document.getElementById('notifScreen').value : 'general';
     updatePremiumSelectUI(curScreen);
+    restoreFormDraft();
     updateLivePreview();
     calculateRecipientEstimate();
     updateModalSelectedCounter();
@@ -1673,6 +1797,9 @@ window.closeBroadcastModal = closeBroadcastModal;
 window.openDeleteLogModal = openDeleteLogModal;
 window.closeDeleteLogModal = closeDeleteLogModal;
 window.submitBroadcastForm = submitBroadcastForm;
+window.saveFormDraft = saveFormDraft;
+window.restoreFormDraft = restoreFormDraft;
+window.clearFormDraft = clearFormDraft;
 </script>
 
 <?php include '../layouts/footer.php'; ?>

@@ -37,7 +37,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             Logger::auth('LOGIN', 'User logged in successfully');
 
-            header("Location: ../../views/dashboard/index.php");
+            // Redirect ke halaman sebelum sesi habis jika ada
+            $redirect_url = '../../views/dashboard/index.php';
+            if (!empty($_COOKIE['redirect_after_login'])) {
+                $target = $_COOKIE['redirect_after_login'];
+                setcookie('redirect_after_login', '', time() - 3600, '/', '', false, true);
+                // Validasi agar hanya internal path yang valid dan bukan rute login/logout
+                if (strpos($target, '://') === false && substr($target, 0, 1) === '/' && substr($target, 0, 2) !== '//' && strpos($target, 'login') === false && strpos($target, 'logout') === false) {
+                    $redirect_url = $target;
+                }
+            }
+
+            header("Location: " . $redirect_url);
             exit;
         } else {
             Logger::auth('LOGIN_FAILED', "Failed login attempt for email: $email");

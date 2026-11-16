@@ -2,6 +2,14 @@
 require_once '../../config/app.php';
 
 if (isset($_SESSION['user_id'])) {
+    if (!empty($_COOKIE['redirect_after_login'])) {
+        $target = $_COOKIE['redirect_after_login'];
+        setcookie('redirect_after_login', '', time() - 3600, '/', '', false, true);
+        if (strpos($target, '://') === false && substr($target, 0, 1) === '/' && substr($target, 0, 2) !== '//' && strpos($target, 'login') === false && strpos($target, 'logout') === false) {
+            header("Location: " . $target);
+            exit;
+        }
+    }
     redirect('views/dashboard/index.php');
 }
 ?>
