@@ -94,7 +94,7 @@ try {
         if ($checkTable->rowCount() > 0) {
             $sqlAssignment = "SELECT id, title, body, type, reference_id, is_read, created_at
                               FROM notifications
-                              WHERE user_id = :uid AND type = 'assignment'
+                              WHERE user_id = :uid AND type IN ('assignment', 'broadcast', 'announcement', 'general')
                               AND created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
                               ORDER BY created_at DESC";
             $stmt3 = $conn->prepare($sqlAssignment);
@@ -102,7 +102,7 @@ try {
             $assignments = $stmt3->fetchAll(PDO::FETCH_ASSOC);
 
             foreach ($assignments as $row) {
-                $key = "asn_" . $row['id'];
+                $key = ($row['type'] === 'assignment' ? "asn_" : "notif_") . $row['id'];
                 if (isset($dismissedSet[$key]))
                     continue; // Skip dismissed
 

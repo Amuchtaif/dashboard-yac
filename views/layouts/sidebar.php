@@ -309,6 +309,13 @@ if ($is_admin) {
                     Update Aplikasi
                 </a>
 
+                <!-- Broadcast Notifikasi FCM -->
+                <a href="<?php url('views/settings/fcm_broadcast.php'); ?>"
+                    class="<?php echo isActive('settings/fcm_broadcast.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
+                    <?php renderIcon('fa-bullhorn', getIconClass('settings/fcm_broadcast.php')); ?>
+                    Broadcast FCM
+                </a>
+
                 <!-- News Management -->
                 <?php if ($can_manage_news): ?>
                     <a href="<?php url('views/news/index.php'); ?>"
