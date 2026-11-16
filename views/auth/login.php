@@ -151,8 +151,7 @@ if (isset($_SESSION['user_id'])) {
                                class="w-full pl-11 pr-11 py-3 bg-white text-slate-800 text-[14px] rounded-full border border-slate-300 focus:outline-none focus:border-[#0575E6] focus:ring-2 focus:ring-[#0575E6]/20 transition-all placeholder:text-slate-400">
                         <button type="button" 
                                 id="toggle-password-btn"
-                                onclick="togglePassword()"
-                                class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none transition-colors"
+                                class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none transition-colors cursor-pointer"
                                 title="Tampilkan / sembunyikan kata sandi">
                             <i id="eye-icon" class="fa-solid fa-eye text-sm"></i>
                             <i id="eye-off-icon" class="fa-solid fa-eye-slash text-sm hidden"></i>
@@ -183,23 +182,22 @@ if (isset($_SESSION['user_id'])) {
     </div>
 
     <script nonce="<?php echo csp_nonce(); ?>">
-        function togglePassword() {
-            const passwordInput = document.getElementById('password');
-            const eyeIcon = document.getElementById('eye-icon');
-            const eyeOffIcon = document.getElementById('eye-off-icon');
+        const toggleBtn = document.getElementById('toggle-password-btn');
+        const passwordInput = document.getElementById('password');
+        const eyeIcon = document.getElementById('eye-icon');
+        const eyeOffIcon = document.getElementById('eye-off-icon');
 
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                eyeIcon.classList.add('hidden');
-                eyeOffIcon.classList.remove('hidden');
-            } else {
-                passwordInput.type = 'password';
-                eyeIcon.classList.remove('hidden');
-                eyeOffIcon.classList.add('hidden');
-            }
+        if (toggleBtn && passwordInput) {
+            toggleBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const isPassword = passwordInput.type === 'password';
+                passwordInput.type = isPassword ? 'text' : 'password';
+                if (eyeIcon && eyeOffIcon) {
+                    eyeIcon.classList.toggle('hidden', isPassword);
+                    eyeOffIcon.classList.toggle('hidden', !isPassword);
+                }
+            });
         }
-
-        document.getElementById('toggle-password-btn')?.addEventListener('click', togglePassword);
 
         // Auto-close error alert smoothly
         const errorAlert = document.getElementById('error-alert');
