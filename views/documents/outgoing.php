@@ -2,6 +2,7 @@
 // views/documents/outgoing.php
 require_once '../../config/app.php';
 require_once '../../config/database.php';
+require_once '../../logic/helpers/document_helper.php';
 
 check_login();
 check_permission('document.create');
@@ -17,18 +18,30 @@ $is_admin = isset($_SESSION['position_name']) && $_SESSION['position_name'] === 
 $action = isset($_GET['action']) ? $_GET['action'] : 'list';
 $doc_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
+$user_unit_id = 0;
+$user_div_id = 0;
+if (!$is_admin) {
+    $stmtEmpInfo = $conn->prepare("SELECT division_id, department_id, unit_id FROM employees WHERE id = ?");
+    $stmtEmpInfo->execute([$user_id]);
+    $emp_info = $stmtEmpInfo->fetch(PDO::FETCH_ASSOC);
+    $user_div_id = $emp_info['division_id'] ?: ($emp_info['department_id'] ?: 0);
+    $user_unit_id = $emp_info['unit_id'] ?? 0;
+}
+
 $document = null;
 $template = null;
 if (($action === 'edit' || $action === 'view') && $doc_id > 0) {
     $stmtDoc = $conn->prepare("
-        SELECT d.*, dt.name as template_name, dt.content_template, dt.workflow_stages, e.full_name as creator_name,
+        SELECT d.*, dt.name as template_name, dt.content_template, dt.workflow_stages, dt.signer_type,
+               dt.header_logo, dt.header_line_1, dt.header_line_2, dt.header_address, dt.header_image,
+               e.full_name as creator_name, e.signature_path as creator_signature,
                divs.name as receiver_division_name, u.name as receiver_unit_name
         FROM documents d
         LEFT JOIN document_templates dt ON d.template_id = dt.id
         LEFT JOIN employees e ON d.creator_id = e.id
         LEFT JOIN divisions divs ON d.receiver_division_id = divs.id
         LEFT JOIN units u ON d.receiver_unit_id = u.id
-        WHERE d.id = ?
+        WHERE d.id = ? AND d.type = 'outgoing'
     ");
     $stmtDoc->execute([$doc_id]);
     $document = $stmtDoc->fetch(PDO::FETCH_ASSOC);
@@ -36,10 +49,63 @@ if (($action === 'edit' || $action === 'view') && $doc_id > 0) {
     if (!$document) {
         redirect("views/documents/outgoing.php?error=Dokumen+tidak+ditemukan");
     }
+
+    // Access control: Surat Keluar is only viewable by creator, assigned approvers, or colleagues in the creator's unit/division
+    if (!$is_admin) {
+        $can_access = false;
+        if ($document['creator_id'] == $user_id) {
+            $can_access = true;
+        }
+
+        if (!$can_access && $action === 'view') {
+            $stmtChkApp = $conn->prepare("SELECT 1 FROM document_approvals WHERE document_id = ? AND approver_id = ?");
+            $stmtChkApp->execute([$doc_id, $user_id]);
+            if ($stmtChkApp->fetchColumn()) {
+                $can_access = true;
+            }
+        }
+
+        if (!$can_access && $action === 'view' && $document['status'] !== 'draft') {
+            $stmtCreatorEmp = $conn->prepare("SELECT division_id, unit_id FROM employees WHERE id = ?");
+            $stmtCreatorEmp->execute([$document['creator_id']]);
+            $creator_emp = $stmtCreatorEmp->fetch(PDO::FETCH_ASSOC);
+            if ($creator_emp) {
+                $c_unit = $creator_emp['unit_id'] ?? 0;
+                $c_div = $creator_emp['division_id'] ?? 0;
+                if ($user_unit_id != 0 && $c_unit == $user_unit_id) {
+                    $can_access = true;
+                } elseif ($user_unit_id == 0 && empty($c_unit) && $c_div == $user_div_id) {
+                    $can_access = true;
+                }
+            }
+        }
+
+        if (!$can_access) {
+            redirect("views/documents/outgoing.php?error=Anda+tidak+memiliki+akses+ke+surat+keluar+ini");
+        }
+
+        if ($action === 'edit' && ($document['creator_id'] != $user_id || !in_array($document['status'], ['draft', 'rejected']))) {
+            redirect("views/documents/outgoing.php?error=Surat+keluar+tidak+dapat+diedit");
+        }
+    }
 }
 
-// Fetch active templates for dropdown/modal
-$templates = $conn->query("SELECT id, name, code FROM document_templates ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
+// Fetch active templates filtered by user scope & unit
+if ($is_admin) {
+    $templates = $conn->query("SELECT id, name, code, scope FROM document_templates ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
+} else {
+    $stmtTpl = $conn->prepare("
+        SELECT id, name, code, scope 
+        FROM document_templates 
+        WHERE created_by = :uid 
+           OR (scope = 'unit' AND unit_id = :unit_id) 
+           OR scope = 'global'
+           OR (scope IS NULL AND (unit_id IS NULL OR unit_id = :unit_id2))
+        ORDER BY name ASC
+    ");
+    $stmtTpl->execute([':uid' => $user_id, ':unit_id' => $user_unit_id, ':unit_id2' => $user_unit_id]);
+    $templates = $stmtTpl->fetchAll(PDO::FETCH_ASSOC);
+}
 
 // Fetch active divisions (Bidang) & units for cascading dropdown selection
 $divisions = $conn->query("SELECT id, name FROM divisions ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
@@ -58,24 +124,21 @@ $where_clause = "d.type = 'outgoing'";
 $params = [];
 
 if (!$is_admin) {
-    $stmtEmpInfo = $conn->prepare("SELECT division_id, department_id, unit_id FROM employees WHERE id = ?");
-    $stmtEmpInfo->execute([$user_id]);
-    $emp_info = $stmtEmpInfo->fetch(PDO::FETCH_ASSOC);
-    $user_div_id = $emp_info['division_id'] ?: ($emp_info['department_id'] ?: 0);
-    $user_unit_id = $emp_info['unit_id'] ?? 0;
-
     $where_clause .= " AND (
         d.creator_id = :creator_id 
         OR (
             d.status != 'draft' AND (
-                (d.receiver_division_id = :user_div_id AND (d.receiver_unit_id IS NULL OR d.receiver_unit_id = :user_unit_id OR :user_unit_id = 0))
-                OR (d.receiver_unit_id = :user_unit_id AND :user_unit_id != 0)
+                (e.unit_id = :user_unit_id AND :user_unit_id != 0)
+                OR ((e.unit_id IS NULL OR e.unit_id = 0) AND :user_unit_id2 = 0 AND e.division_id = :user_div_id)
             )
         )
+        OR EXISTS (SELECT 1 FROM document_approvals da WHERE da.document_id = d.id AND da.approver_id = :approver_uid)
     )";
     $params[':creator_id'] = $user_id;
-    $params[':user_div_id'] = $user_div_id;
     $params[':user_unit_id'] = $user_unit_id;
+    $params[':user_unit_id2'] = $user_unit_id;
+    $params[':user_div_id'] = $user_div_id;
+    $params[':approver_uid'] = $user_id;
 }
 
 if (!empty($search)) {
@@ -136,6 +199,17 @@ if ($action === 'new' && $new_template_id > 0) {
     $stmtTpl = $conn->prepare("SELECT * FROM document_templates WHERE id = ?");
     $stmtTpl->execute([$new_template_id]);
     $template = $stmtTpl->fetch(PDO::FETCH_ASSOC);
+
+    // Verify user has access to use this template
+    if ($template && !$is_admin) {
+        $has_access = ($template['created_by'] == $user_id) 
+            || ($template['scope'] === 'unit' && $template['unit_id'] == $user_unit_id)
+            || ($template['scope'] === 'global')
+            || ($template['scope'] === null && ($template['unit_id'] === null || $template['unit_id'] == $user_unit_id));
+        if (!$has_access) {
+            redirect("views/documents/outgoing.php?error=Anda+tidak+memiliki+akses+ke+template+ini");
+        }
+    }
 }
 
 include '../layouts/header.php';
@@ -165,72 +239,218 @@ include '../layouts/header.php';
     </div>
 
     <!-- VIEW DRAFT / OUTGOING -->
-    <?php if ($action === 'view' && $document): ?>
-        <div class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Left: Document Preview -->
+    <?php 
+    if ($action === 'view' && $document): 
+        // Approvals and signer resolution
+        $approvals_list = [];
+        $can_approve = false;
+        $user_pending_approval_id = 0;
+        $active_signer = null;
+
+        $stmtApprovals = $conn->prepare("
+            SELECT da.*, e.full_name as approver_name, p.name as approver_position, u.name as approver_unit, e.signature_path
+            FROM document_approvals da
+            JOIN employees e ON da.approver_id = e.id
+            LEFT JOIN positions p ON e.position_id = p.id
+            LEFT JOIN units u ON e.unit_id = u.id
+            WHERE da.document_id = ?
+            ORDER BY da.stage_order ASC, da.id ASC
+        ");
+        $stmtApprovals->execute([$doc_id]);
+        $approvals_list = $stmtApprovals->fetchAll(PDO::FETCH_ASSOC);
+
+        if ($document['status'] === 'pending_approval') {
+            foreach ($approvals_list as $appItem) {
+                if ($appItem['status'] === 'pending' && ($appItem['approver_id'] == $user_id || $is_admin)) {
+                    $can_approve = true;
+                    $user_pending_approval_id = $appItem['id'];
+                    break;
+                }
+            }
+        }
+
+        // Active signer resolution
+        foreach (array_reverse($approvals_list) as $app) {
+            if ($app['status'] === 'approved') {
+                $active_signer = [
+                    'name' => $app['approver_name'],
+                    'position' => $app['approver_position'],
+                    'signature_path' => $app['signature_path']
+                ];
+                break;
+            }
+        }
+        if (!$active_signer && !empty($approvals_list)) {
+            $firstPending = $approvals_list[0];
+            $active_signer = [
+                'name' => $firstPending['approver_name'],
+                'position' => $firstPending['approver_position'],
+                'signature_path' => $firstPending['signature_path']
+            ];
+        }
+        if (!$active_signer) {
+            $resolved = getResolvedSignerInfo($conn, $document['creator_id'], $document['signer_type'] ?? 'unit_head');
+            $active_signer = [
+                'name' => $resolved['name'],
+                'position' => $resolved['position'],
+                'signature_path' => $resolved['signature_path']
+            ];
+        }
+
+        $formatted_doc_date = formatIndonesianDate($document['created_at']);
+        $status = $document['status'];
+
+        // Prepare clean document view content
+        $view_content = $document['content'];
+        $view_content = str_replace('{{nomor_surat}}', htmlspecialchars($document['document_number']), $view_content);
+        $view_content = str_replace('{{perihal}}', htmlspecialchars($document['title']), $view_content);
+        $view_content = str_replace('{{tanggal_surat}}', htmlspecialchars($formatted_doc_date), $view_content);
+        if ($active_signer) {
+            $view_content = str_replace('{{nama_penandatangan}}', htmlspecialchars($active_signer['name']), $view_content);
+            $view_content = str_replace('{{jabatan_penandatangan}}', htmlspecialchars($active_signer['position']), $view_content);
+        }
+
+        // Dynamically process signature stamp according to document status
+        $view_content = processDocumentSignatureHtml($view_content, $status, $document['qr_token'], $active_signer['signature_path'] ?? '');
+
+        // If template doesn't contain a signature block at all, append standard box
+        if (stripos($view_content, 'tanda tangan') === false && stripos($view_content, 'signature-box') === false && $active_signer) {
+            $view_content .= renderDocumentSignatureBoxHtml($active_signer['name'], $active_signer['position'], $status, $document['qr_token'], $active_signer['signature_path'] ?? '');
+        }
+
+        // Render Kop Surat if not already present
+        $has_kop = (strpos($view_content, 'kop-surat') !== false);
+        $rendered_kop = (!$has_kop && $document['template_id'] > 0) ? renderDocumentKopHtml($document) : '';
+
+        $badge_class = 'bg-slate-100 text-slate-700 border-slate-200';
+        if ($status === 'pending_approval') $badge_class = 'bg-amber-50 text-amber-700 border-amber-200/50';
+        elseif ($status === 'completed') $badge_class = 'bg-emerald-50 text-emerald-700 border-emerald-200/50';
+        elseif ($status === 'rejected') $badge_class = 'bg-rose-50 text-rose-700 border-rose-200/50';
+    ?>
+        <div class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+            <!-- Left: Document Preview (Real A4 Sheet) -->
             <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-                <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-4 gap-4">
                     <div>
-                        <span class="inline-flex items-center rounded-md bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600"><?php echo htmlspecialchars($document['template_name'] ?? 'Manual'); ?></span>
+                        <div class="flex items-center gap-2">
+                            <span class="inline-flex items-center rounded-md bg-indigo-50 px-2.5 py-0.5 text-xs font-semibold text-indigo-700"><?php echo htmlspecialchars($document['template_name'] ?? 'Manual'); ?></span>
+                            <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider <?php echo $badge_class; ?>">
+                                <?php echo $status === 'pending_approval' ? 'Pending Approval' : ($status === 'completed' ? 'Selesai & Resmi' : ($status === 'rejected' ? 'Ditolak' : 'Draft')); ?>
+                            </span>
+                        </div>
                         <h2 class="text-lg font-bold text-slate-800 mt-2"><?php echo htmlspecialchars($document['title']); ?></h2>
-                        <p class="text-xs text-slate-400 mt-1">Nomor Surat: <span class="font-bold text-slate-600"><?php echo htmlspecialchars($document['document_number']); ?></span></p>
+                        <p class="text-xs text-slate-400 mt-1">Nomor Surat: <span class="font-bold text-slate-700 font-mono"><?php echo htmlspecialchars($document['document_number']); ?></span></p>
                     </div>
-                    <div>
-                        <?php 
-                        $status = $document['status'];
-                        $badge_class = 'bg-slate-100 text-slate-700 border-slate-200';
-                        if ($status === 'pending_approval') $badge_class = 'bg-amber-50 text-amber-700 border-amber-200/50';
-                        elseif ($status === 'completed') $badge_class = 'bg-emerald-50 text-emerald-700 border-emerald-200/50';
-                        elseif ($status === 'rejected') $badge_class = 'bg-rose-50 text-rose-700 border-rose-200/50';
-                        ?>
-                        <span class="inline-flex items-center rounded-xl border px-3 py-1 text-xs font-bold uppercase tracking-wider <?php echo $badge_class; ?>">
-                            <?php echo $status === 'pending_approval' ? 'Pending Approval' : ($status === 'completed' ? 'Selesai' : ($status === 'rejected' ? 'Ditolak' : 'Draft')); ?>
-                        </span>
+                    <div class="flex items-center gap-2">
+                        <?php if ($status === 'completed'): ?>
+                            <a href="<?php url('views/documents/preview.php?id=' . $document['id']); ?>" target="_blank" class="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-3.5 py-2 text-xs font-bold text-white shadow-sm hover:bg-indigo-700 transition-colors">
+                                <i class="fa-solid fa-print mr-1.5 text-xs"></i> Cetak / Unduh
+                            </a>
+                            <a href="<?php url('views/documents/verify.php?token=' . urlencode($document['qr_token'])); ?>" target="_blank" class="inline-flex items-center justify-center rounded-xl bg-slate-100 border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700 shadow-sm hover:bg-slate-200 transition-colors">
+                                <i class="fa-solid fa-qrcode mr-1.5 text-xs text-indigo-600"></i> QR Verifikasi
+                            </a>
+                        <?php elseif ($status === 'draft' || $status === 'rejected'): ?>
+                            <a href="?action=edit&id=<?php echo $document['id']; ?>" class="inline-flex items-center justify-center rounded-xl bg-white border border-slate-300 px-3.5 py-2 text-xs font-bold text-slate-700 shadow-sm hover:bg-slate-50 transition-colors">
+                                <i class="fa-solid fa-pen mr-1.5 text-xs"></i> Edit
+                            </a>
+                        <?php endif; ?>
                     </div>
                 </div>
 
-                <!-- Document Content Container (styled paper look) -->
-                <div class="mt-6 border border-slate-300 rounded-xl bg-slate-50 p-8 min-h-[400px] overflow-auto relative">
-                    <!-- Preview Watermark -->
-                    <?php if ($status !== 'completed'): ?>
-                        <div class="absolute inset-0 flex items-center justify-center opacity-[0.03] select-none pointer-events-none">
-                            <span class="text-7xl font-black rotate-45">PRATINJAU DRAF</span>
+                <!-- Document Paper Canvas (Styled Official Paper) -->
+                <div class="mt-6 bg-slate-100/80 p-4 sm:p-8 rounded-2xl flex justify-center border border-slate-200 shadow-inner overflow-x-auto">
+                    <div class="bg-white shadow-xl border border-slate-300 w-full max-w-[794px] min-h-[960px] p-8 sm:p-14 text-slate-900 relative rounded-sm" style="font-family: 'Times New Roman', Times, serif; font-size: 12pt; line-height: 1.55;">
+                        <!-- Watermark if not completed -->
+                        <?php if ($status !== 'completed'): ?>
+                            <div class="absolute inset-0 flex items-center justify-center opacity-[0.035] select-none pointer-events-none">
+                                <span class="text-7xl font-black rotate-[-30deg] tracking-widest text-slate-900">PRATINJAU DRAF</span>
+                            </div>
+                        <?php endif; ?>
+
+                        <!-- KOP SURAT RESMI -->
+                        <?php echo $rendered_kop; ?>
+
+                        <!-- KONTEN SURAT LENGKAP -->
+                        <div class="document-content-body not-prose text-slate-900 text-justify" style="font-family: 'Times New Roman', Times, serif; font-size: 12pt; line-height: 1.6;">
+                            <?php echo $view_content; ?>
                         </div>
-                    <?php endif; ?>
-                    
-                    <!-- Real Letter Output -->
-                    <div class="prose max-w-none text-slate-800 text-sm leading-relaxed" style="font-family: serif;">
-                        <?php echo $document['content']; ?>
                     </div>
                 </div>
 
                 <!-- Options in view mode -->
-                <div class="mt-6 flex justify-end gap-3">
-                    <?php if ($status === 'draft' || $status === 'rejected'): ?>
-                        <button type="button" 
-                                data-id="<?php echo $document['id']; ?>"
-                                data-title="<?php echo htmlspecialchars($document['title'], ENT_QUOTES); ?>"
-                                onclick="triggerSubmitModal(this)" 
-                                class="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-emerald-700 transition-colors">
-                            <i class="fa-solid fa-paper-plane mr-2 text-xs"></i>
-                            Kirim Pengajuan Approval
-                        </button>
-                    <?php endif; ?>
-                    <?php if ($status === 'completed'): ?>
-                        <a href="<?php url('views/documents/preview.php?id=' . $document['id']); ?>" target="_blank" class="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-indigo-700 transition-colors">
-                            <i class="fa-solid fa-print mr-2 text-xs"></i>
-                            Cetak / Unduh PDF
+                <div class="mt-6 flex flex-wrap justify-between items-center gap-3 border-t border-slate-100 pt-4">
+                    <div>
+                        <a href="<?php url('views/documents/outgoing.php'); ?>" class="inline-flex items-center justify-center rounded-xl bg-slate-100 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-200 transition-colors">
+                            <i class="fa-solid fa-arrow-left mr-1.5"></i> Kembali ke Daftar
                         </a>
-                    <?php endif; ?>
+                    </div>
+                    <div class="flex gap-2.5">
+                        <?php if ($status === 'draft' || $status === 'rejected'): ?>
+                            <a href="?action=edit&id=<?php echo $document['id']; ?>" class="inline-flex items-center justify-center rounded-xl bg-white border border-slate-300 px-4 py-2 text-xs font-bold text-slate-700 shadow-sm hover:bg-slate-50 transition-colors">
+                                <i class="fa-solid fa-pen mr-1.5"></i> Edit Draf
+                            </a>
+                            <button type="button" 
+                                    data-id="<?php echo $document['id']; ?>"
+                                    data-title="<?php echo htmlspecialchars($document['title'], ENT_QUOTES); ?>"
+                                    onclick="triggerSubmitModal(this)" 
+                                    class="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-emerald-700 transition-colors">
+                                <i class="fa-solid fa-paper-plane mr-1.5 text-xs"></i>
+                                Kirim Pengajuan Approval
+                            </button>
+                        <?php endif; ?>
+
+                        <?php if ($can_approve): ?>
+                            <button type="button" onclick="openDirectApproveModal('approved')" class="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-emerald-700 transition-colors">
+                                <i class="fa-solid fa-signature mr-1.5 text-xs"></i>
+                                Setujui & Tanda Tangani
+                            </button>
+                            <button type="button" onclick="openDirectApproveModal('rejected')" class="inline-flex items-center justify-center rounded-xl bg-rose-50 border border-rose-200 px-4 py-2 text-xs font-bold text-rose-700 shadow-sm hover:bg-rose-100 transition-colors">
+                                <i class="fa-solid fa-xmark mr-1.5 text-xs"></i>
+                                Tolak Surat
+                            </button>
+                        <?php endif; ?>
+
+                        <?php if ($status === 'completed'): ?>
+                            <a href="<?php url('views/documents/preview.php?id=' . $document['id']); ?>" target="_blank" class="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-indigo-700 transition-colors">
+                                <i class="fa-solid fa-print mr-1.5 text-xs"></i>
+                                Cetak / Unduh PDF
+                            </a>
+                            <a href="<?php url('views/documents/verify.php?token=' . urlencode($document['qr_token'])); ?>" target="_blank" class="inline-flex items-center justify-center rounded-xl bg-slate-100 border border-slate-300 px-4 py-2 text-xs font-bold text-slate-700 shadow-sm hover:bg-slate-200 transition-colors">
+                                <i class="fa-solid fa-qrcode mr-1.5 text-xs text-indigo-600"></i>
+                                Cek QR Verifikasi
+                            </a>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </div>
 
             <!-- Right: Metadata & Workflow Status -->
-            <div class="space-y-6">
-                <!-- Info Box -->
+            <div class="space-y-6 sticky top-6">
+                <!-- Action Card if current logged-in user is approver -->
+                <?php if ($can_approve): ?>
+                    <div class="bg-gradient-to-br from-amber-500/10 via-emerald-500/10 to-indigo-500/10 rounded-2xl border-2 border-emerald-500/30 p-5 shadow-sm space-y-3">
+                        <div class="flex items-center gap-2">
+                            <span class="flex h-3 w-3 rounded-full bg-emerald-500 animate-ping"></span>
+                            <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Aksi Penandatangan Dokumen</h3>
+                        </div>
+                        <p class="text-xs text-slate-600">Dokumen ini saat ini menunggu keputusan persetujuan resmi dari Anda.</p>
+                        <div class="flex flex-col gap-2 pt-1">
+                            <button type="button" onclick="openDirectApproveModal('approved')" class="w-full inline-flex items-center justify-center rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-emerald-700 transition-colors">
+                                <i class="fa-solid fa-signature mr-2"></i>
+                                Setujui & Tanda Tangani
+                            </button>
+                            <button type="button" onclick="openDirectApproveModal('rejected')" class="w-full inline-flex items-center justify-center rounded-xl bg-white border border-rose-200 px-4 py-2 text-xs font-bold text-rose-700 shadow-sm hover:bg-rose-50 transition-colors">
+                                <i class="fa-solid fa-xmark mr-2"></i>
+                                Tolak Surat
+                            </button>
+                        </div>
+                    </div>
+                <?php endif; ?>
+
+                <!-- Info Box: Detail Dokumen -->
                 <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
                     <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Detail Dokumen</h3>
-                    <div class="mt-4 space-y-3.5 text-xs">
+                    <div class="mt-4 space-y-3 text-xs">
                         <div class="flex justify-between">
                             <span class="text-slate-500">Pembuat:</span>
                             <span class="font-bold text-slate-700"><?php echo htmlspecialchars($document['creator_name']); ?></span>
@@ -260,109 +480,76 @@ include '../layouts/header.php';
                             <span class="text-slate-500">Tipe Dokumen:</span>
                             <span class="font-bold text-slate-700"><?php echo htmlspecialchars($document['template_name'] ?? 'Kustom/Manual'); ?></span>
                         </div>
+                        <div class="flex justify-between border-t border-slate-100 pt-2 mt-2">
+                            <span class="text-slate-500">Pejabat Pengesah:</span>
+                            <span class="font-bold text-slate-800 text-right"><?php echo htmlspecialchars($active_signer['name']); ?><br><span class="text-[10px] text-slate-400 font-normal"><?php echo htmlspecialchars($active_signer['position']); ?></span></span>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Workflow Process Trace -->
-                <?php if ($document['template_id'] > 0): ?>
-                    <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Alur Persetujuan</h3>
-                        <div class="mt-5 relative border-l border-slate-200 pl-5 ml-2.5 space-y-6 text-xs">
-                            <?php
-                            // Fetch all workflow steps from template, and their approval logs
-                            $stages_def = json_decode($document['workflow_stages'], true) ?: [];
-                            
-                            // Fetch resolved approvals
-                            $stmtApprovals = $conn->prepare("SELECT * FROM document_approvals WHERE document_id = ? ORDER BY stage_order ASC");
-                            $stmtApprovals->execute([$doc_id]);
-                            $resolves = $stmtApprovals->fetchAll(PDO::FETCH_ASSOC);
-                            
-                            $step_map = [];
-                            foreach ($resolves as $res) {
-                                $step_map[$res['stage_order']][] = $res;
-                            }
-
-                            foreach ($stages_def as $idx => $stg):
-                                $step_num = $stg['step'];
-                                $stage_resolves = $step_map[$step_num] ?? [];
-                                
-                                // Determine step status
-                                $step_status = 'waiting'; // waiting, pending, approved, rejected
-                                $approved_by_name = '';
-                                $date_string = '';
-                                $note_string = '';
-
-                                if (!empty($stage_resolves)) {
-                                    $has_reject = false;
-                                    $has_pending = false;
-                                    $has_approve = false;
-                                    
-                                    foreach ($stage_resolves as $sr) {
-                                        if ($sr['status'] === 'rejected') $has_reject = true;
-                                        elseif ($sr['status'] === 'pending') $has_pending = true;
-                                        elseif ($sr['status'] === 'approved') {
-                                            $has_approve = true;
-                                            // Get employee name
-                                            $stmtEmpName = $conn->prepare("SELECT full_name FROM employees WHERE id = ?");
-                                            $stmtEmpName->execute([$sr['approver_id']]);
-                                            $approved_by_name = $stmtEmpName->fetchColumn();
-                                            $date_string = date('d M Y, H:i', strtotime($sr['approved_at']));
-                                            if (!empty($sr['notes'])) $note_string = $sr['notes'];
-                                        }
-                                    }
-
-                                    if ($has_reject) $step_status = 'rejected';
-                                    elseif ($has_pending) $step_status = 'pending';
-                                    elseif ($has_approve) $step_status = 'approved';
-                                } else {
-                                    // If previous steps are all approved, and document is pending_approval, current step is pending
-                                    if ($document['status'] === 'pending_approval') {
-                                        // Simple logic: if previous step has no resolutions, we remain waiting. If previous step is approved, this becomes pending.
-                                        $prev_all_approved = true;
-                                        for ($p = 1; $p < $step_num; $p++) {
-                                            $prev_stage_res = $step_map[$p] ?? [];
-                                            $prev_ok = false;
-                                            foreach ($prev_stage_res as $psr) {
-                                                if ($psr['status'] === 'approved') $prev_ok = true;
-                                            }
-                                            if (!$prev_ok) $prev_all_approved = false;
-                                        }
-                                        if ($prev_all_approved) $step_status = 'pending';
-                                    }
-                                }
-
-                                // Style based on status
-                                $bullet_color = 'bg-slate-200 border-white ring-slate-100';
-                                if ($step_status === 'approved') $bullet_color = 'bg-emerald-500 border-white ring-emerald-100';
-                                elseif ($step_status === 'pending') $bullet_color = 'bg-amber-500 border-white ring-amber-100';
-                                elseif ($step_status === 'rejected') $bullet_color = 'bg-rose-500 border-white ring-rose-100';
+                <!-- Alur Persetujuan Box -->
+                <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-sitemap text-indigo-600"></i>
+                            Alur Persetujuan
+                        </h3>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase <?php echo $badge_class; ?>"><?php echo $document['status']; ?></span>
+                    </div>
+                    
+                    <div class="mt-5 relative border-l-2 border-slate-200 pl-5 ml-2.5 space-y-6 text-xs">
+                        <?php if (!empty($approvals_list)): ?>
+                            <?php foreach ($approvals_list as $idx => $appItem): 
+                                $app_st = $appItem['status'];
+                                $bColor = 'bg-amber-500 ring-amber-100';
+                                if ($app_st === 'approved') $bColor = 'bg-emerald-500 ring-emerald-100';
+                                elseif ($app_st === 'rejected') $bColor = 'bg-rose-500 ring-rose-100';
                             ?>
                                 <div class="relative">
-                                    <!-- Bullet -->
-                                    <span class="absolute -left-[29px] top-0.5 flex h-4 w-4 items-center justify-center rounded-full border-2 ring-4 <?php echo $bullet_color; ?>"></span>
-                                    
+                                    <span class="absolute -left-[27px] top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full border-2 border-white ring-4 <?php echo $bColor; ?>"></span>
                                     <div>
-                                        <h4 class="font-bold text-slate-800">Tahap <?php echo $step_num; ?>: <?php echo htmlspecialchars($stg['position_name']); ?></h4>
+                                        <h4 class="font-bold text-slate-800">Tahap <?php echo $appItem['stage_order']; ?>: <?php echo htmlspecialchars($appItem['approver_position'] ?: 'Pejabat Penandatangan'); ?></h4>
+                                        <p class="text-slate-600 text-[11px] mt-0.5"><?php echo htmlspecialchars($appItem['approver_name']); ?></p>
                                         
-                                        <?php if ($step_status === 'approved'): ?>
-                                            <p class="text-slate-500 mt-0.5">Disetujui oleh: <span class="font-bold text-emerald-600"><?php echo htmlspecialchars($approved_by_name); ?></span></p>
-                                            <p class="text-[10px] text-slate-400 mt-0.5"><?php echo $date_string; ?></p>
-                                            <?php if (!empty($note_string)): ?>
-                                                <p class="text-[10px] bg-slate-50 border border-slate-100 rounded-lg p-2 mt-1 italic text-slate-600 font-medium">"<?php echo htmlspecialchars($note_string); ?>"</p>
+                                        <?php if ($app_st === 'approved'): ?>
+                                            <span class="inline-flex items-center rounded-md bg-emerald-50 px-2 py-0.5 text-[9px] font-bold text-emerald-700 ring-1 ring-inset ring-emerald-600/20 mt-1">
+                                                <i class="fa-solid fa-check mr-1 text-[8px]"></i> Disetujui
+                                            </span>
+                                            <p class="text-[10px] text-slate-400 mt-1"><?php echo date('d M Y, H:i', strtotime($appItem['approved_at'])); ?></p>
+                                            <?php if (!empty($appItem['notes'])): ?>
+                                                <p class="text-[10px] bg-slate-50 border border-slate-100 rounded-lg p-2 mt-1 italic text-slate-600 font-medium">"<?php echo htmlspecialchars($appItem['notes']); ?>"</p>
                                             <?php endif; ?>
-                                        <?php elseif ($step_status === 'pending'): ?>
-                                            <span class="inline-flex items-center rounded-md bg-amber-50 px-2 py-0.5 text-[9px] font-bold text-amber-700 ring-1 ring-inset ring-amber-600/20 mt-1">Menunggu Keputusan</span>
-                                        <?php elseif ($step_status === 'rejected'): ?>
-                                            <span class="inline-flex items-center rounded-md bg-rose-50 px-2 py-0.5 text-[9px] font-bold text-rose-700 ring-1 ring-inset ring-rose-600/20 mt-1">Ditolak</span>
+                                        <?php elseif ($app_st === 'rejected'): ?>
+                                            <span class="inline-flex items-center rounded-md bg-rose-50 px-2 py-0.5 text-[9px] font-bold text-rose-700 ring-1 ring-inset ring-rose-600/20 mt-1">
+                                                <i class="fa-solid fa-xmark mr-1 text-[8px]"></i> Ditolak
+                                            </span>
+                                            <p class="text-[10px] text-slate-400 mt-1"><?php echo date('d M Y, H:i', strtotime($appItem['approved_at'])); ?></p>
+                                            <?php if (!empty($appItem['notes'])): ?>
+                                                <p class="text-[10px] bg-rose-50 border border-rose-100 rounded-lg p-2 mt-1 italic text-rose-700 font-medium">"<?php echo htmlspecialchars($appItem['notes']); ?>"</p>
+                                            <?php endif; ?>
                                         <?php else: ?>
-                                            <p class="text-slate-400 mt-0.5">Belum dimulai</p>
+                                            <span class="inline-flex items-center rounded-md bg-amber-50 px-2 py-0.5 text-[9px] font-bold text-amber-700 ring-1 ring-inset ring-amber-600/20 mt-1">
+                                                <i class="fa-solid fa-clock mr-1 text-[8px]"></i> Menunggu Keputusan
+                                            </span>
                                         <?php endif; ?>
                                     </div>
                                 </div>
                             <?php endforeach; ?>
-                        </div>
+                        <?php else: ?>
+                            <!-- Single stage preview for draft -->
+                            <div class="relative">
+                                <span class="absolute -left-[27px] top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full border-2 border-white ring-4 bg-slate-300 ring-slate-100"></span>
+                                <div>
+                                    <h4 class="font-bold text-slate-800">Tahap 1: <?php echo htmlspecialchars($active_signer['position']); ?></h4>
+                                    <p class="text-slate-600 text-[11px] mt-0.5"><?php echo htmlspecialchars($active_signer['name']); ?></p>
+                                    <span class="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-[9px] font-bold text-slate-600 mt-1">
+                                        Draf Belum Diajukan
+                                    </span>
+                                </div>
+                            </div>
+                        <?php endif; ?>
                     </div>
-                <?php endif; ?>
+                </div>
             </div>
         </div>
 
@@ -372,12 +559,14 @@ include '../layouts/header.php';
         $tpl_id = $is_edit ? $document['template_id'] : $template['id'] ?? 0;
         $active_template = $is_edit ? $document : $template;
         
-        // Find placeholder names in template content
+        // Find custom placeholder names (excluding reserved system tags)
+        $reserved_tags = getReservedTemplateTags();
         $placeholder_names = [];
         if ($tpl_id > 0 && !empty($active_template['content_template'])) {
             preg_match_all('/\{\{([^}]+)\}\}/', $active_template['content_template'], $matches);
             if (!empty($matches[1])) {
-                $placeholder_names = array_unique($matches[1]);
+                $raw_matches = array_unique($matches[1]);
+                $placeholder_names = array_values(array_diff($raw_matches, $reserved_tags));
             }
         }
         
@@ -385,6 +574,9 @@ include '../layouts/header.php';
         if ($is_edit && !empty($document['placeholder_values'])) {
             $saved_placeholders = json_decode($document['placeholder_values'], true) ?: [];
         }
+
+        // Detect signer for current creator
+        $detectedSigner = getResolvedSignerInfo($conn, $user_id, $active_template['signer_type'] ?? 'unit_head');
     ?>
         <div class="mt-8 max-w-4xl mx-auto bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
             <h2 class="text-lg font-bold text-slate-800 border-b border-slate-100 pb-4"><?php echo $is_edit ? 'Edit Draft Surat Keluar' : 'Draf Surat Keluar Baru'; ?></h2>
@@ -400,17 +592,27 @@ include '../layouts/header.php';
 
                 <!-- Judul / Perihal -->
                 <div>
-                    <label class="block text-sm font-bold text-slate-700">Perihal / Judul Surat</label>
+                    <label class="block text-sm font-bold text-slate-700">Perihal / Judul Surat <span class="text-rose-500">*</span></label>
                     <input type="text" name="title" required value="<?php echo $is_edit ? htmlspecialchars($document['title']) : ''; ?>"
                            class="mt-2 block w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 text-sm bg-slate-50 border p-3 placeholder:text-slate-400 text-slate-700" 
-                           placeholder="Contoh: Surat Penunjukan Panitia Ujian Tengah Semester">
+                           placeholder="Contoh: Surat Edaran Pelaksanaan Ujian Sekolah MA">
                 </div>
 
-                <!-- Tujuan Bidang (Wajib) & Unit (Opsional) -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Tujuan Surat (Kepada Yth.) -->
+                <div>
+                    <label class="block text-sm font-bold text-slate-700">Tujuan Surat (Kepada Yth.) <span class="text-rose-500">*</span></label>
+                    <input type="text" name="tujuan_text" id="tujuan_text" required 
+                           value="<?php echo $is_edit && !empty($document['tujuan_text']) ? htmlspecialchars($document['tujuan_text']) : ''; ?>"
+                           class="mt-2 block w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 text-sm bg-slate-50 border p-3 placeholder:text-slate-400 text-slate-700" 
+                           placeholder="Contoh: Kepala MA As-Sunnah Cirebon">
+                    <p class="text-[11px] text-slate-400 mt-1">Nama penerima resmi atau instansi yang dituju (otomatis disarankan saat memilih Bidang/Unit di bawah).</p>
+                </div>
+
+                <!-- Tujuan Distribusi (Bidang & Unit) & Tanggal Surat -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                         <label class="block text-sm font-bold text-slate-700">Tujuan Bidang <span class="text-rose-500">*</span></label>
-                        <select name="receiver_division_id" id="receiver_division_id" required onchange="filterUnitsByDivision(this.value)"
+                        <select name="receiver_division_id" id="receiver_division_id" required onchange="filterUnitsByDivision(this.value); updateTujuanSuggestion();"
                                 class="select-custom mt-2 block w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 text-sm bg-slate-50 border p-3 text-slate-700">
                             <option value="">-- Pilih Bidang --</option>
                             <?php foreach ($divisions as $div): ?>
@@ -421,28 +623,44 @@ include '../layouts/header.php';
 
                     <div>
                         <label class="block text-sm font-bold text-slate-700">Unit Spesifik <span class="text-xs font-normal text-slate-400">(Opsional)</span></label>
-                        <select name="receiver_unit_id" id="receiver_unit_id"
+                        <select name="receiver_unit_id" id="receiver_unit_id" onchange="updateTujuanSuggestion();"
                                 class="select-custom mt-2 block w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 text-sm bg-slate-50 border p-3 text-slate-700">
                             <option value="">-- Langsung ke Bidang (Semua Unit) --</option>
                         </select>
                     </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700">Tanggal Surat <span class="text-rose-500">*</span></label>
+                        <input type="date" name="document_date" required value="<?php echo $is_edit && !empty($document['created_at']) ? date('Y-m-d', strtotime($document['created_at'])) : date('Y-m-d'); ?>"
+                               class="mt-2 block w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 text-sm bg-slate-50 border p-3 text-slate-700">
+                    </div>
                 </div>
 
-                <!-- Template Placeholders fields -->
+                <!-- Informative Card: Pejabat Penandatangan Terdeteksi -->
+                <div class="rounded-xl bg-indigo-50/60 border border-indigo-100 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                    <div class="flex items-center gap-3">
+                        <div class="h-9 w-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold">
+                            <i class="fa-solid fa-signature"></i>
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-700">Pejabat Penandatangan Resmi:</span>
+                            <p class="font-bold text-slate-800 text-sm mt-0.5"><?php echo htmlspecialchars($detectedSigner['name']); ?> <span class="font-normal text-slate-500">(<?php echo htmlspecialchars($detectedSigner['position']); ?>)</span></p>
+                        </div>
+                    </div>
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold bg-white text-indigo-700 border border-indigo-200 shadow-sm self-start sm:self-auto">
+                        <i class="fa-solid fa-shield-halved mr-1"></i> Hierarki Terverifikasi
+                    </span>
+                </div>
+
+                <!-- Template Placeholders fields (Only if custom variables exist) -->
                 <?php if ($tpl_id > 0 && !empty($placeholder_names)): ?>
                     <div class="bg-indigo-50/50 rounded-2xl border border-indigo-100/50 p-6 space-y-5">
-                        <h3 class="text-xs font-bold text-indigo-900 uppercase tracking-widest border-b border-indigo-100 pb-2">Variabel Template</h3>
-                        <p class="text-[11px] text-indigo-700 mt-1">Masukkan rincian data di bawah untuk otomatis dimasukkan ke dalam kerangka surat.</p>
+                        <h3 class="text-xs font-bold text-indigo-900 uppercase tracking-widest border-b border-indigo-100 pb-2">Variabel Khusus Template</h3>
+                        <p class="text-[11px] text-indigo-700 mt-1">Lengkapi variabel khusus yang ada pada template ini.</p>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mt-4">
                             <?php foreach ($placeholder_names as $pname): 
-                                // Auto check fallback for creator name, date, etc.
-                                $fallback_val = '';
-                                if ($pname === 'nama') $fallback_val = $_SESSION['user_name'];
-                                elseif ($pname === 'jabatan') $fallback_val = $_SESSION['position_name'];
-                                elseif ($pname === 'tanggal') $fallback_val = date('d F Y');
-                                
-                                $val = $is_edit ? ($saved_placeholders[$pname] ?? '') : $fallback_val;
+                                $val = $is_edit ? ($saved_placeholders[$pname] ?? '') : '';
                             ?>
                                 <div>
                                     <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider"><?php echo str_replace('_', ' ', $pname); ?></label>
@@ -453,7 +671,7 @@ include '../layouts/header.php';
                             <?php endforeach; ?>
                         </div>
                     </div>
-                <?php else: ?>
+                <?php elseif ($tpl_id == 0): ?>
                     <!-- Manual Editor Fallback (For Custom Manual Letters) -->
                     <div>
                         <label class="block text-sm font-bold text-slate-700">Isi Surat (HTML/Teks)</label>
@@ -700,6 +918,55 @@ include '../layouts/header.php';
     </div>
 </div>
 
+<!-- Modal Direct Approve / Reject -->
+<div id="directApproveModal" style="display: none;" class="fixed inset-0 z-50 items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 transition-opacity">
+    <div class="relative w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl border border-slate-100 transform transition-all">
+        <!-- Close Button -->
+        <button type="button" onclick="closeDirectApproveModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+            <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+
+        <div class="text-center">
+            <!-- Icon -->
+            <div id="approveModalIcon" class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600 mb-4 ring-8 ring-emerald-50">
+                <i class="fa-solid fa-signature text-xl"></i>
+            </div>
+
+            <!-- Title & Desc -->
+            <h3 id="approveModalTitle" class="text-lg font-bold text-slate-900">Setujui & Tanda Tangani?</h3>
+            <p id="approveModalDesc" class="text-xs text-slate-500 mt-1.5 leading-relaxed">
+                Anda akan membubuhkan persetujuan resmi dan tanda tangan digital pada dokumen ini.
+            </p>
+
+            <form action="<?php url('logic/documents/approve_document.php'); ?>" method="POST" onsubmit="return validateDirectApprove()" class="mt-5 space-y-4 text-left">
+                <input type="hidden" name="id" value="<?php echo $doc_id ?? 0; ?>">
+                <input type="hidden" name="status" id="approveModalStatus" value="approved">
+                <input type="hidden" name="redirect_back" value="<?php echo htmlspecialchars($_SERVER['REQUEST_URI'] ?? ''); ?>">
+
+                <div>
+                    <label id="approveNotesLabel" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Catatan Persetujuan (Opsional)</label>
+                    <textarea name="notes" id="approveModalNotes" rows="3"
+                              class="mt-1.5 block w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 text-xs bg-slate-50 border p-3 text-slate-700 placeholder:text-slate-400"
+                              placeholder="Ketik catatan atau instruksi jika ada..."></textarea>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 pt-2">
+                    <button type="button" onclick="closeDirectApproveModal()" 
+                            class="w-full inline-flex justify-center items-center rounded-xl bg-slate-100 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-200 transition-colors">
+                        Batal
+                    </button>
+                    
+                    <button type="submit" id="approveModalSubmitBtn"
+                            class="w-full inline-flex justify-center items-center rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-emerald-600/20 hover:bg-emerald-700 transition-colors">
+                        <i class="fa-solid fa-check mr-1.5 text-xs"></i>
+                        Ya, Konfirmasi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script nonce="<?php echo csp_nonce(); ?>">
 const allUnits = <?php echo json_encode($units ?? []); ?>;
 const savedUnitId = <?php echo json_encode((isset($action) && $action === 'edit' && !empty($document['receiver_unit_id'])) ? $document['receiver_unit_id'] : null); ?>;
@@ -722,6 +989,20 @@ function filterUnitsByDivision(divId, preselectedUnitId = null) {
         }
         unitSelect.appendChild(opt);
     });
+}
+
+function updateTujuanSuggestion() {
+    const tujuanInput = document.getElementById('tujuan_text');
+    if (!tujuanInput) return;
+    const unitSelect = document.getElementById('receiver_unit_id');
+    const divSelect = document.getElementById('receiver_division_id');
+    if (unitSelect && unitSelect.value) {
+        const uText = unitSelect.options[unitSelect.selectedIndex].text;
+        tujuanInput.value = 'Kepala ' + uText;
+    } else if (divSelect && divSelect.value) {
+        const dText = divSelect.options[divSelect.selectedIndex].text;
+        tujuanInput.value = 'Kepala Bidang ' + dText;
+    }
 }
 
 function triggerSubmitModal(btn) {
@@ -747,12 +1028,52 @@ function closeSubmitApprovalModal() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    const divSelect = document.getElementById('receiver_division_id');
-    if (divSelect && divSelect.value) {
-        filterUnitsByDivision(divSelect.value, savedUnitId);
+function openDirectApproveModal(action) {
+    const modal = document.getElementById('directApproveModal');
+    const statusInput = document.getElementById('approveModalStatus');
+    const titleEl = document.getElementById('approveModalTitle');
+    const descEl = document.getElementById('approveModalDesc');
+    const iconEl = document.getElementById('approveModalIcon');
+    const notesLabel = document.getElementById('approveNotesLabel');
+    const submitBtn = document.getElementById('approveModalSubmitBtn');
+
+    if (!modal) return;
+    statusInput.value = action;
+
+    if (action === 'rejected') {
+        titleEl.textContent = 'Tolak Surat Keluar?';
+        descEl.textContent = 'Dokumen akan ditolak dan dikembalikan ke pembuat draf disertai alasan penolakan resmi.';
+        iconEl.className = 'mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-100 text-rose-600 mb-4 ring-8 ring-rose-50';
+        iconEl.innerHTML = '<i class="fa-solid fa-xmark text-xl"></i>';
+        notesLabel.innerHTML = 'Alasan Penolakan <span class="text-rose-500">* (Wajib diisi)</span>';
+        submitBtn.className = 'w-full inline-flex justify-center items-center rounded-xl bg-rose-600 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-rose-600/20 hover:bg-rose-700 transition-colors';
+        submitBtn.innerHTML = '<i class="fa-solid fa-xmark mr-1.5 text-xs"></i> Ya, Tolak Surat';
+    } else {
+        titleEl.textContent = 'Setujui & Tanda Tangani?';
+        descEl.textContent = 'Anda akan membubuhkan persetujuan resmi dan tanda tangan digital pada dokumen ini.';
+        iconEl.className = 'mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600 mb-4 ring-8 ring-emerald-50';
+        iconEl.innerHTML = '<i class="fa-solid fa-signature text-xl"></i>';
+        notesLabel.innerHTML = 'Catatan Persetujuan (Opsional)';
+        submitBtn.className = 'w-full inline-flex justify-center items-center rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-emerald-600/20 hover:bg-emerald-700 transition-colors';
+        submitBtn.innerHTML = '<i class="fa-solid fa-check mr-1.5 text-xs"></i> Ya, Setujui & Tanda Tangani';
     }
-});
-</script>
+
+    modal.style.display = 'flex';
+}
+
+function closeDirectApproveModal() {
+    const modal = document.getElementById('directApproveModal');
+    if (modal) modal.style.display = 'none';
+}
+
+function validateDirectApprove() {
+    const status = document.getElementById('approveModalStatus').value;
+    const notes = document.getElementById('approveModalNotes').value.trim();
+    if (status === 'rejected' && notes.length === 0) {
+        alert('Mohon tuliskan alasan penolakan secara jelas.');
+        return false;
+    }
+    return true;
+}
 
 <?php include '../layouts/footer.php'; ?>

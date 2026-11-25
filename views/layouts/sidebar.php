@@ -316,6 +316,13 @@ if ($is_admin) {
                     Broadcast FCM
                 </a>
 
+                <!-- Usulan & Kendala Pegawai -->
+                <a href="<?php url('views/settings/feedbacks.php'); ?>"
+                    class="<?php echo isActive('settings/feedbacks.php'); ?> group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200">
+                    <?php renderIcon('fa-lightbulb', getIconClass('settings/feedbacks.php')); ?>
+                    Usulan & Kendala
+                </a>
+
                 <!-- News Management -->
                 <?php if ($can_manage_news): ?>
                     <a href="<?php url('views/news/index.php'); ?>"

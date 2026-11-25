@@ -2,6 +2,7 @@
 // logic/documents/approve_document.php
 require_once '../../config/database.php';
 require_once '../../config/app.php';
+require_once '../../logic/helpers/document_helper.php';
 
 check_login();
 
@@ -53,11 +54,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['direct_approve'])) {
             $is_final = true;
         } else {
             // Normal workflow approval check
-            // Find user's active pending approval stage
+            $is_admin = isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Administrator';
+
+            // Find user's active pending approval stage (or allow Admin to act)
             $stmtCheck = $conn->prepare("SELECT * FROM document_approvals 
-                                         WHERE document_id = ? AND approver_id = ? AND status = 'pending' 
+                                         WHERE document_id = ? AND (approver_id = ? OR 1 = ?) AND status = 'pending' 
+                                         ORDER BY (CASE WHEN approver_id = ? THEN 0 ELSE 1 END) ASC
                                          LIMIT 1");
-            $stmtCheck->execute([$id, $user_id]);
+            $stmtCheck->execute([$id, $user_id, $is_admin ? 1 : 0, $user_id]);
             $my_approval = $stmtCheck->fetch(PDO::FETCH_ASSOC);
 
             if (!$my_approval) {
@@ -86,12 +90,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['direct_approve'])) {
 
                 $conn->commit();
                 Logger::activity('Dokumen', 'REJECT_DOCUMENT', 'Menolak dokumen: ' . $document['title'], ['id' => $id]);
-                redirect("views/documents/approval.php?success=Dokumen+berhasil+ditolak");
+                
+                $redirect_url = !empty($_POST['redirect_back']) ? $_POST['redirect_back'] : "views/documents/approval.php?success=Dokumen+berhasil+ditolak";
+                redirect($redirect_url);
             } else {
                 // Approve current stage
                 $stmtUpdateApp = $conn->prepare("UPDATE document_approvals SET status = 'approved', notes = ?, approved_at = NOW() 
-                                                 WHERE document_id = ? AND stage_order = ? AND approver_id = ?");
-                $stmtUpdateApp->execute([$notes, $id, $current_stage_order, $user_id]);
+                                                 WHERE document_id = ? AND stage_order = ? AND id = ?");
+                $stmtUpdateApp->execute([$notes, $id, $current_stage_order, $my_approval['id']]);
 
                 // Set other approvers of the same stage as resolved (or delete them)
                 $stmtResolveOthers = $conn->prepare("UPDATE document_approvals SET status = 'approved', notes = 'Disetujui oleh perwakilan jabatan', approved_at = NOW() 
@@ -99,15 +105,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['direct_approve'])) {
                 $stmtResolveOthers->execute([$id, $current_stage_order]);
 
                 // Check workflow stages to see if we have a next stage
-                $stages = json_decode($document['workflow_stages'], true);
+                $stages = !empty($document['workflow_stages']) ? json_decode($document['workflow_stages'], true) : [];
                 $is_final = true;
                 $next_stage = null;
 
-                foreach ($stages as $stg) {
-                    if (intval($stg['step']) > $current_stage_order) {
-                        $is_final = false;
-                        $next_stage = $stg;
-                        break;
+                if (!empty($stages) && is_array($stages)) {
+                    foreach ($stages as $stg) {
+                        if (intval($stg['step']) > $current_stage_order) {
+                            $is_final = false;
+                            $next_stage = $stg;
+                            break;
+                        }
                     }
                 }
 
@@ -170,9 +178,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['direct_approve'])) {
                 $stmtInc->execute([$document['template_id']]);
             }
 
-            // Finalize document status
-            $stmtFinal = $conn->prepare("UPDATE documents SET status = 'completed', document_number = ? WHERE id = ?");
-            $stmtFinal->execute([$final_number, $id]);
+            // Update document content to reflect final number and valid digital stamp
+            $new_content = $document['content'];
+            if (!empty($document['document_number'])) {
+                $new_content = str_replace($document['document_number'], $final_number, $new_content);
+            }
+            $new_content = str_replace('{{nomor_surat}}', $final_number, $new_content);
+
+            // Fetch approver signature if available
+            $approver_sig = '';
+            $stmtSig = $conn->prepare("SELECT signature_path FROM employees WHERE id = ?");
+            $stmtSig->execute([$user_id]);
+            $approver_sig = $stmtSig->fetchColumn() ?: '';
+
+            // Update signature block to completed stamp
+            $new_content = processDocumentSignatureHtml($new_content, 'completed', $document['qr_token'], $approver_sig);
+
+            // Finalize document status and content
+            $stmtFinal = $conn->prepare("UPDATE documents SET status = 'completed', document_number = ?, content = ? WHERE id = ?");
+            $stmtFinal->execute([$final_number, $new_content, $id]);
 
             // Notify creator
             $stmtNotif = $conn->prepare("INSERT INTO notifications (user_id, title, body, type, reference_id) VALUES (?, ?, ?, 'document', ?)");
@@ -187,7 +211,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['direct_approve'])) {
         $conn->commit();
         
         $msg = $is_final ? 'Dokumen+telah+selesai+diproses+dan+diberi+nomor+surat' : 'Dokumen+berhasil+disetujui';
-        redirect("views/documents/approval.php?success=" . $msg);
+        $redirect_url = !empty($_POST['redirect_back']) ? $_POST['redirect_back'] : "views/documents/approval.php?success=" . $msg;
+        redirect($redirect_url);
 
     } catch (Exception $e) {
         if ($conn->inTransaction()) {

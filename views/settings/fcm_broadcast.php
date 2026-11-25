@@ -38,6 +38,95 @@ try {
     error_log("FCM Broadcast Log Table Creation: " . $migErr->getMessage());
 }
 
+// 1b. AJAX Endpoint: Live Detection of Unattended Employees (Pegawai Belum Absen)
+if (isset($_GET['action']) && $_GET['action'] === 'get_unattended_employees') {
+    header('Content-Type: application/json; charset=UTF-8');
+
+    $ref_time = trim($_GET['time'] ?? date('H:i'));
+    if (empty($ref_time)) $ref_time = date('H:i');
+    if (strlen($ref_time) == 5) $ref_time .= ':00';
+
+    $ref_date = trim($_GET['date'] ?? date('Y-m-d'));
+    if (empty($ref_date)) $ref_date = date('Y-m-d');
+
+    $mode = trim($_GET['mode'] ?? 'past_schedule');
+    $unit_id = isset($_GET['unit_id']) && $_GET['unit_id'] !== 'all' && $_GET['unit_id'] !== '' ? (int)$_GET['unit_id'] : null;
+    $ignore_leave = (!isset($_GET['ignore_leave']) || $_GET['ignore_leave'] === '1' || $_GET['ignore_leave'] === 'true') ? 1 : 0;
+
+    $dayName = date('l', strtotime($ref_date));
+
+    $where = [
+        "e.status = 'active'",
+        "(wsd.is_day_off = 0 OR wsd.is_day_off IS NULL)",
+        "wsd.start_time IS NOT NULL",
+        "wsd.start_time != '00:00:00'",
+        "NOT EXISTS (SELECT 1 FROM attendances a WHERE a.user_id = e.id AND a.date = :ref_date AND a.time_in IS NOT NULL)"
+    ];
+    $params = [
+        ':day_name' => $dayName,
+        ':ref_date' => $ref_date
+    ];
+
+    if ($mode === 'past_schedule') {
+        $where[] = "wsd.start_time <= :ref_time";
+        $params[':ref_time'] = $ref_time;
+    }
+    if ($unit_id) {
+        $where[] = "e.unit_id = :unit_id";
+        $params[':unit_id'] = $unit_id;
+    }
+    if ($ignore_leave) {
+        $where[] = "NOT EXISTS (SELECT 1 FROM permits pm WHERE pm.employee_id = e.id AND pm.status = 'Approved' AND :permit_date BETWEEN pm.start_date AND pm.end_date)";
+        $params[':permit_date'] = $ref_date;
+    }
+
+    $sql = "
+        SELECT 
+            e.id, 
+            e.full_name, 
+            e.nik,
+            u.name as unit_name,
+            p.name as position_name,
+            ws.name as schedule_name,
+            wsd.start_time,
+            wsd.end_time,
+            (e.fcm_token IS NOT NULL AND e.fcm_token != '') as has_fcm
+        FROM employees e
+        LEFT JOIN units u ON e.unit_id = u.id
+        LEFT JOIN positions p ON e.position_id = p.id
+        LEFT JOIN divisions d ON e.division_id = d.id
+        LEFT JOIN work_schedules ws ON ws.id = COALESCE(e.schedule_id, u.schedule_id, d.schedule_id, 1)
+        LEFT JOIN work_schedule_details wsd ON wsd.schedule_id = ws.id AND wsd.day_name = :day_name
+        WHERE " . implode(' AND ', $where) . "
+        ORDER BY wsd.start_time ASC, e.full_name ASC
+    ";
+
+    try {
+        $stmt = $conn->prepare($sql);
+        $stmt->execute($params);
+        $unattendedList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $fcm_count = 0;
+        foreach ($unattendedList as &$emp) {
+            $emp['has_fcm'] = (bool)$emp['has_fcm'];
+            if ($emp['has_fcm']) $fcm_count++;
+        }
+
+        echo json_encode([
+            'success' => true,
+            'reference_time' => substr($ref_time, 0, 5),
+            'reference_date' => $ref_date,
+            'day_name' => $dayName,
+            'total' => count($unattendedList),
+            'fcm_count' => $fcm_count,
+            'employees' => $unattendedList
+        ]);
+    } catch (\Throwable $e) {
+        echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    }
+    exit;
+}
+
 // 2. Handle POST Request (Broadcast Submission)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'send_broadcast') {
     if (!verify_csrf()) {
@@ -135,6 +224,79 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             $namesPreview = array_slice(array_column($recipients, 'full_name'), 0, 3);
             $extra = count($recipients) > 3 ? " +" . (count($recipients) - 3) . " lainnya" : "";
             $target_summary = "Karyawan Tertentu (" . count($recipients) . " perangkat: " . implode(', ', $namesPreview) . $extra . ")";
+        } elseif ($target_type === 'unattended') {
+            $ref_time = trim($_POST['unattended_time'] ?? date('H:i'));
+            if (empty($ref_time)) $ref_time = date('H:i');
+            if (strlen($ref_time) == 5) $ref_time .= ':00';
+
+            $ref_date = trim($_POST['unattended_date'] ?? date('Y-m-d'));
+            if (empty($ref_date)) $ref_date = date('Y-m-d');
+
+            $mode = trim($_POST['unattended_mode'] ?? 'past_schedule');
+            $unit_id = isset($_POST['unattended_unit_id']) && $_POST['unattended_unit_id'] !== 'all' && $_POST['unattended_unit_id'] !== '' ? (int)$_POST['unattended_unit_id'] : null;
+            $ignore_leave = (isset($_POST['unattended_ignore_leave']) && $_POST['unattended_ignore_leave'] == '1') ? 1 : 0;
+            $custom_ids = $_POST['unattended_emp_ids'] ?? [];
+
+            $dayName = date('l', strtotime($ref_date));
+
+            $where = [
+                "e.status = 'active'",
+                "(wsd.is_day_off = 0 OR wsd.is_day_off IS NULL)",
+                "wsd.start_time IS NOT NULL",
+                "wsd.start_time != '00:00:00'",
+                "NOT EXISTS (SELECT 1 FROM attendances a WHERE a.user_id = e.id AND a.date = :ref_date AND a.time_in IS NOT NULL)",
+                "e.fcm_token IS NOT NULL AND e.fcm_token != ''"
+            ];
+            $params = [
+                ':day_name' => $dayName,
+                ':ref_date' => $ref_date
+            ];
+
+            if ($mode === 'past_schedule') {
+                $where[] = "wsd.start_time <= :ref_time";
+                $params[':ref_time'] = $ref_time;
+            }
+            if ($unit_id) {
+                $where[] = "e.unit_id = :unit_id";
+                $params[':unit_id'] = $unit_id;
+            }
+            if ($ignore_leave) {
+                $where[] = "NOT EXISTS (SELECT 1 FROM permits pm WHERE pm.employee_id = e.id AND pm.status = 'Approved' AND :permit_date BETWEEN pm.start_date AND pm.end_date)";
+                $params[':permit_date'] = $ref_date;
+            }
+
+            if (is_array($custom_ids) && !empty($custom_ids)) {
+                $clean_ids = array_map('intval', $custom_ids);
+                $placeholders = implode(',', array_fill(0, count($clean_ids), '?'));
+                $stmt = $conn->prepare("
+                    SELECT e.id, e.full_name, e.fcm_token 
+                    FROM employees e 
+                    WHERE e.status = 'active' AND e.id IN ($placeholders) AND e.fcm_token IS NOT NULL AND e.fcm_token != ''
+                ");
+                $stmt->execute($clean_ids);
+                $recipients = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            } else {
+                $sql = "
+                    SELECT 
+                        e.id, 
+                        e.full_name, 
+                        e.fcm_token
+                    FROM employees e
+                    LEFT JOIN units u ON e.unit_id = u.id
+                    LEFT JOIN divisions d ON e.division_id = d.id
+                    LEFT JOIN work_schedules ws ON ws.id = COALESCE(e.schedule_id, u.schedule_id, d.schedule_id, 1)
+                    LEFT JOIN work_schedule_details wsd ON wsd.schedule_id = ws.id AND wsd.day_name = :day_name
+                    WHERE " . implode(' AND ', $where) . "
+                    ORDER BY wsd.start_time ASC, e.full_name ASC
+                ";
+                $stmt = $conn->prepare($sql);
+                $stmt->execute($params);
+                $recipients = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            }
+
+            $displayTime = substr($ref_time, 0, 5);
+            $modeLabel = ($mode === 'past_schedule') ? "Jadwal s/d {$displayTime} WIB" : "Semua Jadwal Hari Ini";
+            $target_summary = "Belum Absen ({$modeLabel}, " . count($recipients) . " perangkat)";
         } elseif ($target_type === 'topic') {
             $topic = trim($_POST['topic_name'] ?? 'all_users');
             if (empty($topic)) {
@@ -505,10 +667,18 @@ include '../layouts/header.php';
                     </div>
 
                     <!-- Segmented Switch Tab -->
-                    <div class="p-1 bg-slate-100 rounded-xl grid grid-cols-2 sm:grid-cols-5 gap-1 text-xs">
+                    <div class="p-1 bg-slate-100 rounded-xl grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-1 text-xs">
                         <label class="flex items-center justify-center py-2 px-2 rounded-lg cursor-pointer transition text-center select-none text-slate-600 hover:text-slate-900 font-medium has-[:checked]:bg-white has-[:checked]:text-teal-900 has-[:checked]:font-semibold has-[:checked]:shadow-2xs">
                             <input type="radio" name="target_type" value="all" checked class="sr-only target-radio" onchange="toggleTargetPanel('all')">
                             <span>Semua Pegawai</span>
+                        </label>
+
+                        <label class="flex items-center justify-center py-2 px-2 rounded-lg cursor-pointer transition text-center select-none text-slate-600 hover:text-slate-900 font-medium has-[:checked]:bg-white has-[:checked]:text-amber-800 has-[:checked]:font-semibold has-[:checked]:shadow-2xs">
+                            <input type="radio" name="target_type" value="unattended" class="sr-only target-radio" onchange="toggleTargetPanel('unattended')">
+                            <span class="inline-flex items-center gap-1.5">
+                                <i class="fa-solid fa-clock-rotate-left text-amber-500"></i>
+                                <span>Belum Absen</span>
+                            </span>
                         </label>
 
                         <label class="flex items-center justify-center py-2 px-2 rounded-lg cursor-pointer transition text-center select-none text-slate-600 hover:text-slate-900 font-medium has-[:checked]:bg-white has-[:checked]:text-teal-900 has-[:checked]:font-semibold has-[:checked]:shadow-2xs">
@@ -526,7 +696,7 @@ include '../layouts/header.php';
                             <span>Pilih Karyawan</span>
                         </label>
 
-                        <label class="flex items-center justify-center py-2 px-2 rounded-lg cursor-pointer transition text-center select-none text-slate-600 hover:text-slate-900 font-medium has-[:checked]:bg-white has-[:checked]:text-teal-900 has-[:checked]:font-semibold has-[:checked]:shadow-2xs col-span-2 sm:col-span-1">
+                        <label class="flex items-center justify-center py-2 px-2 rounded-lg cursor-pointer transition text-center select-none text-slate-600 hover:text-slate-900 font-medium has-[:checked]:bg-white has-[:checked]:text-teal-900 has-[:checked]:font-semibold has-[:checked]:shadow-2xs">
                             <input type="radio" name="target_type" value="topic" class="sr-only target-radio" onchange="toggleTargetPanel('topic')">
                             <span>Topik Global</span>
                         </label>
@@ -539,6 +709,143 @@ include '../layouts/header.php';
                         </div>
                         <div>
                             Notifikasi akan dikirim ke seluruh <strong><?php echo $stats['active_fcm_users']; ?> pegawai aktif</strong> yang terdaftar di Aplikasi YAC.
+                        </div>
+                    </div>
+
+                    <!-- SUB-PANEL: BELUM ABSEN (DETEKSI WAKTU / MENIT) -->
+                    <div id="panel-unattended" class="target-subpanel hidden space-y-4 p-4 bg-amber-50/40 border border-amber-200/80 rounded-xl">
+                        <!-- Header Subpanel -->
+                        <div class="flex items-start justify-between gap-3 pb-3 border-b border-amber-200/60">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 border border-amber-300/80 shadow-2xs">
+                                    <i class="fa-solid fa-clock-rotate-left text-sm"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                                        <span>Deteksi Pegawai Belum Absen</span>
+                                        <span class="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-semibold border border-amber-200">Kondisi Real-time</span>
+                                    </h4>
+                                    <p class="text-[11px] text-slate-600 mt-0.5">
+                                        Mendeteksi otomatis pegawai yang terjadwal kerja tetapi belum absen pada jam/menit acuan.
+                                    </p>
+                                </div>
+                            </div>
+                            <button type="button" onclick="fetchUnattendedEmployees()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-amber-50 text-amber-900 text-xs font-semibold border border-amber-300 shadow-2xs transition-colors cursor-pointer shrink-0" title="Muat ulang hasil deteksi">
+                                <i id="unattendedRefreshIcon" class="fa-solid fa-arrows-rotate text-xs"></i>
+                                <span>Segarkan</span>
+                            </button>
+                        </div>
+
+                        <!-- Filter Parameters Grid -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                            <!-- 1. Menit / Jam Acuan -->
+                            <div>
+                                <label for="unattendedTime" class="block font-semibold text-slate-700 mb-1 flex items-center justify-between">
+                                    <span>Jam/Menit Acuan <span class="text-rose-500">*</span></span>
+                                    <button type="button" onclick="setUnattendedTimeToNow()" class="text-[10px] text-amber-700 hover:underline font-bold cursor-pointer">Sekarang</button>
+                                </label>
+                                <div class="relative">
+                                    <input type="time" id="unattendedTime" name="unattended_time" value="<?php echo date('H:i'); ?>" onchange="fetchUnattendedEmployees()" class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 bg-white font-mono focus:outline-none focus:ring-2 focus:ring-amber-500">
+                                </div>
+                            </div>
+
+                            <!-- 2. Tanggal Acuan -->
+                            <div>
+                                <label for="unattendedDate" class="block font-semibold text-slate-700 mb-1">
+                                    Tanggal Acuan
+                                </label>
+                                <input type="date" id="unattendedDate" name="unattended_date" value="<?php echo date('Y-m-d'); ?>" onchange="fetchUnattendedEmployees()" class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500">
+                            </div>
+
+                            <!-- 3. Kriteria Batas Jam -->
+                            <div>
+                                <label for="unattendedMode" class="block font-semibold text-slate-700 mb-1">
+                                    Kriteria Jadwal
+                                </label>
+                                <select id="unattendedMode" name="unattended_mode" onchange="fetchUnattendedEmployees()" class="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500">
+                                    <option value="past_schedule" selected>Jadwal masuk &le; Jam acuan (Sudah lewat)</option>
+                                    <option value="all_today">Semua jadwal kerja hari ini</option>
+                                </select>
+                            </div>
+
+                            <!-- 4. Filter Unit -->
+                            <div>
+                                <label for="unattendedUnitId" class="block font-semibold text-slate-700 mb-1">
+                                    Unit Lembaga
+                                </label>
+                                <select id="unattendedUnitId" name="unattended_unit_id" onchange="fetchUnattendedEmployees()" class="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500">
+                                    <option value="all">Semua Unit Lembaga</option>
+                                    <?php foreach ($units as $u): ?>
+                                        <option value="<?php echo $u['id']; ?>"><?php echo htmlspecialchars($u['name']); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Checkbox Abaikan Cuti & Preset Cepat -->
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1 text-xs">
+                            <label class="inline-flex items-center gap-2 cursor-pointer select-none text-slate-700">
+                                <input type="checkbox" id="unattendedIgnoreLeave" name="unattended_ignore_leave" value="1" checked onchange="fetchUnattendedEmployees()" class="rounded text-amber-600 focus:ring-amber-500 h-3.5 w-3.5">
+                                <span>Abaikan pegawai dengan <strong>Cuti / Izin Disetujui</strong></span>
+                            </label>
+
+                            <!-- Quick Preset Times -->
+                            <div class="flex items-center gap-1 flex-wrap">
+                                <span class="text-[10px] text-slate-500 font-medium mr-1">Preset Menit/Jam:</span>
+                                <button type="button" onclick="setUnattendedTimePreset('07:00')" class="px-2 py-0.5 rounded bg-white hover:bg-slate-100 border border-slate-200 text-[10px] font-mono text-slate-700 cursor-pointer">07:00</button>
+                                <button type="button" onclick="setUnattendedTimePreset('07:30')" class="px-2 py-0.5 rounded bg-white hover:bg-slate-100 border border-slate-200 text-[10px] font-mono text-slate-700 cursor-pointer">07:30</button>
+                                <button type="button" onclick="setUnattendedTimePreset('08:00')" class="px-2 py-0.5 rounded bg-white hover:bg-slate-100 border border-slate-200 text-[10px] font-mono text-slate-700 cursor-pointer">08:00</button>
+                                <button type="button" onclick="setUnattendedTimePreset('08:30')" class="px-2 py-0.5 rounded bg-white hover:bg-slate-100 border border-slate-200 text-[10px] font-mono text-slate-700 cursor-pointer">08:30</button>
+                            </div>
+                        </div>
+
+                        <!-- Detection Stats & Quick Fill Action -->
+                        <div class="p-3 bg-white rounded-xl border border-amber-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+                            <div class="flex items-center gap-3">
+                                <div class="px-3 py-1.5 bg-amber-50 rounded-lg border border-amber-200 text-center">
+                                    <span class="block text-[10px] text-amber-700 font-semibold uppercase">Total Belum Absen</span>
+                                    <span id="unattendedTotalDetected" class="text-base font-black text-amber-900">-</span>
+                                </div>
+                                <div class="px-3 py-1.5 bg-emerald-50 rounded-lg border border-emerald-200 text-center">
+                                    <span class="block text-[10px] text-emerald-700 font-semibold uppercase">Perangkat FCM Aktif</span>
+                                    <span id="unattendedFcmDetected" class="text-base font-black text-emerald-800">-</span>
+                                </div>
+                                <div class="hidden md:block text-xs text-slate-500 pl-2">
+                                    Target siaran difokuskan ke pegawai yang belum check-in pada menit tersebut.
+                                </div>
+                            </div>
+                            <button type="button" onclick="applyUnattendedReminderTemplate()" class="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer shrink-0">
+                                <i class="fa-solid fa-wand-magic-sparkles text-xs"></i>
+                                <span>Isi Pesan Pengingat Presensi</span>
+                            </button>
+                        </div>
+
+                        <!-- Collapsible Detected Employee List -->
+                        <div class="border border-amber-200/80 rounded-xl bg-white overflow-hidden">
+                            <div class="p-3 bg-slate-50/80 border-b border-slate-200 flex items-center justify-between cursor-pointer select-none" onclick="toggleUnattendedListAccordion()">
+                                <div class="flex items-center gap-2">
+                                    <i id="unattendedListChevron" class="fa-solid fa-chevron-right text-xs text-slate-400 transition-transform"></i>
+                                    <span class="text-xs font-bold text-slate-800">Lihat Rincian Pegawai Terdeteksi</span>
+                                    <span id="unattendedListCountBadge" class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-200 text-slate-700">0 pegawai</span>
+                                </div>
+                                <span class="text-[11px] text-teal-700 font-medium hover:underline">Klik untuk buka/tutup</span>
+                            </div>
+
+                            <div id="unattendedListContainer" class="hidden p-3 space-y-2 max-h-72 overflow-y-auto">
+                                <div class="flex items-center justify-between text-xs pb-2 border-b border-slate-100 gap-2">
+                                    <input type="text" id="unattendedListSearch" placeholder="Cari nama atau unit..." onkeyup="filterUnattendedList()" class="w-full max-w-xs px-2.5 py-1 text-xs rounded-lg border border-slate-200 focus:outline-none focus:ring-1 focus:ring-amber-500 bg-slate-50">
+                                    <div class="flex items-center gap-2 shrink-0">
+                                        <button type="button" onclick="toggleAllUnattendedList(true)" class="text-xs text-amber-700 hover:underline font-medium">Pilih Semua</button>
+                                        <span class="text-slate-300">|</span>
+                                        <button type="button" onclick="toggleAllUnattendedList(false)" class="text-xs text-slate-500 hover:underline">Reset</button>
+                                    </div>
+                                </div>
+                                <div id="unattendedListRows" class="space-y-1.5 pt-1">
+                                    <div class="py-4 text-center text-xs text-slate-400">
+                                        Memuat data pegawai belum absen...
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -1194,13 +1501,26 @@ include '../layouts/header.php';
 <script nonce="<?php echo csp_nonce(); ?>">
 const currentActiveFCM = <?php echo (int)$stats['active_fcm_users']; ?>;
 
+let unattendedFcmCount = 0;
+let unattendedTotalCount = 0;
+let unattendedEmployeesData = [];
+let unattendedHasFetched = false;
+
 function toggleTargetPanel(type) {
     document.querySelectorAll('.target-subpanel').forEach(el => el.classList.add('hidden'));
     const targetPanel = document.getElementById('panel-' + type);
     if (targetPanel) {
         targetPanel.classList.remove('hidden');
     }
-    calculateRecipientEstimate();
+    if (type === 'unattended') {
+        if (!unattendedHasFetched) {
+            fetchUnattendedEmployees();
+        } else {
+            calculateRecipientEstimate();
+        }
+    } else {
+        calculateRecipientEstimate();
+    }
     if (type === 'specific') {
         const checkedCount = document.querySelectorAll('input[name="employee_ids[]"]:checked').length;
         if (checkedCount === 0) {
@@ -1223,6 +1543,17 @@ function calculateRecipientEstimate() {
 
     if (targetType === 'all') {
         badge.textContent = `${currentActiveFCM} Perangkat Aktif`;
+    } else if (targetType === 'unattended') {
+        const timeInput = document.getElementById('unattendedTime');
+        const timeVal = timeInput ? timeInput.value : '';
+        const selectedCheckboxes = document.querySelectorAll('.unattended-emp-checkbox:checked');
+        let selectedFcm = 0;
+        selectedCheckboxes.forEach(cb => {
+            if (cb.getAttribute('data-has-fcm') === '1') selectedFcm++;
+        });
+
+        const activeCount = selectedCheckboxes.length > 0 ? selectedFcm : unattendedFcmCount;
+        badge.textContent = `${activeCount} Perangkat (Belum Absen ${timeVal ? 'pukul ' + timeVal : ''})`;
     } else if (targetType === 'unit') {
         const checked = document.querySelectorAll('input[name="unit_ids[]"]:checked');
         let total = 0;
@@ -1258,6 +1589,223 @@ function calculateRecipientEstimate() {
         const topic = topicRadio ? topicRadio.value : 'all_users';
         badge.textContent = `Topik: ${topic}`;
     }
+}
+
+// Logika Deteksi Pegawai Belum Absen
+function setUnattendedTimeToNow() {
+    const now = new Date();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const timeInput = document.getElementById('unattendedTime');
+    if (timeInput) {
+        timeInput.value = `${hours}:${minutes}`;
+        fetchUnattendedEmployees();
+    }
+}
+
+function setUnattendedTimePreset(timeStr) {
+    const timeInput = document.getElementById('unattendedTime');
+    if (timeInput) {
+        timeInput.value = timeStr;
+        fetchUnattendedEmployees();
+    }
+}
+
+let unattendedFetchAbortController = null;
+function fetchUnattendedEmployees() {
+    const timeVal = document.getElementById('unattendedTime')?.value || '';
+    const dateVal = document.getElementById('unattendedDate')?.value || '';
+    const modeVal = document.getElementById('unattendedMode')?.value || 'past_schedule';
+    const unitVal = document.getElementById('unattendedUnitId')?.value || 'all';
+    const ignoreLeave = document.getElementById('unattendedIgnoreLeave')?.checked ? '1' : '0';
+
+    const refreshIcon = document.getElementById('unattendedRefreshIcon');
+    if (refreshIcon) refreshIcon.classList.add('fa-spin');
+
+    const totalEl = document.getElementById('unattendedTotalDetected');
+    const fcmEl = document.getElementById('unattendedFcmDetected');
+    const countBadge = document.getElementById('unattendedListCountBadge');
+    const listRows = document.getElementById('unattendedListRows');
+
+    if (totalEl) totalEl.textContent = '...';
+    if (fcmEl) fcmEl.textContent = '...';
+    if (listRows) {
+        listRows.innerHTML = `
+            <div class="py-4 text-center text-xs text-slate-400">
+                <i class="fa-solid fa-circle-notch fa-spin text-amber-500 mr-1.5"></i>
+                Mendeteksi pegawai belum absen...
+            </div>
+        `;
+    }
+
+    if (unattendedFetchAbortController) {
+        unattendedFetchAbortController.abort();
+    }
+    unattendedFetchAbortController = new AbortController();
+
+    const queryParams = new URLSearchParams({
+        action: 'get_unattended_employees',
+        time: timeVal,
+        date: dateVal,
+        mode: modeVal,
+        unit_id: unitVal,
+        ignore_leave: ignoreLeave
+    });
+
+    fetch(`${window.location.pathname}?${queryParams.toString()}`, {
+        signal: unattendedFetchAbortController.signal
+    })
+    .then(res => res.json())
+    .then(res => {
+        if (refreshIcon) refreshIcon.classList.remove('fa-spin');
+        if (!res.success) {
+            alert('Gagal mendeteksi pegawai: ' + (res.error || 'Terjadi kesalahan sistem'));
+            return;
+        }
+
+        unattendedHasFetched = true;
+        unattendedTotalCount = res.total || 0;
+        unattendedFcmCount = res.fcm_count || 0;
+        unattendedEmployeesData = res.employees || [];
+
+        if (totalEl) totalEl.textContent = `${unattendedTotalCount} Orang`;
+        if (fcmEl) fcmEl.textContent = `${unattendedFcmCount} Perangkat`;
+        if (countBadge) countBadge.textContent = `${unattendedTotalCount} pegawai (${unattendedFcmCount} FCM)`;
+
+        renderUnattendedList(unattendedEmployeesData);
+        calculateRecipientEstimate();
+    })
+    .catch(err => {
+        if (err.name !== 'AbortError') {
+            if (refreshIcon) refreshIcon.classList.remove('fa-spin');
+            console.error('Fetch unattended employees error:', err);
+        }
+    });
+}
+
+function renderUnattendedList(list) {
+    const listRows = document.getElementById('unattendedListRows');
+    if (!listRows) return;
+
+    if (!list || list.length === 0) {
+        listRows.innerHTML = `
+            <div class="py-4 text-center text-xs text-emerald-700 bg-emerald-50 rounded-lg border border-emerald-200">
+                <i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i>
+                Alhamdulillah! Semua pegawai dengan kriteria jadwal ini telah melakukan absensi.
+            </div>
+        `;
+        return;
+    }
+
+    let html = '';
+    list.forEach(emp => {
+        const hasFcm = emp.has_fcm;
+        const startTime = (emp.start_time || '').substring(0, 5);
+        const endTime = (emp.end_time || '').substring(0, 5);
+        const schedTime = startTime ? `${startTime} - ${endTime}` : 'Jadwal Reguler';
+        const searchText = `${emp.full_name} ${emp.nik || ''} ${emp.unit_name || ''} ${emp.schedule_name || ''}`.toLowerCase();
+
+        html += `
+            <label class="unattended-item flex items-center justify-between p-2 rounded-lg border border-slate-200 hover:border-amber-400 hover:bg-amber-50/20 cursor-pointer text-xs transition-colors select-none"
+                   data-search="${escapeHtml(searchText)}">
+                <div class="flex items-center gap-2.5 min-w-0">
+                    <input type="checkbox" name="unattended_emp_ids[]" value="${emp.id}"
+                           checked
+                           data-has-fcm="${hasFcm ? '1' : '0'}"
+                           data-name="${escapeHtml(emp.full_name)}"
+                           onchange="updateUnattendedSelectionCount()"
+                           class="unattended-emp-checkbox rounded text-amber-600 focus:ring-amber-500 h-3.5 w-3.5">
+                    <div class="truncate">
+                        <span class="font-semibold text-slate-800 block truncate">${escapeHtml(emp.full_name)}</span>
+                        <span class="text-[10px] text-slate-500 block truncate">
+                            ${emp.nik ? '<span class="font-mono">' + escapeHtml(emp.nik) + '</span> &bull; ' : ''}
+                            ${escapeHtml(emp.unit_name || emp.position_name || 'Umum')} &bull; Jam: <span class="font-semibold text-slate-700">${schedTime}</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="shrink-0 ml-2">
+                    ${hasFcm 
+                        ? '<span class="text-[9px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">FCM Aktif</span>' 
+                        : '<span class="text-[9px] text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">Belum Login</span>'
+                    }
+                </div>
+            </label>
+        `;
+    });
+
+    listRows.innerHTML = html;
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+function toggleUnattendedListAccordion() {
+    const container = document.getElementById('unattendedListContainer');
+    const chevron = document.getElementById('unattendedListChevron');
+    if (!container) return;
+
+    const isHidden = container.classList.contains('hidden');
+    if (isHidden) {
+        container.classList.remove('hidden');
+        if (chevron) chevron.style.transform = 'rotate(90deg)';
+    } else {
+        container.classList.add('hidden');
+        if (chevron) chevron.style.transform = 'rotate(0deg)';
+    }
+}
+
+function filterUnattendedList() {
+    const q = (document.getElementById('unattendedListSearch')?.value || '').toLowerCase().trim();
+    document.querySelectorAll('.unattended-item').forEach(el => {
+        const text = el.getAttribute('data-search') || '';
+        el.style.display = (!q || text.includes(q)) ? 'flex' : 'none';
+    });
+}
+
+function toggleAllUnattendedList(state) {
+    document.querySelectorAll('.unattended-emp-checkbox').forEach(cb => {
+        const item = cb.closest('.unattended-item');
+        if (item && item.style.display !== 'none') {
+            cb.checked = state;
+        }
+    });
+    updateUnattendedSelectionCount();
+}
+
+function updateUnattendedSelectionCount() {
+    calculateRecipientEstimate();
+    const checked = document.querySelectorAll('.unattended-emp-checkbox:checked').length;
+    const badge = document.getElementById('unattendedListCountBadge');
+    if (badge) {
+        badge.textContent = `${checked} dipilih dari ${unattendedTotalCount}`;
+    }
+}
+
+function applyUnattendedReminderTemplate() {
+    const timeVal = document.getElementById('unattendedTime')?.value || '';
+    const formattedTime = timeVal ? timeVal + ' WIB' : 'saat ini';
+
+    const titleInput = document.getElementById('notifTitle');
+    const bodyInput = document.getElementById('notifBody');
+    const screenInput = document.getElementById('notifScreen');
+
+    if (titleInput) titleInput.value = 'Pengingat Presensi Kehadiran';
+    if (bodyInput) {
+        bodyInput.value = `Diberitahukan bahwa Anda belum tercatat melakukan presensi masuk hingga pukul ${formattedTime}. Silakan segera lakukan absensi kehadiran Anda melalui Aplikasi YAC.`;
+    }
+    if (screenInput) {
+        screenInput.value = 'attendance';
+        updatePremiumSelectUI('attendance');
+    }
+
+    updateLivePreview();
 }
 
 // Modal Karyawan Functions
@@ -1552,6 +2100,20 @@ function openBroadcastModal() {
         return;
     }
 
+    if (targetType === 'unattended') {
+        const selectedCheckboxes = document.querySelectorAll('.unattended-emp-checkbox:checked');
+        let selectedFcm = 0;
+        selectedCheckboxes.forEach(cb => {
+            if (cb.getAttribute('data-has-fcm') === '1') selectedFcm++;
+        });
+
+        const activeCount = selectedCheckboxes.length > 0 ? selectedFcm : unattendedFcmCount;
+        if (activeCount === 0) {
+            alert('Tidak ditemukan pegawai belum absen yang memiliki token FCM aktif pada kriteria waktu ini.');
+            return;
+        }
+    }
+
     if (targetType === 'unit' && document.querySelectorAll('input[name="unit_ids[]"]:checked').length === 0) {
         alert('Pilih minimal satu unit lembaga penerima.');
         return;
@@ -1573,6 +2135,7 @@ function openBroadcastModal() {
 
     const targetTypeNames = {
         'all': 'Semua Pegawai Mobile',
+        'unattended': 'Pegawai Belum Absen (' + (document.getElementById('unattendedTime')?.value || '') + ' WIB)',
         'unit': 'Per Unit Lembaga Terpilih',
         'position': 'Per Jabatan Terpilih',
         'specific': 'Karyawan Tertentu Terpilih',
@@ -1641,6 +2204,12 @@ function saveFormDraft() {
         const screen = document.getElementById('notifScreen')?.value || 'general';
         const saveInbox = document.querySelector('input[name="save_to_inbox"]')?.checked ?? true;
 
+        const unattendedTime = document.getElementById('unattendedTime')?.value || '';
+        const unattendedDate = document.getElementById('unattendedDate')?.value || '';
+        const unattendedMode = document.getElementById('unattendedMode')?.value || 'past_schedule';
+        const unattendedUnitId = document.getElementById('unattendedUnitId')?.value || 'all';
+        const unattendedIgnoreLeave = document.getElementById('unattendedIgnoreLeave')?.checked ?? true;
+
         // Jangan simpan jika form masih kosong
         if (!title && !body && unitIds.length === 0 && positionIds.length === 0 && employeeIds.length === 0 && targetType === 'all') {
             localStorage.removeItem(DRAFT_KEY);
@@ -1653,6 +2222,11 @@ function saveFormDraft() {
             unitIds,
             positionIds,
             employeeIds,
+            unattendedTime,
+            unattendedDate,
+            unattendedMode,
+            unattendedUnitId,
+            unattendedIgnoreLeave,
             title,
             body,
             screen,
@@ -1677,6 +2251,28 @@ function restoreFormDraft() {
                 radio.checked = true;
                 toggleTargetPanel(d.targetType);
             }
+        }
+
+        // Pulihkan parameter belum absen jika ada
+        if (d.unattendedTime) {
+            const el = document.getElementById('unattendedTime');
+            if (el) el.value = d.unattendedTime;
+        }
+        if (d.unattendedDate) {
+            const el = document.getElementById('unattendedDate');
+            if (el) el.value = d.unattendedDate;
+        }
+        if (d.unattendedMode) {
+            const el = document.getElementById('unattendedMode');
+            if (el) el.value = d.unattendedMode;
+        }
+        if (d.unattendedUnitId) {
+            const el = document.getElementById('unattendedUnitId');
+            if (el) el.value = d.unattendedUnitId;
+        }
+        if (d.unattendedIgnoreLeave !== undefined) {
+            const el = document.getElementById('unattendedIgnoreLeave');
+            if (el) el.checked = d.unattendedIgnoreLeave;
         }
 
         // Pulihkan topik jika dipilih
@@ -1800,6 +2396,14 @@ window.submitBroadcastForm = submitBroadcastForm;
 window.saveFormDraft = saveFormDraft;
 window.restoreFormDraft = restoreFormDraft;
 window.clearFormDraft = clearFormDraft;
+window.setUnattendedTimeToNow = setUnattendedTimeToNow;
+window.setUnattendedTimePreset = setUnattendedTimePreset;
+window.fetchUnattendedEmployees = fetchUnattendedEmployees;
+window.toggleUnattendedListAccordion = toggleUnattendedListAccordion;
+window.filterUnattendedList = filterUnattendedList;
+window.toggleAllUnattendedList = toggleAllUnattendedList;
+window.updateUnattendedSelectionCount = updateUnattendedSelectionCount;
+window.applyUnattendedReminderTemplate = applyUnattendedReminderTemplate;
 </script>
 
 <?php include '../layouts/footer.php'; ?>

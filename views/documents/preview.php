@@ -83,22 +83,8 @@ $logo_url = BASE_URL . '/' . ($template['header_logo'] ?? 'uploads/kop_logos/log
 $doc_content = $document['content'];
 
 // Dynamic Kop Surat Injection if not already embedded
-if (!empty($template) && stripos($doc_content, 'kop-surat-header') === false) {
-    if (!empty($template['header_image'])) {
-        $header_img_url = BASE_URL . '/' . $template['header_image'];
-        $kop_html = '<div class="kop-surat-header" style="margin-bottom: 20px; text-align: center;"><img src="' . $header_img_url . '" style="max-width: 100%; height: auto;" alt="Kop Banner"></div>';
-    } else {
-        $h_line1 = !empty($template['header_line_1']) ? htmlspecialchars($template['header_line_1']) : 'YAYASAN AS SUNNAH CIREBON';
-        $h_line2 = !empty($template['header_line_2']) ? htmlspecialchars($template['header_line_2']) : 'BIDANG PENDIDIKAN';
-        $h_addr = !empty($template['header_address']) ? htmlspecialchars($template['header_address']) : 'Jl. Kalitanjung No.52B Kel. Karyamulya Kec. Kesambi Kota Cirebon 45135';
-        $kop_html = '<div class="kop-surat-header" style="display: flex; align-items: center; border-bottom: 3px double #333; padding-bottom: 8px; margin-bottom: 20px;">' .
-                    '<div style="flex-shrink: 0; width: 90px; text-align: center; margin-right: 15px;"><img src="' . $logo_url . '" style="max-height: 80px; max-width: 85px;" alt="Logo Yayasan"></div>' .
-                    '<div style="flex-grow: 1; text-align: center; font-family: \'Times New Roman\', serif;">' .
-                    '<h2 style="margin: 0; font-size: 17px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; color: #1e293b;">' . $h_line1 . '</h2>' .
-                    '<h3 style="margin: 2px 0 0 0; font-size: 14px; font-weight: bold; text-transform: uppercase; color: #334155;">' . $h_line2 . '</h3>' .
-                    '<p style="margin: 4px 0 0 0; font-size: 10.5px; color: #475569;">' . $h_addr . '</p>' .
-                    '</div></div>';
-    }
+if (!empty($template) && stripos($doc_content, 'kop-surat') === false) {
+    $kop_html = renderDocumentKopHtml($template);
     $doc_content = $kop_html . $doc_content;
 }
 
@@ -110,7 +96,7 @@ $allSigners = getDocumentSignersForEmployee($conn, $document['creator_id']);
 $doc_content = str_replace('{{logo_url}}', $logo_url, $doc_content);
 $doc_content = str_replace('{{nomor_surat}}', htmlspecialchars($document['document_number']), $doc_content);
 $doc_content = str_replace('{{perihal}}', htmlspecialchars($document['title']), $doc_content);
-$doc_content = str_replace('{{tanggal_surat}}', date('d F Y', strtotime($document['created_at'])), $doc_content);
+$doc_content = str_replace('{{tanggal_surat}}', formatIndonesianDate($document['created_at']), $doc_content);
 $doc_content = str_replace('{{nama_penandatangan}}', htmlspecialchars($final_signer_name), $doc_content);
 $doc_content = str_replace('{{jabatan_penandatangan}}', htmlspecialchars($final_signer_pos), $doc_content);
 if (!empty($allSigners['unit_head']['full_name'])) {
@@ -122,6 +108,8 @@ if (!empty($allSigners['division_head']['full_name'])) {
 if (!empty($allSigners['leader']['full_name'])) {
     $doc_content = str_replace('{{pemimpin}}', htmlspecialchars($allSigners['leader']['full_name']), $doc_content);
 }
+
+$doc_content = processDocumentSignatureHtml($doc_content, $document['status'], $document['qr_token'], $signature_path ?? ($resolvedSigner['signature_path'] ?? ''));
 
 $verification_url = BASE_URL . "/views/documents/verify?token=" . urlencode($document['qr_token']);
 ?>
@@ -272,8 +260,8 @@ $verification_url = BASE_URL . "/views/documents/verify?token=" . urlencode($doc
             <?php echo $doc_content; ?>
         </div>
 
-        <!-- Render Signatory and QR Validation if Completed -->
-        <?php if ($document['status'] === 'completed'): ?>
+        <!-- Render Signatory and QR Validation if Completed and not already in document content -->
+        <?php if ($document['status'] === 'completed' && stripos($doc_content, 'tanda tangan') === false && stripos($doc_content, 'signature-box') === false): ?>
             <div class="signature-section">
                 <table class="signature-table">
                     <tr>

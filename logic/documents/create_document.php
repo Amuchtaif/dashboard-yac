@@ -20,25 +20,68 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
         $template_id = isset($_POST['template_id']) ? intval($_POST['template_id']) : null;
         $title = trim($_POST['title']);
+        $tujuan_text = trim($_POST['tujuan_text'] ?? '');
+        $document_date = !empty($_POST['document_date']) ? $_POST['document_date'] : date('Y-m-d');
         $receiver_division_id = !empty($_POST['receiver_division_id']) ? intval($_POST['receiver_division_id']) : (!empty($_POST['receiver_department_id']) ? intval($_POST['receiver_department_id']) : null);
         $receiver_unit_id = !empty($_POST['receiver_unit_id']) ? intval($_POST['receiver_unit_id']) : null;
         
+        // Auto-resolve tujuan_text if empty
+        if (empty($tujuan_text)) {
+            if (!empty($receiver_unit_id)) {
+                $stmtU = $conn->prepare("SELECT name FROM units WHERE id = ?");
+                $stmtU->execute([$receiver_unit_id]);
+                $uName = $stmtU->fetchColumn();
+                $tujuan_text = 'Kepala ' . ($uName ?: 'Unit Terkait');
+            } elseif (!empty($receiver_division_id)) {
+                $stmtD = $conn->prepare("SELECT name FROM divisions WHERE id = ?");
+                $stmtD->execute([$receiver_division_id]);
+                $dName = $stmtD->fetchColumn();
+                $tujuan_text = 'Kepala Bidang ' . ($dName ?: 'Terkait');
+            } else {
+                $tujuan_text = 'Seluruh Civitas Akademika';
+            }
+        }
+
         // Fetch template content if using a template
         $template = null;
         $content = '';
         $placeholders_json = null;
         
         if ($template_id > 0) {
-            $stmtTpl = $conn->prepare("SELECT content_template, signer_type FROM document_templates WHERE id = ?");
+            $stmtTpl = $conn->prepare("SELECT content_template, signer_type, created_by, unit_id, scope FROM document_templates WHERE id = ?");
             $stmtTpl->execute([$template_id]);
             $template = $stmtTpl->fetch(PDO::FETCH_ASSOC);
             
             if ($template) {
-                // Parse filled placeholder fields from POST
-                $fields = isset($_POST['placeholders']) ? $_POST['placeholders'] : [];
+                // Enforce scope check for non-administrator
+                $is_admin = isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Administrator';
+                if (!$is_admin) {
+                    $stmtEmp = $conn->prepare("SELECT unit_id FROM employees WHERE id = ?");
+                    $stmtEmp->execute([$creator_id]);
+                    $creator_unit_id = $stmtEmp->fetchColumn() ?: 0;
+
+                    $has_access = ($template['created_by'] == $creator_id) 
+                        || ($template['scope'] === 'unit' && $template['unit_id'] == $creator_unit_id)
+                        || ($template['scope'] === 'global')
+                        || ($template['scope'] === null && ($template['unit_id'] === null || $template['unit_id'] == $creator_unit_id));
+
+                    if (!$has_access) {
+                        redirect("views/documents/outgoing.php?error=Anda+tidak+memiliki+izin+menggunakan+template+ini");
+                    }
+                }
+
+                // Filter out reserved system tags: only save custom placeholders
+                $reserved_tags = getReservedTemplateTags();
+                $raw_fields = isset($_POST['placeholders']) ? $_POST['placeholders'] : [];
+                $fields = [];
+                foreach ($raw_fields as $k => $v) {
+                    if (!in_array($k, $reserved_tags)) {
+                        $fields[$k] = trim($v);
+                    }
+                }
                 $placeholders_json = json_encode($fields);
                 
-                // Replace placeholders in template content
+                // Replace custom placeholders in template content
                 $content = $template['content_template'];
                 foreach ($fields as $key => $val) {
                     $content = str_replace('{{' . $key . '}}', htmlspecialchars($val), $content);
@@ -47,18 +90,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Dynamic Signer Resolution based on creator employee and template's signer_type
                 $signerInfo = getResolvedSignerInfo($conn, $creator_id, $template['signer_type'] ?? 'unit_head');
                 $allSigners = getDocumentSignersForEmployee($conn, $creator_id);
+                $formatted_date = formatIndonesianDate($document_date);
 
-                $content = str_replace('{{nama_penandatangan}}', $signerInfo['name'], $content);
-                $content = str_replace('{{jabatan_penandatangan}}', $signerInfo['position'], $content);
+                $content = str_replace('{{perihal}}', htmlspecialchars($title), $content);
+                $content = str_replace('{{tujuan}}', htmlspecialchars($tujuan_text), $content);
+                $content = str_replace('{{tanggal_surat}}', htmlspecialchars($formatted_date), $content);
+                $content = str_replace('{{nama_penandatangan}}', htmlspecialchars($signerInfo['name']), $content);
+                $content = str_replace('{{jabatan_penandatangan}}', htmlspecialchars($signerInfo['position']), $content);
+
                 if (!empty($allSigners['unit_head']['full_name'])) {
-                    $content = str_replace('{{kepala_unit}}', $allSigners['unit_head']['full_name'], $content);
+                    $content = str_replace('{{kepala_unit}}', htmlspecialchars($allSigners['unit_head']['full_name']), $content);
                 }
                 if (!empty($allSigners['division_head']['full_name'])) {
-                    $content = str_replace('{{kepala_bidang}}', $allSigners['division_head']['full_name'], $content);
+                    $content = str_replace('{{kepala_bidang}}', htmlspecialchars($allSigners['division_head']['full_name']), $content);
                 }
                 if (!empty($allSigners['leader']['full_name'])) {
-                    $content = str_replace('{{pemimpin}}', $allSigners['leader']['full_name'], $content);
+                    $content = str_replace('{{pemimpin}}', htmlspecialchars($allSigners['leader']['full_name']), $content);
                 }
+
+                // Ruang tanda tangan placeholder for draft/pending
+                $sigPlaceholder = '<div style="height: 75px; display: flex; align-items: center; justify-content: center; border: 1px dashed #cbd5e1; border-radius: 6px; background: #f8fafc; color: #94a3b8; font-size: 8.5pt; font-style: italic;">[ Ruang Tanda Tangan Digital ]</div>';
+                $content = str_replace('{{ruang_tanda_tangan}}', $sigPlaceholder, $content);
             }
         } else {
             // Manual editor content (fallback/raw editor)
@@ -76,6 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 // Set temporary document number for draft
                 $temp_doc_no = "DRAFT/" . date('Ymd') . "/" . strtoupper(substr(bin2hex(random_bytes(3)), 0, 5));
+                $content = str_replace('{{nomor_surat}}', $temp_doc_no, $content);
 
                 $stmt = $conn->prepare("INSERT INTO documents (creator_id, template_id, type, document_number, title, content, placeholder_values, receiver_division_id, receiver_department_id, receiver_unit_id, qr_token, status) 
                                         VALUES (:creator_id, :template_id, 'outgoing', :document_number, :title, :content, :placeholder_values, :receiver_division_id, :receiver_division_id, :receiver_unit_id, :qr_token, 'draft')");
@@ -96,13 +149,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 redirect("views/documents/outgoing.php?success=Draft+surat+berhasil+dibuat");
             } else {
                 // Edit existing outgoing document (only if status is draft or rejected)
-                $stmtCheck = $conn->prepare("SELECT status FROM documents WHERE id = ?");
+                $stmtCheck = $conn->prepare("SELECT status, document_number FROM documents WHERE id = ?");
                 $stmtCheck->execute([$id]);
-                $status = $stmtCheck->fetchColumn();
+                $existingDoc = $stmtCheck->fetch(PDO::FETCH_ASSOC);
 
-                if ($status !== 'draft' && $status !== 'rejected') {
+                if (!$existingDoc || ($existingDoc['status'] !== 'draft' && $existingDoc['status'] !== 'rejected')) {
                     redirect("views/documents/outgoing.php?error=Hanya+surat+berstatus+Draft+atau+Ditolak+yang+dapat+diedit");
                 }
+
+                $content = str_replace('{{nomor_surat}}', $existingDoc['document_number'], $content);
 
                 $stmt = $conn->prepare("UPDATE documents 
                                         SET title = :title, content = :content, placeholder_values = :placeholder_values, receiver_division_id = :receiver_division_id, receiver_department_id = :receiver_division_id, receiver_unit_id = :receiver_unit_id, status = 'draft'

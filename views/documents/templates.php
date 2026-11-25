@@ -11,8 +11,35 @@ $page_title = "Template Surat";
 $db = new Database();
 $conn = $db->getConnection();
 
-// Fetch active templates
-$templates = $conn->query("SELECT * FROM document_templates ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
+$user_id = $_SESSION['user_id'];
+$is_admin = isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Administrator';
+
+// Fetch active templates filtered by user scope & unit
+if ($is_admin) {
+    $templates = $conn->query("
+        SELECT dt.*, u.name as unit_name 
+        FROM document_templates dt 
+        LEFT JOIN units u ON dt.unit_id = u.id 
+        ORDER BY dt.name ASC
+    ")->fetchAll(PDO::FETCH_ASSOC);
+} else {
+    $stmtEmp = $conn->prepare("SELECT unit_id FROM employees WHERE id = ?");
+    $stmtEmp->execute([$user_id]);
+    $user_unit_id = $stmtEmp->fetchColumn() ?: 0;
+
+    $stmtTpl = $conn->prepare("
+        SELECT dt.*, u.name as unit_name 
+        FROM document_templates dt 
+        LEFT JOIN units u ON dt.unit_id = u.id 
+        WHERE dt.created_by = :uid 
+           OR (dt.scope = 'unit' AND dt.unit_id = :unit_id) 
+           OR dt.scope = 'global'
+           OR (dt.scope IS NULL AND (dt.unit_id IS NULL OR dt.unit_id = :unit_id2))
+        ORDER BY dt.name ASC
+    ");
+    $stmtTpl->execute([':uid' => $user_id, ':unit_id' => $user_unit_id, ':unit_id2' => $user_unit_id]);
+    $templates = $stmtTpl->fetchAll(PDO::FETCH_ASSOC);
+}
 
 include '../layouts/header.php';
 ?>
@@ -66,7 +93,24 @@ include '../layouts/header.php';
                             <i class="fa-solid fa-file-contract text-lg"></i>
                         </div>
                         <h3 class="text-sm font-bold text-slate-800 mt-4"><?php echo htmlspecialchars($tpl['name']); ?></h3>
-                        <span class="inline-flex items-center rounded bg-slate-100 px-2 py-0.5 text-[9px] font-bold text-slate-600 mt-1 uppercase"><?php echo htmlspecialchars($tpl['code']); ?></span>
+                        <div class="flex items-center gap-1.5 mt-1 flex-wrap">
+                            <span class="inline-flex items-center rounded bg-slate-100 px-2 py-0.5 text-[9px] font-bold text-slate-600 uppercase"><?php echo htmlspecialchars($tpl['code']); ?></span>
+                            <?php 
+                            $scope = $tpl['scope'] ?? 'unit';
+                            if ($scope === 'private'): ?>
+                                <span class="inline-flex items-center rounded bg-amber-50 px-2 py-0.5 text-[9px] font-bold text-amber-700 border border-amber-200">
+                                    <i class="fa-solid fa-lock text-[8px] mr-1"></i> Pribadi
+                                </span>
+                            <?php elseif ($scope === 'global'): ?>
+                                <span class="inline-flex items-center rounded bg-emerald-50 px-2 py-0.5 text-[9px] font-bold text-emerald-700 border border-emerald-200">
+                                    <i class="fa-solid fa-globe text-[8px] mr-1"></i> Yayasan
+                                </span>
+                            <?php else: ?>
+                                <span class="inline-flex items-center rounded bg-blue-50 px-2 py-0.5 text-[9px] font-bold text-blue-700 border border-blue-200">
+                                    <i class="fa-solid fa-users text-[8px] mr-1"></i> <?php echo htmlspecialchars($tpl['unit_name'] ?? 'Unit'); ?>
+                                </span>
+                            <?php endif; ?>
+                        </div>
                         
                         <div class="mt-4 space-y-2 text-[11px] text-slate-500">
                             <div class="flex items-center gap-1.5">

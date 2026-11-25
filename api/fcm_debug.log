@@ -435,3 +435,7 @@
 [2026-11-09 14:55:30] SUKSES: Token berhasil diupdate untuk User ID 40.
 [2026-11-09 14:55:57] Request Masuk! User ID: '40' | Token: cJ6z-CH6QLuLk3V...
 [2026-11-09 14:55:57] SUKSES: Token berhasil diupdate untuk User ID 40.
+[2026-11-25 15:01:59] FCM SUCCESS: {
+  "name": "projects/dashboard-yac/messages/0:1795593742051247%a6008fffa6008fff"
+}
+

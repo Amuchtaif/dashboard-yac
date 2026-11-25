@@ -1,0 +1,22 @@
+CREATE TABLE IF NOT EXISTS `user_feedbacks` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id` INT UNSIGNED NOT NULL COMMENT 'ID pegawai pengusul (relasi ke tabel users/pegawai)',
+  `type` ENUM('feature', 'improvement', 'bug', 'general') NOT NULL DEFAULT 'feature' COMMENT 'feature: Fitur Baru, improvement: Peningkatan, bug: Lapor Kendala, general: Saran Umum',
+  `module` VARCHAR(100) NOT NULL DEFAULT 'Umum' COMMENT 'Tahfidz, Keasramaan, Presensi Makan, Presensi Pegawai, Payroll/Gaji, Homeroom/Wali Kelas, Akademik, Umum',
+  `priority` ENUM('low', 'medium', 'high') NOT NULL DEFAULT 'medium' COMMENT 'low: Rendah, medium: Sedang, high: Mendesak',
+  `title` VARCHAR(255) NOT NULL COMMENT 'Judul singkat usulan / kendala',
+  `description` TEXT NOT NULL COMMENT 'Penjelasan rinci',
+  `attachment_path` VARCHAR(255) NULL DEFAULT NULL COMMENT 'Path file foto/screenshot di server (contoh: uploads/feedbacks/fb_123.jpg)',
+  `app_version` VARCHAR(50) NULL DEFAULT NULL COMMENT 'Versi aplikasi saat pengiriman (contoh: 1.0.8+25)',
+  `device_info` VARCHAR(100) NULL DEFAULT NULL COMMENT 'Sistem operasi & perangkat (contoh: android / ios)',
+  `status` ENUM('pending', 'reviewed', 'in_progress', 'completed', 'rejected') NOT NULL DEFAULT 'pending' COMMENT 'pending: Menunggu, reviewed: Ditinjau, in_progress: Dalam Antrean Rilis, completed: Selesai, rejected: Ditunda',
+  `admin_notes` TEXT NULL DEFAULT NULL COMMENT 'Catatan tanggapan / balasan dari admin untuk user',
+  `admin_id` INT UNSIGNED NULL DEFAULT NULL COMMENT 'ID user admin yang meninjau/membalas',
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  INDEX `idx_user_feedbacks_user` (`user_id`),
+  INDEX `idx_user_feedbacks_status` (`status`),
+  INDEX `idx_user_feedbacks_module` (`module`),
+  INDEX `idx_user_feedbacks_created` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

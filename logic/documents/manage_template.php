@@ -11,13 +11,27 @@ $conn = $db->getConnection();
 
 $action = isset($_POST['action']) ? $_POST['action'] : '';
 
-// Ensure signer_type column exists
+// Ensure columns exist (self-healing)
 try {
     $colCheck = $conn->query("SHOW COLUMNS FROM document_templates LIKE 'signer_type'")->fetchAll();
     if (empty($colCheck)) {
         $conn->exec("ALTER TABLE document_templates ADD COLUMN signer_type VARCHAR(50) DEFAULT 'unit_head' AFTER reset_cycle");
     }
+    $colCheckCreated = $conn->query("SHOW COLUMNS FROM document_templates LIKE 'created_by'")->fetchAll();
+    if (empty($colCheckCreated)) {
+        $conn->exec("ALTER TABLE document_templates ADD COLUMN created_by INT NULL DEFAULT NULL AFTER workflow_stages");
+        $conn->exec("ALTER TABLE document_templates ADD COLUMN unit_id INT NULL DEFAULT NULL AFTER created_by");
+        $conn->exec("ALTER TABLE document_templates ADD COLUMN scope ENUM('private', 'unit', 'global') NOT NULL DEFAULT 'unit' AFTER unit_id");
+    }
 } catch (Exception $e) {}
+
+$user_id = $_SESSION['user_id'] ?? 1;
+$is_admin = isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Administrator';
+
+// Get creator's unit_id
+$stmtUserUnit = $conn->prepare("SELECT unit_id FROM employees WHERE id = ?");
+$stmtUserUnit->execute([$user_id]);
+$user_unit_id = $stmtUserUnit->fetchColumn() ?: null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'create' || $action === 'update') {
@@ -28,6 +42,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $number_format = trim($_POST['number_format']);
         $reset_cycle = $_POST['reset_cycle'];
         $signer_type = isset($_POST['signer_type']) && in_array($_POST['signer_type'], ['unit_head', 'division_head', 'leader', 'workflow']) ? $_POST['signer_type'] : 'unit_head';
+        $scope_input = isset($_POST['scope']) && in_array($_POST['scope'], ['private', 'unit', 'global']) ? $_POST['scope'] : 'unit';
+        if (!$is_admin && $scope_input === 'global') {
+            $scope_input = 'unit';
+        }
         
         // Build workflow stages JSON from post parameters
         // Example structure: [{"step": 1, "position_id": 3, "position_name": "Kepala Sekolah"}]
@@ -117,8 +135,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         try {
             if ($action === 'create') {
-                $stmt = $conn->prepare("INSERT INTO document_templates (name, code, content_template, number_format, reset_cycle, signer_type, workflow_stages, header_logo, header_line_1, header_line_2, header_address, header_image) 
-                                        VALUES (:name, :code, :content_template, :number_format, :reset_cycle, :signer_type, :workflow_stages, :header_logo, :header_line_1, :header_line_2, :header_address, :header_image)");
+                $stmt = $conn->prepare("INSERT INTO document_templates (name, code, content_template, number_format, reset_cycle, signer_type, workflow_stages, header_logo, header_line_1, header_line_2, header_address, header_image, created_by, unit_id, scope) 
+                                        VALUES (:name, :code, :content_template, :number_format, :reset_cycle, :signer_type, :workflow_stages, :header_logo, :header_line_1, :header_line_2, :header_address, :header_image, :created_by, :unit_id, :scope)");
                 $stmt->execute([
                     ':name' => $name,
                     ':code' => $code,
@@ -131,16 +149,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ':header_line_1' => $header_line_1,
                     ':header_line_2' => $header_line_2,
                     ':header_address' => $header_address,
-                    ':header_image' => $header_image
+                    ':header_image' => $header_image,
+                    ':created_by' => $user_id,
+                    ':unit_id' => $user_unit_id,
+                    ':scope' => $scope_input
                 ]);
                 Logger::activity('Dokumen', 'CREATE_TEMPLATE', 'Membuat template surat baru: ' . $name, ['code' => $code]);
                 redirect("views/documents/template_config.php?success=Template+berhasil+dibuat");
             } else {
+                // Check template ownership for edit
+                $stmtCheck = $conn->prepare("SELECT created_by FROM document_templates WHERE id = ?");
+                $stmtCheck->execute([$id]);
+                $existingTpl = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+
+                if (!$existingTpl) {
+                    redirect("views/documents/template_config.php?error=Template+tidak+ditemukan");
+                }
+
+                if (!$is_admin && !empty($existingTpl['created_by']) && intval($existingTpl['created_by']) !== intval($user_id)) {
+                    redirect("views/documents/template_config.php?error=Anda+tidak+memiliki+izin+untuk+mengubah+template+milik+pengguna+lain");
+                }
+
                 $stmt = $conn->prepare("UPDATE document_templates 
                                         SET name = :name, code = :code, content_template = :content_template, 
                                             number_format = :number_format, reset_cycle = :reset_cycle, signer_type = :signer_type, workflow_stages = :workflow_stages,
                                             header_logo = :header_logo, header_line_1 = :header_line_1, header_line_2 = :header_line_2,
-                                            header_address = :header_address, header_image = :header_image
+                                            header_address = :header_address, header_image = :header_image, scope = :scope
                                         WHERE id = :id");
                 $stmt->execute([
                     ':name' => $name,
@@ -155,6 +189,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ':header_line_2' => $header_line_2,
                     ':header_address' => $header_address,
                     ':header_image' => $header_image,
+                    ':scope' => $scope_input,
                     ':id' => $id
                 ]);
                 Logger::activity('Dokumen', 'UPDATE_TEMPLATE', 'Mengubah template surat: ' . $name, ['id' => $id]);
@@ -167,15 +202,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
         if ($id > 0) {
             try {
-                // Fetch template name first for logging
-                $stmtName = $conn->prepare("SELECT name FROM document_templates WHERE id = ?");
+                // Fetch template name & creator first for authorization and logging
+                $stmtName = $conn->prepare("SELECT name, created_by FROM document_templates WHERE id = ?");
                 $stmtName->execute([$id]);
-                $tplName = $stmtName->fetchColumn();
+                $tplData = $stmtName->fetch(PDO::FETCH_ASSOC);
+
+                if (!$tplData) {
+                    redirect("views/documents/template_config.php?error=Template+tidak+ditemukan");
+                }
+
+                if (!$is_admin && !empty($tplData['created_by']) && intval($tplData['created_by']) !== intval($user_id)) {
+                    redirect("views/documents/template_config.php?error=Anda+tidak+memiliki+izin+untuk+menghapus+template+milik+pengguna+lain");
+                }
 
                 $stmt = $conn->prepare("DELETE FROM document_templates WHERE id = ?");
                 $stmt->execute([$id]);
 
-                Logger::activity('Dokumen', 'DELETE_TEMPLATE', 'Menghapus template surat: ' . $tplName, ['id' => $id]);
+                Logger::activity('Dokumen', 'DELETE_TEMPLATE', 'Menghapus template surat: ' . ($tplData['name'] ?? ''), ['id' => $id]);
                 redirect("views/documents/template_config.php?success=Template+berhasil+dihapus");
             } catch (PDOException $e) {
                 redirect("views/documents/template_config.php?error=Gagal+menghapus+template:+" . urlencode($e->getMessage()));

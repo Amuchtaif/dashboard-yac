@@ -166,33 +166,49 @@ try {
     assertTest($resUpdate, "16. Update outgoing document draft title and destination");
 
     // ---------------------------------------------------------
-    // TEST 7: Verify Destination Staff Auto-Visibility Query Logic in Surat Masuk & Surat Keluar
+    // TEST 7: Strict Segregation: Destination staff CANNOT see pending/outgoing letters in Surat Keluar
     // ---------------------------------------------------------
     $conn->exec("UPDATE documents SET status = 'pending_approval' WHERE id = " . intval($doc1_id));
 
-    // Query simulate for staff in $division_id
-    $stmtStaffQuery = $conn->prepare("
+    // Surat Keluar check for destination staff: Must be 0
+    $stmtStaffOutgoing = $conn->prepare("
         SELECT COUNT(*) 
         FROM documents d
+        LEFT JOIN employees e ON d.creator_id = e.id
         WHERE d.type = 'outgoing'
           AND (
               d.creator_id = :staff_id
               OR (
                   d.status != 'draft' AND (
-                      (d.receiver_division_id = :user_div_id AND (d.receiver_unit_id IS NULL OR d.receiver_unit_id = :user_unit_id OR :user_unit_id = 0))
-                      OR (d.receiver_unit_id = :user_unit_id AND :user_unit_id != 0)
+                      (e.unit_id = :user_unit_id AND :user_unit_id != 0)
+                      OR ((e.unit_id IS NULL OR e.unit_id = 0) AND e.division_id = :user_div_id)
                   )
               )
           )
     ");
-    $stmtStaffQuery->execute([
-        ':staff_id' => 999999, // non-creator staff
+    $stmtStaffOutgoing->execute([
+        ':staff_id' => 999999, // destination staff
         ':user_div_id' => $division_id,
         ':user_unit_id' => $unit_id
     ]);
-    $foundCount = $stmtStaffQuery->fetchColumn();
+    $outgoingFoundCount = $stmtStaffOutgoing->fetchColumn();
+    assertTest($outgoingFoundCount == 0, "17. Destination staff CANNOT see outgoing letters in Surat Keluar (only sender/creator)");
 
-    assertTest($foundCount > 0, "17. Destination staff can query and see incoming letters for their Bidang/Unit");
+    // Surat Masuk check while pending: Must be 0 (letters only enter Surat Masuk when completed!)
+    $stmtStaffIncomingPending = $conn->prepare("
+        SELECT COUNT(*) 
+        FROM documents d
+        WHERE (d.type = 'outgoing' AND d.status = 'completed' AND (
+            (d.receiver_unit_id = :user_unit_id AND :user_unit_id != 0)
+            OR ((d.receiver_unit_id IS NULL OR d.receiver_unit_id = 0) AND d.receiver_division_id = :user_div_id)
+        ))
+    ");
+    $stmtStaffIncomingPending->execute([
+        ':user_div_id' => $division_id,
+        ':user_unit_id' => $unit_id
+    ]);
+    $incomingPendingCount = $stmtStaffIncomingPending->fetchColumn();
+    assertTest($incomingPendingCount == 0, "18. Surat Masuk does NOT display uncompleted / pending internal outgoing letters");
 
     // ---------------------------------------------------------
     // TEST 8: Strict Isolation Test (Unrelated User CANNOT See Draft/Surat)
@@ -219,7 +235,7 @@ try {
     ]);
     $isolatedCount = $stmtIsolated->fetchColumn();
 
-    assertTest($isolatedCount == 0, "18. Unrelated account is strictly prevented from seeing private draft of another user");
+    assertTest($isolatedCount == 0, "19. Unrelated account is strictly prevented from seeing private draft of another user");
 
     // ---------------------------------------------------------
     // TEST 9: Direct Approval & Completion Workflow & Automatic Archiving
@@ -228,13 +244,29 @@ try {
     $stmtApprove = $conn->prepare("UPDATE documents SET status = 'completed', document_number = ? WHERE id = ?");
     $resApprove = $stmtApprove->execute([$finalDocNo, $doc1_id]);
 
-    assertTest($resApprove, "19. Transition document status from pending to 'completed'");
+    assertTest($resApprove, "20. Transition document status from pending to 'completed'");
 
     $stmtCheckFinal = $conn->prepare("SELECT status, document_number FROM documents WHERE id = ?");
     $stmtCheckFinal->execute([$doc1_id]);
     $finalDoc = $stmtCheckFinal->fetch(PDO::FETCH_ASSOC);
 
-    assertTest($finalDoc['status'] === 'completed' && $finalDoc['document_number'] === $finalDocNo, "20. Verified completed status and official document number for Arsip Digital");
+    assertTest($finalDoc['status'] === 'completed' && $finalDoc['document_number'] === $finalDocNo, "21. Verified completed status and official document number for Arsip Digital");
+
+    // Verify Surat Masuk for destination staff once completed
+    $stmtStaffIncomingFinal = $conn->prepare("
+        SELECT COUNT(*) 
+        FROM documents d
+        WHERE (d.type = 'outgoing' AND d.status = 'completed' AND (
+            (d.receiver_unit_id = :user_unit_id AND :user_unit_id != 0)
+            OR ((d.receiver_unit_id IS NULL OR d.receiver_unit_id = 0) AND d.receiver_division_id = :user_div_id)
+        ))
+    ");
+    $stmtStaffIncomingFinal->execute([
+        ':user_div_id' => $division_id,
+        ':user_unit_id' => $unit_id
+    ]);
+    $incomingFinalCount = $stmtStaffIncomingFinal->fetchColumn();
+    assertTest($incomingFinalCount > 0, "22. Destination staff can see official internal letter in Surat Masuk once status is 'completed'");
 
     // ---------------------------------------------------------
     // CLEANUP TEST DATA
@@ -245,7 +277,7 @@ try {
     $stmtCleanupRule = $conn->prepare("DELETE FROM document_routing_rules WHERE id = ?");
     $stmtCleanupRule->execute([$rule_id]);
 
-    assertTest(true, "21. Test data cleanup completed");
+    assertTest(true, "23. Test data cleanup completed");
 
 } catch (Exception $e) {
     echo "  \033[31m[ERROR]\033[0m Exception caught: " . $e->getMessage() . "\n";

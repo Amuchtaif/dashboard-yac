@@ -196,3 +196,157 @@ if (!function_exists('getResolvedSignerInfo')) {
         ];
     }
 }
+
+if (!function_exists('formatIndonesianDate')) {
+    /**
+     * Format standard date string (e.g. 2026-11-16) to Indonesian format (16 November 2026).
+     */
+    function formatIndonesianDate($date_str) {
+        if (empty($date_str)) return date('d F Y');
+        $time = strtotime($date_str);
+        if (!$time) return $date_str;
+
+        $day = date('d', $time);
+        $month = (int)date('m', $time);
+        $year = date('Y', $time);
+
+        $months = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+        ];
+
+        $month_name = $months[$month] ?? date('F', $time);
+        return ltrim($day, '0') . ' ' . $month_name . ' ' . $year;
+    }
+}
+
+if (!function_exists('getReservedTemplateTags')) {
+    /**
+     * System reserved tags that must not be prompted as manual input fields.
+     */
+    function getReservedTemplateTags() {
+        return [
+            'nomor_surat',
+            'perihal',
+            'tujuan',
+            'tanggal_surat',
+            'nama_penandatangan',
+            'jabatan_penandatangan',
+            'ruang_tanda_tangan',
+            'kepala_unit',
+            'kepala_bidang',
+            'pemimpin',
+            'logo_url'
+        ];
+    }
+}
+
+if (!function_exists('renderDocumentKopHtml')) {
+    /**
+     * Render the official Kop Surat letterhead HTML.
+     */
+    function renderDocumentKopHtml($template) {
+        if (empty($template)) return '';
+
+        if (!empty($template['header_image'])) {
+            $banner_url = BASE_URL . '/' . htmlspecialchars($template['header_image']);
+            return '<div class="kop-surat-banner" style="margin-bottom: 20px; text-align: center;"><img src="' . $banner_url . '" style="width: 100%; max-height: 140px; object-fit: contain;" alt="Kop Surat"></div>';
+        }
+
+        $logo_url = !empty($template['header_logo']) ? (BASE_URL . '/' . htmlspecialchars($template['header_logo'])) : (BASE_URL . '/uploads/kop_logos/logo_yac.png');
+        $line1 = !empty($template['header_line_1']) ? htmlspecialchars($template['header_line_1']) : 'YAYASAN AS SUNNAH CIREBON';
+        $line2 = !empty($template['header_line_2']) ? htmlspecialchars($template['header_line_2']) : 'BIDANG PENDIDIKAN';
+        $address = !empty($template['header_address']) ? htmlspecialchars($template['header_address']) : 'Jl. Kalitanjung No.52B Kel. Karyamulya Kec. Kesambi Kota Cirebon 45135';
+
+        return '<div class="kop-surat-header" style="display: flex; align-items: center; border-bottom: 3px double #1e293b; padding-bottom: 12px; margin-bottom: 24px; font-family: \'Times New Roman\', Times, serif;">' .
+               '<div style="flex-shrink: 0; width: 90px; text-align: center; margin-right: 18px;">' .
+               '<img src="' . $logo_url . '" style="max-height: 80px; max-width: 85px; object-fit: contain;" alt="Logo Yayasan">' .
+               '</div>' .
+               '<div style="flex-grow: 1; text-align: center;">' .
+               '<h2 style="margin: 0; font-size: 15pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; color: #0f172a; line-height: 1.2;">' . $line1 . '</h2>' .
+               '<h3 style="margin: 3px 0 0 0; font-size: 12.5pt; font-weight: bold; text-transform: uppercase; color: #1e293b; line-height: 1.2;">' . $line2 . '</h3>' .
+               '<p style="margin: 5px 0 0 0; font-size: 9.5pt; color: #475569; line-height: 1.3;">' . $address . '</p>' .
+               '</div>' .
+               '</div>';
+    }
+}
+
+if (!function_exists('renderDocumentSignatureStampHtml')) {
+    /**
+     * Render the signature stamp badge or image without redundant outer wrappers.
+     */
+    function renderDocumentSignatureStampHtml($status, $qrToken = '', $signaturePath = '') {
+        if ($status === 'completed') {
+            if (!empty($signaturePath) && file_exists(__DIR__ . '/../../' . $signaturePath)) {
+                $sigImgUrl = BASE_URL . '/' . htmlspecialchars($signaturePath);
+                return '<img src="' . $sigImgUrl . '" style="max-height: 75px; max-width: 140px; object-fit: contain;" alt="Tanda Tangan">';
+            } else {
+                return '<div style="border: 1.5px solid #10b981; border-radius: 8px; padding: 6px 14px; background: #ecfdf5; text-align: center; display: inline-block;">' .
+                       '<span style="display: block; font-size: 8pt; font-weight: bold; color: #065f46; letter-spacing: 0.5px;">✓ DITANDATANGANI SECARA DIGITAL</span>' .
+                       '<span style="display: block; font-size: 7.5pt; color: #047857; margin-top: 2px;">Tervalidasi Sistem YAC</span>' .
+                       '</div>';
+            }
+        } elseif ($status === 'pending_approval') {
+            return '<div style="border: 1px dashed #f59e0b; border-radius: 6px; padding: 6px 14px; background: #fffbeb; text-align: center; display: inline-block;">' .
+                   '<span style="font-size: 8.5pt; font-weight: bold; color: #b45309;">⏳ Menunggu Persetujuan Pejabat</span>' .
+                   '</div>';
+        } else {
+            return '<div style="border: 1px dashed #cbd5e1; border-radius: 6px; padding: 6px 14px; background: #f8fafc; text-align: center; display: inline-block;">' .
+                   '<span style="font-size: 8.5pt; color: #94a3b8; font-style: italic;">[ Ruang Tanda Tangan ]</span>' .
+                   '</div>';
+        }
+    }
+}
+
+if (!function_exists('processDocumentSignatureHtml')) {
+    /**
+     * Replace any existing signature placeholder or pending approval badge in content with the current status stamp.
+     */
+    function processDocumentSignatureHtml($content, $status, $qrToken = '', $signaturePath = '') {
+        $stamp = renderDocumentSignatureStampHtml($status, $qrToken, $signaturePath);
+
+        // 1. Direct template tag replacement if present
+        if (strpos($content, '{{ruang_tanda_tangan}}') !== false) {
+            return str_replace('{{ruang_tanda_tangan}}', $stamp, $content);
+        }
+
+        // 2. Standard template signature container: <div style="height: ...">...</div> before signer name <p>
+        $patternWrapper = '/<div style="height:\s*(?:80|75)px[^"]*"[^>]*>.*?(?=\s*<p[^>]*>)/is';
+        if (preg_match($patternWrapper, $content)) {
+            return preg_replace(
+                $patternWrapper,
+                "<div style=\"height: 80px; display: flex; align-items: center; justify-content: center; margin: 10px 0;\">\n        " . $stamp . "\n    </div>\n    ",
+                $content
+            );
+        }
+
+        // 3. Fallback: replace naked dashed or solid stamp
+        $patternNaked = '/<div[^>]*border:\s*(?:1px\s*dashed|1\.5px\s*solid)[^>]*>.*?<\/div>/is';
+        if (preg_match($patternNaked, $content)) {
+            return preg_replace($patternNaked, $stamp, $content);
+        }
+
+        return $content;
+    }
+}
+
+if (!function_exists('renderDocumentSignatureBoxHtml')) {
+    /**
+     * Render the official bottom signature block HTML.
+     */
+    function renderDocumentSignatureBoxHtml($signerName, $signerPosition, $status, $qrToken = '', $signaturePath = '', $cityDate = '') {
+        $cityDateStr = !empty($cityDate) ? $cityDate : ('Cirebon, ' . formatIndonesianDate(date('Y-m-d')));
+        $sigArea = renderDocumentSignatureStampHtml($status, $qrToken, $signaturePath);
+
+        return '<div class="signature-box" style="float: right; width: 320px; text-align: center; font-family: \'Times New Roman\', serif; font-size: 12pt; margin-top: 25px;">' .
+               '<p style="margin: 0;">' . htmlspecialchars($cityDateStr) . '</p>' .
+               '<p style="margin: 5px 0 0 0; font-weight: bold;">' . htmlspecialchars($signerPosition) . '</p>' .
+               '<div style="height: 80px; display: flex; align-items: center; justify-content: center; margin: 10px 0;">' .
+               $sigArea .
+               '</div>' .
+               '<p style="margin: 0; font-weight: bold; text-decoration: underline;">' . htmlspecialchars($signerName) . '</p>' .
+               '</div>' .
+               '<div style="clear: both;"></div>';
+    }
+}

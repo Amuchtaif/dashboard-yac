@@ -33,7 +33,62 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirect("views/documents/outgoing.php?error=Hanya+dokumen+berstatus+Draft+atau+Ditolak+yang+dapat+diajukan");
         }
 
-        // Check if there are assigned approvers/handlers in document_routing_rules for receiver division/unit
+        // Determine approver IDs based on template signing hierarchy
+        $approver_ids = [];
+        $first_wa_phone = '';
+        $first_handler_name = '';
+
+        // Decode workflow stages if any
+        $stages = [];
+        if (!empty($document['workflow_stages'])) {
+            $stages = json_decode($document['workflow_stages'], true);
+        }
+
+        // 1. If template is multi-stage workflow, route to Stage 1 positions
+        if (!empty($stages) && is_array($stages) && count($stages) > 0 && ($document['signer_type'] === 'workflow' || empty($document['signer_type']))) {
+            $first_stage = $stages[0];
+            $position_id = intval($first_stage['position_id']);
+            $stmtApprovers = $conn->prepare("SELECT id, phone_number, full_name FROM employees WHERE position_id = ? AND status = 'active' ORDER BY id ASC");
+            $stmtApprovers->execute([$position_id]);
+            $stage_emps = $stmtApprovers->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($stage_emps as $se) {
+                $approver_ids[] = intval($se['id']);
+                if (empty($first_wa_phone) && !empty($se['phone_number'])) {
+                    $clean_phone = preg_replace('/[^0-9]/', '', $se['phone_number']);
+                    if (strpos($clean_phone, '0') === 0) $clean_phone = '62' . substr($clean_phone, 1);
+                    $first_wa_phone = $clean_phone;
+                    $first_handler_name = $se['full_name'];
+                }
+            }
+        }
+
+        // 2. Direct hierarchical signer (unit_head, division_head, leader)
+        if (empty($approver_ids) && !empty($document['signer_type']) && $document['signer_type'] !== 'workflow') {
+            $resolvedSigner = getResolvedSignerInfo($conn, $document['creator_id'], $document['signer_type']);
+            if (!empty($resolvedSigner['id'])) {
+                $approver_ids[] = intval($resolvedSigner['id']);
+                if (empty($first_wa_phone) && !empty($resolvedSigner['phone'])) {
+                    $clean_phone = preg_replace('/[^0-9]/', '', $resolvedSigner['phone']);
+                    if (strpos($clean_phone, '0') === 0) $clean_phone = '62' . substr($clean_phone, 1);
+                    $first_wa_phone = $clean_phone;
+                    $first_handler_name = $resolvedSigner['name'];
+                }
+            }
+        }
+
+        // 3. Fallback: supervisor (reports_to) or Admin
+        if (empty($approver_ids)) {
+            $stmtEmp = $conn->prepare("SELECT reports_to FROM employees WHERE id = ?");
+            $stmtEmp->execute([$document['creator_id']]);
+            $reports_to = $stmtEmp->fetchColumn();
+            if ($reports_to) {
+                $approver_ids[] = intval($reports_to);
+            } else {
+                $approver_ids[] = 1; // Admin fallback
+            }
+        }
+
+        // Fetch assigned handlers for receiver division/unit to receive notification (informational)
         $assigned_handlers = [];
         if (!empty($document['receiver_division_id'])) {
             $stmtRules = $conn->prepare("
@@ -50,74 +105,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ':unit_id' => $document['receiver_unit_id'] ?? null
             ]);
             $assigned_handlers = $stmtRules->fetchAll(PDO::FETCH_ASSOC);
-        }
-
-        // Decode workflow stages
-        $stages = [];
-        if ($document['workflow_stages']) {
-            $stages = json_decode($document['workflow_stages'], true);
-        }
-
-        // Extract approver IDs
-        $approver_ids = [];
-        $first_wa_phone = '';
-        $first_handler_name = '';
-
-        foreach ($assigned_handlers as $ah) {
-            if ($ah['role_type'] === 'approver') {
-                $approver_ids[] = intval($ah['employee_id']);
-            }
-            if (empty($first_wa_phone) && !empty($ah['phone_number'])) {
-                // Clean phone number for wa.me format
-                $clean_phone = preg_replace('/[^0-9]/', '', $ah['phone_number']);
-                if (strpos($clean_phone, '0') === 0) {
-                    $clean_phone = '62' . substr($clean_phone, 1);
-                }
-                $first_wa_phone = $clean_phone;
-                $first_handler_name = $ah['full_name'];
-            }
-        }
-
-        // Fallback if no specific approver in routing rules: check template stages, signer_type, or supervisor
-        if (empty($approver_ids)) {
-            if (!empty($stages)) {
-                $first_stage = $stages[0];
-                $position_id = intval($first_stage['position_id']);
-                $stmtApprovers = $conn->prepare("SELECT id, phone_number, full_name FROM employees WHERE position_id = ? AND status = 'active' ORDER BY id ASC");
-                $stmtApprovers->execute([$position_id]);
-                $stage_emps = $stmtApprovers->fetchAll(PDO::FETCH_ASSOC);
-                foreach ($stage_emps as $se) {
-                    $approver_ids[] = intval($se['id']);
-                    if (empty($first_wa_phone) && !empty($se['phone_number'])) {
-                        $clean_phone = preg_replace('/[^0-9]/', '', $se['phone_number']);
-                        if (strpos($clean_phone, '0') === 0) $clean_phone = '62' . substr($clean_phone, 1);
-                        $first_wa_phone = $clean_phone;
-                        $first_handler_name = $se['full_name'];
-                    }
-                }
-            } elseif (!empty($document['signer_type']) && $document['signer_type'] !== 'workflow') {
-                $resolvedSigner = getResolvedSignerInfo($conn, $document['creator_id'], $document['signer_type']);
-                if (!empty($resolvedSigner['id'])) {
-                    $approver_ids[] = intval($resolvedSigner['id']);
-                    if (empty($first_wa_phone) && !empty($resolvedSigner['phone'])) {
-                        $clean_phone = preg_replace('/[^0-9]/', '', $resolvedSigner['phone']);
-                        if (strpos($clean_phone, '0') === 0) $clean_phone = '62' . substr($clean_phone, 1);
-                        $first_wa_phone = $clean_phone;
-                        $first_handler_name = $resolvedSigner['name'];
-                    }
-                }
-            }
-            
-            if (empty($approver_ids)) {
-                $stmtEmp = $conn->prepare("SELECT reports_to FROM employees WHERE id = ?");
-                $stmtEmp->execute([$document['creator_id']]);
-                $reports_to = $stmtEmp->fetchColumn();
-                if ($reports_to) {
-                    $approver_ids[] = intval($reports_to);
-                } else {
-                    $approver_ids[] = 1; // Admin fallback
-                }
-            }
         }
 
         // Insert pending approvals & notifications
@@ -153,9 +140,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        // Update document status
-        $stmtUpdate = $conn->prepare("UPDATE documents SET status = 'pending_approval' WHERE id = ?");
-        $stmtUpdate->execute([$id]);
+        // Update document status and signature placeholder
+        $pending_content = processDocumentSignatureHtml($document['content'], 'pending_approval', $document['qr_token'] ?? '');
+        $stmtUpdate = $conn->prepare("UPDATE documents SET status = 'pending_approval', content = ? WHERE id = ?");
+        $stmtUpdate->execute([$pending_content, $id]);
 
         $conn->commit();
         

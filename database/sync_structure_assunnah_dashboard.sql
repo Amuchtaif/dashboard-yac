@@ -22,7 +22,11 @@ CREATE TABLE IF NOT EXISTS `document_templates` (
   `counter` INT(11) NOT NULL DEFAULT 1,
   `reset_cycle` ENUM('monthly','yearly','never') NOT NULL DEFAULT 'yearly',
   `last_reset_date` DATE DEFAULT NULL,
+  `signer_type` VARCHAR(50) DEFAULT 'unit_head',
   `workflow_stages` TEXT NOT NULL,
+  `created_by` INT(11) DEFAULT NULL,
+  `unit_id` INT(11) DEFAULT NULL,
+  `scope` ENUM('private', 'unit', 'global') NOT NULL DEFAULT 'unit',
   `header_logo` VARCHAR(255) DEFAULT 'uploads/kop_logos/logo_yac.png',
   `header_line_1` VARCHAR(255) DEFAULT 'YAYASAN AS SUNNAH CIREBON',
   `header_line_2` VARCHAR(255) DEFAULT 'BIDANG PENDIDIKAN',
@@ -31,7 +35,9 @@ CREATE TABLE IF NOT EXISTS `document_templates` (
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `code` (`code`)
+  UNIQUE KEY `code` (`code`),
+  KEY `idx_created_by` (`created_by`),
+  KEY `idx_scope_unit` (`scope`, `unit_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- 2. Tabel: documents (Dokumen Surat Masuk / Keluar)

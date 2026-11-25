@@ -43,17 +43,31 @@ $stats_pending = $stmtPending->fetchColumn();
 
 // 3. Completed (Approved final documents)
 if ($is_admin) {
-    $stmtCompleted = $conn->prepare("SELECT COUNT(*) FROM documents WHERE status = 'completed' AND type = 'outgoing'");
+    $stmtCompleted = $conn->prepare("SELECT COUNT(*) FROM documents WHERE status = 'completed'");
     $stmtCompleted->execute();
 } else {
     $stmtCompleted = $conn->prepare("
-        SELECT COUNT(*) FROM documents 
-        WHERE status = 'completed' AND type = 'outgoing'
-          AND (creator_id = :uid 
-               OR (receiver_division_id = :div_id AND (receiver_unit_id IS NULL OR receiver_unit_id = :unit_id OR :unit_id = 0))
-               OR (receiver_unit_id = :unit_id AND :unit_id != 0))
+        SELECT COUNT(*) FROM documents d
+        LEFT JOIN employees e ON d.creator_id = e.id
+        WHERE d.status = 'completed'
+          AND (
+              d.creator_id = :uid 
+              OR (e.unit_id = :unit_id AND :unit_id != 0)
+              OR (e.division_id = :div_id AND (e.unit_id IS NULL OR e.unit_id = 0) AND :unit_id3 = 0)
+              OR (d.receiver_unit_id = :unit_id2 AND :unit_id2 != 0)
+              OR ((d.receiver_unit_id IS NULL OR d.receiver_unit_id = 0) AND (d.receiver_division_id = :div_id2 OR d.receiver_department_id = :div_id2))
+              OR EXISTS (SELECT 1 FROM document_dispositions disp WHERE disp.document_id = d.id AND disp.to_user_id = :disp_uid)
+          )
     ");
-    $stmtCompleted->execute([':uid' => $user_id, ':div_id' => $user_div_id, ':unit_id' => $user_unit_id]);
+    $stmtCompleted->execute([
+        ':uid' => $user_id,
+        ':unit_id' => $user_unit_id,
+        ':div_id' => $user_div_id,
+        ':unit_id3' => $user_unit_id,
+        ':unit_id2' => $user_unit_id,
+        ':div_id2' => $user_div_id,
+        ':disp_uid' => $user_id
+    ]);
 }
 $stats_completed = $stmtCompleted->fetchColumn();
 
@@ -62,35 +76,64 @@ $stmtRejected = $conn->prepare("SELECT COUNT(*) FROM documents WHERE status = 'r
 $stmtRejected->execute([$user_id]);
 $stats_rejected = $stmtRejected->fetchColumn();
 
-// 5. Outgoing this month
+// 5. Outgoing this month (Issued by this user or their unit/division)
 if ($is_admin) {
     $stmtOutMonth = $conn->prepare("SELECT COUNT(*) FROM documents WHERE type = 'outgoing' AND MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE())");
     $stmtOutMonth->execute();
 } else {
     $stmtOutMonth = $conn->prepare("
-        SELECT COUNT(*) FROM documents 
-        WHERE type = 'outgoing' AND MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE())
-          AND (creator_id = :uid 
-               OR (receiver_division_id = :div_id AND (receiver_unit_id IS NULL OR receiver_unit_id = :unit_id OR :unit_id = 0))
-               OR (receiver_unit_id = :unit_id AND :unit_id != 0))
+        SELECT COUNT(*) FROM documents d
+        LEFT JOIN employees e ON d.creator_id = e.id
+        WHERE d.type = 'outgoing' 
+          AND MONTH(d.created_at) = MONTH(CURDATE()) 
+          AND YEAR(d.created_at) = YEAR(CURDATE())
+          AND (
+              d.creator_id = :uid 
+              OR (e.unit_id = :unit_id AND :unit_id != 0)
+              OR (e.division_id = :div_id AND (e.unit_id IS NULL OR e.unit_id = 0) AND :unit_id2 = 0)
+          )
     ");
-    $stmtOutMonth->execute([':uid' => $user_id, ':div_id' => $user_div_id, ':unit_id' => $user_unit_id]);
+    $stmtOutMonth->execute([
+        ':uid' => $user_id,
+        ':unit_id' => $user_unit_id,
+        ':div_id' => $user_div_id,
+        ':unit_id2' => $user_unit_id
+    ]);
 }
 $stats_out_month = $stmtOutMonth->fetchColumn();
 
-// 6. Incoming this month
+// 6. Incoming this month (External incoming or completed internal letters received)
 if ($is_admin) {
-    $stmtInMonth = $conn->prepare("SELECT COUNT(*) FROM documents WHERE type = 'incoming' AND MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE())");
+    $stmtInMonth = $conn->prepare("SELECT COUNT(*) FROM documents WHERE (type = 'incoming' OR (type = 'outgoing' AND status = 'completed' AND receiver_division_id IS NOT NULL)) AND MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE())");
     $stmtInMonth->execute();
 } else {
     $stmtInMonth = $conn->prepare("
-        SELECT COUNT(*) FROM documents 
-        WHERE type = 'incoming' AND MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE())
-          AND (creator_id = :uid 
-               OR (receiver_division_id = :div_id AND (receiver_unit_id IS NULL OR receiver_unit_id = :unit_id OR :unit_id = 0))
-               OR (receiver_unit_id = :unit_id AND :unit_id != 0))
+        SELECT COUNT(*) FROM documents d
+        WHERE MONTH(d.created_at) = MONTH(CURDATE()) 
+          AND YEAR(d.created_at) = YEAR(CURDATE())
+          AND (
+              (d.type = 'incoming' AND (
+                  (d.receiver_unit_id = :unit_id AND :unit_id != 0)
+                  OR ((d.receiver_unit_id IS NULL OR d.receiver_unit_id = 0) AND (d.receiver_division_id = :div_id OR d.receiver_department_id = :div_id))
+                  OR d.creator_id = :uid
+                  OR EXISTS (SELECT 1 FROM document_dispositions disp WHERE disp.document_id = d.id AND disp.to_user_id = :disp_uid)
+              ))
+              OR (d.type = 'outgoing' AND d.status = 'completed' AND (
+                  (d.receiver_unit_id = :unit_id2 AND :unit_id2 != 0)
+                  OR ((d.receiver_unit_id IS NULL OR d.receiver_unit_id = 0) AND d.receiver_division_id = :div_id2)
+                  OR EXISTS (SELECT 1 FROM document_dispositions disp2 WHERE disp2.document_id = d.id AND disp2.to_user_id = :disp_uid2)
+              ))
+          )
     ");
-    $stmtInMonth->execute([':uid' => $user_id, ':div_id' => $user_div_id, ':unit_id' => $user_unit_id]);
+    $stmtInMonth->execute([
+        ':unit_id' => $user_unit_id,
+        ':div_id' => $user_div_id,
+        ':uid' => $user_id,
+        ':disp_uid' => $user_id,
+        ':unit_id2' => $user_unit_id,
+        ':div_id2' => $user_div_id,
+        ':disp_uid2' => $user_id
+    ]);
 }
 $stats_in_month = $stmtInMonth->fetchColumn();
 
@@ -110,24 +153,48 @@ for ($i = 5; $i >= 0; $i--) {
         $stmtOut->execute([$month_val, $year_val]);
         $monthly_outgoing[] = (int)$stmtOut->fetchColumn();
 
-        $stmtIn = $conn->prepare("SELECT COUNT(*) FROM documents WHERE type = 'incoming' AND MONTH(created_at) = ? AND YEAR(created_at) = ?");
+        $stmtIn = $conn->prepare("SELECT COUNT(*) FROM documents WHERE (type = 'incoming' OR (type = 'outgoing' AND status = 'completed' AND receiver_division_id IS NOT NULL)) AND MONTH(created_at) = ? AND YEAR(created_at) = ?");
         $stmtIn->execute([$month_val, $year_val]);
         $monthly_incoming[] = (int)$stmtIn->fetchColumn();
     } else {
         $stmtOut = $conn->prepare("
-            SELECT COUNT(*) FROM documents 
-            WHERE type = 'outgoing' AND MONTH(created_at) = ? AND YEAR(created_at) = ?
-              AND (creator_id = ? OR (receiver_division_id = ? AND (receiver_unit_id IS NULL OR receiver_unit_id = ? OR ? = 0)) OR (receiver_unit_id = ? AND ? != 0))
+            SELECT COUNT(*) FROM documents d
+            LEFT JOIN employees e ON d.creator_id = e.id
+            WHERE d.type = 'outgoing' AND MONTH(d.created_at) = ? AND YEAR(d.created_at) = ?
+              AND (
+                  d.creator_id = ? 
+                  OR (e.unit_id = ? AND ? != 0) 
+                  OR (e.division_id = ? AND (e.unit_id IS NULL OR e.unit_id = 0) AND ? = 0)
+              )
         ");
-        $stmtOut->execute([$month_val, $year_val, $user_id, $user_div_id, $user_unit_id, $user_unit_id, $user_unit_id, $user_unit_id]);
+        $stmtOut->execute([$month_val, $year_val, $user_id, $user_unit_id, $user_unit_id, $user_div_id, $user_unit_id]);
         $monthly_outgoing[] = (int)$stmtOut->fetchColumn();
 
         $stmtIn = $conn->prepare("
-            SELECT COUNT(*) FROM documents 
-            WHERE type = 'incoming' AND MONTH(created_at) = ? AND YEAR(created_at) = ?
-              AND (creator_id = ? OR (receiver_division_id = ? AND (receiver_unit_id IS NULL OR receiver_unit_id = ? OR ? = 0)) OR (receiver_unit_id = ? AND ? != 0))
+            SELECT COUNT(*) FROM documents d
+            WHERE MONTH(d.created_at) = ? AND YEAR(d.created_at) = ?
+              AND (
+                  (d.type = 'incoming' AND (
+                      (d.receiver_unit_id = ? AND ? != 0)
+                      OR ((d.receiver_unit_id IS NULL OR d.receiver_unit_id = 0) AND (d.receiver_division_id = ? OR d.receiver_department_id = ?))
+                      OR d.creator_id = ?
+                      OR EXISTS (SELECT 1 FROM document_dispositions disp WHERE disp.document_id = d.id AND disp.to_user_id = ?)
+                  ))
+                  OR (d.type = 'outgoing' AND d.status = 'completed' AND (
+                      (d.receiver_unit_id = ? AND ? != 0)
+                      OR ((d.receiver_unit_id IS NULL OR d.receiver_unit_id = 0) AND d.receiver_division_id = ?)
+                      OR EXISTS (SELECT 1 FROM document_dispositions disp2 WHERE disp2.document_id = d.id AND disp2.to_user_id = ?)
+                  ))
+              )
         ");
-        $stmtIn->execute([$month_val, $year_val, $user_id, $user_div_id, $user_unit_id, $user_unit_id, $user_unit_id, $user_unit_id]);
+        $stmtIn->execute([
+            $month_val, $year_val,
+            $user_unit_id, $user_unit_id,
+            $user_div_id, $user_div_id,
+            $user_id, $user_id,
+            $user_unit_id, $user_unit_id,
+            $user_div_id, $user_id
+        ]);
         $monthly_incoming[] = (int)$stmtIn->fetchColumn();
     }
 }

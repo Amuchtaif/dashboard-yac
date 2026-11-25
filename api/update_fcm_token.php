@@ -16,6 +16,8 @@ function catatLog($pesan)
 // Tangkap semua input (baik form-data maupun raw json)
 $user_id = $_POST['user_id'] ?? '';
 $token = $_POST['fcm_token'] ?? '';
+$app_version = trim((string)($_POST['app_version'] ?? ''));
+$build_number = (int)($_POST['build_number'] ?? 0);
 
 // Cek juga kalau dikirim via Raw JSON (Flutter sering kirim begini)
 if (empty($user_id) || empty($token)) {
@@ -24,6 +26,8 @@ if (empty($user_id) || empty($token)) {
     if (!empty($data)) {
         $user_id = $data['user_id'] ?? $user_id;
         $token = $data['fcm_token'] ?? $token;
+        $app_version = !empty($data['app_version']) ? trim((string)$data['app_version']) : $app_version;
+        $build_number = !empty($data['build_number']) ? (int)$data['build_number'] : $build_number;
     }
 }
 
@@ -51,13 +55,26 @@ try {
         exit();
     }
 
-    // 3. UPDATE TOKEN
-    $query = "UPDATE employees SET fcm_token = :token WHERE id = :id";
-    $stmt = $conn->prepare($query);
-    $stmt->bindParam(":token", $token);
-    $stmt->bindParam(":id", $user_id);
+    // 3. UPDATE TOKEN & METRIK VERSI/AKTIVITAS MOBILE
+    $updateCols = ["fcm_token = :token", "last_mobile_activity = NOW()"];
+    $params = [
+        ':token' => $token,
+        ':id' => $user_id
+    ];
 
-    if ($stmt->execute()) {
+    if (!empty($app_version)) {
+        $updateCols[] = "app_version = :ver";
+        $params[':ver'] = $app_version;
+    }
+    if ($build_number > 0) {
+        $updateCols[] = "app_build_number = :build";
+        $params[':build'] = $build_number;
+    }
+
+    $query = "UPDATE employees SET " . implode(', ', $updateCols) . " WHERE id = :id";
+    $stmt = $conn->prepare($query);
+
+    if ($stmt->execute($params)) {
         catatLog("SUKSES: Token berhasil diupdate untuk User ID $user_id.");
         echo json_encode(["success" => true, "message" => "Token updated"]);
     } else {

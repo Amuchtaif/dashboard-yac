@@ -13,6 +13,15 @@ $db = new Database();
 $conn = $db->getConnection();
 
 $current_user_id = $_SESSION['user_id'] ?? 1;
+$is_admin = isset($_SESSION['position_name']) && $_SESSION['position_name'] === 'Administrator';
+
+// Get current user's unit_id
+$stmtEmp = $conn->prepare("SELECT e.unit_id, u.name as unit_name FROM employees e LEFT JOIN units u ON e.unit_id = u.id WHERE e.id = ?");
+$stmtEmp->execute([$current_user_id]);
+$empData = $stmtEmp->fetch(PDO::FETCH_ASSOC);
+$current_unit_id = $empData['unit_id'] ?? null;
+$current_unit_name = $empData['unit_name'] ?? 'Unit Kerja';
+
 $detected_signers = getDocumentSignersForEmployee($conn, $current_user_id);
 
 $action = isset($_GET['action']) ? $_GET['action'] : 'list';
@@ -26,13 +35,44 @@ if (($action === 'edit') && $tpl_id > 0) {
     if (!$template) {
         redirect("views/documents/template_config.php?error=Template+tidak+ditemukan");
     }
+    // Only creator or admin can edit
+    if (!$is_admin && $template['created_by'] != $current_user_id) {
+        redirect("views/documents/template_config.php?error=Anda+tidak+memiliki+hak+akses+untuk+mengubah+template+ini");
+    }
 }
 
 // Fetch all available positions for configuring workflow stages
 $positions = $conn->query("SELECT id, name FROM positions ORDER BY level ASC, name ASC")->fetchAll(PDO::FETCH_ASSOC);
 
-// Fetch all templates
-$templates = $conn->query("SELECT * FROM document_templates ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
+// Fetch templates based on scope & ownership
+if ($is_admin) {
+    $stmtAll = $conn->query("
+        SELECT dt.*, e.full_name as creator_name, u.name as unit_name 
+        FROM document_templates dt 
+        LEFT JOIN employees e ON dt.created_by = e.id 
+        LEFT JOIN units u ON dt.unit_id = u.id 
+        ORDER BY dt.name ASC
+    ");
+    $templates = $stmtAll->fetchAll(PDO::FETCH_ASSOC);
+} else {
+    $stmtFiltered = $conn->prepare("
+        SELECT dt.*, e.full_name as creator_name, u.name as unit_name 
+        FROM document_templates dt 
+        LEFT JOIN employees e ON dt.created_by = e.id 
+        LEFT JOIN units u ON dt.unit_id = u.id 
+        WHERE dt.created_by = :uid 
+           OR (dt.scope = 'unit' AND dt.unit_id = :unit_id) 
+           OR dt.scope = 'global'
+           OR (dt.scope IS NULL AND (dt.unit_id IS NULL OR dt.unit_id = :unit_id2))
+        ORDER BY dt.name ASC
+    ");
+    $stmtFiltered->execute([
+        ':uid' => $current_user_id,
+        ':unit_id' => $current_unit_id,
+        ':unit_id2' => $current_unit_id
+    ]);
+    $templates = $stmtFiltered->fetchAll(PDO::FETCH_ASSOC);
+}
 
 include '../layouts/header.php';
 ?>
@@ -261,6 +301,34 @@ include '../layouts/header.php';
                                     <option value="monthly" <?php echo $is_edit && $template['reset_cycle'] === 'monthly' ? 'selected' : ''; ?>>Reset Setiap Bulan</option>
                                     <option value="yearly" <?php echo $is_edit && ($template['reset_cycle'] === 'yearly' || empty($template['reset_cycle'])) ? 'selected' : ''; ?>>Reset Setiap Tahun</option>
                                 </select>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Cakupan Visibilitas (Scope) -->
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Cakupan Akses Template</label>
+                                <select name="scope" required
+                                        class="select-custom mt-1.5 block w-full rounded-xl border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 text-xs bg-slate-50 border p-3 text-slate-700">
+                                    <option value="unit" <?php echo (!$is_edit || (isset($template['scope']) && $template['scope'] === 'unit')) ? 'selected' : ''; ?>>
+                                        Unit Kerja (<?php echo htmlspecialchars($current_unit_name); ?>)
+                                    </option>
+                                    <option value="private" <?php echo ($is_edit && isset($template['scope']) && $template['scope'] === 'private') ? 'selected' : ''; ?>>
+                                        Pribadi (Hanya Pembuat)
+                                    </option>
+                                    <?php if ($is_admin): ?>
+                                        <option value="global" <?php echo ($is_edit && isset($template['scope']) && $template['scope'] === 'global') ? 'selected' : ''; ?>>
+                                            Seluruh Yayasan (Global / Publik)
+                                        </option>
+                                    <?php endif; ?>
+                                </select>
+                                <p class="text-[10px] text-slate-400 mt-1">
+                                    <?php if ($is_admin): ?>
+                                        Atur visibilitas template untuk unit, akun pribadi, atau seluruh yayasan.
+                                    <?php else: ?>
+                                        Template Unit hanya dapat dilihat oleh rekan di unit kerja Anda.
+                                    <?php endif; ?>
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -640,6 +708,7 @@ include '../layouts/header.php';
                         <th scope="col" class="py-3.5 pl-4 pr-3 text-left sm:pl-6 w-12">No.</th>
                         <th scope="col" class="px-3 py-3.5 text-left">Kode</th>
                         <th scope="col" class="px-3 py-3.5 text-left">Nama Template</th>
+                        <th scope="col" class="px-3 py-3.5 text-left">Visibilitas</th>
                         <th scope="col" class="px-3 py-3.5 text-left">Format Nomor</th>
                         <th scope="col" class="px-3 py-3.5 text-center">Reset Counter</th>
                         <th scope="col" class="px-3 py-3.5 text-center">Counter</th>
@@ -653,6 +722,7 @@ include '../layouts/header.php';
                         <?php foreach ($templates as $index => $tpl): 
                             $stages = json_decode($tpl['workflow_stages'], true) ?: [];
                             $stages_names = array_map(function($s) { return $s['position_name']; }, $stages);
+                            $can_manage_this = $is_admin || (!empty($tpl['created_by']) && $tpl['created_by'] == $current_user_id);
                         ?>
                             <tr class="hover:bg-slate-50 transition-colors">
                                 <td class="whitespace-nowrap py-4 pl-4 pr-3 text-xs text-slate-400 sm:pl-6">
@@ -661,8 +731,26 @@ include '../layouts/header.php';
                                 <td class="whitespace-nowrap px-3 py-4 text-xs font-bold text-slate-800">
                                     <?php echo htmlspecialchars($tpl['code']); ?>
                                 </td>
-                                <td class="px-3 py-4 text-xs text-slate-700 font-bold">
-                                    <?php echo htmlspecialchars($tpl['name']); ?>
+                                <td class="px-3 py-4 text-xs">
+                                    <div class="font-bold text-slate-800"><?php echo htmlspecialchars($tpl['name']); ?></div>
+                                    <div class="text-[10px] text-slate-400 mt-0.5">Dibuat: <span class="text-slate-600 font-medium"><?php echo htmlspecialchars($tpl['creator_name'] ?? 'Sistem'); ?></span></div>
+                                </td>
+                                <td class="whitespace-nowrap px-3 py-4 text-xs">
+                                    <?php 
+                                    $scope = $tpl['scope'] ?? 'unit';
+                                    if ($scope === 'private'): ?>
+                                        <span class="inline-flex items-center rounded-md bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700 border border-amber-200">
+                                            <i class="fa-solid fa-lock text-[9px] mr-1"></i> Pribadi
+                                        </span>
+                                    <?php elseif ($scope === 'global'): ?>
+                                        <span class="inline-flex items-center rounded-md bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200">
+                                            <i class="fa-solid fa-globe text-[9px] mr-1"></i> Yayasan
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="inline-flex items-center rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700 border border-blue-200">
+                                            <i class="fa-solid fa-users text-[9px] mr-1"></i> Unit: <?php echo htmlspecialchars($tpl['unit_name'] ?? 'Semua Unit'); ?>
+                                        </span>
+                                    <?php endif; ?>
                                 </td>
                                 <td class="px-3 py-4 text-xs font-mono text-slate-500">
                                     <?php echo htmlspecialchars($tpl['number_format']); ?>
@@ -715,26 +803,32 @@ include '../layouts/header.php';
                                         <i class="fa-solid fa-eye text-xs"></i>
                                     </button>
 
-                                    <!-- Aksi: Edit -->
-                                    <a href="?action=edit&id=<?php echo $tpl['id']; ?>" class="inline-flex items-center rounded-lg bg-indigo-50 p-1.5 text-indigo-600 hover:bg-indigo-100 transition-colors" title="Edit Template Builder">
-                                        <i class="fa-solid fa-pen text-xs"></i>
-                                    </a>
+                                    <?php if ($can_manage_this): ?>
+                                        <!-- Aksi: Edit -->
+                                        <a href="?action=edit&id=<?php echo $tpl['id']; ?>" class="inline-flex items-center rounded-lg bg-indigo-50 p-1.5 text-indigo-600 hover:bg-indigo-100 transition-colors" title="Edit Template Builder">
+                                            <i class="fa-solid fa-pen text-xs"></i>
+                                        </a>
 
-                                    <!-- Aksi: Delete -->
-                                    <a href="<?php url('logic/documents/manage_template.php'); ?>" class="inline-flex items-center rounded-lg bg-rose-50 p-1.5 text-rose-600 hover:bg-rose-100 transition-colors" title="Hapus Template"
-                                       onclick="event.preventDefault(); if(confirm('Hapus template surat ini secara permanen?')){ document.getElementById('delete-template-<?php echo $tpl['id']; ?>').submit(); }">
-                                        <i class="fa-solid fa-trash text-xs"></i>
-                                    </a>
-                                    <form id="delete-template-<?php echo $tpl['id']; ?>" action="<?php url('logic/documents/manage_template.php'); ?>" method="POST" class="hidden">
-                                        <input type="hidden" name="action" value="delete">
-                                        <input type="hidden" name="id" value="<?php echo $tpl['id']; ?>">
-                                    </form>
+                                        <!-- Aksi: Delete -->
+                                        <a href="<?php url('logic/documents/manage_template.php'); ?>" class="inline-flex items-center rounded-lg bg-rose-50 p-1.5 text-rose-600 hover:bg-rose-100 transition-colors" title="Hapus Template"
+                                           onclick="event.preventDefault(); if(confirm('Hapus template surat ini secara permanen?')){ document.getElementById('delete-template-<?php echo $tpl['id']; ?>').submit(); }">
+                                            <i class="fa-solid fa-trash text-xs"></i>
+                                        </a>
+                                        <form id="delete-template-<?php echo $tpl['id']; ?>" action="<?php url('logic/documents/manage_template.php'); ?>" method="POST" class="hidden">
+                                            <input type="hidden" name="action" value="delete">
+                                            <input type="hidden" name="id" value="<?php echo $tpl['id']; ?>">
+                                        </form>
+                                    <?php else: ?>
+                                        <span class="inline-flex items-center rounded-lg bg-slate-100 p-1.5 text-slate-400 cursor-not-allowed" title="Hanya pembuat atau Administrator yang dapat mengubah template ini">
+                                            <i class="fa-solid fa-lock text-xs"></i>
+                                        </span>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="9" class="py-10 text-center text-sm text-slate-500 italic">Belum ada template terdaftar. Silakan buat baru.</td>
+                            <td colspan="10" class="py-10 text-center text-sm text-slate-500 italic">Belum ada template terdaftar. Silakan buat baru.</td>
                         </tr>
                     <?php endif; ?>
                 </tbody>

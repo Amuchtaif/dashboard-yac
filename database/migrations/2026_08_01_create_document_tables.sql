@@ -11,6 +11,9 @@ CREATE TABLE IF NOT EXISTS `document_templates` (
     `reset_cycle` ENUM('monthly', 'yearly', 'never') NOT NULL DEFAULT 'yearly',
     `last_reset_date` DATE DEFAULT NULL,
     `workflow_stages` TEXT NOT NULL, -- JSON list of position/role names or levels
+    `created_by` INT NULL DEFAULT NULL,
+    `unit_id` INT NULL DEFAULT NULL,
+    `scope` ENUM('private', 'unit', 'global') NOT NULL DEFAULT 'unit',
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
