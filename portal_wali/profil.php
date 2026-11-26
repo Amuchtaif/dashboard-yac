@@ -25,7 +25,7 @@ require_once __DIR__ . '/layouts/header.php';
             <h1 class="text-lg font-bold text-slate-900">Akun Wali Santri</h1>
             <p class="text-xs text-slate-500">Kelola profil orang tua & santri terhubung</p>
         </div>
-        <div class="w-10 h-10 rounded-2xl bg-teal-50 text-teal-700 flex items-center justify-center text-lg shadow-xs">
+        <div class="w-10 h-10 rounded-2xl bg-brand-50 text-[#448AFF] flex items-center justify-center text-lg shadow-xs">
             <i class="fa-solid fa-user-gear"></i>
         </div>
     </div>
@@ -33,16 +33,16 @@ require_once __DIR__ . '/layouts/header.php';
     <!-- Guardian Info Card -->
     <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs">
         <div class="flex items-center gap-3.5 pb-4 border-b border-slate-100">
-            <div class="w-12 h-12 rounded-2xl bg-teal-700 text-white flex items-center justify-center text-xl font-bold shadow-xs">
+            <div class="w-12 h-12 rounded-2xl bg-[#448AFF] text-white flex items-center justify-center text-xl font-bold shadow-xs">
                 <?php echo strtoupper(substr($guardian['full_name'] ?? 'W', 0, 1)); ?>
             </div>
             <div>
                 <h3 class="text-sm font-bold text-slate-900"><?php echo htmlspecialchars($guardian['full_name'] ?? 'Wali Santri'); ?></h3>
                 <p class="text-xs text-slate-500 flex items-center gap-1.5 mt-0.5">
-                    <i class="fa-brands fa-whatsapp text-emerald-600"></i>
+                    <i class="fa-brands fa-whatsapp text-[#448AFF]"></i>
                     <span><?php echo htmlspecialchars($guardian['phone_number'] ?? ''); ?></span>
                     &bull;
-                    <span class="font-semibold text-teal-700"><?php echo htmlspecialchars($guardian['relationship'] ?? 'Wali'); ?></span>
+                    <span class="font-semibold text-[#448AFF]"><?php echo htmlspecialchars($guardian['relationship'] ?? 'Wali'); ?></span>
                 </p>
             </div>
         </div>
@@ -57,7 +57,7 @@ require_once __DIR__ . '/layouts/header.php';
     <div class="space-y-2.5">
         <div class="flex items-center justify-between px-1">
             <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Santri Terhubung</h3>
-            <span class="text-xs font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">
+            <span class="text-xs font-bold text-brand-700 bg-brand-50 px-2 py-0.5 rounded-full border border-brand-200">
                 <?php echo count($children); ?> Santri
             </span>
         </div>
@@ -69,7 +69,7 @@ require_once __DIR__ . '/layouts/header.php';
                     ? '../uploads/students/' . $c['foto'] 
                     : null;
             ?>
-                <div class="bg-white p-3.5 rounded-2xl border <?php echo $isActive ? 'border-teal-500 bg-teal-50/20' : 'border-slate-200/80'; ?> shadow-xs flex items-center justify-between">
+                <div class="bg-white p-3.5 rounded-2xl border <?php echo $isActive ? 'border-[#448AFF] bg-brand-50/30' : 'border-slate-200/80'; ?> shadow-xs flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-full border border-slate-200 overflow-hidden bg-slate-100 flex items-center justify-center shrink-0">
                             <?php if ($avatarSrc): ?>
@@ -88,7 +88,7 @@ require_once __DIR__ . '/layouts/header.php';
                     </div>
 
                     <?php if ($isActive): ?>
-                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-teal-600 text-white shadow-xs">
+                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#448AFF] text-white shadow-xs">
                             Aktif
                         </span>
                     <?php else: ?>
@@ -102,7 +102,7 @@ require_once __DIR__ . '/layouts/header.php';
         </div>
 
         <a href="tambah_anak.php" 
-           class="w-full py-2.5 rounded-2xl border border-dashed border-teal-300 bg-teal-50/50 hover:bg-teal-50 text-teal-800 text-xs font-semibold flex items-center justify-center gap-2 transition-colors">
+           class="w-full py-2.5 rounded-2xl border border-dashed border-brand-300 bg-brand-50/50 hover:bg-brand-50 text-brand-700 text-xs font-semibold flex items-center justify-center gap-2 transition-colors">
             <i class="fa-solid fa-plus text-xs"></i>
             <span>Hubungkan Santri Baru (Klaim NISN)</span>
         </a>
@@ -117,7 +117,7 @@ require_once __DIR__ . '/layouts/header.php';
         <div class="pt-1">
             <a href="https://wa.me/6281234567890?text=Assalamu'alaikum%20Admin%20Yayasan%20Assunnah" 
                target="_blank"
-               class="inline-flex items-center gap-2 text-xs font-bold text-emerald-700 hover:text-emerald-800">
+               class="inline-flex items-center gap-2 text-xs font-bold text-[#448AFF] hover:text-brand-700">
                 <i class="fa-brands fa-whatsapp text-sm"></i>
                 <span>Hubungi Layanan Pengaduan WhatsApp</span>
             </a>

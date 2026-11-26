@@ -10,26 +10,26 @@ $page = $current_page ?? 'index';
 <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white/95 backdrop-blur-md border-t border-slate-200 z-40 safe-bottom">
     <div class="grid grid-cols-4 h-16">
         <!-- 1. Beranda -->
-        <a href="index.php" class="inline-flex flex-col items-center justify-center text-center px-1 transition-colors <?php echo $page === 'index' ? 'text-teal-700 font-bold' : 'text-slate-400 hover:text-slate-600 font-medium'; ?>">
-            <i class="fa-solid fa-house text-lg mb-1 <?php echo $page === 'index' ? 'text-teal-700' : 'text-slate-400'; ?>"></i>
+        <a href="index.php" class="inline-flex flex-col items-center justify-center text-center px-1 transition-colors <?php echo $page === 'index' ? 'text-[#448AFF] font-bold' : 'text-slate-400 hover:text-slate-600 font-medium'; ?>">
+            <i class="fa-solid fa-house text-lg mb-1 <?php echo $page === 'index' ? 'text-[#448AFF]' : 'text-slate-400'; ?>"></i>
             <span class="text-[10px]">Beranda</span>
         </a>
 
         <!-- 2. Tahfidz -->
-        <a href="tahfidz.php" class="inline-flex flex-col items-center justify-center text-center px-1 transition-colors <?php echo $page === 'tahfidz' ? 'text-teal-700 font-bold' : 'text-slate-400 hover:text-slate-600 font-medium'; ?>">
-            <i class="fa-solid fa-book-quran text-lg mb-1 <?php echo $page === 'tahfidz' ? 'text-teal-700' : 'text-slate-400'; ?>"></i>
+        <a href="tahfidz.php" class="inline-flex flex-col items-center justify-center text-center px-1 transition-colors <?php echo $page === 'tahfidz' ? 'text-[#448AFF] font-bold' : 'text-slate-400 hover:text-slate-600 font-medium'; ?>">
+            <i class="fa-solid fa-book-quran text-lg mb-1 <?php echo $page === 'tahfidz' ? 'text-[#448AFF]' : 'text-slate-400'; ?>"></i>
             <span class="text-[10px]">Tahfidz</span>
         </a>
 
         <!-- 3. Presensi & Asrama -->
-        <a href="presensi.php" class="inline-flex flex-col items-center justify-center text-center px-1 transition-colors <?php echo $page === 'presensi' ? 'text-teal-700 font-bold' : 'text-slate-400 hover:text-slate-600 font-medium'; ?>">
-            <i class="fa-solid fa-clipboard-check text-lg mb-1 <?php echo $page === 'presensi' ? 'text-teal-700' : 'text-slate-400'; ?>"></i>
+        <a href="presensi.php" class="inline-flex flex-col items-center justify-center text-center px-1 transition-colors <?php echo $page === 'presensi' ? 'text-[#448AFF] font-bold' : 'text-slate-400 hover:text-slate-600 font-medium'; ?>">
+            <i class="fa-solid fa-clipboard-check text-lg mb-1 <?php echo $page === 'presensi' ? 'text-[#448AFF]' : 'text-slate-400'; ?>"></i>
             <span class="text-[10px]">Kehadiran</span>
         </a>
 
         <!-- 4. Profil -->
-        <a href="profil.php" class="inline-flex flex-col items-center justify-center text-center px-1 transition-colors <?php echo $page === 'profil' ? 'text-teal-700 font-bold' : 'text-slate-400 hover:text-slate-600 font-medium'; ?>">
-            <i class="fa-solid fa-user-circle text-lg mb-1 <?php echo $page === 'profil' ? 'text-teal-700' : 'text-slate-400'; ?>"></i>
+        <a href="profil.php" class="inline-flex flex-col items-center justify-center text-center px-1 transition-colors <?php echo $page === 'profil' ? 'text-[#448AFF] font-bold' : 'text-slate-400 hover:text-slate-600 font-medium'; ?>">
+            <i class="fa-solid fa-user-circle text-lg mb-1 <?php echo $page === 'profil' ? 'text-[#448AFF]' : 'text-slate-400'; ?>"></i>
             <span class="text-[10px]">Akun</span>
         </a>
     </div>
@@ -60,7 +60,7 @@ $page = $current_page ?? 'index';
                     : null;
             ?>
                 <a href="switch_student.php?student_id=<?php echo $child['student_id']; ?>&redirect=<?php echo urlencode($_SERVER['REQUEST_URI']); ?>"
-                   class="flex items-center justify-between p-3.5 rounded-2xl border transition-all <?php echo $isSelected ? 'border-teal-500 bg-teal-50/70 shadow-xs' : 'border-slate-200 hover:border-slate-300 bg-white'; ?>">
+                   class="flex items-center justify-between p-3.5 rounded-2xl border transition-all <?php echo $isSelected ? 'border-[#448AFF] bg-brand-50/70 shadow-xs' : 'border-slate-200 hover:border-slate-300 bg-white'; ?>">
                     <div class="flex items-center gap-3">
                         <div class="w-11 h-11 rounded-full border border-slate-200 overflow-hidden bg-slate-100 flex items-center justify-center shrink-0">
                             <?php if ($avatarSrc): ?>
@@ -78,7 +78,7 @@ $page = $current_page ?? 'index';
                         </div>
                     </div>
                     <?php if ($isSelected): ?>
-                        <span class="w-6 h-6 rounded-full bg-teal-600 text-white flex items-center justify-center text-xs shadow-xs">
+                        <span class="w-6 h-6 rounded-full bg-[#448AFF] text-white flex items-center justify-center text-xs shadow-xs">
                             <i class="fa-solid fa-check"></i>
                         </span>
                     <?php endif; ?>
@@ -86,7 +86,7 @@ $page = $current_page ?? 'index';
             <?php endforeach; ?>
         </div>
 
-        <a href="tambah_anak.php" class="w-full py-2.5 rounded-xl border border-dashed border-teal-300 bg-teal-50/50 hover:bg-teal-50 text-teal-700 text-xs font-semibold flex items-center justify-center gap-2 transition-colors">
+        <a href="tambah_anak.php" class="w-full py-2.5 rounded-xl border border-dashed border-brand-300 bg-brand-50/50 hover:bg-brand-50 text-brand-700 text-xs font-semibold flex items-center justify-center gap-2 transition-colors">
             <i class="fa-solid fa-user-plus"></i>
             <span>Hubungkan Anak Lain (Klaim NISN)</span>
         </a>

@@ -45,9 +45,68 @@ try {
     error_log("user_feedbacks table check error: " . $migErr->getMessage());
 }
 
+// Helper untuk mempertahankan parameter filter saat redirect
+function build_feedback_return_url($source) {
+    $returnQuery = [];
+    foreach (['status', 'type', 'module', 'search', 'page'] as $key) {
+        $paramKey = 'return_' . $key;
+        if (!empty($source[$paramKey])) {
+            $returnQuery[$key] = $source[$paramKey];
+        }
+    }
+    return 'feedbacks.php' . (!empty($returnQuery) ? '?' . http_build_query($returnQuery) : '');
+}
+
 // -----------------------------------------------------------------------------
-// 2. Handle POST Request: Update Status & Reply
+// 2. Handle POST Request: Update Status & Reply / Delete Feedback
 // -----------------------------------------------------------------------------
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete_feedback') {
+    if (!verify_csrf()) {
+        $_SESSION['error'] = "Sesi token keamanan tidak valid. Silakan coba lagi.";
+        header("Location: " . build_feedback_return_url($_POST));
+        exit;
+    }
+
+    $feedback_id = (int)($_POST['feedback_id'] ?? 0);
+    if ($feedback_id <= 0) {
+        $_SESSION['error'] = "ID usulan tidak valid.";
+        header("Location: " . build_feedback_return_url($_POST));
+        exit;
+    }
+
+    try {
+        $stmtFind = $conn->prepare("SELECT id, title, attachment_path FROM user_feedbacks WHERE id = :id LIMIT 1");
+        $stmtFind->execute([':id' => $feedback_id]);
+        $row = $stmtFind->fetch(PDO::FETCH_ASSOC);
+
+        if (!$row) {
+            $_SESSION['error'] = "Data usulan tidak ditemukan.";
+            header("Location: " . build_feedback_return_url($_POST));
+            exit;
+        }
+
+        $stmtDel = $conn->prepare("DELETE FROM user_feedbacks WHERE id = :id");
+        $stmtDel->execute([':id' => $feedback_id]);
+
+        // Hapus file lampiran jika ada dan berada di direktori uploads/feedbacks
+        if (!empty($row['attachment_path'])) {
+            $baseUploadDir = realpath(__DIR__ . '/../../uploads/feedbacks');
+            $targetFile = realpath(__DIR__ . '/../../' . ltrim($row['attachment_path'], '/'));
+            if ($baseUploadDir && $targetFile && strpos($targetFile, $baseUploadDir . DIRECTORY_SEPARATOR) === 0 && is_file($targetFile)) {
+                @unlink($targetFile);
+            }
+        }
+
+        $_SESSION['success'] = "Data usulan #" . $feedback_id . " (\"" . $row['title'] . "\") berhasil dihapus.";
+        header("Location: " . build_feedback_return_url($_POST));
+        exit;
+    } catch (\Throwable $e) {
+        $_SESSION['error'] = "Gagal menghapus data: " . $e->getMessage();
+        header("Location: " . build_feedback_return_url($_POST));
+        exit;
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_feedback') {
     if (!verify_csrf()) {
         $_SESSION['error'] = "Sesi token keamanan tidak valid. Silakan coba lagi.";
@@ -164,16 +223,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         $_SESSION['success'] = $msg;
 
-        // Redirect preserving filters
-        $returnQuery = [];
-        if (!empty($_POST['return_status'])) $returnQuery['status'] = $_POST['return_status'];
-        if (!empty($_POST['return_type'])) $returnQuery['type'] = $_POST['return_type'];
-        if (!empty($_POST['return_module'])) $returnQuery['module'] = $_POST['return_module'];
-        if (!empty($_POST['return_search'])) $returnQuery['search'] = $_POST['return_search'];
-        if (!empty($_POST['return_page'])) $returnQuery['page'] = $_POST['return_page'];
-
-        $redirectUrl = 'feedbacks.php' . (!empty($returnQuery) ? '?' . http_build_query($returnQuery) : '');
-        header("Location: " . $redirectUrl);
+        header("Location: " . build_feedback_return_url($_POST));
         exit;
 
     } catch (\Throwable $e) {
@@ -597,7 +647,7 @@ include '../layouts/header.php';
                             <th class="py-3 px-4 text-center w-20">Lampiran</th>
                             <th class="py-3 px-4 min-w-[110px]">Status</th>
                             <th class="py-3 px-4 min-w-[170px]">Tanggapan Admin</th>
-                            <th class="py-3 px-4 text-right w-24">Aksi</th>
+                            <th class="py-3 px-4 text-right w-36">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 text-slate-700">
@@ -757,11 +807,16 @@ include '../layouts/header.php';
                                 </td>
 
                                 <!-- Aksi -->
-                                <td class="py-3 px-4 text-right">
-                                    <button type="button" onclick="openFeedbackModal(<?php echo htmlspecialchars($modalData); ?>)" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 hover:border-slate-400 transition-colors">
-                                        <i class="fa-solid fa-reply text-blue-600 text-[11px]"></i>
-                                        <span>Tanggapi</span>
-                                    </button>
+                                <td class="py-3 px-4 text-right whitespace-nowrap">
+                                    <div class="inline-flex items-center justify-end gap-1.5">
+                                        <button type="button" onclick="openFeedbackModal(<?php echo htmlspecialchars($modalData); ?>)" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 hover:border-slate-400 transition-colors" title="Tinjau & Beri Tanggapan">
+                                            <i class="fa-solid fa-reply text-blue-600 text-[11px]"></i>
+                                            <span>Tanggapi</span>
+                                        </button>
+                                        <button type="button" onclick="openDeleteFeedbackModal(<?php echo (int)$fb['id']; ?>, <?php echo htmlspecialchars(json_encode($fb['title'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?: '""', ENT_QUOTES, 'UTF-8'); ?>)" class="inline-flex items-center justify-center rounded-lg border border-rose-200 bg-rose-50/70 px-2.5 py-1.5 text-xs font-semibold text-rose-600 shadow-2xs hover:bg-rose-100 hover:border-rose-300 transition-colors" title="Hapus Usulan">
+                                            <i class="fa-solid fa-trash-can text-[11px]"></i>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -822,8 +877,8 @@ include '../layouts/header.php';
 <!-- ======================================================================= -->
 <!-- Modal: Detail & Form Tanggapan Admin -->
 <!-- ======================================================================= -->
-<div id="feedbackDetailModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="relative w-full max-w-2xl rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden transform transition-all my-8 animate-fadeIn">
+<div id="feedbackDetailModal" class="fixed inset-0 z-[70] hidden overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4" onclick="if(event.target === this) closeFeedbackModal()">
+    <div class="relative w-full max-w-2xl rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden transform transition-all my-8 animate-fadeIn" onclick="event.stopPropagation()">
         <!-- Modal Header -->
         <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
             <div class="flex items-center gap-2.5">
@@ -956,15 +1011,59 @@ include '../layouts/header.php';
                 </div>
 
                 <!-- Modal Actions -->
-                <div class="flex items-center justify-end gap-2.5 pt-2">
-                    <button type="button" onclick="closeFeedbackModal()" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors">
-                        Batal
+                <div class="flex items-center justify-between gap-2.5 pt-2">
+                    <button type="button" onclick="openDeleteFromDetailModal()" class="inline-flex items-center rounded-lg border border-rose-200 bg-rose-50 px-3.5 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-100 hover:border-rose-300 transition-colors">
+                        <i class="fa-solid fa-trash-can mr-1.5"></i>
+                        Hapus
                     </button>
-                    <button type="submit" id="btnSubmitFeedback" class="inline-flex items-center rounded-lg bg-blue-600 px-5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors">
-                        <i class="fa-solid fa-paper-plane mr-1.5"></i>
-                        Simpan & Beri Tanggapan
-                    </button>
+                    <div class="flex items-center gap-2.5">
+                        <button type="button" onclick="closeFeedbackModal()" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors">
+                            Batal
+                        </button>
+                        <button type="submit" id="btnSubmitFeedback" class="inline-flex items-center rounded-lg bg-blue-600 px-5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors">
+                            <i class="fa-solid fa-paper-plane mr-1.5"></i>
+                            Simpan & Beri Tanggapan
+                        </button>
+                    </div>
                 </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ======================================================================= -->
+<!-- Modal: Konfirmasi Hapus Usulan -->
+<!-- ======================================================================= -->
+<div id="deleteFeedbackModal" class="fixed inset-0 z-[90] hidden overflow-y-auto bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4" style="backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);" onclick="if(event.target === this) closeDeleteFeedbackModal()">
+    <div class="relative w-full max-w-md rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden transform transition-all animate-fadeIn" onclick="event.stopPropagation()">
+        <div class="p-6 text-center">
+            <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-rose-100 text-rose-600 border border-rose-200">
+                <i class="fa-solid fa-triangle-exclamation text-xl"></i>
+            </div>
+            <h3 class="text-base font-bold text-slate-900">Hapus Data Usulan?</h3>
+            <p class="mt-2 text-xs text-slate-500 leading-relaxed">
+                Apakah Anda yakin ingin menghapus tiket <strong class="text-slate-700">#<span id="deleteModalTicketId"></span></strong>:
+                <span id="deleteModalTicketTitle" class="block mt-1 font-semibold text-slate-800 break-words"></span>
+                <span class="block mt-2 text-rose-600">Tindakan ini permanen dan juga akan menghapus lampiran gambar (jika ada).</span>
+            </p>
+
+            <form method="POST" action="feedbacks.php" id="formDeleteFeedback" class="mt-6 flex items-center justify-center gap-2.5">
+                <?php echo csrf_field(); ?>
+                <input type="hidden" name="action" value="delete_feedback">
+                <input type="hidden" name="feedback_id" id="deleteFormFeedbackId" value="">
+                <input type="hidden" name="return_status" value="<?php echo htmlspecialchars($filter_status); ?>">
+                <input type="hidden" name="return_type" value="<?php echo htmlspecialchars($filter_type); ?>">
+                <input type="hidden" name="return_module" value="<?php echo htmlspecialchars($filter_module); ?>">
+                <input type="hidden" name="return_search" value="<?php echo htmlspecialchars($filter_search); ?>">
+                <input type="hidden" name="return_page" value="<?php echo htmlspecialchars($page); ?>">
+
+                <button type="button" onclick="closeDeleteFeedbackModal()" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer">
+                    Batal
+                </button>
+                <button type="submit" id="btnConfirmDeleteFeedback" class="inline-flex items-center rounded-lg bg-rose-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-rose-700 transition-colors cursor-pointer">
+                    <i class="fa-solid fa-trash-can mr-1.5"></i>
+                    <span>Ya, Hapus Data</span>
+                </button>
             </form>
         </div>
     </div>
@@ -986,8 +1085,10 @@ include '../layouts/header.php';
 <script nonce="<?php echo csp_nonce(); ?>">
 let currentModalAttachment = null;
 let currentModalTitle = '';
+let currentModalFeedbackId = null;
 
 function openFeedbackModal(data) {
+    currentModalFeedbackId = data.id;
     document.getElementById('modalTicketId').textContent = data.id;
     document.getElementById('formFeedbackId').value = data.id;
     document.getElementById('modalUserName').textContent = data.user_name;
@@ -1042,6 +1143,43 @@ function closeFeedbackModal() {
     document.body.classList.remove('overflow-hidden');
 }
 
+function openDeleteFeedbackModal(id, title) {
+    document.getElementById('deleteModalTicketId').textContent = id;
+    document.getElementById('deleteFormFeedbackId').value = id;
+    document.getElementById('deleteModalTicketTitle').textContent = '"' + (title || '') + '"';
+    const btn = document.getElementById('btnConfirmDeleteFeedback');
+    if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-trash-can mr-1.5"></i><span>Ya, Hapus Data</span>';
+    }
+    document.getElementById('deleteFeedbackModal').classList.remove('hidden');
+    document.body.classList.add('overflow-hidden');
+}
+
+function openDeleteFromDetailModal() {
+    if (currentModalFeedbackId) {
+        openDeleteFeedbackModal(currentModalFeedbackId, currentModalTitle);
+    }
+}
+
+function closeDeleteFeedbackModal() {
+    document.getElementById('deleteFeedbackModal').classList.add('hidden');
+    if (document.getElementById('feedbackDetailModal').classList.contains('hidden')) {
+        document.body.classList.remove('overflow-hidden');
+    }
+}
+
+const formDeleteEl = document.getElementById('formDeleteFeedback');
+if (formDeleteEl) {
+    formDeleteEl.addEventListener('submit', function() {
+        const btn = document.getElementById('btnConfirmDeleteFeedback');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin mr-1.5"></i><span>Menghapus...</span>';
+        }
+    });
+}
+
 function openImageLightbox(url, caption) {
     document.getElementById('lightboxImg').src = url;
     document.getElementById('lightboxCaption').textContent = caption || 'Lampiran Usulan';
@@ -1062,6 +1200,7 @@ function openLightboxFromModal() {
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         closeFeedbackModal();
+        closeDeleteFeedbackModal();
         closeImageLightbox();
     }
 });
@@ -1069,6 +1208,9 @@ document.addEventListener('keydown', function(e) {
 // Expose functions globally to window
 window.openFeedbackModal = openFeedbackModal;
 window.closeFeedbackModal = closeFeedbackModal;
+window.openDeleteFeedbackModal = openDeleteFeedbackModal;
+window.openDeleteFromDetailModal = openDeleteFromDetailModal;
+window.closeDeleteFeedbackModal = closeDeleteFeedbackModal;
 window.openImageLightbox = openImageLightbox;
 window.closeImageLightbox = closeImageLightbox;
 window.openLightboxFromModal = openLightboxFromModal;

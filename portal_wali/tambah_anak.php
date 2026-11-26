@@ -82,7 +82,7 @@ require_once __DIR__ . '/layouts/header.php';
                 NISN Santri <span class="text-rose-500">*</span>
             </label>
             <input type="text" name="nisn" required placeholder="10 Digit NISN Anak"
-                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-800 text-sm focus:border-teal-600 focus:ring-2 focus:ring-teal-500/20 focus:outline-none">
+                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-800 text-sm focus:border-[#448AFF] focus:ring-2 focus:ring-brand-500/20 focus:outline-none">
         </div>
 
         <div>
@@ -90,14 +90,14 @@ require_once __DIR__ . '/layouts/header.php';
                 Tanggal Lahir Santri <span class="text-rose-500">*</span>
             </label>
             <input type="date" name="tgl_lahir" required
-                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-800 text-sm focus:border-teal-600 focus:ring-2 focus:ring-teal-500/20 focus:outline-none">
+                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-800 text-sm focus:border-[#448AFF] focus:ring-2 focus:ring-brand-500/20 focus:outline-none">
         </div>
 
         <div>
             <label class="block text-xs font-semibold text-slate-700 mb-1">
                 Hubungan dengan Santri
             </label>
-            <select name="relationship" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-800 text-xs focus:border-teal-600 focus:ring-2 focus:ring-teal-500/20 focus:outline-none">
+            <select name="relationship" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-800 text-xs focus:border-[#448AFF] focus:ring-2 focus:ring-brand-500/20 focus:outline-none">
                 <option value="Ayah">Ayah</option>
                 <option value="Ibu">Ibu</option>
                 <option value="Wali">Wali</option>
@@ -105,7 +105,7 @@ require_once __DIR__ . '/layouts/header.php';
         </div>
 
         <button type="submit" 
-                class="w-full py-3 bg-teal-700 hover:bg-teal-800 text-white rounded-xl font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 mt-2">
+                class="w-full py-3 bg-[#448AFF] hover:bg-brand-600 text-white rounded-xl font-bold text-xs shadow-md shadow-brand-500/25 transition-all flex items-center justify-center gap-2 mt-2">
             <i class="fa-solid fa-link"></i>
             <span>Verifikasi & Hubungkan Santri</span>
         </button>

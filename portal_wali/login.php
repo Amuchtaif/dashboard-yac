@@ -102,8 +102,8 @@ require_once __DIR__ . '/layouts/header.php';
         <?php endif; ?>
 
         <?php if (!empty($success)): ?>
-            <div class="mb-5 p-3.5 rounded-2xl bg-teal-50 border border-teal-200/80 text-teal-800 text-xs flex items-center gap-2.5">
-                <i class="fa-solid fa-circle-check text-teal-600 shrink-0 text-sm"></i>
+            <div class="mb-5 p-3.5 rounded-2xl bg-brand-50 border border-brand-200/80 text-brand-800 text-xs flex items-center gap-2.5">
+                <i class="fa-solid fa-circle-check text-[#448AFF] shrink-0 text-sm"></i>
                 <span><?php echo htmlspecialchars($success); ?></span>
             </div>
         <?php endif; ?>
@@ -117,13 +117,13 @@ require_once __DIR__ . '/layouts/header.php';
                 </label>
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                        <i class="fa-brands fa-whatsapp text-base text-emerald-600"></i>
+                        <i class="fa-brands fa-whatsapp text-base text-[#448AFF]"></i>
                     </div>
                     <input type="tel" name="phone" id="inputPhone" required placeholder="Contoh: 081234567890"
                            inputmode="numeric" pattern="[0-9]*" maxlength="16"
                            oninput="this.value = this.value.replace(/[^0-9]/g, '')"
                            value="<?php echo htmlspecialchars($_POST['phone'] ?? ''); ?>"
-                           class="w-full pl-10 pr-3.5 py-3 rounded-2xl border border-slate-300 bg-white text-slate-800 text-sm focus:border-teal-600 focus:ring-2 focus:ring-teal-500/20 focus:outline-none transition-all shadow-xs">
+                           class="w-full pl-10 pr-3.5 py-3 rounded-2xl border border-slate-300 bg-white text-slate-800 text-sm focus:border-[#448AFF] focus:ring-2 focus:ring-brand-500/20 focus:outline-none transition-all shadow-xs">
                 </div>
                 <span class="text-[10px] text-slate-400 mt-1 block">Gunakan hanya angka nomor WhatsApp (contoh: 08xxxxxxxxxx).</span>
             </div>
@@ -139,7 +139,7 @@ require_once __DIR__ . '/layouts/header.php';
                         <i class="fa-solid fa-lock text-sm"></i>
                     </div>
                     <input type="password" name="password" id="inputPassword" required placeholder="Masukkan kata sandi / PIN"
-                           class="w-full pl-10 pr-11 py-3 rounded-2xl border border-slate-300 bg-white text-slate-800 text-sm focus:border-teal-600 focus:ring-2 focus:ring-teal-500/20 focus:outline-none transition-all shadow-xs">
+                           class="w-full pl-10 pr-11 py-3 rounded-2xl border border-slate-300 bg-white text-slate-800 text-sm focus:border-[#448AFF] focus:ring-2 focus:ring-brand-500/20 focus:outline-none transition-all shadow-xs">
                     <button type="button" onclick="togglePasswordVisibility()" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600">
                         <i class="fa-solid fa-eye text-sm" id="toggleIcon"></i>
                     </button>
@@ -147,7 +147,7 @@ require_once __DIR__ . '/layouts/header.php';
             </div>
 
             <button type="submit" 
-                    class="w-full py-3.5 bg-gradient-to-r from-teal-700 to-teal-800 hover:from-teal-800 hover:to-teal-900 text-white rounded-2xl font-bold text-sm shadow-md shadow-teal-700/20 transition-all active:scale-[0.98] mt-2 flex items-center justify-center gap-2">
+                    class="w-full py-3.5 bg-[#448AFF] hover:bg-brand-600 text-white rounded-2xl font-bold text-sm shadow-md shadow-brand-500/25 transition-all active:scale-[0.98] mt-2 flex items-center justify-center gap-2">
                 <span>Masuk ke Portal</span>
                 <i class="fa-solid fa-arrow-right text-xs"></i>
             </button>
@@ -166,7 +166,7 @@ require_once __DIR__ . '/layouts/header.php';
         <!-- Tombol Aktivasi Mandiri -->
         <a href="aktivasi.php" 
            class="w-full py-3 bg-white border border-slate-300 hover:bg-slate-100/80 text-slate-700 rounded-2xl font-bold text-xs shadow-xs transition-all flex items-center justify-center gap-2">
-            <i class="fa-solid fa-user-plus text-teal-700"></i>
+            <i class="fa-solid fa-user-plus text-[#448AFF]"></i>
             <span>Aktivasi Akun Wali Santri Baru</span>
         </a>
     </div>

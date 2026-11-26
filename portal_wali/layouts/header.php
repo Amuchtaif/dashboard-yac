@@ -17,7 +17,7 @@ $all_children = !empty($_SESSION['guardian_id']) ? get_guardian_children($_SESSI
 
     <!-- PWA & Mobile Capabilities -->
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0d9488">
+    <meta name="theme-color" content="#448AFF">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Wali Santri">
@@ -42,13 +42,16 @@ $all_children = !empty($_SESSION['guardian_id']) ? get_guardian_children($_SESSI
                     },
                     colors: {
                         brand: {
-                            50: '#f0fdfa',
-                            100: '#ccfbf1',
-                            500: '#14b8a6',
-                            600: '#0d9488',
-                            700: '#0f766e',
-                            800: '#115e59',
-                            900: '#134e4a',
+                            50: '#eef5ff',
+                            100: '#d9e8ff',
+                            200: '#bcd7ff',
+                            300: '#8ebdff',
+                            400: '#5ea0ff',
+                            500: '#448AFF',
+                            600: '#3574e8',
+                            700: '#255cc7',
+                            800: '#1e489e',
+                            900: '#193b7d',
                         }
                     }
                 }
@@ -83,7 +86,7 @@ $all_children = !empty($_SESSION['guardian_id']) ? get_guardian_children($_SESSI
                     <div class="flex items-center gap-2.5">
                         <img src="assets/logo.png" alt="Logo" class="w-8 h-8 object-contain">
                         <div>
-                            <span class="text-[10px] font-bold text-teal-700 tracking-wider uppercase block leading-none">Yayasan Assunnah</span>
+                            <span class="text-[10px] font-bold text-[#448AFF] tracking-wider uppercase block leading-none">Yayasan Assunnah</span>
                             <span class="text-xs font-extrabold text-slate-800 leading-tight">Portal Wali Santri</span>
                         </div>
                     </div>
@@ -91,13 +94,13 @@ $all_children = !empty($_SESSION['guardian_id']) ? get_guardian_children($_SESSI
                     <!-- Child Switcher Pill Button -->
                     <?php if ($active_child): ?>
                         <button type="button" onclick="openChildModal()" 
-                                class="flex items-center gap-2 bg-teal-50 hover:bg-teal-100 border border-teal-200/80 text-teal-800 px-2.5 py-1 rounded-full text-xs font-semibold transition-all">
-                            <span class="w-5 h-5 rounded-full bg-teal-700 text-white flex items-center justify-center text-[10px]">
+                                class="flex items-center gap-2 bg-brand-50 hover:bg-brand-100 border border-brand-200/80 text-brand-800 px-2.5 py-1 rounded-full text-xs font-semibold transition-all">
+                            <span class="w-5 h-5 rounded-full bg-[#448AFF] text-white flex items-center justify-center text-[10px]">
                                 <i class="fa-solid fa-child-reaching"></i>
                             </span>
                             <span class="max-w-[100px] truncate"><?php echo htmlspecialchars(explode(' ', trim($active_child['nama_siswa']))[0]); ?></span>
                             <?php if (count($all_children) > 1): ?>
-                                <i class="fa-solid fa-chevron-down text-[9px] text-teal-600"></i>
+                                <i class="fa-solid fa-chevron-down text-[9px] text-[#448AFF]"></i>
                             <?php endif; ?>
                         </button>
                     <?php endif; ?>

@@ -261,7 +261,7 @@ require_once __DIR__ . '/layouts/header.php';
             <h1 class="text-lg font-bold text-slate-900">Kehadiran & Asrama</h1>
             <p class="text-xs text-slate-500">Santri: <strong><?php echo htmlspecialchars($active_child['nama_siswa'] ?? ''); ?></strong></p>
         </div>
-        <div class="w-10 h-10 rounded-2xl bg-teal-50 text-teal-700 flex items-center justify-center text-lg shadow-xs">
+        <div class="w-10 h-10 rounded-2xl bg-brand-50 text-[#448AFF] flex items-center justify-center text-lg shadow-xs">
             <i class="fa-solid fa-clipboard-check"></i>
         </div>
     </div>
@@ -269,11 +269,11 @@ require_once __DIR__ . '/layouts/header.php';
     <!-- Switch Tab -->
     <div class="flex items-center bg-slate-200/70 p-1 rounded-xl text-xs">
         <a href="presensi.php?tab=attendance<?php echo !empty($selected_month) ? '&month=' . urlencode($selected_month) : ''; ?>" 
-           class="flex-1 py-1.5 text-center rounded-lg font-semibold transition-all <?php echo $tab === 'attendance' ? 'bg-white text-teal-800 shadow-xs' : 'text-slate-600 hover:text-slate-900'; ?>">
+           class="flex-1 py-1.5 text-center rounded-lg font-semibold transition-all <?php echo $tab === 'attendance' ? 'bg-white text-[#448AFF] shadow-xs' : 'text-slate-600 hover:text-slate-900'; ?>">
             Presensi Sekolah
         </a>
         <a href="presensi.php?tab=permits" 
-           class="flex-1 py-1.5 text-center rounded-lg font-semibold transition-all <?php echo $tab === 'permits' ? 'bg-white text-teal-800 shadow-xs' : 'text-slate-600 hover:text-slate-900'; ?>">
+           class="flex-1 py-1.5 text-center rounded-lg font-semibold transition-all <?php echo $tab === 'permits' ? 'bg-white text-[#448AFF] shadow-xs' : 'text-slate-600 hover:text-slate-900'; ?>">
             Izin Pulang Asrama
         </a>
     </div>
@@ -282,7 +282,7 @@ require_once __DIR__ . '/layouts/header.php';
         <!-- Month Selector Toolbar -->
         <div class="bg-white p-3 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between gap-3">
             <div class="flex items-center gap-2">
-                <span class="w-7 h-7 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center text-xs">
+                <span class="w-7 h-7 rounded-lg bg-brand-50 text-[#448AFF] flex items-center justify-center text-xs">
                     <i class="fa-regular fa-calendar-days"></i>
                 </span>
                 <span class="text-xs font-bold text-slate-700">Periode:</span>
@@ -290,7 +290,7 @@ require_once __DIR__ . '/layouts/header.php';
 
             <div class="relative flex-1 max-w-[200px]">
                 <select onchange="window.location.href='presensi.php?tab=attendance&month=' + encodeURIComponent(this.value)" 
-                        class="w-full appearance-none pl-3 pr-8 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 cursor-pointer">
+                        class="w-full appearance-none pl-3 pr-8 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-[#448AFF] cursor-pointer">
                     <?php foreach ($available_months as $ym): 
                         $parts = explode('-', $ym);
                         $mName = $month_names_id[$parts[1]] ?? $parts[1];
@@ -352,9 +352,9 @@ require_once __DIR__ . '/layouts/header.php';
             $pct = $total_sessions > 0 ? round(($att_summary['present'] / $total_sessions) * 100) : ($total_days > 0 ? round(($att_summary['present_days'] / $total_days) * 100) : 0);
         ?>
         <?php if ($total_days > 0): ?>
-            <div class="p-3.5 rounded-2xl bg-teal-50/70 border border-teal-100 flex items-center justify-between">
+            <div class="p-3.5 rounded-2xl bg-brand-50/70 border border-brand-100 flex items-center justify-between">
                 <div class="flex items-center gap-2.5">
-                    <span class="w-8 h-8 rounded-xl bg-teal-600 text-white flex items-center justify-center text-xs font-extrabold shadow-xs">
+                    <span class="w-8 h-8 rounded-xl bg-[#448AFF] text-white flex items-center justify-center text-xs font-extrabold shadow-xs">
                         <?php echo $pct; ?>%
                     </span>
                     <div>
@@ -404,7 +404,7 @@ require_once __DIR__ . '/layouts/header.php';
                         <div class="p-3.5 bg-slate-50/70 border-b border-slate-100 flex items-center justify-between">
                             <div>
                                 <span class="text-xs font-extrabold text-slate-800 flex items-center gap-1.5">
-                                    <i class="fa-regular fa-calendar-check text-teal-600 text-xs"></i>
+                                    <i class="fa-regular fa-calendar-check text-[#448AFF] text-xs"></i>
                                     <?php echo $date_formatted; ?>
                                 </span>
                                 <?php if ($session_count > 0): ?>
@@ -471,7 +471,7 @@ require_once __DIR__ . '/layouts/header.php';
 
                                             <?php if (!empty($session['topic'])): ?>
                                                 <p class="text-[10px] text-slate-400 mt-1 italic flex items-center gap-1">
-                                                    <i class="fa-solid fa-book-open text-[9px] text-teal-600"></i>
+                                                    <i class="fa-solid fa-book-open text-[9px] text-[#448AFF]"></i>
                                                     <span class="truncate">Materi: "<?php echo htmlspecialchars($session['topic']); ?>"</span>
                                                 </p>
                                             <?php endif; ?>
@@ -512,7 +512,7 @@ require_once __DIR__ . '/layouts/header.php';
                 ?>
                     <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-2">
                         <div class="flex items-center justify-between">
-                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-teal-800 border border-teal-200">
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-brand-50 text-brand-700 border border-brand-200">
                                 <?php echo htmlspecialchars($p['category']); ?>
                             </span>
                             <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border <?php echo $badgeStatus; ?>">

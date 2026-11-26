@@ -14,7 +14,7 @@ require_once __DIR__ . '/bottom_nav.php';
                 </div>
             </div>
             <div class="flex items-center gap-1.5 shrink-0">
-                <button type="button" id="btnPwaInstall" class="px-3 py-1.5 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-lg transition-colors shadow-xs">
+                <button type="button" id="btnPwaInstall" class="px-3 py-1.5 bg-[#448AFF] hover:bg-brand-600 text-white text-xs font-bold rounded-lg transition-colors shadow-xs">
                     Pasang
                 </button>
                 <button type="button" onclick="dismissPwaBanner()" class="p-1.5 text-slate-400 hover:text-white">

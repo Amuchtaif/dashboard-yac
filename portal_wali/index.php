@@ -167,26 +167,26 @@ require_once __DIR__ . '/layouts/header.php';
 
     <!-- Notifikasi Selamat Datang Baru -->
     <?php if (isset($_GET['first_login'])): ?>
-        <div class="p-3.5 rounded-2xl bg-teal-50 border border-teal-200 text-teal-800 text-xs flex items-center justify-between shadow-xs">
+        <div class="p-3.5 rounded-2xl bg-brand-50 border border-brand-200 text-brand-800 text-xs flex items-center justify-between shadow-xs">
             <div class="flex items-center gap-2.5">
-                <i class="fa-solid fa-circle-check text-teal-600 text-base"></i>
+                <i class="fa-solid fa-circle-check text-[#448AFF] text-base"></i>
                 <span>Ahlan wa Sahlan! Akun wali santri Anda telah aktif.</span>
             </div>
-            <a href="index.php" class="text-teal-900 font-bold hover:underline">Tutup</a>
+            <a href="index.php" class="text-brand-800 font-bold hover:underline">Tutup</a>
         </div>
     <?php endif; ?>
 
     <?php if (!$active_child): ?>
         <!-- State Belum Ada Santri Terhubung -->
         <div class="bg-white rounded-3xl p-6 text-center border border-slate-200 shadow-sm mt-6">
-            <div class="w-16 h-16 rounded-full bg-teal-50 text-teal-700 flex items-center justify-center mx-auto mb-3 text-2xl">
+            <div class="w-16 h-16 rounded-full bg-brand-50 text-[#448AFF] flex items-center justify-center mx-auto mb-3 text-2xl">
                 <i class="fa-solid fa-user-plus"></i>
             </div>
             <h2 class="text-base font-bold text-slate-800">Belum Ada Santri Terhubung</h2>
             <p class="text-xs text-slate-500 mt-1 mb-4 leading-relaxed">
                 Akun Anda belum memiliki santri yang dihubungkan. Masukkan NISN dan tanggal lahir anak Anda untuk memulai pemantauan.
             </p>
-            <a href="tambah_anak.php" class="inline-flex items-center gap-2 px-5 py-2.5 bg-teal-700 hover:bg-teal-800 text-white rounded-xl text-xs font-bold shadow-sm transition-all">
+            <a href="tambah_anak.php" class="inline-flex items-center gap-2 px-5 py-2.5 bg-[#448AFF] hover:bg-brand-600 text-white rounded-xl text-xs font-bold shadow-sm transition-all">
                 <i class="fa-solid fa-link"></i>
                 <span>Hubungkan Santri Sekarang</span>
             </a>
@@ -197,7 +197,7 @@ require_once __DIR__ . '/layouts/header.php';
             : null;
     ?>
         <!-- 1. Hero Card Santri -->
-        <div class="bg-gradient-to-br from-teal-800 via-teal-900 to-slate-900 rounded-3xl p-5 text-white shadow-lg relative overflow-hidden">
+        <div class="bg-gradient-to-br from-[#448AFF] via-brand-700 to-slate-900 rounded-3xl p-5 text-white shadow-lg relative overflow-hidden">
             <!-- Decorative Islamic Ornament Watermark -->
             <div class="absolute -right-6 -bottom-6 text-8xl text-white/5 pointer-events-none select-none">
                 <i class="fa-solid fa-mosque"></i>
@@ -205,22 +205,22 @@ require_once __DIR__ . '/layouts/header.php';
 
             <div class="relative z-10 flex items-center gap-4">
                 <!-- Avatar -->
-                <div class="w-16 h-16 rounded-2xl border-2 border-teal-400/40 bg-white/10 overflow-hidden flex items-center justify-center shrink-0 shadow-md">
+                <div class="w-16 h-16 rounded-2xl border-2 border-white/30 bg-white/10 overflow-hidden flex items-center justify-center shrink-0 shadow-md">
                     <?php if ($avatarSrc): ?>
                         <img src="<?php echo htmlspecialchars($avatarSrc); ?>" alt="Foto" class="w-full h-full object-cover">
                     <?php else: ?>
-                        <i class="fa-solid fa-user-graduate text-2xl text-teal-200"></i>
+                        <i class="fa-solid fa-user-graduate text-2xl text-brand-100"></i>
                     <?php endif; ?>
                 </div>
 
                 <!-- Bio -->
                 <div class="min-w-0 flex-1">
-                    <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-200 text-[10px] font-semibold mb-1">
-                        <span class="w-1.5 h-1.5 rounded-full bg-teal-300"></span>
+                    <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/15 text-white text-[10px] font-semibold mb-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-brand-200"></span>
                         <span><?php echo htmlspecialchars($active_child['unit_name'] ?? $active_child['tingkat'] ?? 'Assunnah'); ?></span>
                     </div>
                     <h2 class="text-base font-bold text-white truncate leading-snug"><?php echo htmlspecialchars($active_child['nama_siswa']); ?></h2>
-                    <p class="text-xs text-teal-100/80 mt-0.5">
+                    <p class="text-xs text-brand-100/90 mt-0.5">
                         NISN: <span class="font-mono font-medium text-white"><?php echo htmlspecialchars($active_child['nomor_induk'] ?? '-'); ?></span> &bull; 
                         Kelas <?php echo htmlspecialchars($active_child['grade_name'] ?? $active_child['kelas'] ?? '-'); ?>
                     </p>
@@ -228,19 +228,19 @@ require_once __DIR__ . '/layouts/header.php';
             </div>
 
             <!-- Quick Sub-Bar (Status Kehadiran Hari ini / Terakhir) -->
-            <div class="mt-4 pt-3.5 border-t border-white/10 flex items-center justify-between text-xs">
+            <div class="mt-4 pt-3.5 border-t border-white/15 flex items-center justify-between text-xs">
                 <div class="flex items-center gap-2">
-                    <span class="text-[11px] text-teal-200/80">Kehadiran:</span>
+                    <span class="text-[11px] text-brand-100/80">Kehadiran:</span>
                     <?php 
                     if ($attendance_today) {
                         $st = $attendance_today['status'];
                         $map = ['H' => ['Hadir Hari Ini', 'bg-emerald-500/20 text-emerald-300'], 'S' => ['Sakit', 'bg-amber-500/20 text-amber-300'], 'I' => ['Izin', 'bg-blue-500/20 text-blue-300'], 'A' => ['Alpa', 'bg-rose-500/20 text-rose-300'], 'T' => ['Terlambat', 'bg-amber-500/20 text-amber-300']];
-                        $badge = $map[$st] ?? ['Tercatat', 'bg-teal-500/20 text-teal-300'];
+                        $badge = $map[$st] ?? ['Tercatat', 'bg-white/15 text-brand-100'];
                         echo '<span class="px-2 py-0.5 rounded-md font-bold text-[10px] ' . $badge[1] . '">' . $badge[0] . '</span>';
                     } elseif ($subject_att_today) {
                         $st = $subject_att_today['status'];
                         $map = ['present' => ['Hadir di Kelas', 'bg-emerald-500/20 text-emerald-300'], 'sick' => ['Sakit', 'bg-amber-500/20 text-amber-300'], 'permit' => ['Izin', 'bg-blue-500/20 text-blue-300'], 'absent' => ['Alpa', 'bg-rose-500/20 text-rose-300'], 'late' => ['Terlambat', 'bg-amber-500/20 text-amber-300']];
-                        $badge = $map[$st] ?? ['Tercatat', 'bg-teal-500/20 text-teal-300'];
+                        $badge = $map[$st] ?? ['Tercatat', 'bg-white/15 text-brand-100'];
                         echo '<span class="px-2 py-0.5 rounded-md font-bold text-[10px] ' . $badge[1] . '">' . $badge[0] . '</span>';
                     } elseif ($last_recorded_day) {
                         $tot = (int)$last_recorded_day['total_mapel'];
@@ -264,12 +264,12 @@ require_once __DIR__ . '/layouts/header.php';
                         $lastDateFmt = date('d M', strtotime($last_recorded_day['date']));
                         echo '<span class="px-2 py-0.5 rounded-md font-bold text-[10px] ' . $lastBadgeColor . '">Terakhir: ' . $lastStatus . ' (' . $lastDateFmt . ')</span>';
                     } else {
-                        echo '<span class="text-[10px] text-teal-200/60 font-medium">Belum ada data presensi</span>';
+                        echo '<span class="text-[10px] text-brand-100/70 font-medium">Belum ada data presensi</span>';
                     }
                     ?>
                 </div>
 
-                <a href="presensi.php" class="text-[11px] text-teal-300 hover:text-white font-semibold flex items-center gap-1">
+                <a href="presensi.php" class="text-[11px] text-brand-200 hover:text-white font-semibold flex items-center gap-1">
                     <span>Rincian</span>
                     <i class="fa-solid fa-chevron-right text-[9px]"></i>
                 </a>
@@ -279,13 +279,13 @@ require_once __DIR__ . '/layouts/header.php';
         <!-- 2. Tahfidz Progress Card -->
         <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs relative overflow-hidden group">
             <!-- Icon Background Watermark with Soft Animation -->
-            <div class="absolute -right-3 -bottom-3 text-7xl text-teal-700/[0.06] group-hover:text-teal-700/[0.14] transform group-hover:scale-110 group-hover:-rotate-6 transition-all duration-300 pointer-events-none select-none">
+            <div class="absolute -right-3 -bottom-3 text-7xl text-[#448AFF]/[0.07] group-hover:text-[#448AFF]/[0.15] transform group-hover:scale-110 group-hover:-rotate-6 transition-all duration-300 pointer-events-none select-none">
                 <i class="fa-solid fa-book-quran"></i>
             </div>
 
             <div class="flex items-center justify-between mb-3 relative z-10">
                 <div class="flex items-center gap-2">
-                    <span class="w-8 h-8 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center text-sm">
+                    <span class="w-8 h-8 rounded-xl bg-brand-50 text-[#448AFF] flex items-center justify-center text-sm">
                         <i class="fa-solid fa-book-open"></i>
                     </span>
                     <div>
@@ -294,7 +294,7 @@ require_once __DIR__ . '/layouts/header.php';
                     </div>
                 </div>
 
-                <a href="tahfidz.php" class="text-xs text-teal-700 hover:text-teal-800 font-bold flex items-center gap-1">
+                <a href="tahfidz.php" class="text-xs text-[#448AFF] hover:text-brand-700 font-bold flex items-center gap-1">
                     <span>Lihat Semua</span>
                     <i class="fa-solid fa-arrow-right text-[10px]"></i>
                 </a>
@@ -305,10 +305,10 @@ require_once __DIR__ . '/layouts/header.php';
                 $isLancar = in_array($tahfidz_latest['status'], ['Lancar', 'Ziyadah']);
                 $badgeColor = $isLancar ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-amber-100 text-amber-800 border-amber-200';
             ?>
-                <div class="p-4 rounded-2xl bg-teal-50/50 border border-teal-100/80 relative z-10">
+                <div class="p-4 rounded-2xl bg-brand-50/50 border border-brand-100/80 relative z-10">
                     <div class="flex items-center justify-between text-[11px] text-slate-500 mb-1.5">
                         <span class="font-medium">
-                            <i class="fa-regular fa-calendar mr-1 text-teal-600"></i>
+                            <i class="fa-regular fa-calendar mr-1 text-[#448AFF]"></i>
                             <?php echo date('d M Y', strtotime($tahfidz_latest['date'])); ?>
                         </span>
                         
@@ -318,7 +318,7 @@ require_once __DIR__ . '/layouts/header.php';
                                     Muraja'ah
                                 </span>
                             <?php else: ?>
-                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-200">
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-50 text-brand-700 border border-brand-200">
                                     Ziyadah
                                 </span>
                             <?php endif; ?>
@@ -343,27 +343,27 @@ require_once __DIR__ . '/layouts/header.php';
                         <?php if (!empty($tahfidz_latest['juz'])): ?>
                             <div class="text-right">
                                 <span class="text-[10px] text-slate-400 uppercase font-bold">Juz</span>
-                                <div class="text-xl font-black text-teal-700 font-arabic"><?php echo $tahfidz_latest['juz']; ?></div>
+                                <div class="text-xl font-black text-[#448AFF] font-arabic"><?php echo $tahfidz_latest['juz']; ?></div>
                             </div>
                         <?php endif; ?>
                     </div>
 
                     <?php if ($student_tahfidz_prog && ($student_tahfidz_prog['total_juz'] > 0 || $student_tahfidz_prog['target_juz'] > 0)): ?>
-                        <div class="mt-2.5 pt-2 border-t border-teal-200/50">
+                        <div class="mt-2.5 pt-2 border-t border-brand-200/50">
                             <div class="flex items-center justify-between text-[11px] mb-1">
                                 <span class="text-slate-500 font-medium">Progres Semester:</span>
-                                <span class="text-teal-800 font-bold"><?php echo round($student_tahfidz_prog['progress_percentage']); ?>% (Target: <?php echo $student_tahfidz_prog['target_juz']; ?> Juz)</span>
+                                <span class="text-brand-800 font-bold"><?php echo round($student_tahfidz_prog['progress_percentage']); ?>% (Target: <?php echo $student_tahfidz_prog['target_juz']; ?> Juz)</span>
                             </div>
                             <div class="w-full bg-slate-200/80 rounded-full h-1.5 overflow-hidden">
-                                <div class="bg-teal-600 h-1.5 rounded-full" style="width: <?php echo min(100, max(0, $student_tahfidz_prog['progress_percentage'])); ?>%"></div>
+                                <div class="bg-[#448AFF] h-1.5 rounded-full" style="width: <?php echo min(100, max(0, $student_tahfidz_prog['progress_percentage'])); ?>%"></div>
                             </div>
                         </div>
                     <?php endif; ?>
 
                     <?php if (!empty($tahfidz_latest['teacher_name'])): ?>
-                        <div class="mt-2.5 pt-2 border-t border-teal-200/40 text-[11px] text-slate-500 flex items-center justify-between">
+                        <div class="mt-2.5 pt-2 border-t border-brand-200/40 text-[11px] text-slate-500 flex items-center justify-between">
                             <span>Pengampu: <strong><?php echo htmlspecialchars($tahfidz_latest['teacher_name']); ?></strong></span>
-                            <span class="text-teal-700 font-medium"><?php echo $total_setoran_bulan_ini; ?>x setoran bln ini</span>
+                            <span class="text-[#448AFF] font-medium"><?php echo $total_setoran_bulan_ini; ?>x setoran bln ini</span>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -411,7 +411,7 @@ require_once __DIR__ . '/layouts/header.php';
                     ?>
                         <a href="https://wa.me/<?php echo $waNum; ?>?text=<?php echo urlencode('Assalamu\'alaikum Ustadz, saya wali dari ' . $active_child['nama_siswa']); ?>" 
                            target="_blank"
-                           class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-colors">
+                           class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#448AFF] hover:bg-brand-600 text-white text-xs font-bold shadow-xs transition-colors">
                             <i class="fa-brands fa-whatsapp text-sm"></i>
                             <span>Chat WA</span>
                         </a>
@@ -440,7 +440,7 @@ require_once __DIR__ . '/layouts/header.php';
 
                 <?php foreach ($announcements as $item): ?>
                     <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
-                        <span class="text-[10px] text-teal-700 font-semibold block mb-1">
+                        <span class="text-[10px] text-[#448AFF] font-semibold block mb-1">
                             <i class="fa-regular fa-clock mr-1"></i><?php echo date('d M Y', strtotime($item['created_at'])); ?>
                         </span>
                         <h4 class="text-xs font-bold text-slate-800 leading-snug"><?php echo htmlspecialchars($item['title']); ?></h4>

@@ -144,7 +144,7 @@ require_once __DIR__ . '/layouts/header.php';
         <!-- Section: Data Santri -->
         <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-3.5">
             <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
-                <span class="w-6 h-6 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center text-xs font-bold">1</span>
+                <span class="w-6 h-6 rounded-lg bg-brand-50 text-[#448AFF] flex items-center justify-center text-xs font-bold">1</span>
                 <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Identitas Santri</h3>
             </div>
 
@@ -154,7 +154,7 @@ require_once __DIR__ . '/layouts/header.php';
                 </label>
                 <input type="text" name="nisn" required placeholder="Contoh: 0081234567"
                        value="<?php echo htmlspecialchars($_POST['nisn'] ?? ''); ?>"
-                       class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-800 text-sm focus:border-teal-600 focus:ring-2 focus:ring-teal-500/20 focus:outline-none transition-all shadow-xs">
+                       class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-800 text-sm focus:border-[#448AFF] focus:ring-2 focus:ring-brand-500/20 focus:outline-none transition-all shadow-xs">
             </div>
 
             <div>
@@ -163,7 +163,7 @@ require_once __DIR__ . '/layouts/header.php';
                 </label>
                 <input type="date" name="tgl_lahir" required
                        value="<?php echo htmlspecialchars($_POST['tgl_lahir'] ?? ''); ?>"
-                       class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-800 text-sm focus:border-teal-600 focus:ring-2 focus:ring-teal-500/20 focus:outline-none transition-all shadow-xs">
+                       class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-800 text-sm focus:border-[#448AFF] focus:ring-2 focus:ring-brand-500/20 focus:outline-none transition-all shadow-xs">
                 <span class="text-[10px] text-slate-400 mt-1 block">Sesuai data pendaftaran di sekolah</span>
             </div>
         </div>
@@ -171,7 +171,7 @@ require_once __DIR__ . '/layouts/header.php';
         <!-- Section: Data Akun Orang Tua -->
         <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-3.5">
             <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
-                <span class="w-6 h-6 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center text-xs font-bold">2</span>
+                <span class="w-6 h-6 rounded-lg bg-brand-50 text-[#448AFF] flex items-center justify-center text-xs font-bold">2</span>
                 <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Data Akun Orang Tua</h3>
             </div>
 
@@ -181,7 +181,7 @@ require_once __DIR__ . '/layouts/header.php';
                 </label>
                 <input type="text" name="parent_name" required placeholder="Contoh: H. Ahmad Subagio"
                        value="<?php echo htmlspecialchars($_POST['parent_name'] ?? ''); ?>"
-                       class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-800 text-sm focus:border-teal-600 focus:ring-2 focus:ring-teal-500/20 focus:outline-none transition-all shadow-xs capitalize">
+                       class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-800 text-sm focus:border-[#448AFF] focus:ring-2 focus:ring-brand-500/20 focus:outline-none transition-all shadow-xs capitalize">
             </div>
 
             <div class="grid grid-cols-2 gap-3">
@@ -189,7 +189,7 @@ require_once __DIR__ . '/layouts/header.php';
                     <label class="block text-xs font-semibold text-slate-700 mb-1">
                         Hubungan <span class="text-rose-500">*</span>
                     </label>
-                    <select name="relationship" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-800 text-xs focus:border-teal-600 focus:ring-2 focus:ring-teal-500/20 focus:outline-none shadow-xs">
+                    <select name="relationship" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-800 text-xs focus:border-[#448AFF] focus:ring-2 focus:ring-brand-500/20 focus:outline-none shadow-xs">
                         <option value="Ayah" <?php echo (($_POST['relationship'] ?? '') === 'Ayah') ? 'selected' : ''; ?>>Ayah</option>
                         <option value="Ibu" <?php echo (($_POST['relationship'] ?? '') === 'Ibu') ? 'selected' : ''; ?>>Ibu</option>
                         <option value="Wali" <?php echo (($_POST['relationship'] ?? '') === 'Wali') ? 'selected' : ''; ?>>Wali</option>
@@ -204,7 +204,7 @@ require_once __DIR__ . '/layouts/header.php';
                            inputmode="numeric" pattern="[0-9]*" maxlength="16"
                            oninput="this.value = this.value.replace(/[^0-9]/g, '')"
                            value="<?php echo htmlspecialchars($_POST['phone'] ?? ''); ?>"
-                           class="w-full px-3 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-800 text-xs focus:border-teal-600 focus:ring-2 focus:ring-teal-500/20 focus:outline-none shadow-xs">
+                           class="w-full px-3 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-800 text-xs focus:border-[#448AFF] focus:ring-2 focus:ring-brand-500/20 focus:outline-none shadow-xs">
                     <span class="text-[10px] text-slate-400 mt-0.5 block">Hanya angka (contoh: 08xxxxxxxxxx).</span>
                 </div>
             </div>
@@ -214,13 +214,13 @@ require_once __DIR__ . '/layouts/header.php';
                     Buat Kata Sandi / PIN Baru <span class="text-rose-500">*</span>
                 </label>
                 <input type="password" name="password" required minlength="6" placeholder="Minimal 6 karakter"
-                       class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-800 text-sm focus:border-teal-600 focus:ring-2 focus:ring-teal-500/20 focus:outline-none transition-all shadow-xs">
+                       class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-800 text-sm focus:border-[#448AFF] focus:ring-2 focus:ring-brand-500/20 focus:outline-none transition-all shadow-xs">
                 <span class="text-[10px] text-slate-400 mt-1 block">Kata sandi ini digunakan untuk masuk ke portal berikutnya</span>
             </div>
         </div>
 
         <button type="submit" 
-                class="w-full py-3.5 bg-gradient-to-r from-teal-700 to-teal-800 hover:from-teal-800 hover:to-teal-900 text-white rounded-2xl font-bold text-sm shadow-md shadow-teal-700/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2 mt-4">
+                class="w-full py-3.5 bg-[#448AFF] hover:bg-brand-600 text-white rounded-2xl font-bold text-sm shadow-md shadow-brand-500/25 transition-all active:scale-[0.98] flex items-center justify-center gap-2 mt-4">
             <i class="fa-solid fa-check"></i>
             <span>Verifikasi & Aktifkan Akun</span>
         </button>

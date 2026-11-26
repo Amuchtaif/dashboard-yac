@@ -136,7 +136,7 @@ require_once __DIR__ . '/layouts/header.php';
             <h1 class="text-lg font-bold text-slate-900">Buku Setoran Tahfidz</h1>
             <p class="text-xs text-slate-500">Progres hafalan santri: <strong><?php echo htmlspecialchars($active_child['nama_siswa'] ?? ''); ?></strong></p>
         </div>
-        <div class="w-10 h-10 rounded-2xl bg-teal-50 text-teal-700 flex items-center justify-center text-lg shadow-xs">
+        <div class="w-10 h-10 rounded-2xl bg-brand-50 text-[#448AFF] flex items-center justify-center text-lg shadow-xs">
             <i class="fa-solid fa-book-quran"></i>
         </div>
     </div>
@@ -146,35 +146,35 @@ require_once __DIR__ . '/layouts/header.php';
         <div class="bg-white p-3 rounded-2xl border border-slate-200/80 shadow-xs text-center">
             <span class="text-[10px] text-slate-400 font-semibold uppercase block">Total Setor</span>
             <span class="text-lg font-extrabold text-slate-900 mt-0.5 block"><?php echo number_format($stats['total']); ?></span>
-            <span class="text-[9px] text-teal-700 font-medium">Sesi</span>
+            <span class="text-[9px] text-[#448AFF] font-medium">Sesi</span>
         </div>
 
         <div class="bg-white p-3 rounded-2xl border border-slate-200/80 shadow-xs text-center">
             <span class="text-[10px] text-slate-400 font-semibold uppercase block">Ziyadah</span>
-            <span class="text-lg font-extrabold text-emerald-600 mt-0.5 block"><?php echo number_format($stats['ziyadah']); ?></span>
+            <span class="text-lg font-extrabold text-[#448AFF] mt-0.5 block"><?php echo number_format($stats['ziyadah']); ?></span>
             <span class="text-[9px] text-slate-400 font-medium">Hafalan Baru</span>
         </div>
 
         <div class="bg-white p-3 rounded-2xl border border-slate-200/80 shadow-xs text-center">
             <span class="text-[10px] text-slate-400 font-semibold uppercase block">Juz Aktif</span>
-            <span class="text-lg font-extrabold text-teal-700 mt-0.5 block font-arabic"><?php echo $stats['juz_latest']; ?></span>
+            <span class="text-lg font-extrabold text-brand-700 mt-0.5 block font-arabic"><?php echo $stats['juz_latest']; ?></span>
             <span class="text-[9px] text-slate-400 font-medium">Target / Berjalan</span>
         </div>
     </div>
 
     <!-- Target & Capaian Semester Progress Card (Jika tersedia target/baseline) -->
     <?php if ($student_progress && ($student_progress['target_juz'] > 0 || $student_progress['total_juz'] > 0)): ?>
-        <div class="bg-gradient-to-br from-teal-900 via-teal-800 to-emerald-900 rounded-2xl p-4 text-white shadow-xs relative overflow-hidden">
+        <div class="bg-gradient-to-br from-[#448AFF] via-brand-700 to-brand-900 rounded-2xl p-4 text-white shadow-xs relative overflow-hidden">
             <div class="absolute -right-6 -bottom-6 text-7xl text-white/5 pointer-events-none">
                 <i class="fa-solid fa-kaaba"></i>
             </div>
             
             <div class="flex items-center justify-between mb-3 relative z-10">
                 <div class="flex items-center gap-2">
-                    <span class="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center text-xs text-teal-200">
+                    <span class="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center text-xs text-white">
                         <i class="fa-solid fa-award"></i>
                     </span>
-                    <span class="text-xs font-bold uppercase tracking-wider text-teal-100">Progres Semester Berjalan</span>
+                    <span class="text-xs font-bold uppercase tracking-wider text-brand-100">Progres Semester Berjalan</span>
                 </div>
                 <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-white/20 text-white backdrop-blur-xs">
                     <?php echo round($student_progress['progress_percentage']); ?>% Tercapai
@@ -184,22 +184,22 @@ require_once __DIR__ . '/layouts/header.php';
             <!-- Progress Bar -->
             <div class="relative z-10">
                 <div class="w-full bg-black/25 rounded-full h-2.5 mb-3 overflow-hidden p-0.5 border border-white/10">
-                    <div class="bg-gradient-to-r from-teal-300 to-emerald-400 h-1.5 rounded-full transition-all duration-500" 
+                    <div class="bg-gradient-to-r from-brand-200 to-white h-1.5 rounded-full transition-all duration-500" 
                          style="width: <?php echo min(100, max(0, $student_progress['progress_percentage'])); ?>%"></div>
                 </div>
 
-                <div class="grid grid-cols-3 gap-2 pt-2 border-t border-white/10 text-center">
+                <div class="grid grid-cols-3 gap-2 pt-2 border-t border-white/15 text-center">
                     <div>
-                        <span class="text-[10px] text-teal-200/80 block">Target Semester</span>
+                        <span class="text-[10px] text-brand-100/85 block">Target Semester</span>
                         <span class="text-xs font-extrabold text-white mt-0.5 block"><?php echo $student_progress['target_juz']; ?> Juz</span>
                     </div>
                     <div>
-                        <span class="text-[10px] text-teal-200/80 block">Hafalan Baru</span>
-                        <span class="text-xs font-extrabold text-emerald-300 mt-0.5 block"><?php echo $student_progress['memorized_juz_semester']; ?> Juz</span>
+                        <span class="text-[10px] text-brand-100/85 block">Hafalan Baru</span>
+                        <span class="text-xs font-extrabold text-white mt-0.5 block"><?php echo $student_progress['memorized_juz_semester']; ?> Juz</span>
                     </div>
                     <div>
-                        <span class="text-[10px] text-teal-200/80 block">Total Hafalan</span>
-                        <span class="text-xs font-extrabold text-teal-200 mt-0.5 block"><?php echo $student_progress['total_juz']; ?> Juz</span>
+                        <span class="text-[10px] text-brand-100/85 block">Total Hafalan</span>
+                        <span class="text-xs font-extrabold text-brand-100 mt-0.5 block"><?php echo $student_progress['total_juz']; ?> Juz</span>
                     </div>
                 </div>
             </div>
@@ -209,15 +209,15 @@ require_once __DIR__ . '/layouts/header.php';
     <!-- Filter Tab Bar -->
     <div class="flex items-center bg-slate-200/70 p-1 rounded-xl text-xs">
         <a href="tahfidz.php?status=all" 
-           class="flex-1 py-1.5 text-center rounded-lg font-semibold transition-all <?php echo (!isset($_GET['status']) || $_GET['status'] === 'all') ? 'bg-white text-teal-800 shadow-xs' : 'text-slate-600 hover:text-slate-900'; ?>">
+           class="flex-1 py-1.5 text-center rounded-lg font-semibold transition-all <?php echo (!isset($_GET['status']) || $_GET['status'] === 'all') ? 'bg-white text-[#448AFF] shadow-xs' : 'text-slate-600 hover:text-slate-900'; ?>">
             Semua (<?php echo $stats['total']; ?>)
         </a>
         <a href="tahfidz.php?status=ziyadah" 
-           class="flex-1 py-1.5 text-center rounded-lg font-semibold transition-all <?php echo (($_GET['status'] ?? '') === 'ziyadah') ? 'bg-white text-teal-800 shadow-xs' : 'text-slate-600 hover:text-slate-900'; ?>">
+           class="flex-1 py-1.5 text-center rounded-lg font-semibold transition-all <?php echo (($_GET['status'] ?? '') === 'ziyadah') ? 'bg-white text-[#448AFF] shadow-xs' : 'text-slate-600 hover:text-slate-900'; ?>">
             Ziyadah (<?php echo $stats['ziyadah']; ?>)
         </a>
         <a href="tahfidz.php?status=murajaah" 
-           class="flex-1 py-1.5 text-center rounded-lg font-semibold transition-all <?php echo (($_GET['status'] ?? '') === 'murajaah') ? 'bg-white text-teal-800 shadow-xs' : 'text-slate-600 hover:text-slate-900'; ?>">
+           class="flex-1 py-1.5 text-center rounded-lg font-semibold transition-all <?php echo (($_GET['status'] ?? '') === 'murajaah') ? 'bg-white text-[#448AFF] shadow-xs' : 'text-slate-600 hover:text-slate-900'; ?>">
             Muraja'ah (<?php echo $stats['murajaah']; ?>)
         </a>
     </div>
@@ -248,7 +248,7 @@ require_once __DIR__ . '/layouts/header.php';
                 <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs relative">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-[11px] font-semibold text-slate-500 flex items-center gap-1.5">
-                            <i class="fa-regular fa-calendar text-teal-600"></i>
+                            <i class="fa-regular fa-calendar text-[#448AFF]"></i>
                             <?php echo date('d M Y', strtotime($row['date'])); ?>
                         </span>
                         
@@ -258,7 +258,7 @@ require_once __DIR__ . '/layouts/header.php';
                                     Muraja'ah
                                 </span>
                             <?php else: ?>
-                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-200">
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-50 text-brand-700 border border-brand-200">
                                     Ziyadah
                                 </span>
                             <?php endif; ?>
@@ -285,7 +285,7 @@ require_once __DIR__ . '/layouts/header.php';
                         <?php if (!empty($juzNumber)): ?>
                             <div class="text-right">
                                 <span class="text-[9px] uppercase font-bold text-slate-400 block">Juz</span>
-                                <span class="text-base font-black text-teal-700 font-arabic"><?php echo $juzNumber; ?></span>
+                                <span class="text-base font-black text-[#448AFF] font-arabic"><?php echo $juzNumber; ?></span>
                             </div>
                         <?php endif; ?>
                     </div>
