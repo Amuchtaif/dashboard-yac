@@ -26,7 +26,7 @@ require_once __DIR__ . '/bottom_nav.php';
     </div>
 
     <!-- Scripts -->
-    <script>
+    <script nonce="<?php echo csp_nonce(); ?>">
         // Modal Child Switcher
         function openChildModal() {
             const modal = document.getElementById('childModal');

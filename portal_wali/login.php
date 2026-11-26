@@ -179,7 +179,7 @@ require_once __DIR__ . '/layouts/header.php';
     </div>
 </div>
 
-<script>
+<script nonce="<?php echo csp_nonce(); ?>">
 function validateLoginForm() {
     const phoneInput = document.getElementById('inputPhone');
     const phoneVal = phoneInput.value.trim();

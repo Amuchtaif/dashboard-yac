@@ -32,7 +32,7 @@ $all_children = !empty($_SESSION['guardian_id']) ? get_guardian_children($_SESSI
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
+    <script nonce="<?php echo csp_nonce(); ?>">
         tailwind.config = {
             theme: {
                 extend: {

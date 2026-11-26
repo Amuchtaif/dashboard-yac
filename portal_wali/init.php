@@ -81,7 +81,8 @@ if (!function_exists('get_guardian_children')) {
                 eu.name as unit_name
             FROM guardian_students gs
             JOIN students s ON gs.student_id = s.id
-            LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.status = 'ACTIVE'
+            LEFT JOIN academic_years ay ON ay.is_active = 1
+            LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = ay.id AND sch.status = 'ACTIVE'
             LEFT JOIN grade_levels gl ON sch.class_id = gl.id
             LEFT JOIN education_units eu ON gl.education_unit_id = eu.id
             WHERE gs.guardian_id = :guardian_id AND gs.is_verified = 1
