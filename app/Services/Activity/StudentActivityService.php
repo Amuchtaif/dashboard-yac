@@ -117,15 +117,90 @@ class StudentActivityService {
         return true;
     }
 
+    private function getActiveAcademicYearId() {
+        $res = $this->mysqli->query("SELECT id FROM academic_years WHERE is_active = 1 LIMIT 1");
+        if ($res && $row = $res->fetch_assoc()) {
+            return (int)$row['id'];
+        }
+        return null;
+    }
+
+    private function fetchStudentsByActiveYear($activeYearId, $studentIds = null) {
+        $params = [];
+        $types = "";
+
+        if ($activeYearId) {
+            $sql = "
+                SELECT DISTINCT
+                    s.id,
+                    s.nama_siswa AS full_name,
+                    COALESCE(gl.name, s.kelas) AS kelas,
+                    COALESCE(eu.name, s.tingkat) AS tingkat
+                FROM students s
+                JOIN student_class_history sch
+                    ON s.id = sch.student_id
+                    AND sch.academic_year_id = ?
+                    AND sch.status = 'ACTIVE'
+                LEFT JOIN grade_levels gl ON sch.class_id = gl.id
+                LEFT JOIN education_units eu ON gl.education_unit_id = eu.id
+                WHERE s.status = 'Aktif'
+            ";
+            $params[] = (int)$activeYearId;
+            $types .= "i";
+        } else {
+            $sql = "
+                SELECT id, nama_siswa AS full_name, kelas, tingkat
+                FROM students s
+                WHERE s.status = 'Aktif'
+            ";
+        }
+
+        if (is_array($studentIds) && !empty($studentIds)) {
+            $cleanIds = array_values(array_unique(array_map('intval', $studentIds)));
+            $placeholders = implode(',', array_fill(0, count($cleanIds), '?'));
+            $sql .= " AND s.id IN ($placeholders)";
+            foreach ($cleanIds as $sid) {
+                $params[] = $sid;
+                $types .= "i";
+            }
+        }
+
+        $sql .= " ORDER BY s.nama_siswa ASC";
+
+        $stmt = $this->mysqli->prepare($sql);
+        if (!empty($params)) {
+            $stmt->bind_param($types, ...$params);
+        }
+        $stmt->execute();
+        $res = $stmt->get_result();
+        $students = [];
+        while ($row = $res->fetch_assoc()) {
+            $students[] = $row;
+        }
+        $stmt->close();
+
+        return $students;
+    }
+
     public function getActivity($id) {
         $id = (int)$id;
+        $activeYearId = $this->getActiveAcademicYearId();
+        $ayJoin = $activeYearId
+            ? "LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = " . (int)$activeYearId . " AND sch.status = 'ACTIVE'
+               LEFT JOIN grade_levels gl ON sch.class_id = gl.id
+               LEFT JOIN education_units eu ON gl.education_unit_id = eu.id"
+            : "LEFT JOIN grade_levels gl ON 1=0 LEFT JOIN education_units eu ON 1=0";
+
         $stmt = $this->mysqli->prepare("
             SELECT a.*, 
-                   s.nama_siswa as student_name, s.kelas as student_class, s.tingkat as student_unit,
+                   s.nama_siswa as student_name,
+                   COALESCE(gl.name, s.kelas) as student_class,
+                   COALESCE(eu.name, s.tingkat) as student_unit,
                    t.name as activity_name, t.type as activity_type, t.icon, t.color, t.point,
                    e.full_name as creator_name
             FROM student_activities a
             JOIN students s ON a.student_id = s.id
+            $ayJoin
             JOIN activity_types t ON a.activity_type_id = t.id
             LEFT JOIN employees e ON a.created_by = e.id
             WHERE a.id = ? AND a.deleted_at IS NULL LIMIT 1
@@ -158,6 +233,13 @@ class StudentActivityService {
 
     public function listActivities($filters = [], $page = 1, $limit = 10) {
         $offset = ($page - 1) * $limit;
+        $activeYearId = $this->getActiveAcademicYearId();
+        $ayJoin = $activeYearId
+            ? "LEFT JOIN student_class_history sch ON s.id = sch.student_id AND sch.academic_year_id = " . (int)$activeYearId . " AND sch.status = 'ACTIVE'
+               LEFT JOIN grade_levels gl ON sch.class_id = gl.id
+               LEFT JOIN education_units eu ON gl.education_unit_id = eu.id"
+            : "LEFT JOIN grade_levels gl ON 1=0 LEFT JOIN education_units eu ON 1=0";
+
         $where = "WHERE a.deleted_at IS NULL";
         $params = [];
         $types = "";
@@ -193,12 +275,12 @@ class StudentActivityService {
             $types .= "s";
         }
         if (isset($filters['class']) && !empty($filters['class'])) {
-            $where .= " AND s.kelas = ?";
+            $where .= " AND COALESCE(gl.name, s.kelas) = ?";
             $params[] = $filters['class'];
             $types .= "s";
         }
         if (isset($filters['unit']) && !empty($filters['unit'])) {
-            $where .= " AND s.tingkat = ?";
+            $where .= " AND COALESCE(eu.name, s.tingkat) = ?";
             $params[] = $filters['unit'];
             $types .= "s";
         }
@@ -212,7 +294,7 @@ class StudentActivityService {
         }
 
         // Count total
-        $count_query = "SELECT COUNT(*) FROM student_activities a JOIN students s ON a.student_id = s.id $where";
+        $count_query = "SELECT COUNT(DISTINCT a.id) FROM student_activities a JOIN students s ON a.student_id = s.id $ayJoin $where";
         $stmt = $this->mysqli->prepare($count_query);
         if (!empty($params)) {
             $stmt->bind_param($types, ...$params);
@@ -224,14 +306,18 @@ class StudentActivityService {
         // Fetch data
         $query = "
             SELECT a.*, 
-                   s.nama_siswa as student_name, s.kelas as student_class, s.tingkat as student_unit,
+                   s.nama_siswa as student_name,
+                   COALESCE(gl.name, s.kelas) as student_class,
+                   COALESCE(eu.name, s.tingkat) as student_unit,
                    t.name as activity_name, t.type as activity_type, t.icon, t.color, t.point,
                    e.full_name as creator_name
             FROM student_activities a
             JOIN students s ON a.student_id = s.id
+            $ayJoin
             JOIN activity_types t ON a.activity_type_id = t.id
             LEFT JOIN employees e ON a.created_by = e.id
             $where 
+            GROUP BY a.id
             ORDER BY a.activity_date DESC, a.created_at DESC 
             LIMIT ? OFFSET ?
         ";
@@ -264,6 +350,7 @@ class StudentActivityService {
 
     public function getStudentsForUser($user_id) {
         $user_id = (int)$user_id;
+        $activeYearId = $this->getActiveAcademicYearId();
 
         // 1. Check if user is admin / has global permission
         $stmt = $this->mysqli->prepare("SELECT p.name as position_name, p.can_manage_amaliyah 
@@ -283,52 +370,70 @@ class StudentActivityService {
         }
 
         if ($is_admin) {
-            // Admin can access all active students
-            $res = $this->mysqli->query("SELECT id, nama_siswa as full_name, kelas, tingkat FROM students WHERE status = 'Aktif' ORDER BY nama_siswa ASC");
-            $students = [];
-            while ($row = $res->fetch_assoc()) {
-                $students[] = $row;
-            }
-            return $students;
+            // Admin accesses all active students in the active academic year
+            return $this->fetchStudentsByActiveYear($activeYearId);
         }
 
         $student_ids = [];
-        $classes = [];
+        $class_ids = [];
 
         // Source A: Homeroom (Wali Kelas)
-        $stmt = $this->mysqli->prepare("SELECT name FROM grade_levels WHERE teacher_id = ?");
+        $stmt = $this->mysqli->prepare("SELECT id FROM grade_levels WHERE teacher_id = ? AND is_active = 1");
         $stmt->bind_param("i", $user_id);
         $stmt->execute();
         $res = $stmt->get_result();
         while ($row = $res->fetch_assoc()) {
-            $classes[] = $row['name'];
+            $class_ids[] = (int)$row['id'];
         }
         $stmt->close();
 
-        // Source B: Teacher (class schedules)
-        $stmt = $this->mysqli->prepare("SELECT DISTINCT gl.name 
-            FROM class_schedules cs
-            JOIN grade_levels gl ON cs.grade_level_id = gl.id
-            WHERE cs.employee_id = ?");
-        $stmt->bind_param("i", $user_id);
+        // Source B: Teacher (class schedules on active academic year)
+        if ($activeYearId) {
+            $stmt = $this->mysqli->prepare("SELECT DISTINCT cs.grade_level_id 
+                FROM class_schedules cs
+                JOIN grade_levels gl ON cs.grade_level_id = gl.id
+                WHERE cs.employee_id = ? AND cs.academic_year_id = ? AND cs.is_active = 1 AND gl.is_active = 1");
+            $stmt->bind_param("ii", $user_id, $activeYearId);
+        } else {
+            $stmt = $this->mysqli->prepare("SELECT DISTINCT cs.grade_level_id 
+                FROM class_schedules cs
+                JOIN grade_levels gl ON cs.grade_level_id = gl.id
+                WHERE cs.employee_id = ? AND cs.is_active = 1 AND gl.is_active = 1");
+            $stmt->bind_param("i", $user_id);
+        }
         $stmt->execute();
         $res = $stmt->get_result();
         while ($row = $res->fetch_assoc()) {
-            $classes[] = $row['name'];
+            $class_ids[] = (int)$row['grade_level_id'];
         }
         $stmt->close();
 
-        $classes = array_unique($classes);
+        $class_ids = array_values(array_unique($class_ids));
 
-        // Fetch students in these classes
-        if (!empty($classes)) {
-            $placeholders = implode(',', array_fill(0, count($classes), '?'));
-            $stmt = $this->mysqli->prepare("SELECT id FROM students WHERE status = 'Aktif' AND kelas IN ($placeholders)");
-            $stmt->bind_param(str_repeat('s', count($classes)), ...$classes);
+        // Fetch students in these classes from student_class_history (active academic year)
+        if (!empty($class_ids)) {
+            $placeholders = implode(',', array_fill(0, count($class_ids), '?'));
+            if ($activeYearId) {
+                $sql = "SELECT DISTINCT sch.student_id
+                    FROM student_class_history sch
+                    JOIN students s ON sch.student_id = s.id
+                    WHERE s.status = 'Aktif' AND sch.academic_year_id = ? AND sch.status = 'ACTIVE' AND sch.class_id IN ($placeholders)";
+                $params = array_merge([$activeYearId], $class_ids);
+                $types = str_repeat('i', count($params));
+            } else {
+                $sql = "SELECT DISTINCT sch.student_id
+                    FROM student_class_history sch
+                    JOIN students s ON sch.student_id = s.id
+                    WHERE s.status = 'Aktif' AND sch.status = 'ACTIVE' AND sch.class_id IN ($placeholders)";
+                $params = $class_ids;
+                $types = str_repeat('i', count($params));
+            }
+            $stmt = $this->mysqli->prepare($sql);
+            $stmt->bind_param($types, ...$params);
             $stmt->execute();
             $res = $stmt->get_result();
             while ($row = $res->fetch_assoc()) {
-                $student_ids[] = (int)$row['id'];
+                $student_ids[] = (int)$row['student_id'];
             }
             $stmt->close();
         }
@@ -360,29 +465,13 @@ class StudentActivityService {
         }
         $stmt->close();
 
-        $student_ids = array_unique($student_ids);
+        $student_ids = array_values(array_unique($student_ids));
 
         if (empty($student_ids)) {
-            $res = $this->mysqli->query("SELECT id, nama_siswa as full_name, kelas, tingkat FROM students WHERE status = 'Aktif' OR status LIKE 'Aktif%' ORDER BY nama_siswa ASC");
-            $students = [];
-            while ($row = $res->fetch_assoc()) {
-                $students[] = $row;
-            }
-            return $students;
+            return $this->fetchStudentsByActiveYear($activeYearId);
         }
 
-        $placeholders = implode(',', array_fill(0, count($student_ids), '?'));
-        $stmt = $this->mysqli->prepare("SELECT id, nama_siswa as full_name, kelas, tingkat FROM students WHERE status = 'Aktif' AND id IN ($placeholders) ORDER BY nama_siswa ASC");
-        $stmt->bind_param(str_repeat('i', count($student_ids)), ...$student_ids);
-        $stmt->execute();
-        $res = $stmt->get_result();
-        $students = [];
-        while ($row = $res->fetch_assoc()) {
-            $students[] = $row;
-        }
-        $stmt->close();
-
-        return $students;
+        return $this->fetchStudentsByActiveYear($activeYearId, $student_ids);
     }
 
     public function addAttachment($activity_id, $file, $caption, $uploaded_by) {
